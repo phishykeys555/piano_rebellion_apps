@@ -69,7 +69,12 @@ button:focus-visible,input:focus-visible{outline:3px solid var(--accent);outline
 .piano .b{position:absolute;top:0;height:60%;background:var(--key-b);border:1px solid #000;border-radius:0 0 5px 5px;z-index:2;padding:0}
 .piano button.hit,.piano button.show{background:var(--good)!important;color:#fff}
 .piano button.miss{background:var(--bad)!important;color:#fff}
-.micpad{display:flex;flex-direction:column;align-items:center;gap:8px;padding:6px 0}
+.micpad{display:flex;flex-direction:column;align-items:center;gap:10px;padding:6px 0}
+.micctl{width:100%;max-width:360px;display:grid;grid-template-columns:auto 1fr;gap:8px 10px;align-items:center;font-size:12px;color:var(--muted)}
+.micctl select{font:inherit;font-size:13px;padding:6px 8px;border-radius:8px;border:1px solid var(--border);background:var(--panel);color:var(--ink);min-width:0;width:100%}
+.micctl input[type=range]{width:100%;accent-color:var(--accent)}
+.meter{position:relative}
+.meter .thr{position:absolute;top:-3px;bottom:-3px;width:2px;background:var(--ink);opacity:.6}
 .heard{font-family:var(--mono);font-weight:700;font-size:40px;min-height:48px}
 .micstat{font-size:13px;color:var(--muted);text-align:center}
 .meter{width:100%;max-width:320px;height:6px;border-radius:3px;background:var(--border);overflow:hidden}
@@ -163,7 +168,11 @@ summary{cursor:pointer;padding:12px 16px;font-weight:600}
     <div id="micPad" class="micpad" hidden>
       <button class="primary" id="micBtn">Turn on the microphone</button>
       <div class="heard" id="heard" aria-live="polite">–</div>
-      <div class="meter"><i id="meterFill"></i></div>
+      <div class="micctl" id="micCtl" hidden>
+        <label for="micSel">Microphone</label><select id="micSel"></select>
+        <label for="micGain">Sensitivity</label><input type="range" id="micGain" min="1" max="12" step="0.5" value="3">
+        <span>Level</span><div class="meter" style="max-width:none"><i id="meterFill"></i><span class="thr" id="thr"></span></div>
+      </div>
       <div class="micstat" id="micStat">Play the note on your piano. One note at a time, the right octave.</div>
     </div>
     <div id="pianoPad" hidden><div class="pianoScroll" id="pianoScroll"><div class="piano" id="piano"></div></div><p class="rotate" id="rotateHint" hidden>Turn your phone sideways to see the whole keyboard.</p></div>
@@ -326,7 +335,7 @@ summary{cursor:pointer;padding:12px 16px;font-weight:600}
   const GM={};
   function ink(ch){ if(GM[ch]) return GM[ch]; const c=document.createElement("canvas").getContext("2d"); c.font="100px 'Noto Music'";
     const m=c.measureText(ch), r={a:m.actualBoundingBoxAscent,d:m.actualBoundingBoxDescent,l:m.actualBoundingBoxLeft||0};
-    if(document.fonts&&document.fonts.check("100px 'Noto Music'")) GM[ch]=r; return r }
+    if(document.fonts&&document.fonts.check("100px 'Noto Music'",ch)) GM[ch]=r; return r }
   // draw glyph ch so its ink spans exactly the standard box around reference y; x = left edge of the ink
   function glyph(ch,x,y,gap,fill){ const [up,down]=BOX[ch], m=ink(ch), H=(up+down)*gap, fs=100*H/((m.a+m.d)||100), top=y-up*gap;
     return `<text x="${x+m.l*fs/100}" y="${top+m.a*fs/100}" font-family="Noto Music, Bravura, serif" font-size="${fs.toFixed(2)}" fill="${fill}">${ch}</text>` }
@@ -403,24 +412,36 @@ summary{cursor:pointer;padding:12px 16px;font-weight:600}
     for(let l=0;l<=maxLag+1;l++){let v=0; for(let j=0;j<N-l;j++) v+=b[j]*b[j+l]; c[l]=v}
     let d=0; while(d<maxLag&&c[d]>c[d+1]) d++; let mv=-1,mp=-1; for(let l=d;l<=maxLag;l++) if(c[l]>mv){mv=c[l];mp=l}
     if(mp<1) return -1; const x1=c[mp-1],x2=c[mp],x3=c[mp+1],a=(x1+x3-2*x2)/2,bb=(x3-x1)/2; const T=a?mp-bb/(2*a):mp; return sr/T }
-  async function micStart(){ try{
+  // Routed source -> gain (sensitivity) -> analyser -> muted output: Safari/iOS only process nodes that reach the destination.
+  const THR=0.015;
+  async function micStart(deviceId){ try{
     audio=audio||new (window.AudioContext||window.webkitAudioContext)(); await audio.resume();
-    const stream=await navigator.mediaDevices.getUserMedia({audio:{echoCancellation:false,noiseSuppression:false,autoGainControl:false}});
-    const src=audio.createMediaStreamSource(stream), an=audio.createAnalyser(); an.fftSize=4096; src.connect(an);
-    mic={stream,an,buf:new Float32Array(an.fftSize),hist:[],armed:false,armedAt:0,cand:[],cool:0};
-    mic.timer=setInterval(micTick,40); $("micBtn").textContent="Microphone on"; $("micBtn").disabled=true;
-    $("micStat").textContent="Listening. Play the note on your piano.";
-  }catch(e){ $("micStat").textContent="The microphone is blocked here. Open the game in its own browser tab and allow the microphone." } }
-  function micStop(){ if(!mic)return; clearInterval(mic.timer); mic.stream.getTracks().forEach(t=>t.stop()); mic=null; $("micBtn").textContent="Turn on the microphone"; $("micBtn").disabled=false }
+    if(mic) micStop(true);
+    const c={echoCancellation:false,noiseSuppression:false,autoGainControl:false}; if(deviceId) c.deviceId={exact:deviceId};
+    const stream=await navigator.mediaDevices.getUserMedia({audio:c});
+    const src=audio.createMediaStreamSource(stream), g=audio.createGain(), an=audio.createAnalyser(), mute=audio.createGain();
+    g.gain.value=+$("micGain").value; an.fftSize=4096; mute.gain.value=0; src.connect(g); g.connect(an); an.connect(mute); mute.connect(audio.destination);
+    mic={stream,g,an,src,mute,buf:new Float32Array(an.fftSize),hist:[],armed:false,armedAt:0,cand:[],cool:0};
+    mic.timer=setInterval(micTick,40); $("micBtn").textContent="Microphone on"; $("micBtn").disabled=true; $("micCtl").hidden=false;
+    $("thr").style.left=Math.min(100,THR*600)+"%";
+    const devs=(await navigator.mediaDevices.enumerateDevices()).filter(d=>d.kind==="audioinput"), cur=stream.getAudioTracks()[0].getSettings().deviceId;
+    $("micSel").innerHTML=devs.map((d,i)=>`<option value="${d.deviceId}">${(d.label||("Microphone "+(i+1))).replace(/[<>&]/g,"")}</option>`).join(""); if(cur) $("micSel").value=cur;
+    $("micStat").textContent="Listening. Play any key: the Level bar should jump past the line. Too low? Raise Sensitivity.";
+  }catch(e){ $("micStat").textContent=e&&e.name==="NotAllowedError"?"Microphone permission was blocked. Allow it in your browser's site settings, then tap the button again.":"No microphone found. Plug one in or pick another, then tap the button again." } }
+  function micStop(keepUi){ if(!mic)return; clearInterval(mic.timer); mic.stream.getTracks().forEach(t=>t.stop()); try{mic.mute.disconnect()}catch(e){} mic=null;
+    if(!keepUi){ $("micBtn").textContent="Turn on the microphone"; $("micBtn").disabled=false; $("micCtl").hidden=true } }
+  $("micSel").addEventListener("change",e=>micStart(e.target.value));
+  $("micGain").addEventListener("input",e=>{ if(mic) mic.g.gain.value=+e.target.value; store.set("gain",e.target.value) });
+  $("micGain").value=store.get("gain","3");
   function micTick(){ const m=mic; m.an.getFloatTimeDomainData(m.buf); let r=0; for(let i=0;i<m.buf.length;i++) r+=m.buf[i]*m.buf[i]; r=Math.sqrt(r/m.buf.length);
     $("meterFill").style.width=Math.min(100,r*600)+"%"; const now=performance.now(), avg=m.hist.length?m.hist.reduce((a,b)=>a+b,0)/m.hist.length:0;
     m.hist.push(r); if(m.hist.length>6) m.hist.shift();
-    if(!m.armed&&now>m.cool&&r>0.015&&r>avg*1.7){m.armed=true;m.armedAt=now;m.cand=[]}
+    if(!m.armed&&now>m.cool&&r>THR&&r>avg*1.7){m.armed=true;m.armedAt=now;m.cand=[]}
     if(m.armed){ const f=acf(m.buf,audio.sampleRate); if(f>40&&f<2200){const md=Math.round(69+12*Math.log2(f/440)); m.cand.push(md); $("heard").textContent=mname(md)}
       if(m.cand.length>=4){ const srt=[...m.cand].sort((a,b)=>a-b), md=srt[Math.floor(srt.length/2)]; m.armed=false; m.cool=now+450; $("heard").textContent=mname(md); answerHeard(md) }
       else if(now-m.armedAt>600){m.armed=false} } }
   function answerHeard(md){ if(!q||locked)return; const t=midiOf(q.notes[idx]); grade(md===t) }
-  $("micBtn").addEventListener("click",micStart);
+  $("micBtn").addEventListener("click",()=>micStart($("micSel").value||undefined));
   document.querySelectorAll("#seg button").forEach(b=>b.addEventListener("click",()=>{setRadio("mode",b.dataset.mode);store.set("mode",b.dataset.mode);layout();newQuestion(true)}));
 
   function render(){ $("sCorrect").textContent=`${st.correct}/${st.total}`; $("sPct").textContent=st.total?Math.round(100*st.correct/st.total)+"%":"–"; $("sStreak").textContent=st.streak; $("sBest").textContent=st.best }
@@ -454,7 +475,8 @@ summary{cursor:pointer;padding:12px 16px;font-weight:600}
 
   selectLevel(level,true); if(level==="C"){const c=store.get("custom",null); if(c) applySettings(c)}
   layout(); render(); newQuestion(true);
-  if(document.fonts&&document.fonts.ready)document.fonts.ready.then(()=>q&&draw());
+  if(document.fonts){ const redraw=()=>{ for(const k in GM) delete GM[k]; q&&draw() };
+    document.fonts.load("100px 'Noto Music'","𝄞𝄢♯♭♮").then(redraw).catch(()=>{}); document.fonts.ready.then(redraw) }
 })();
 </script>
 
