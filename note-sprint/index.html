@@ -93,8 +93,18 @@ summary{cursor:pointer;padding:12px 16px;font-weight:600}
 .settings legend{font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-bottom:4px}
 .settings label{display:flex;gap:8px;align-items:center}
 .tip{font-size:13px;color:var(--muted);text-align:center;margin:0}
-.timerbar{height:6px;border-radius:3px;background:var(--border);overflow:hidden}
+.clockrow{display:flex;justify-content:center;padding:2px 0}
+.watch{position:relative;width:118px;height:132px}
+.watch svg{position:absolute;inset:0;width:118px;height:132px}
+.watch .ring-bg{stroke:var(--border)} .watch .ring{stroke:var(--accent);transition:stroke-dashoffset 1s linear}
+.watch .crown{fill:var(--ink)}
+.watch .num{position:absolute;left:0;right:0;top:44px;text-align:center;font-family:var(--mono);font-weight:700;font-size:40px;line-height:1;font-variant-numeric:tabular-nums}
+.watch .lab{position:absolute;left:0;right:0;top:88px;text-align:center;font-size:10px;letter-spacing:.14em;color:var(--muted);font-weight:700}
+.watch.hot .ring{stroke:var(--bad)} .watch.hot .num{color:var(--bad);animation:pulse 1s ease-in-out infinite}
+@keyframes pulse{50%{transform:scale(1.12)}}
+.timerbar{height:10px;border-radius:3px;background:var(--border);overflow:hidden}
 .timerbar i{display:block;height:100%;background:var(--accent);width:100%;transition:width 1s linear}
+.timerbar.hot i{background:var(--bad)}
 .results{position:absolute;inset:0;background:var(--panel);border-radius:14px;padding:22px;display:flex;flex-direction:column;gap:14px;z-index:5;overflow:auto}
 .results h2{font-family:var(--display);font-weight:800;font-size:22px;margin:0}
 .big{font-family:var(--mono);font-weight:700;font-size:64px;line-height:1;letter-spacing:-.03em}
@@ -132,7 +142,12 @@ summary{cursor:pointer;padding:12px 16px;font-weight:600}
       <div class="stat"><b id="sStreak">0</b><span>Streak</span></div>
       <div class="stat"><b id="sBest">0</b><span>Best</span></div>
     </div>
-    <div class="timerbar" id="timerbar" hidden><i id="timerfill"></i></div>
+    <div class="clockrow" id="clockrow" hidden><div class="watch" id="watch" role="timer" aria-label="Time left">
+      <svg viewBox="0 0 118 132"><rect class="crown" x="51" y="0" width="16" height="9" rx="2"/><rect class="crown" x="56" y="8" width="6" height="8"/><rect class="crown" x="94" y="16" width="10" height="6" rx="2" transform="rotate(45 99 19)"/>
+        <circle class="ring-bg" cx="59" cy="73" r="52" fill="none" stroke-width="9"/>
+        <circle class="ring" id="ring" cx="59" cy="73" r="52" fill="none" stroke-width="9" stroke-linecap="round" transform="rotate(-90 59 73)" stroke-dasharray="326.7" stroke-dashoffset="0"/></svg>
+      <div class="num" id="clock">60</div><div class="lab">SECONDS</div></div>
+      <div class="timerbar" id="timerbar" hidden><i id="timerfill"></i></div></div>
 
     <div class="staffbox" id="staffbox"><svg id="staff" role="img" aria-label="Note on a staff"></svg></div>
     <div class="prompt" id="prompt" aria-live="polite"></div>
@@ -402,9 +417,11 @@ summary{cursor:pointer;padding:12px 16px;font-weight:600}
   $("resetBtn").addEventListener("click",()=>{resetScore();newQuestion(true)});
 
   // ---------- sprint ----------
-  function stopTimer(){ if(timer){clearInterval(timer);timer=null} sprintOver=false; $("timerbar").hidden=true; $("startTimed").textContent="Start 60-second sprint" }
-  function startSprint(){ resetScore(); $("results").hidden=true; timeLeft=60; $("timerbar").hidden=false; $("timerfill").style.width="100%"; $("startTimed").textContent="Stop"; newQuestion(true);
-    timer=setInterval(()=>{ timeLeft--; $("timerfill").style.width=(timeLeft/60*100)+"%"; if(timeLeft<=0) endSprint() },1000) }
+  function stopTimer(){ if(timer){clearInterval(timer);timer=null} sprintOver=false; $("clockrow").hidden=true; $("startTimed").textContent="Start 60-second sprint" }
+  function startSprint(){ resetScore(); $("results").hidden=true; timeLeft=60; $("clockrow").hidden=false; showClock(); $("timerfill").style.width="100%"; $("startTimed").textContent="Stop"; newQuestion(true);
+    timer=setInterval(()=>{ timeLeft--; showClock(); $("timerfill").style.width=(timeLeft/60*100)+"%"; if(timeLeft<=0) endSprint() },1000) }
+  function showClock(){ const t=Math.max(0,timeLeft); $("clock").textContent=t;
+    $("ring").style.strokeDashoffset=String(326.7*(1-t/60)); $("watch").classList.toggle("hot",t<=10) }
   function endSprint(){ clearInterval(timer); timer=null; sprintOver=true; locked=true; $("startTimed").textContent="Start 60-second sprint";
     $("rScore").innerHTML=`${st.correct} <small>correct in 60 s</small>`;
     $("rPct").textContent=(st.total?Math.round(100*st.correct/st.total):0)+"%"; $("rTotal").textContent=st.total; $("rBest").textContent=st.best;
