@@ -37,7 +37,7 @@ header{display:flex;flex-direction:column;gap:4px}
 h1{font-family:var(--display);font-weight:800;font-size:30px;letter-spacing:-.02em;margin:0}
 h1 em{font-style:normal;color:var(--accent)}
 .sub{color:var(--muted);font-size:13px;margin:0}
-.levels{display:grid;grid-template-columns:repeat(5,1fr);gap:6px}
+.levels{display:grid;grid-template-columns:repeat(6,1fr);gap:6px}
 .lvl{padding:8px 4px;display:flex;flex-direction:column;gap:2px;align-items:center;text-align:center}
 .lvl b{font-family:var(--mono);font-size:15px}
 .lvl span{font-size:11px;color:var(--muted);line-height:1.2}
@@ -86,6 +86,12 @@ button:focus-visible,input:focus-visible{outline:3px solid var(--accent);outline
 .seg{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}
 .seg button{padding:9px 6px;font-weight:600;font-size:13px}
 .seg button[aria-pressed="true"]{background:var(--ink);color:var(--panel);border-color:var(--ink)}
+.ivpad{display:flex;flex-direction:column;gap:10px}
+.ivfocus{display:flex;gap:6px;flex-wrap:wrap;justify-content:center;align-items:center;font-size:12px;color:var(--muted)}
+.ivfocus button{padding:5px 10px;font-size:12px;font-weight:700;border-radius:999px}
+.ivfocus button[aria-pressed="true"]{background:var(--accent-soft);border-color:var(--accent);color:var(--accent)}
+.ivans{display:grid;grid-template-columns:repeat(6,1fr);gap:6px}
+.ivans button{font-family:var(--display);font-weight:800;font-size:18px;padding:14px 0}
 .keyrow{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
 .keyrow label{font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
 .keyrow select{font:inherit;padding:7px 10px;border-radius:8px;border:1px solid var(--border);background:var(--panel);color:var(--ink)}
@@ -168,6 +174,10 @@ summary{cursor:pointer;padding:12px 16px;font-weight:600}
       </div>
       <div class="letters" id="letters"></div>
     </div>
+    <div id="ivPad" class="ivpad" hidden>
+      <div class="ivfocus" id="ivFocus"><span>Focus on:</span></div>
+      <div class="ivans" id="ivAns"></div>
+    </div>
     <div id="micPad" class="micpad" hidden>
       <button class="primary" id="micBtn">Turn on the microphone</button>
       <div class="heard" id="heard" aria-live="polite">–</div>
@@ -222,6 +232,7 @@ summary{cursor:pointer;padding:12px 16px;font-weight:600}
       <fieldset><legend>Notes</legend>
         <label><input type="checkbox" id="accOn"> Add sharps and flats</label>
         <label><input type="checkbox" id="soundOn" checked> Play the note after I answer</label>
+        <label><input type="checkbox" id="ivOn"> Intervals (two notes at once)</label>
       </fieldset>
       <fieldset><legend>Answer with</legend>
         <label><input type="radio" name="mode" id="mLetters" value="letters" checked> Letter buttons</label>
@@ -241,6 +252,7 @@ summary{cursor:pointer;padding:12px 16px;font-weight:600}
     {id:"2",name:"Bass",    s:{staffMode:"bass",range:0,acc:false}},
     {id:"3",name:"Both hands",s:{staffMode:"grand",range:0,acc:false}},
     {id:"4",name:"Ledgers ♯♭",s:{staffMode:"grand",range:2,acc:true}},
+    {id:"5",name:"Intervals",s:{staffMode:"mix",range:0,acc:false,iv:true}},
     {id:"C",name:"Custom",  s:null}];
   const KEYS=[["C",0],["G",1],["D",2],["A",3],["E",4],["B",5],["F♯",6],["C♯",7],["F",-1],["B♭",-2],["E♭",-3],["A♭",-4],["D♭",-5],["G♭",-6],["C♭",-7]];
   const SH="FCGDAEB", FL="BEADGCF";
@@ -262,14 +274,14 @@ summary{cursor:pointer;padding:12px 16px;font-weight:600}
   function readSettings(){return{
     staffMode:document.querySelector('input[name=staffMode]:checked').value,
     range:+document.querySelector('input[name=range]:checked').value,
-    acc:$("accOn").checked, sound:$("soundOn").checked,
+    acc:$("accOn").checked, sound:$("soundOn").checked, iv:$("ivOn").checked,
     mode:document.querySelector('input[name=mode]:checked').value}}
-  function applySettings(s){setRadio("staffMode",s.staffMode);setRadio("range",s.range);$("accOn").checked=s.acc}
+  function applySettings(s){setRadio("staffMode",s.staffMode);setRadio("range",s.range);$("accOn").checked=s.acc;$("ivOn").checked=!!s.iv}
   const custom=store.get("custom",null);
   $("soundOn").checked=store.get("sound",true); setRadio("mode",store.get("mode","letters"));
   document.querySelectorAll('.settings input').forEach(el=>el.addEventListener("change",()=>{
     const s=readSettings(); store.set("sound",s.sound); store.set("mode",s.mode);
-    if(el.name!=="mode"&&el.id!=="soundOn"){store.set("custom",{staffMode:s.staffMode,range:s.range,acc:s.acc}); selectLevel("C",true)}
+    if(el.name!=="mode"&&el.id!=="soundOn"){store.set("custom",{staffMode:s.staffMode,range:s.range,acc:s.acc,iv:s.iv}); selectLevel("C",true)}
     layout(); newQuestion(true)}));
 
   // ---------- level picker ----------
@@ -283,6 +295,12 @@ summary{cursor:pointer;padding:12px 16px;font-weight:600}
     resetScore()}
 
   // ---------- pads ----------
+  const IVN={3:"3rd",4:"4th",5:"5th",6:"6th",7:"7th",8:"Octave"};
+  let ivSet=store.get("ivset",[3,4,5,6,7,8]);
+  [3,4,5,6,7,8].forEach(k=>{const b=document.createElement("button");b.textContent=IVN[k];b.dataset.k=k;b.addEventListener("click",()=>answerIv(k));$("ivAns").appendChild(b);
+    const c=document.createElement("button");c.textContent=k===8?"8ve":IVN[k]+"s";c.dataset.k=k;c.setAttribute("aria-pressed",String(ivSet.includes(k)));
+    c.addEventListener("click",()=>{const on=ivSet.includes(k); if(on&&ivSet.length===1) return; ivSet=on?ivSet.filter(x=>x!==k):[...ivSet,k].sort(); c.setAttribute("aria-pressed",String(!on)); store.set("ivset",ivSet); newQuestion(true)});
+    $("ivFocus").appendChild(c)});
   "CDEFGAB".split("").forEach(L=>{const b=document.createElement("button");b.textContent=L;b.addEventListener("click",()=>answerLetter(L));$("letters").appendChild(b)});
   document.querySelectorAll(".chip").forEach(c=>c.addEventListener("click",()=>setAcc(c.dataset.acc)));
   function setAcc(a){acc=a;document.querySelectorAll(".chip").forEach(c=>c.setAttribute("aria-pressed",String(c.dataset.acc===a)))}
@@ -291,7 +309,8 @@ summary{cursor:pointer;padding:12px 16px;font-weight:600}
     document.querySelectorAll("#seg button").forEach(b=>b.setAttribute("aria-pressed",String(b.dataset.mode===s.mode)));
     $("accRow").hidden=!((s.acc||ks!=="0")&&s.mode==="letters"); $("letterPad").hidden=s.mode!=="letters"; $("pianoPad").hidden=s.mode!=="piano"; $("micPad").hidden=s.mode!=="mic"; if(s.mode!=="mic") micStop();
     document.querySelector(".wrap").classList.toggle("wide",s.mode==="piano");
-    if(s.mode==="piano") buildPiano(s)}
+    if(s.iv){ $("letterPad").hidden=true; $("pianoPad").hidden=true; $("micPad").hidden=true; micStop(); $("ivPad").hidden=false; $("seg").style.display="none"; document.querySelector(".wrap").classList.remove("wide") }
+    else { $("ivPad").hidden=true; $("seg").style.display=""; if(s.mode==="piano") buildPiano(s) } }
   // keyboard covers exactly the register the staff can show, padded one key each side
   function buildPiano(s){
     const clefs=s.staffMode==="grand"||s.staffMode==="mix"?["treble","bass"]:[s.staffMode];
@@ -322,6 +341,14 @@ summary{cursor:pointer;padding:12px 16px;font-weight:600}
   function newQuestion(fresh){
     const s=readSettings(), prev=fresh?null:q; locked=false; idx=0; setAcc("");
     const ks=keySetting(), key=ks==="mix"?KEYS[Math.floor(Math.random()*KEYS.length)][1]:+ks;
+    if(s.iv){ const clef=s.staffMode==="treble"||s.staffMode==="bass"?s.staffMode:(Math.random()<.5?"treble":"bass");
+      const lo=-1-2*s.range, hi=9+2*s.range; let num, lp, t=0;
+      do{ num=ivSet[Math.floor(Math.random()*ivSet.length)]; lp=lo+Math.floor(Math.random()*(hi-(num-1)-lo+1)); t++ }while(prev&&prev.iv&&prev.num===num&&prev.notes[0].p===lp&&t<10);
+      const mk=p=>{const dia=BASE[clef]+p, letter=LET[dia%7], octave=Math.floor(dia/7), base=keyAcc(key,letter); let a=base, pr="";
+        if(s.acc&&Math.random()<.3){const o=["#","b",""].filter(x=>x!==base); a=o[Math.floor(Math.random()*2)]; if(a!==base) pr=a===""?"n":a}
+        return {clef,p,letter,octave,acc:a,print:pr}};
+      q={iv:true,grand:false,key,num,notes:[mk(lp),mk(lp+num-1)]};
+      q.marks=[null,null]; $("staffbox").className="staffbox"; setPrompt(null,"Name the interval"); draw(); return }
     if(s.staffMode==="grand") q={grand:true,key,notes:[makeNote("treble",s.range,s.acc,prev&&prev.notes[0],key),makeNote("bass",s.range,s.acc,prev&&prev.notes[1],key)]};
     else{const clef=s.staffMode==="mix"?(Math.random()<.5?"treble":"bass"):s.staffMode; q={grand:false,key,notes:[makeNote(clef,s.range,s.acc,prev&&prev.notes[0],key)]}}
     q.marks=[null,null]; $("staffbox").className="staffbox"; setPrompt(); draw();
@@ -384,12 +411,18 @@ summary{cursor:pointer;padding:12px 16px;font-weight:600}
       const col=mark==="good"?"#1f8a4c":mark==="bad"?"#c2352b":active?"#2457d6":"#16181d";
       for(let lp=-2;lp>=n.p;lp-=2)h+=`<line x1="${x-20}" x2="${x+20}" y1="${y(lp)}" y2="${y(lp)}" stroke="${line}" stroke-width="1.5"/>`;
       for(let lp=10;lp<=n.p;lp+=2)h+=`<line x1="${x-20}" x2="${x+20}" y1="${y(lp)}" y2="${y(lp)}" stroke="${line}" stroke-width="1.5"/>`;
-      if(n.print)h+=glyph(n.print==="#"?"♯":n.print==="b"?"♭":"♮",x-34,ny,gap,col);
+      const stag=q.iv&&i===0&&q.notes[1].print&&q.num<7;   // accidentals closer than a 7th can't stack: push the lower one left
+      if(n.print)h+=glyph(n.print==="#"?"♯":n.print==="b"?"♭":"♮",x-(stag?52:34),ny,gap,col);
       h+=`<ellipse cx="${x}" cy="${ny}" rx="9.5" ry="6.8" transform="rotate(-20 ${x} ${ny})" fill="${col}"/>`;
-      const up=n.p<4, sx=up?x+8.6:x-8.6;
-      h+=`<line x1="${sx}" x2="${sx}" y1="${ny}" y2="${ny+(up?-46:46)}" stroke="${col}" stroke-width="1.8"/>`;
+      if(!q.iv){ const up=n.p<4, sx=up?x+8.6:x-8.6;
+        h+=`<line x1="${sx}" x2="${sx}" y1="${ny}" y2="${ny+(up?-46:46)}" stroke="${col}" stroke-width="1.8"/>` }
       if(mark) h+=`<text x="${x+30}" y="${ny+6}" font-family="JetBrains Mono, monospace" font-size="15" font-weight="700" fill="${col}">${nm(n)}</text>`;
     });
+    if(q.iv){ // one stem for the pair: direction set by the note farther from the middle line (tie = down)
+      const top=tops[0], bottom=top+staffH, y=p=>bottom-p*gap/2, lo=q.notes[0], hi=q.notes[1];
+      const up=Math.abs(lo.p-4)>Math.abs(hi.p-4), col=q.marks[0]==="good"?"#1f8a4c":q.marks[0]==="bad"?"#c2352b":"#16181d";
+      if(up) h+=`<line x1="${x+8.6}" x2="${x+8.6}" y1="${y(lo.p)}" y2="${y(hi.p)-46}" stroke="${col}" stroke-width="1.8"/>`;
+      else h+=`<line x1="${x-8.6}" x2="${x-8.6}" y1="${y(hi.p)}" y2="${y(lo.p)+46}" stroke="${col}" stroke-width="1.8"/>` }
     const svg=$("staff"); svg.setAttribute("viewBox",`0 0 ${W} ${H}`); svg.innerHTML=h;
     svg.setAttribute("aria-label",q.grand?"Two notes on a grand staff":`${q.notes[0].clef} clef note`);
   }
@@ -402,6 +435,18 @@ summary{cursor:pointer;padding:12px 16px;font-weight:600}
       [[1,1],[2,.45],[3,.22],[4,.12],[5,.06]].forEach(([k,a])=>{const o=audio.createOscillator(),g=audio.createGain(); o.type="sine"; o.frequency.value=f*k*(1+0.0004*k*k); g.gain.value=a/(k>2?1.4:1);
         o.connect(g).connect(out); o.start(t0); o.stop(t0+1.7)})});
   }catch(e){} }
+
+  // ---------- intervals ----------
+  function answerIv(k){ if(!q||!q.iv||locked)return; const ok=k===q.num, lo=q.notes[0], hi=q.notes[1];
+    locked=true; q.marks=[ok?"good":"bad",ok?"good":"bad"]; st.total++;
+    if(ok){st.correct++;st.streak++;st.best=Math.max(st.best,st.streak)} else {st.streak=0; st.misses[IVN[q.num]]=(st.misses[IVN[q.num]]||0)+1}
+    const both=lo.p%2===0?"lines":"spaces", odd=q.num%2===1;
+    const rule=odd?`Both notes are ${lo.p%2===0?"on lines":"in spaces"}: that's always an odd interval (3rd, 5th, 7th).`:`One on a line, one in a space: that's always an even interval (4th, 6th, octave).`;
+    $("staffbox").className="staffbox "+(ok?"good":"bad");
+    if(ok) setPrompt("good",`✓ Right · ${IVN[q.num]}`,`${nm(lo)} up to ${nm(hi)}.`);
+    else setPrompt("bad","✗ Not quite",`You said ${IVN[k]}. This is a${q.num===8?"n":""} ${IVN[q.num]}: ${nm(lo)} up to ${nm(hi)}. Count every line and space, starting with the bottom note as 1. ${rule}`);
+    draw(); play([midiOf(lo),midiOf(hi)]); render();
+    setTimeout(()=>{ if(!sprintOver) newQuestion() }, ok?700:3200) }
 
   // ---------- grading ----------
   function grade(ok,given){
@@ -505,6 +550,7 @@ summary{cursor:pointer;padding:12px 16px;font-weight:600}
 
   document.addEventListener("keydown",e=>{
     if(e.target.tagName==="INPUT")return; const k=e.key.toUpperCase();
+    if(readSettings().iv&&/^[3-8]$/.test(k)){e.preventDefault();answerIv(+k);return}
     if(k==="-"){setAcc("b");return} if(k==="="||k==="+"){setAcc("#");return}
     if(k.length===1&&LET.includes(k)&&readSettings().mode==="letters"){e.preventDefault();answerLetter(k)}
   });
