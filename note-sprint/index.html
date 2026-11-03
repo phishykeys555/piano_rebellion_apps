@@ -54,6 +54,9 @@ h1 em{font-style:normal;color:var(--accent)}
 svg{display:block;width:100%;height:auto}
 .prompt{text-align:center;font-weight:600;min-height:22px}
 .prompt.good{color:var(--good)} .prompt.bad{color:var(--bad)}
+.prompt{min-height:44px;display:flex;flex-direction:column;align-items:center;gap:2px;line-height:1.3}
+.prompt .verdict{font-family:var(--display);font-weight:800;font-size:20px;letter-spacing:.02em}
+.prompt .coach{font-weight:500;font-size:14px;color:var(--ink)}
 .acc{display:flex;gap:8px;justify-content:center}
 .letters{display:grid;grid-template-columns:repeat(7,1fr);gap:6px;margin-top:8px}
 button{font:inherit;cursor:pointer;border-radius:10px;border:1px solid var(--border);background:var(--panel);color:var(--ink)}
@@ -170,7 +173,8 @@ summary{cursor:pointer;padding:12px 16px;font-weight:600}
       <div class="heard" id="heard" aria-live="polite">–</div>
       <div class="micctl" id="micCtl" hidden>
         <label for="micSel">Microphone</label><select id="micSel"></select>
-        <label for="micGain">Sensitivity</label><input type="range" id="micGain" min="1" max="12" step="0.5" value="3">
+        <label for="micGain">Sensitivity</label><input type="range" id="micGain" min="0.25" max="12" step="0.25" value="3">
+        <span>Noise</span><label style="display:flex;gap:8px;align-items:center;color:var(--ink)"><input type="checkbox" id="gateOn"> Block background noise</label>
         <span>Level</span><div class="meter" style="max-width:none"><i id="meterFill"></i><span class="thr" id="thr"></span></div>
       </div>
       <div class="micstat" id="micStat">Play the note on your piano. One note at a time, the right octave.</div>
@@ -322,8 +326,25 @@ summary{cursor:pointer;padding:12px 16px;font-weight:600}
     else{const clef=s.staffMode==="mix"?(Math.random()<.5?"treble":"bass"):s.staffMode; q={grand:false,key,notes:[makeNote(clef,s.range,s.acc,prev&&prev.notes[0],key)]}}
     q.marks=[null,null]; $("staffbox").className="staffbox"; setPrompt(); draw();
   }
-  function setPrompt(cls,text){const el=$("prompt");el.className="prompt"+(cls?" "+cls:"");
-    el.textContent=text!=null?text:(q.grand?(idx===0?"Top note first (right hand)":"Now the bottom note (left hand)"):"")}
+  function setPrompt(cls,text,coach){const el=$("prompt");el.className="prompt"+(cls?" "+cls:""); el.textContent="";
+    const t=text!=null?text:(q.grand?(idx===0?"Top note first (right hand)":"Now the bottom note (left hand)"):"");
+    if(coach!=null){const v=document.createElement("div");v.className="verdict";v.textContent=t;const c=document.createElement("div");c.className="coach";c.textContent=coach;el.append(v,c)}
+    else el.textContent=t}
+  // where a note sits, in plain staff language (p = steps above the bottom line)
+  const ORD=["","1st","2nd","3rd","4th","5th"];
+  function where(n){ const p=n.p, staff=n.clef==="bass"?"bass staff":"treble staff";
+    if(p>=0&&p<=8) return p%2===0?`on the ${ORD[p/2+1]} line of the ${staff}`:`in the ${ORD[(p+1)/2]} space of the ${staff}`;
+    if(p===-1) return `in the space just below the ${staff}`; if(p===9) return `in the space just above the ${staff}`;
+    if(p<0){const k=Math.floor(-p/2); return p%2===0?`on the ${ORD[k]} ledger line below the ${staff}`:`just below the ${ORD[k]} ledger line under the ${staff}`}
+    const k=Math.floor((p-8)/2); return p%2===0?`on the ${ORD[k]} ledger line above the ${staff}`:`just above the ${ORD[k]} ledger line over the ${staff}` }
+  function coachMsg(n,given){ const right=nm(n), w=where(n);
+    if(!given) return `This note is ${right}, ${w}.`;
+    if(given.letter===n.letter&&given.acc!==undefined&&given.acc!==n.acc){
+      if(!n.print&&n.acc) return `You said ${given.label}. The key signature makes it ${right.replace(/\d/,"")}: ${right}, ${w}.`;
+      if(n.print) return `You said ${given.label}. Read the accidental in front of the note: ${right}, ${w}.`;
+      return `You said ${given.label}. No sharp or flat here: ${right}, ${w}.` }
+    if(given.midi!=null&&given.midi%12===midiOf(n)%12) return `Right note name, wrong octave. You played ${given.label}; this is ${right}, ${w}.`;
+    return `You ${given.midi!=null?"played":"said"} ${given.label}. This note is ${right}, ${w}.` }
   const nm=n=>n.letter+(n.acc==="#"?"♯":n.acc==="b"?"♭":"")+n.octave;
   const midiOf=n=>12*(n.octave+1)+PC[n.letter]+(n.acc==="#"?1:n.acc==="b"?-1:0);
 
@@ -383,24 +404,29 @@ summary{cursor:pointer;padding:12px 16px;font-weight:600}
   }catch(e){} }
 
   // ---------- grading ----------
-  function grade(ok){
+  function grade(ok,given){
     if(locked)return; const n=q.notes[idx];
     if(!ok){const k=nm(n).replace(/\d/,""); st.misses[k]=(st.misses[k]||0)+1}
     q.marks[idx]=ok?"good":"bad";
-    if(q.grand&&idx===0){ idx=1; setAcc(""); play([midiOf(n)]); draw(); setPrompt(ok?"good":"bad",ok?"Yes. Now the bottom note.":`Top was ${nm(n)}. Now the bottom note.`); return }
+    if(q.grand&&idx===0){ idx=1; setAcc(""); play([midiOf(n)]); draw();
+      setPrompt(ok?"good":"bad", ok?`✓ Right · ${nm(n)}`:"✗ Not quite", (ok?"":coachMsg(n,given)+" ")+"Now the bottom note (left hand)."); return }
     locked=true;
     const allOk=q.marks.every(m=>m==="good"||m===null);
     st.total++; if(allOk){st.correct++;st.streak++;st.best=Math.max(st.best,st.streak)} else st.streak=0;
     $("staffbox").className="staffbox "+(allOk?"good":"bad");
-    setPrompt(allOk?"good":"bad", allOk?`Yes. ${q.notes.map(nm).join(" + ")}.`:`It was ${q.notes.map(nm).join(" + ")}.`);
+    const last=q.notes[idx];
+    if(allOk) setPrompt("good",`✓ Right · ${q.notes.map(nm).join(" + ")}`,"");
+    else if(q.marks[idx]==="bad") setPrompt("bad","✗ Not quite",coachMsg(last,given));
+    else setPrompt("bad",`✓ Bottom right · ${nm(last)}`,`Top note was ${nm(q.notes[0])}, ${where(q.notes[0])}.`);
     draw(); play(q.notes.map(midiOf)); render();
-    setTimeout(()=>{ if(!sprintOver) newQuestion() }, allOk?650:1500);
+    setTimeout(()=>{ if(!sprintOver) newQuestion() }, allOk?700:2600);
   }
-  function answerLetter(L){ if(!q||locked)return; const n=q.notes[idx]; grade(L===n.letter&&acc===n.acc) }
+  function answerLetter(L){ if(!q||locked)return; const n=q.notes[idx];
+    grade(L===n.letter&&acc===n.acc,{letter:L,acc,label:L+(acc==="#"?"♯":acc==="b"?"♭":"")}) }
   function answerMidi(m,btn){ if(!q||locked)return; const target=midiOf(q.notes[idx]), ok=m===target;
     btn.classList.add(ok?"hit":"miss"); setTimeout(()=>btn.classList.remove("hit","miss"),450);
-    if(!ok){const c=$("piano").querySelector(`[data-midi="${target}"]`); if(c){c.classList.add("show"); setTimeout(()=>c.classList.remove("show"),1100)}}
-    grade(ok) }
+    if(!ok){const c=$("piano").querySelector(`[data-midi="${target}"]`); if(c){c.classList.add("show"); setTimeout(()=>c.classList.remove("show"),1800)}}
+    grade(ok,{midi:m,label:mname(m)}) }
 
   // ---------- microphone: hear a real piano, no MIDI ----------
   // Onset (a fresh attack) arms the detector; the pitch is the median of the next few frames, so a ringing old note never answers the new question.
@@ -411,9 +437,19 @@ summary{cursor:pointer;padding:12px 16px;font-weight:600}
     const b=buf.slice(r1,r2), N=b.length, maxLag=Math.min(N-1,Math.floor(sr/45)), c=new Float32Array(maxLag+2);
     for(let l=0;l<=maxLag+1;l++){let v=0; for(let j=0;j<N-l;j++) v+=b[j]*b[j+l]; c[l]=v}
     let d=0; while(d<maxLag&&c[d]>c[d+1]) d++; let mv=-1,mp=-1; for(let l=d;l<=maxLag;l++) if(c[l]>mv){mv=c[l];mp=l}
-    if(mp<1) return -1; const x1=c[mp-1],x2=c[mp],x3=c[mp+1],a=(x1+x3-2*x2)/2,bb=(x3-x1)/2; const T=a?mp-bb/(2*a):mp; return sr/T }
+    if(mp<1||mv<CLARITY*c[0]) return -1; const x1=c[mp-1],x2=c[mp],x3=c[mp+1],a=(x1+x3-2*x2)/2,bb=(x3-x1)/2; const T=a?mp-bb/(2*a):mp; return sr/T }
   // Routed source -> gain (sensitivity) -> analyser -> muted output: Safari/iOS only process nodes that reach the destination.
-  const THR=0.015;
+  // Background-noise blocker: listens to the room for 1.5 s, sets the trigger line at 3x the room's level,
+  // and only accepts a clear, steady pitch (speech and clatter don't have one).
+  const THR=0.015; let thr=THR, CLARITY=0.5;
+  function setThr(v){ thr=v; $("thr").style.left=Math.min(100,thr*600)+"%" }
+  async function calibrate(){ if(!mic) return; $("micStat").textContent="Checking room noise. Stay quiet for 2 seconds…"; const vals=[];
+    const t0=performance.now(); await new Promise(res=>{const iv=setInterval(()=>{ if(!mic){clearInterval(iv);return res()} mic.an.getFloatTimeDomainData(mic.buf);
+      let r=0; for(let i=0;i<mic.buf.length;i++) r+=mic.buf[i]*mic.buf[i]; vals.push(Math.sqrt(r/mic.buf.length)); if(performance.now()-t0>1500){clearInterval(iv);res()} },40)});
+    vals.sort((a,b)=>a-b); const room=vals[Math.floor(vals.length*0.9)]||0; setThr(Math.min(0.06,Math.max(THR,room*3))); CLARITY=0.75;
+    $("micStat").textContent="Noise blocker on. Only notes above the line count." }
+  $("gateOn").addEventListener("change",e=>{ store.set("gate",e.target.checked); if(e.target.checked) calibrate(); else { setThr(THR); CLARITY=0.5; $("micStat").textContent="Noise blocker off." } });
+  $("gateOn").checked=!!store.get("gate",false);
   async function micStart(deviceId){ try{
     audio=audio||new (window.AudioContext||window.webkitAudioContext)(); await audio.resume();
     if(mic) micStop(true);
@@ -423,7 +459,7 @@ summary{cursor:pointer;padding:12px 16px;font-weight:600}
     g.gain.value=+$("micGain").value; an.fftSize=4096; mute.gain.value=0; src.connect(g); g.connect(an); an.connect(mute); mute.connect(audio.destination);
     mic={stream,g,an,src,mute,buf:new Float32Array(an.fftSize),hist:[],armed:false,armedAt:0,cand:[],cool:0};
     mic.timer=setInterval(micTick,40); $("micBtn").textContent="Microphone on"; $("micBtn").disabled=true; $("micCtl").hidden=false;
-    $("thr").style.left=Math.min(100,THR*600)+"%";
+    setThr(THR); if($("gateOn").checked) setTimeout(calibrate,300);
     const devs=(await navigator.mediaDevices.enumerateDevices()).filter(d=>d.kind==="audioinput"), cur=stream.getAudioTracks()[0].getSettings().deviceId;
     $("micSel").innerHTML=devs.map((d,i)=>`<option value="${d.deviceId}">${(d.label||("Microphone "+(i+1))).replace(/[<>&]/g,"")}</option>`).join(""); if(cur) $("micSel").value=cur;
     $("micStat").textContent="Listening. Play any key: the Level bar should jump past the line. Too low? Raise Sensitivity.";
@@ -436,11 +472,11 @@ summary{cursor:pointer;padding:12px 16px;font-weight:600}
   function micTick(){ const m=mic; m.an.getFloatTimeDomainData(m.buf); let r=0; for(let i=0;i<m.buf.length;i++) r+=m.buf[i]*m.buf[i]; r=Math.sqrt(r/m.buf.length);
     $("meterFill").style.width=Math.min(100,r*600)+"%"; const now=performance.now(), avg=m.hist.length?m.hist.reduce((a,b)=>a+b,0)/m.hist.length:0;
     m.hist.push(r); if(m.hist.length>6) m.hist.shift();
-    if(!m.armed&&now>m.cool&&r>THR&&r>avg*1.7){m.armed=true;m.armedAt=now;m.cand=[]}
+    if(!m.armed&&now>m.cool&&r>thr&&r>avg*1.7){m.armed=true;m.armedAt=now;m.cand=[]}
     if(m.armed){ const f=acf(m.buf,audio.sampleRate); if(f>40&&f<2200){const md=Math.round(69+12*Math.log2(f/440)); m.cand.push(md); $("heard").textContent=mname(md)}
       if(m.cand.length>=4){ const srt=[...m.cand].sort((a,b)=>a-b), md=srt[Math.floor(srt.length/2)]; m.armed=false; m.cool=now+450; $("heard").textContent=mname(md); answerHeard(md) }
       else if(now-m.armedAt>600){m.armed=false} } }
-  function answerHeard(md){ if(!q||locked)return; const t=midiOf(q.notes[idx]); grade(md===t) }
+  function answerHeard(md){ if(!q||locked)return; const t=midiOf(q.notes[idx]); grade(md===t,{midi:md,label:mname(md)}) }
   $("micBtn").addEventListener("click",()=>micStart($("micSel").value||undefined));
   document.querySelectorAll("#seg button").forEach(b=>b.addEventListener("click",()=>{setRadio("mode",b.dataset.mode);store.set("mode",b.dataset.mode);layout();newQuestion(true)}));
 
