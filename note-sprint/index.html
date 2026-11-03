@@ -1,0 +1,434 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Note Sprint</title>
+</head>
+<body>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Music&family=Archivo:wght@400;600;800&family=JetBrains+Mono:wght@500;700&display=swap">
+<style>
+/* Layout: one practice card (score strip, staff on engraving paper, answer pad), level picker above, settings drawer below, results sheet over the card when a sprint ends. */
+:root{
+  --bg:#eef1f5; --panel:#ffffff; --paper:#fbfaf6; --ink:#16181d; --muted:#5d6472;
+  --accent:#2457d6; --accent-ink:#ffffff; --accent-soft:#e3eafc; --good:#1f8a4c; --bad:#c2352b;
+  --key-w:#ffffff; --key-b:#1b1d22; --border:#d6dbe3;
+  --display:"Archivo","Helvetica Neue",Arial,sans-serif;
+  --body:"Archivo","Helvetica Neue",Arial,sans-serif;
+  --mono:"JetBrains Mono",ui-monospace,Menlo,monospace;
+  --music:"Noto Music","Bravura","Segoe UI Symbol",serif;
+}
+@media (prefers-color-scheme: dark){ :root:not([data-theme="light"]){
+  --bg:#101318; --panel:#181c23; --paper:#f4f2ea; --ink:#eef0f4; --muted:#9aa3b2;
+  --accent:#6e95ff; --accent-ink:#0b1020; --accent-soft:#1f2a45; --good:#45c07a; --bad:#ff6b5e;
+  --key-w:#f4f2ea; --key-b:#0b0d10; --border:#2b313c; color-scheme:dark } }
+:root[data-theme="dark"]{
+  --bg:#101318; --panel:#181c23; --paper:#f4f2ea; --ink:#eef0f4; --muted:#9aa3b2;
+  --accent:#6e95ff; --accent-ink:#0b1020; --accent-soft:#1f2a45; --good:#45c07a; --bad:#ff6b5e;
+  --key-w:#f4f2ea; --key-b:#0b0d10; --border:#2b313c; color-scheme:dark }
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+body{background:var(--bg);color:var(--ink);font-family:var(--body);font-size:15px;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:20px}
+.wrap{max-width:580px;margin:0 auto;display:flex;flex-direction:column;gap:14px}
+header{display:flex;flex-direction:column;gap:4px}
+.byline{font-family:var(--display);font-weight:600;font-size:15px;color:var(--ink);margin:0;letter-spacing:.01em}
+h1{font-family:var(--display);font-weight:800;font-size:30px;letter-spacing:-.02em;margin:0}
+h1 em{font-style:normal;color:var(--accent)}
+.sub{color:var(--muted);font-size:13px;margin:0}
+.levels{display:grid;grid-template-columns:repeat(5,1fr);gap:6px}
+.lvl{padding:8px 4px;display:flex;flex-direction:column;gap:2px;align-items:center;text-align:center}
+.lvl b{font-family:var(--mono);font-size:15px}
+.lvl span{font-size:11px;color:var(--muted);line-height:1.2}
+.lvl[aria-pressed="true"]{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.lvl[aria-pressed="true"] span{color:var(--accent-ink);opacity:.85}
+.card{background:var(--panel);border:1px solid var(--border);border-radius:14px;padding:16px;display:flex;flex-direction:column;gap:14px;position:relative}
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+.stat{display:flex;flex-direction:column;gap:2px;min-width:0}
+.stat b{font-family:var(--mono);font-weight:700;font-size:20px;font-variant-numeric:tabular-nums}
+.stat span{font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.staffbox{background:var(--paper);border-radius:10px;overflow:hidden;transition:box-shadow .15s}
+.staffbox.good{box-shadow:inset 0 0 0 3px var(--good)}
+.staffbox.bad{box-shadow:inset 0 0 0 3px var(--bad)}
+svg{display:block;width:100%;height:auto}
+.prompt{text-align:center;font-weight:600;min-height:22px}
+.prompt.good{color:var(--good)} .prompt.bad{color:var(--bad)}
+.acc{display:flex;gap:8px;justify-content:center}
+.letters{display:grid;grid-template-columns:repeat(7,1fr);gap:6px;margin-top:8px}
+button{font:inherit;cursor:pointer;border-radius:10px;border:1px solid var(--border);background:var(--panel);color:var(--ink)}
+button:focus-visible,input:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+.letters button{font-family:var(--display);font-weight:800;font-size:22px;padding:14px 0}
+.letters button:active{transform:translateY(1px)}
+.chip{font-family:var(--music);font-size:20px;padding:4px 16px}
+.chip[aria-pressed="true"]{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+.pianoScroll{overflow-x:auto;-webkit-overflow-scrolling:touch;border-radius:8px;scrollbar-width:thin}
+.piano{position:relative;height:150px;display:flex;user-select:none;-webkit-user-select:none}
+.piano .w{flex:1;min-width:0;background:var(--key-w);border:1px solid #9aa0aa;border-radius:0 0 7px 7px;margin-right:-1px;padding:0;display:flex;align-items:flex-end;justify-content:center;padding-bottom:6px;font-family:var(--mono);font-size:10px;color:#8a909b}
+.piano .w.mc{color:var(--accent);font-weight:700}
+.piano .b{position:absolute;top:0;height:60%;background:var(--key-b);border:1px solid #000;border-radius:0 0 5px 5px;z-index:2;padding:0}
+.piano button.hit,.piano button.show{background:var(--good)!important;color:#fff}
+.piano button.miss{background:var(--bad)!important;color:#fff}
+.micpad{display:flex;flex-direction:column;align-items:center;gap:8px;padding:6px 0}
+.heard{font-family:var(--mono);font-weight:700;font-size:40px;min-height:48px}
+.micstat{font-size:13px;color:var(--muted);text-align:center}
+.meter{width:100%;max-width:320px;height:6px;border-radius:3px;background:var(--border);overflow:hidden}
+.meter i{display:block;height:100%;width:0;background:var(--good)}
+.rotate{font-size:13px;color:var(--accent);text-align:center;margin:6px 0 0;font-weight:600}
+.seg{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}
+.seg button{padding:9px 6px;font-weight:600;font-size:13px}
+.seg button[aria-pressed="true"]{background:var(--ink);color:var(--panel);border-color:var(--ink)}
+.keyrow{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.keyrow label{font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.keyrow select{font:inherit;padding:7px 10px;border-radius:8px;border:1px solid var(--border);background:var(--panel);color:var(--ink)}
+.wrap.wide{max-width:1100px}
+@media (orientation:landscape) and (max-height:520px){ .staffbox svg{max-height:48vh;width:auto;max-width:100%;margin:0 auto} .piano{height:120px} }
+.row{display:flex;gap:8px;flex-wrap:wrap;align-items:center;justify-content:space-between}
+.primary{background:var(--accent);color:var(--accent-ink);border-color:var(--accent);font-weight:700;padding:11px 16px}
+.ghost{padding:11px 14px}
+details{border:1px solid var(--border);border-radius:12px;background:var(--panel)}
+summary{cursor:pointer;padding:12px 16px;font-weight:600}
+.settings{padding:4px 16px 16px;display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.settings fieldset{border:0;padding:0;margin:0;display:flex;flex-direction:column;gap:6px;min-width:0}
+.settings legend{font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-bottom:4px}
+.settings label{display:flex;gap:8px;align-items:center}
+.tip{font-size:13px;color:var(--muted);text-align:center;margin:0}
+.timerbar{height:6px;border-radius:3px;background:var(--border);overflow:hidden}
+.timerbar i{display:block;height:100%;background:var(--accent);width:100%;transition:width 1s linear}
+.results{position:absolute;inset:0;background:var(--panel);border-radius:14px;padding:22px;display:flex;flex-direction:column;gap:14px;z-index:5;overflow:auto}
+.results h2{font-family:var(--display);font-weight:800;font-size:22px;margin:0}
+.big{font-family:var(--mono);font-weight:700;font-size:64px;line-height:1;letter-spacing:-.03em}
+.big small{font-size:20px;color:var(--muted);font-weight:500}
+.rgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.rgrid div{background:var(--accent-soft);border-radius:10px;padding:10px;display:flex;flex-direction:column;gap:2px}
+.rgrid b{font-family:var(--mono);font-size:18px}
+.rgrid span{font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+.misses{display:flex;gap:6px;flex-wrap:wrap}
+.misses span{font-family:var(--mono);border:1px solid var(--border);border-radius:999px;padding:3px 10px;font-size:13px}
+.stamp{font-size:12px;color:var(--muted)}
+.namefield{display:flex;gap:8px;align-items:center}
+.namefield input{font:inherit;padding:8px 10px;border-radius:8px;border:1px solid var(--border);background:var(--panel);color:var(--ink);flex:1;min-width:0}
+@media (max-width:440px){ .settings{grid-template-columns:1fr} .letters button{font-size:18px;padding:12px 0} .stat b{font-size:17px} .levels{grid-template-columns:repeat(3,1fr)} .big{font-size:52px} }
+@media (prefers-reduced-motion:reduce){ *{transition:none!important} }
+</style>
+
+<div class="wrap">
+  <header>
+    <h1>Note <em>Sprint</em></h1>
+    <p class="byline">By Clarendon Hills Music Academy</p>
+    <p class="sub">Name the note. Say it out loud as you tap.</p>
+  </header>
+
+  <div class="levels" id="levels" role="group" aria-label="Level"></div>
+  <div class="keyrow"><label for="keySel">Key signature</label><select id="keySel"></select></div>
+  <div class="seg" id="seg" role="group" aria-label="Answer with">
+    <button data-mode="letters">Tap letters</button><button data-mode="piano">Tap piano keys</button><button data-mode="mic">Play my piano</button>
+  </div>
+
+  <section class="card" aria-label="Practice" id="card">
+    <div class="stats">
+      <div class="stat"><b id="sCorrect">0/0</b><span>Correct</span></div>
+      <div class="stat"><b id="sPct">–</b><span>Accuracy</span></div>
+      <div class="stat"><b id="sStreak">0</b><span>Streak</span></div>
+      <div class="stat"><b id="sBest">0</b><span>Best</span></div>
+    </div>
+    <div class="timerbar" id="timerbar" hidden><i id="timerfill"></i></div>
+
+    <div class="staffbox" id="staffbox"><svg id="staff" role="img" aria-label="Note on a staff"></svg></div>
+    <div class="prompt" id="prompt" aria-live="polite"></div>
+
+    <div id="letterPad">
+      <div class="acc" id="accRow" hidden>
+        <button class="chip" data-acc="b" aria-pressed="false" title="Flat (key: -)">♭</button>
+        <button class="chip" data-acc="" aria-pressed="true" title="Natural">♮</button>
+        <button class="chip" data-acc="#" aria-pressed="false" title="Sharp (key: =)">♯</button>
+      </div>
+      <div class="letters" id="letters"></div>
+    </div>
+    <div id="micPad" class="micpad" hidden>
+      <button class="primary" id="micBtn">Turn on the microphone</button>
+      <div class="heard" id="heard" aria-live="polite">–</div>
+      <div class="meter"><i id="meterFill"></i></div>
+      <div class="micstat" id="micStat">Play the note on your piano. One note at a time, the right octave.</div>
+    </div>
+    <div id="pianoPad" hidden><div class="pianoScroll" id="pianoScroll"><div class="piano" id="piano"></div></div><p class="rotate" id="rotateHint" hidden>Turn your phone sideways to see the whole keyboard.</p></div>
+
+    <div class="row">
+      <button class="ghost" id="resetBtn">Reset score</button>
+      <button class="primary" id="startTimed">Start 60-second sprint</button>
+    </div>
+    <p class="tip">Keyboard: A–G to answer. In a key with sharps or flats, tap ♯ or ♭ first (or press = / −). Piano keys must be the exact key, right octave.</p>
+
+    <div class="results" id="results" hidden>
+      <h2>Sprint complete</h2>
+      <div class="big" id="rScore">0 <small>correct</small></div>
+      <div class="rgrid">
+        <div><b id="rPct">0%</b><span>Accuracy</span></div>
+        <div><b id="rTotal">0</b><span>Attempts</span></div>
+        <div><b id="rBest">0</b><span>Best streak</span></div>
+      </div>
+      <div><div class="stamp">Missed most</div><div class="misses" id="rMiss"></div></div>
+      <div class="namefield"><label for="studentName" class="stamp">Name</label><input id="studentName" placeholder="Your first name" autocomplete="off"></div>
+      <div class="stamp" id="rStamp"></div>
+      <p class="tip" style="text-align:left">Screenshot this screen and send it to your instructor.</p>
+      <div class="stamp">Note Sprint · By Clarendon Hills Music Academy</div>
+      <div class="row"><button class="ghost" id="closeResults">Back to practice</button><button class="primary" id="againBtn">Sprint again</button></div>
+    </div>
+  </section>
+
+  <details id="settingsBox">
+    <summary>Custom settings</summary>
+    <div class="settings">
+      <fieldset><legend>Staff</legend>
+        <label><input type="radio" name="staffMode" id="sTreble" value="treble"> Treble</label>
+        <label><input type="radio" name="staffMode" id="sBass" value="bass"> Bass</label>
+        <label><input type="radio" name="staffMode" id="sMix" value="mix" checked> Treble or bass</label>
+        <label><input type="radio" name="staffMode" id="sGrand" value="grand"> Grand staff, both hands</label>
+      </fieldset>
+      <fieldset><legend>Range</legend>
+        <label><input type="radio" name="range" id="r0" value="0"> On the staff only</label>
+        <label><input type="radio" name="range" id="r1" value="1" checked> Up to 1 ledger line</label>
+        <label><input type="radio" name="range" id="r2" value="2"> Up to 2 ledger lines</label>
+        <label><input type="radio" name="range" id="r3" value="3"> Up to 3 ledger lines</label>
+      </fieldset>
+      <fieldset><legend>Notes</legend>
+        <label><input type="checkbox" id="accOn"> Add sharps and flats</label>
+        <label><input type="checkbox" id="soundOn" checked> Play the note after I answer</label>
+      </fieldset>
+      <fieldset><legend>Answer with</legend>
+        <label><input type="radio" name="mode" id="mLetters" value="letters" checked> Letter buttons</label>
+        <label><input type="radio" name="mode" id="mPiano" value="piano"> Piano keys</label>
+        <label><input type="radio" name="mode" id="mMic" value="mic"> My real piano (microphone)</label>
+      </fieldset>
+    </div>
+  </details>
+</div>
+
+<script>
+(function(){
+  const LET="CDEFGAB", PC={C:0,D:2,E:4,F:5,G:7,A:9,B:11};
+  const BASE={treble:30, bass:18};           // diatonic index of each staff's bottom line: E4, G2
+  const LEVELS=[
+    {id:"1",name:"Treble",  s:{staffMode:"treble",range:0,acc:false}},
+    {id:"2",name:"Bass",    s:{staffMode:"bass",range:0,acc:false}},
+    {id:"3",name:"Both hands",s:{staffMode:"grand",range:0,acc:false}},
+    {id:"4",name:"Ledgers ♯♭",s:{staffMode:"grand",range:2,acc:true}},
+    {id:"C",name:"Custom",  s:null}];
+  const KEYS=[["C",0],["G",1],["D",2],["A",3],["E",4],["B",5],["F♯",6],["C♯",7],["F",-1],["B♭",-2],["E♭",-3],["A♭",-4],["D♭",-5],["G♭",-6],["C♭",-7]];
+  const SH="FCGDAEB", FL="BEADGCF";
+  const SHP=[8,5,9,6,3,7,4], FLP=[4,7,3,6,2,5,1];   // treble staff positions; bass = treble - 2
+  function keyAcc(k,letter){ if(k>0) return SH.slice(0,k).includes(letter)?"#":""; if(k<0) return FL.slice(0,-k).includes(letter)?"b":""; return "" }
+  const $=id=>document.getElementById(id);
+  const store={get(k,d){try{const v=localStorage.getItem("ns2-"+k);return v==null?d:JSON.parse(v)}catch(e){return d}},
+               set(k,v){try{localStorage.setItem("ns2-"+k,JSON.stringify(v))}catch(e){}}};
+  let st={correct:0,total:0,streak:0,best:0,misses:{}};
+  KEYS.forEach(([n,k])=>{const o=document.createElement("option");o.value=k;o.textContent=n+(k===0?" (no sharps or flats)":k>0?` (${k}♯)`:` (${-k}♭)`);$("keySel").appendChild(o)});
+  {const o=document.createElement("option");o.value="mix";o.textContent="Mix: new key every note";$("keySel").appendChild(o)}
+  $("keySel").value=String(store.get("key","0"));
+  $("keySel").addEventListener("change",()=>{store.set("key",$("keySel").value);resetScore();layout();newQuestion(true)});
+  const keyName=k=>(KEYS.find(x=>x[1]===k)||["C"])[0];
+  let q=null, idx=0, acc="", locked=false, timer=null, timeLeft=0, sprintOver=false, audio=null, level=store.get("level","1");
+
+  // ---------- settings ----------
+  function setRadio(name,val){const el=document.querySelector(`input[name=${name}][value="${val}"]`); if(el) el.checked=true}
+  function readSettings(){return{
+    staffMode:document.querySelector('input[name=staffMode]:checked').value,
+    range:+document.querySelector('input[name=range]:checked').value,
+    acc:$("accOn").checked, sound:$("soundOn").checked,
+    mode:document.querySelector('input[name=mode]:checked').value}}
+  function applySettings(s){setRadio("staffMode",s.staffMode);setRadio("range",s.range);$("accOn").checked=s.acc}
+  const custom=store.get("custom",null);
+  $("soundOn").checked=store.get("sound",true); setRadio("mode",store.get("mode","letters"));
+  document.querySelectorAll('.settings input').forEach(el=>el.addEventListener("change",()=>{
+    const s=readSettings(); store.set("sound",s.sound); store.set("mode",s.mode);
+    if(el.name!=="mode"&&el.id!=="soundOn"){store.set("custom",{staffMode:s.staffMode,range:s.range,acc:s.acc}); selectLevel("C",true)}
+    layout(); newQuestion(true)}));
+
+  // ---------- level picker ----------
+  LEVELS.forEach(L=>{const b=document.createElement("button");b.className="lvl";b.dataset.id=L.id;
+    b.innerHTML=`<b>${L.id==="C"?"⚙":"L"+L.id}</b><span>${L.name}</span>`;
+    b.addEventListener("click",()=>{selectLevel(L.id);layout();newQuestion(true)}); $("levels").appendChild(b)});
+  function selectLevel(id,keep){level=id;store.set("level",id);
+    document.querySelectorAll(".lvl").forEach(b=>b.setAttribute("aria-pressed",String(b.dataset.id===id)));
+    const L=LEVELS.find(x=>x.id===id);
+    if(L&&L.s) applySettings(L.s); else if(!keep){const c=store.get("custom",null); if(c) applySettings(c); $("settingsBox").open=true}
+    resetScore()}
+
+  // ---------- pads ----------
+  "CDEFGAB".split("").forEach(L=>{const b=document.createElement("button");b.textContent=L;b.addEventListener("click",()=>answerLetter(L));$("letters").appendChild(b)});
+  document.querySelectorAll(".chip").forEach(c=>c.addEventListener("click",()=>setAcc(c.dataset.acc)));
+  function setAcc(a){acc=a;document.querySelectorAll(".chip").forEach(c=>c.setAttribute("aria-pressed",String(c.dataset.acc===a)))}
+  function keySetting(){return $("keySel").value}
+  function layout(){const s=readSettings(), ks=keySetting();
+    document.querySelectorAll("#seg button").forEach(b=>b.setAttribute("aria-pressed",String(b.dataset.mode===s.mode)));
+    $("accRow").hidden=!((s.acc||ks!=="0")&&s.mode==="letters"); $("letterPad").hidden=s.mode!=="letters"; $("pianoPad").hidden=s.mode!=="piano"; $("micPad").hidden=s.mode!=="mic"; if(s.mode!=="mic") micStop();
+    document.querySelector(".wrap").classList.toggle("wide",s.mode==="piano");
+    if(s.mode==="piano") buildPiano(s)}
+  // keyboard covers exactly the register the staff can show, padded one key each side
+  function buildPiano(s){
+    const clefs=s.staffMode==="grand"||s.staffMode==="mix"?["treble","bass"]:[s.staffMode];
+    const lo=Math.min(...clefs.map(c=>BASE[c]-1-2*s.range))-1, hi=Math.max(...clefs.map(c=>BASE[c]+9+2*s.range))+1;
+    const el=$("piano"); el.innerHTML=""; const n=hi-lo+1, w=100/n;
+    el.style.minWidth=(n*30)+"px";
+    for(let d=lo;d<=hi;d++){const L=LET[d%7], o=Math.floor(d/7), m=12*(o+1)+PC[L];
+      const b=document.createElement("button"); b.className="w"+(m===60?" mc":""); b.dataset.midi=m; b.setAttribute("aria-label",L+o);
+      if(L==="C") b.textContent="C"+o; b.addEventListener("click",()=>answerMidi(m,b)); el.appendChild(b);
+      if("CDFGA".includes(L)&&d<hi){const k=document.createElement("button"); k.className="b"; k.dataset.midi=m+1; k.style.width=(w*0.6)+"%"; k.style.left=((d-lo+1)*w-w*0.3)+"%";
+        k.setAttribute("aria-label",L+"♯"+o); k.addEventListener("click",()=>answerMidi(m+1,k)); el.appendChild(k)}}
+    requestAnimationFrame(()=>{const sc=$("pianoScroll"), mc=el.querySelector(".mc");
+      if(mc) sc.scrollLeft=mc.offsetLeft-sc.clientWidth/2+mc.offsetWidth/2;
+      $("rotateHint").hidden=!(sc.scrollWidth>sc.clientWidth+4 && window.matchMedia("(orientation:portrait)").matches)});
+  }
+  window.addEventListener("resize",()=>{ if(readSettings().mode==="piano") buildPiano(readSettings()) });
+
+  // ---------- notes ----------
+  function makeNote(clef,range,useAcc,avoid,key){
+    const lo=-1-2*range, hi=9+2*range; let p,t=0;
+    do{p=lo+Math.floor(Math.random()*(hi-lo+1));t++}while(avoid&&avoid.clef===clef&&avoid.p===p&&t<10);
+    const dia=BASE[clef]+p, letter=LET[dia%7], octave=Math.floor(dia/7), base=keyAcc(key||0,letter); let a=base, pr="";
+    if(useAcc&&Math.random()<.4){const opts=["#","b",""].filter(x=>x!==base); a=opts[Math.floor(Math.random()*2)];
+      if(a==="#"&&"EB".includes(letter)&&!base&&Math.random()<.7)a=base; if(a==="b"&&"CF".includes(letter)&&!base&&Math.random()<.7)a=base;
+      if(a!==base) pr=a===""?"n":a}
+    return{clef,p,letter,octave,acc:a,print:pr};
+  }
+  function newQuestion(fresh){
+    const s=readSettings(), prev=fresh?null:q; locked=false; idx=0; setAcc("");
+    const ks=keySetting(), key=ks==="mix"?KEYS[Math.floor(Math.random()*KEYS.length)][1]:+ks;
+    if(s.staffMode==="grand") q={grand:true,key,notes:[makeNote("treble",s.range,s.acc,prev&&prev.notes[0],key),makeNote("bass",s.range,s.acc,prev&&prev.notes[1],key)]};
+    else{const clef=s.staffMode==="mix"?(Math.random()<.5?"treble":"bass"):s.staffMode; q={grand:false,key,notes:[makeNote(clef,s.range,s.acc,prev&&prev.notes[0],key)]}}
+    q.marks=[null,null]; $("staffbox").className="staffbox"; setPrompt(); draw();
+  }
+  function setPrompt(cls,text){const el=$("prompt");el.className="prompt"+(cls?" "+cls:"");
+    el.textContent=text!=null?text:(q.grand?(idx===0?"Top note first (right hand)":"Now the bottom note (left hand)"):"")}
+  const nm=n=>n.letter+(n.acc==="#"?"♯":n.acc==="b"?"♭":"")+n.octave;
+  const midiOf=n=>12*(n.octave+1)+PC[n.letter]+(n.acc==="#"?1:n.acc==="b"?-1:0);
+
+  // ---------- engraving ----------
+  function draw(){
+    const gap=14, line="#2a2d33", x=230, W=360;
+    const staffH=4*gap, pad=7*gap/2+18;            // room for 3 ledgers + stem
+    const staffs=q.grand?["treble","bass"]:[q.notes[0].clef];
+    const between=q.grand?6*gap:0;
+    const H=pad*2+staffH*staffs.length+between;
+    let h="", tops=[];
+    staffs.forEach((clef,i)=>{const top=pad+i*(staffH+between); tops.push(top);
+      for(let k=0;k<5;k++)h+=`<line x1="22" x2="${W-16}" y1="${top+k*gap}" y2="${top+k*gap}" stroke="${line}" stroke-width="1.5"/>`;
+      if(clef==="treble") h+=`<text x="28" y="${top+4*gap-gap*0.02}" font-family="Noto Music, Bravura, serif" font-size="${gap*5.6}" fill="#16181d">𝄞</text>`;
+      else h+=`<text x="30" y="${top+gap*2.85}" font-family="Noto Music, Bravura, serif" font-size="${gap*3.6}" fill="#16181d">𝄢</text>`;
+      const k=q.key||0, cnt=Math.abs(k), pos=k>0?SHP:FLP, off=clef==="bass"?-2:0;
+      for(let j=0;j<cnt;j++){const py=top+4*gap-(pos[j]+off)*gap/2; h+=`<text x="${80+j*12}" y="${py+(k>0?8:5)}" font-family="Noto Music, serif" font-size="26" fill="#16181d">${k>0?"♯":"♭"}</text>`}
+    });
+    const yTop=tops[0], yBot=tops[tops.length-1]+staffH;
+    h+=`<line x1="22" x2="22" y1="${yTop}" y2="${yBot}" stroke="${line}" stroke-width="1.8"/>`;
+    h+=`<line x1="${W-16}" x2="${W-16}" y1="${yTop}" y2="${yBot}" stroke="${line}" stroke-width="1.5"/>`;
+    if(q.grand) h+=`<path d="M16 ${yTop} C 6 ${yTop+20}, 14 ${(yTop+yBot)/2-12}, 6 ${(yTop+yBot)/2} C 14 ${(yTop+yBot)/2+12}, 6 ${yBot-20}, 16 ${yBot}" fill="none" stroke="${line}" stroke-width="2.2"/>`;
+    q.notes.forEach((n,i)=>{
+      const top=tops[q.grand?i:0], bottom=top+staffH, y=p=>bottom-p*gap/2, ny=y(n.p);
+      const mark=q.marks[i], active=q.grand&&i===idx&&!locked;
+      const col=mark==="good"?"#1f8a4c":mark==="bad"?"#c2352b":active?"#2457d6":"#16181d";
+      for(let lp=-2;lp>=n.p;lp-=2)h+=`<line x1="${x-20}" x2="${x+20}" y1="${y(lp)}" y2="${y(lp)}" stroke="${line}" stroke-width="1.5"/>`;
+      for(let lp=10;lp<=n.p;lp+=2)h+=`<line x1="${x-20}" x2="${x+20}" y1="${y(lp)}" y2="${y(lp)}" stroke="${line}" stroke-width="1.5"/>`;
+      if(n.print)h+=`<text x="${x-36}" y="${ny+(n.print==="b"?5:8)}" font-family="Noto Music, serif" font-size="26" fill="${col}">${n.print==="#"?"♯":n.print==="b"?"♭":"♮"}</text>`;
+      h+=`<ellipse cx="${x}" cy="${ny}" rx="9.5" ry="6.8" transform="rotate(-20 ${x} ${ny})" fill="${col}"/>`;
+      const up=n.p<4, sx=up?x+8.6:x-8.6;
+      h+=`<line x1="${sx}" x2="${sx}" y1="${ny}" y2="${ny+(up?-46:46)}" stroke="${col}" stroke-width="1.8"/>`;
+      if(mark) h+=`<text x="${x+30}" y="${ny+6}" font-family="JetBrains Mono, monospace" font-size="15" font-weight="700" fill="${col}">${nm(n)}</text>`;
+    });
+    const svg=$("staff"); svg.setAttribute("viewBox",`0 0 ${W} ${H}`); svg.innerHTML=h;
+    svg.setAttribute("aria-label",q.grand?"Two notes on a grand staff":`${q.notes[0].clef} clef note`);
+  }
+
+  // ---------- sound: a short plucked piano-like tone ----------
+  function play(midis){ const S=readSettings(); if(!S.sound||S.mode==="mic")return; try{
+    audio=audio||new (window.AudioContext||window.webkitAudioContext)(); const t0=audio.currentTime;
+    midis.forEach(m=>{const f=440*Math.pow(2,(m-69)/12), out=audio.createGain(); out.connect(audio.destination);
+      out.gain.setValueAtTime(0.0001,t0); out.gain.exponentialRampToValueAtTime(0.22,t0+0.008); out.gain.exponentialRampToValueAtTime(0.06,t0+0.35); out.gain.exponentialRampToValueAtTime(0.0001,t0+1.6);
+      [[1,1],[2,.45],[3,.22],[4,.12],[5,.06]].forEach(([k,a])=>{const o=audio.createOscillator(),g=audio.createGain(); o.type="sine"; o.frequency.value=f*k*(1+0.0004*k*k); g.gain.value=a/(k>2?1.4:1);
+        o.connect(g).connect(out); o.start(t0); o.stop(t0+1.7)})});
+  }catch(e){} }
+
+  // ---------- grading ----------
+  function grade(ok){
+    if(locked)return; const n=q.notes[idx];
+    if(!ok){const k=nm(n).replace(/\d/,""); st.misses[k]=(st.misses[k]||0)+1}
+    q.marks[idx]=ok?"good":"bad";
+    if(q.grand&&idx===0){ idx=1; setAcc(""); play([midiOf(n)]); draw(); setPrompt(ok?"good":"bad",ok?"Yes. Now the bottom note.":`Top was ${nm(n)}. Now the bottom note.`); return }
+    locked=true;
+    const allOk=q.marks.every(m=>m==="good"||m===null);
+    st.total++; if(allOk){st.correct++;st.streak++;st.best=Math.max(st.best,st.streak)} else st.streak=0;
+    $("staffbox").className="staffbox "+(allOk?"good":"bad");
+    setPrompt(allOk?"good":"bad", allOk?`Yes. ${q.notes.map(nm).join(" + ")}.`:`It was ${q.notes.map(nm).join(" + ")}.`);
+    draw(); play(q.notes.map(midiOf)); render();
+    setTimeout(()=>{ if(!sprintOver) newQuestion() }, allOk?650:1500);
+  }
+  function answerLetter(L){ if(!q||locked)return; const n=q.notes[idx]; grade(L===n.letter&&acc===n.acc) }
+  function answerMidi(m,btn){ if(!q||locked)return; const target=midiOf(q.notes[idx]), ok=m===target;
+    btn.classList.add(ok?"hit":"miss"); setTimeout(()=>btn.classList.remove("hit","miss"),450);
+    if(!ok){const c=$("piano").querySelector(`[data-midi="${target}"]`); if(c){c.classList.add("show"); setTimeout(()=>c.classList.remove("show"),1100)}}
+    grade(ok) }
+
+  // ---------- microphone: hear a real piano, no MIDI ----------
+  // Onset (a fresh attack) arms the detector; the pitch is the median of the next few frames, so a ringing old note never answers the new question.
+  let mic=null;
+  const NOTE=["C","C♯","D","E♭","E","F","F♯","G","A♭","A","B♭","B"], mname=m=>NOTE[m%12]+(Math.floor(m/12)-1);
+  function acf(buf,sr){ let n=buf.length, rms=0; for(let i=0;i<n;i++) rms+=buf[i]*buf[i]; rms=Math.sqrt(rms/n); if(rms<0.008) return -1;
+    let r1=0,r2=n-1; for(let i=0;i<n/2;i++) if(Math.abs(buf[i])<0.2){r1=i;break} for(let i=1;i<n/2;i++) if(Math.abs(buf[n-i])<0.2){r2=n-i;break}
+    const b=buf.slice(r1,r2), N=b.length, maxLag=Math.min(N-1,Math.floor(sr/45)), c=new Float32Array(maxLag+2);
+    for(let l=0;l<=maxLag+1;l++){let v=0; for(let j=0;j<N-l;j++) v+=b[j]*b[j+l]; c[l]=v}
+    let d=0; while(d<maxLag&&c[d]>c[d+1]) d++; let mv=-1,mp=-1; for(let l=d;l<=maxLag;l++) if(c[l]>mv){mv=c[l];mp=l}
+    if(mp<1) return -1; const x1=c[mp-1],x2=c[mp],x3=c[mp+1],a=(x1+x3-2*x2)/2,bb=(x3-x1)/2; const T=a?mp-bb/(2*a):mp; return sr/T }
+  async function micStart(){ try{
+    audio=audio||new (window.AudioContext||window.webkitAudioContext)(); await audio.resume();
+    const stream=await navigator.mediaDevices.getUserMedia({audio:{echoCancellation:false,noiseSuppression:false,autoGainControl:false}});
+    const src=audio.createMediaStreamSource(stream), an=audio.createAnalyser(); an.fftSize=4096; src.connect(an);
+    mic={stream,an,buf:new Float32Array(an.fftSize),hist:[],armed:false,armedAt:0,cand:[],cool:0};
+    mic.timer=setInterval(micTick,40); $("micBtn").textContent="Microphone on"; $("micBtn").disabled=true;
+    $("micStat").textContent="Listening. Play the note on your piano.";
+  }catch(e){ $("micStat").textContent="The microphone is blocked here. Open the game in its own browser tab and allow the microphone." } }
+  function micStop(){ if(!mic)return; clearInterval(mic.timer); mic.stream.getTracks().forEach(t=>t.stop()); mic=null; $("micBtn").textContent="Turn on the microphone"; $("micBtn").disabled=false }
+  function micTick(){ const m=mic; m.an.getFloatTimeDomainData(m.buf); let r=0; for(let i=0;i<m.buf.length;i++) r+=m.buf[i]*m.buf[i]; r=Math.sqrt(r/m.buf.length);
+    $("meterFill").style.width=Math.min(100,r*600)+"%"; const now=performance.now(), avg=m.hist.length?m.hist.reduce((a,b)=>a+b,0)/m.hist.length:0;
+    m.hist.push(r); if(m.hist.length>6) m.hist.shift();
+    if(!m.armed&&now>m.cool&&r>0.015&&r>avg*1.7){m.armed=true;m.armedAt=now;m.cand=[]}
+    if(m.armed){ const f=acf(m.buf,audio.sampleRate); if(f>40&&f<2200){const md=Math.round(69+12*Math.log2(f/440)); m.cand.push(md); $("heard").textContent=mname(md)}
+      if(m.cand.length>=4){ const srt=[...m.cand].sort((a,b)=>a-b), md=srt[Math.floor(srt.length/2)]; m.armed=false; m.cool=now+450; $("heard").textContent=mname(md); answerHeard(md) }
+      else if(now-m.armedAt>600){m.armed=false} } }
+  function answerHeard(md){ if(!q||locked)return; const t=midiOf(q.notes[idx]); grade(md===t) }
+  $("micBtn").addEventListener("click",micStart);
+  document.querySelectorAll("#seg button").forEach(b=>b.addEventListener("click",()=>{setRadio("mode",b.dataset.mode);store.set("mode",b.dataset.mode);layout();newQuestion(true)}));
+
+  function render(){ $("sCorrect").textContent=`${st.correct}/${st.total}`; $("sPct").textContent=st.total?Math.round(100*st.correct/st.total)+"%":"–"; $("sStreak").textContent=st.streak; $("sBest").textContent=st.best }
+  function resetScore(){ stopTimer(); st={correct:0,total:0,streak:0,best:0,misses:{}}; render() }
+  $("resetBtn").addEventListener("click",()=>{resetScore();newQuestion(true)});
+
+  // ---------- sprint ----------
+  function stopTimer(){ if(timer){clearInterval(timer);timer=null} sprintOver=false; $("timerbar").hidden=true; $("startTimed").textContent="Start 60-second sprint" }
+  function startSprint(){ resetScore(); $("results").hidden=true; timeLeft=60; $("timerbar").hidden=false; $("timerfill").style.width="100%"; $("startTimed").textContent="Stop"; newQuestion(true);
+    timer=setInterval(()=>{ timeLeft--; $("timerfill").style.width=(timeLeft/60*100)+"%"; if(timeLeft<=0) endSprint() },1000) }
+  function endSprint(){ clearInterval(timer); timer=null; sprintOver=true; locked=true; $("startTimed").textContent="Start 60-second sprint";
+    $("rScore").innerHTML=`${st.correct} <small>correct in 60 s</small>`;
+    $("rPct").textContent=(st.total?Math.round(100*st.correct/st.total):0)+"%"; $("rTotal").textContent=st.total; $("rBest").textContent=st.best;
+    const miss=Object.entries(st.misses).sort((a,b)=>b[1]-a[1]).slice(0,5);
+    $("rMiss").innerHTML=miss.length?miss.map(([k,v])=>`<span>${k} ×${v}</span>`).join(""):"<span>None. Clean run.</span>";
+    const L=LEVELS.find(x=>x.id===level); const d=new Date();
+    $("rStamp").textContent=`Level ${L.id==="C"?"Custom":L.id} · ${L.name} · Key ${keySetting()==="mix"?"Mix":keyName(+keySetting())} · ${d.toLocaleDateString(undefined,{weekday:"short",month:"short",day:"numeric"})} ${d.toLocaleTimeString([], {hour:"numeric",minute:"2-digit"})}`;
+    $("results").hidden=false }
+  $("startTimed").addEventListener("click",()=>{ if(timer){stopTimer();newQuestion(true)} else startSprint() });
+  $("againBtn").addEventListener("click",startSprint);
+  $("closeResults").addEventListener("click",()=>{$("results").hidden=true; stopTimer(); newQuestion(true)});
+  $("studentName").value=store.get("name",""); $("studentName").addEventListener("input",e=>store.set("name",e.target.value));
+
+  document.addEventListener("keydown",e=>{
+    if(e.target.tagName==="INPUT")return; const k=e.key.toUpperCase();
+    if(k==="-"){setAcc("b");return} if(k==="="||k==="+"){setAcc("#");return}
+    if(k.length===1&&LET.includes(k)&&readSettings().mode==="letters"){e.preventDefault();answerLetter(k)}
+  });
+
+  selectLevel(level,true); if(level==="C"){const c=store.get("custom",null); if(c) applySettings(c)}
+  layout(); render(); newQuestion(true);
+  if(document.fonts&&document.fonts.ready)document.fonts.ready.then(()=>q&&draw());
+})();
+</script>
+
+</body>
+</html>
