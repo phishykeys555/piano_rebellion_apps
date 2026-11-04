@@ -167,7 +167,7 @@ summary{cursor:pointer;padding:12px 16px;font-weight:600}
 
     <div class="staffbox" id="staffbox"><svg id="staff" role="img" aria-label="Note on a staff"></svg></div>
     <div class="prompt" id="prompt" aria-live="polite"></div>
-    <div class="choice" id="choice" hidden><button class="primary" id="tryBtn">Try again · ½ pt</button><button class="ghost" id="showBtn">Show me</button></div>
+    <div class="choice" id="choice" hidden><button class="ghost" id="showBtn">Show me the answer</button></div>
 
     <div id="letterPad">
       <div class="acc" id="accRow" hidden>
@@ -236,6 +236,7 @@ summary{cursor:pointer;padding:12px 16px;font-weight:600}
         <label><input type="checkbox" id="accOn"> Add sharps and flats</label>
         <label><input type="checkbox" id="soundOn" checked> Play the note after I answer</label>
         <label><input type="checkbox" id="ivOn"> Intervals (two notes at once)</label>
+        <label><input type="checkbox" id="retryOn" checked> Second try on a miss (½ point)</label>
       </fieldset>
       <fieldset><legend>Answer with</legend>
         <label><input type="radio" name="mode" id="mLetters" value="letters" checked> Letter buttons</label>
@@ -281,9 +282,10 @@ summary{cursor:pointer;padding:12px 16px;font-weight:600}
     mode:document.querySelector('input[name=mode]:checked').value}}
   function applySettings(s){setRadio("staffMode",s.staffMode);setRadio("range",s.range);$("accOn").checked=s.acc;$("ivOn").checked=!!s.iv}
   const custom=store.get("custom",null);
-  $("soundOn").checked=store.get("sound",true); setRadio("mode",store.get("mode","letters"));
+  $("soundOn").checked=store.get("sound",true); $("retryOn").checked=store.get("retry",true); setRadio("mode",store.get("mode","letters"));
   document.querySelectorAll('.settings input').forEach(el=>el.addEventListener("change",()=>{
     const s=readSettings(); store.set("sound",s.sound); store.set("mode",s.mode);
+    if(el.id==="retryOn"){store.set("retry",el.checked); return}
     if(el.name!=="mode"&&el.id!=="soundOn"){store.set("custom",{staffMode:s.staffMode,range:s.range,acc:s.acc,iv:s.iv}); selectLevel("C",true)}
     layout(); newQuestion(true)}));
 
@@ -441,9 +443,10 @@ summary{cursor:pointer;padding:12px 16px;font-weight:600}
 
   // ---------- intervals ----------
   function answerIv(k){ if(!q||!q.iv||locked||q.wait)return; const ok=k===q.num, lo=q.notes[0], hi=q.notes[1];
-    if(!ok&&!q.tried[0]){ q.tried[0]=true; st.streak=0; st.misses[IVN[q.num]]=(st.misses[IVN[q.num]]||0)+1; render(); flashBad();
+    if(!ok&&!q.tried[0]&&!$("retryOn").checked){ st.misses[IVN[q.num]]=(st.misses[IVN[q.num]]||0)+1 }
+    if(!ok&&!q.tried[0]&&$("retryOn").checked){ q.tried[0]=true; st.streak=0; st.misses[IVN[q.num]]=(st.misses[IVN[q.num]]||0)+1; render();
       offerChoice( lo.p%2===hi.p%2?`Count every line and space, bottom note = 1. Both notes are ${lo.p%2===0?"on lines":"in spaces"}, so it's odd: 3rd, 5th or 7th.`:"Count every line and space, bottom note = 1. One is on a line, one in a space, so it's even: 4th, 6th or octave.", ()=>answerIv(k)); return }
-    const retried=q.tried[0];
+    const retried=q.tried[0]; $("choice").hidden=true;
     locked=true; q.marks=[ok?"good":"bad",ok?"good":"bad"]; st.total++;
     if(ok){st.correct++; st.points+=retried?0.5:1; if(!retried){st.streak++;st.best=Math.max(st.best,st.streak)}} else st.streak=0;
     const both=lo.p%2===0?"lines":"spaces", odd=q.num%2===1;
@@ -455,11 +458,9 @@ summary{cursor:pointer;padding:12px 16px;font-weight:600}
     setTimeout(()=>{ if(!sprintOver) newQuestion() }, ok?700:3200) }
 
   // ---------- one retry per note ----------
-  // after a first miss the student picks: Try again (worth ½) or Show me (answer, 0 points)
-  function offerChoice(hint,again){ q.wait=true; q.again=again; flashBad(); setPrompt("bad","✗ Not quite",hint); $("choice").hidden=false }
-  function hideChoice(){ $("choice").hidden=true; if(q) q.wait=false }
-  $("tryBtn").addEventListener("click",()=>{ if(!q||!q.wait)return; hideChoice(); setPrompt("bad","Try again",$("prompt").querySelector(".coach")?.textContent.replace(/ Try again\.$/,"")||"") });
-  $("showBtn").addEventListener("click",()=>{ if(!q||!q.wait)return; const f=q.again; hideChoice(); f() });
+  // after a first miss the student just answers again (worth ½); "Show me" gives up (0 points). Off in settings = one try only.
+  function offerChoice(hint,again){ q.again=again; flashBad(); setPrompt("bad","✗ Not quite · try again",hint); $("choice").hidden=false }
+  $("showBtn").addEventListener("click",()=>{ if(!q||locked||$("choice").hidden||!q.again)return; const f=q.again; q.again=null; $("choice").hidden=true; f() });
   function flashBad(){ $("staffbox").className="staffbox bad"; setTimeout(()=>{ if(!locked) $("staffbox").className="staffbox" },650) }
   function hintMsg(n,given){
     if(given&&given.midi!=null&&given.midi%12===midiOf(n)%12) return "Right note name, wrong octave. Try again.";
@@ -470,9 +471,9 @@ summary{cursor:pointer;padding:12px 16px;font-weight:600}
   // ---------- grading ----------
   function grade(ok,given){
     if(locked||q.wait)return; const n=q.notes[idx];
-    if(!ok&&!q.tried[idx]){ q.tried[idx]=true; st.streak=0; const k=nm(n).replace(/\d/,""); st.misses[k]=(st.misses[k]||0)+1;
-      render(); offerChoice(hintMsg(n,given),()=>grade(false,given)); return }
-    q.marks[idx]=ok?"good":"bad";
+    if(!ok&&!q.tried[idx]){ const k=nm(n).replace(/\d/,""); st.misses[k]=(st.misses[k]||0)+1; st.streak=0;
+      if($("retryOn").checked){ q.tried[idx]=true; render(); offerChoice(hintMsg(n,given),()=>grade(false,given)); return } }
+    q.marks[idx]=ok?"good":"bad"; $("choice").hidden=true; q.again=null;
     if(q.grand&&idx===0){ idx=1; setAcc(""); play([midiOf(n)]); draw();
       setPrompt(ok?"good":"bad", ok?(q.tried[0]?`✓ Right on try 2 · ${nm(n)}`:`✓ Right · ${nm(n)}`):"✗ Not quite", (ok?"":coachMsg(n,given)+" ")+"Now the bottom note (left hand)."); return }
     locked=true;
@@ -572,7 +573,7 @@ summary{cursor:pointer;padding:12px 16px;font-weight:600}
 
   document.addEventListener("keydown",e=>{
     if(e.target.tagName==="INPUT")return; const k=e.key.toUpperCase();
-    if(q&&q.wait){ if(e.key==="Enter"){e.preventDefault();$("tryBtn").click()} else if(k==="S"){e.preventDefault();$("showBtn").click()} return }
+    if(q&&!$("choice").hidden&&k==="S"){e.preventDefault();$("showBtn").click();return}
     if(readSettings().iv&&/^[3-8]$/.test(k)){e.preventDefault();answerIv(+k);return}
     if(k==="-"){setAcc("b");return} if(k==="="||k==="+"){setAcc("#");return}
     if(k.length===1&&LET.includes(k)&&readSettings().mode==="letters"){e.preventDefault();answerLetter(k)}
