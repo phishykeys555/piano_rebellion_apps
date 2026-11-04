@@ -126,6 +126,21 @@ summary{cursor:pointer;padding:12px 16px;font-weight:600}
 .watch .lab{position:absolute;left:0;right:0;top:88px;text-align:center;font-size:10px;letter-spacing:.14em;color:var(--muted);font-weight:700}
 .watch.hot .ring{stroke:var(--bad)} .watch.hot .num{color:var(--bad);animation:pulse 1s ease-in-out infinite}
 @keyframes pulse{50%{transform:scale(1.12)}}
+.arcbar{display:flex;justify-content:center;gap:10px;align-items:center;font-family:var(--mono);font-weight:700;font-size:13px;letter-spacing:.04em;padding:2px 0 6px;flex-wrap:wrap}
+.arcbar .pill{border:1px solid var(--border);border-radius:999px;padding:4px 10px}
+.arcbar .need.met{border-color:var(--good);color:var(--good)}
+.arcmeter{position:relative;height:18px;border-radius:999px;background:var(--border);overflow:hidden;margin:0 4px 8px}
+.arcmeter i{position:absolute;left:0;top:0;bottom:0;width:0;background:var(--accent);border-radius:999px;transition:width .25s ease,background .25s}
+.arcmeter b{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-family:var(--mono);font-size:11px;font-weight:700;letter-spacing:.14em;color:#fff;opacity:0;transition:opacity .2s;text-shadow:0 1px 2px rgba(0,0,0,.35)}
+.arcmeter.hit i{background:var(--good);transition:width .25s ease,background 0s} .arcmeter.hit b{opacity:1}
+.arcmeter.flash{animation:hitflash .7s ease-out}
+@keyframes hitflash{0%{box-shadow:0 0 0 0 color-mix(in srgb,var(--good) 70%,transparent)}100%{box-shadow:0 0 0 14px transparent}}
+.staffbox.hitglow{box-shadow:0 0 0 3px var(--good),0 0 24px color-mix(in srgb,var(--good) 60%,transparent)}
+.arcbar .fire{border-color:#ff8a1f;color:#ff8a1f;animation:pulse 1s ease-in-out infinite}
+.watch.fire .ring{stroke:#ff8a1f} .watch.fire .num{color:#ff8a1f}
+.arcsplash{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;background:var(--panel);border-radius:14px;z-index:4;text-align:center;padding:20px}
+.arcsplash b{font-family:var(--display);font-weight:800;font-size:40px;line-height:1}
+.arcsplash span{font-size:15px;color:var(--muted)}
 .timerbar{height:10px;border-radius:3px;background:var(--border);overflow:hidden}
 .timerbar i{display:block;height:100%;background:var(--accent);width:100%;transition:width 1s linear}
 .timerbar.hot i{background:var(--bad)}
@@ -166,6 +181,8 @@ summary{cursor:pointer;padding:12px 16px;font-weight:600}
       <div class="stat"><b id="sStreak">0</b><span>Streak</span></div>
       <div class="stat"><b id="sBest">0</b><span>Best</span></div>
     </div>
+    <div class="arcbar" id="arcbar" hidden><span class="pill" id="arcRound">ROUND 1</span><span class="pill need" id="arcNeed">NEED 12</span><span class="pill fire" id="arcFire" hidden>ON FIRE 2X</span></div>
+    <div class="arcmeter" id="arcMeter" hidden><i id="arcFill"></i><b id="arcHit">TARGET HIT</b></div>
     <div class="clockrow" id="clockrow" hidden><div class="watch" id="watch" role="timer" aria-label="Time left">
       <svg viewBox="0 0 118 132"><rect class="crown" x="51" y="0" width="16" height="9" rx="2"/><rect class="crown" x="56" y="8" width="6" height="8"/><rect class="crown" x="94" y="16" width="10" height="6" rx="2" transform="rotate(45 99 19)"/>
         <circle class="ring-bg" cx="59" cy="73" r="52" fill="none" stroke-width="9"/>
@@ -204,12 +221,14 @@ summary{cursor:pointer;padding:12px 16px;font-weight:600}
 
     <div class="row">
       <button class="ghost" id="resetBtn">Reset score</button>
+      <button class="ghost" id="arcBtn">Challenge mode</button>
       <button class="primary" id="startTimed">Start 60-second sprint</button>
     </div>
     <p class="tip">Keyboard: A–G to answer. In a key with sharps or flats, tap ♯ or ♭ first (or press = / −). Piano keys must be the exact key, right octave.</p>
 
+    <div class="arcsplash" id="arcSplash" hidden><b id="arcSplashT">ROUND 2</b><span id="arcSplashS"></span></div>
     <div class="results" id="results" hidden>
-      <h2>Sprint complete</h2>
+      <h2 id="rTitle">Sprint complete</h2>
       <div class="big" id="rScore">0 <small>correct</small></div>
       <div class="rgrid">
         <div><b id="rPct">0%</b><span>Accuracy</span></div>
@@ -291,6 +310,7 @@ summary{cursor:pointer;padding:12px 16px;font-weight:600}
   $("keySel").addEventListener("change",()=>{store.set("key",$("keySel").value);resetScore();layout();newQuestion(true)});
   const keyName=k=>(KEYS.find(x=>x[1]===k)||["C"])[0];
   let q=null, idx=0, acc="", locked=false, timer=null, timeLeft=0, sprintOver=false, audio=null, level=store.get("level","1");
+  let arc=null, lastMode="sprint", timeMax=60;   // challenge mode state
 
   // ---------- settings ----------
   function setRadio(name,val){const el=document.querySelector(`input[name=${name}][value="${val}"]`); if(el) el.checked=true}
@@ -505,19 +525,19 @@ summary{cursor:pointer;padding:12px 16px;font-weight:600}
 
   // ---------- intervals ----------
   function answerIv(k){ if(!q||!q.iv||locked||q.wait)return; const ok=k===q.num, lo=q.notes[0], hi=q.notes[1];
-    if(!ok&&!q.tried[0]&&!$("retryOn").checked){ st.misses[IVN[q.num]]=(st.misses[IVN[q.num]]||0)+1 }
-    if(!ok&&!q.tried[0]&&$("retryOn").checked){ q.tried[0]=true; st.streak=0; st.misses[IVN[q.num]]=(st.misses[IVN[q.num]]||0)+1; render();
+    if(!ok&&!q.tried[0]&&!retryOK()){ st.misses[IVN[q.num]]=(st.misses[IVN[q.num]]||0)+1 }
+    if(!ok&&!q.tried[0]&&retryOK()){ q.tried[0]=true; st.streak=0; st.misses[IVN[q.num]]=(st.misses[IVN[q.num]]||0)+1; render();
       offerChoice( lo.p%2===hi.p%2?`Count every line and space, bottom note = 1. Both notes are ${lo.p%2===0?"on lines":"in spaces"}, so it's odd: 3rd, 5th or 7th.`:"Count every line and space, bottom note = 1. One is on a line, one in a space, so it's even: 4th, 6th or octave.", ()=>answerIv(k)); return }
     const retried=q.tried[0]; $("choice").hidden=true;
     locked=true; q.marks=[ok?"good":"bad",ok?"good":"bad"]; st.total++;
-    if(ok){st.correct++; st.points+=retried?0.5:1; if(!retried){st.streak++;st.best=Math.max(st.best,st.streak)}} else st.streak=0;
+    if(ok){st.correct++; st.points+=(retried?0.5:1)*mult(); if(!retried){st.streak++;st.best=Math.max(st.best,st.streak)}} else st.streak=0;
     const both=lo.p%2===0?"lines":"spaces", odd=q.num%2===1;
     const rule=odd?`Both notes are ${lo.p%2===0?"on lines":"in spaces"}: that's always an odd interval (3rd, 5th, 7th).`:`One on a line, one in a space: that's always an even interval (4th, 6th, octave).`;
     $("staffbox").className="staffbox "+(ok?"good":"bad");
     if(ok) setPrompt("good",`✓ Right${retried?" on try 2 · +½":""} · ${IVN[q.num]}`,`${nm(lo)} up to ${nm(hi)}.`);
     else setPrompt("bad","✗ Not quite",`You said ${IVN[k]}. This is a${q.num===8?"n":""} ${IVN[q.num]}: ${nm(lo)} up to ${nm(hi)}. Count every line and space, starting with the bottom note as 1. ${rule}`);
     draw(); play([midiOf(lo),midiOf(hi)]); render();
-    setTimeout(()=>{ if(!sprintOver) newQuestion() }, ok?700:3200) }
+    setTimeout(()=>{ if(!sprintOver) newQuestion() }, ok?(arc?400:700):(arc?1500:3200)) }
 
   // ---------- one retry per note ----------
   // after a first miss the student just answers again (worth ½); "Show me" gives up (0 points). Off in settings = one try only.
@@ -534,21 +554,21 @@ summary{cursor:pointer;padding:12px 16px;font-weight:600}
   function grade(ok,given){
     if(locked||q.wait)return; const n=q.notes[idx];
     if(!ok&&!q.tried[idx]){ const k=nm(n).replace(/\d/,""); st.misses[k]=(st.misses[k]||0)+1; st.streak=0;
-      if($("retryOn").checked){ q.tried[idx]=true; render(); offerChoice(hintMsg(n,given),()=>grade(false,given)); return } }
+      if(retryOK()){ q.tried[idx]=true; render(); offerChoice(hintMsg(n,given),()=>grade(false,given)); return } }
     q.marks[idx]=ok?"good":"bad"; $("choice").hidden=true; q.again=null;
     if(q.grand&&idx===0){ idx=1; setAcc(""); play([midiOf(n)]); draw();
       setPrompt(ok?"good":"bad", ok?(q.tried[0]?`✓ Right on try 2 · ${nm(n)}`:`✓ Right · ${nm(n)}`):"✗ Not quite", (ok?"":coachMsg(n,given)+" ")+"Now the bottom note (left hand)."); return }
     locked=true;
     const allOk=q.marks.every(m=>m==="good"||m===null);
     const retried=q.tried.some(Boolean);
-    st.total++; if(allOk){st.correct++; st.points+=retried?0.5:1; if(!retried){st.streak++;st.best=Math.max(st.best,st.streak)} else st.streak=0} else st.streak=0;
+    st.total++; if(allOk){st.correct++; st.points+=(retried?0.5:1)*mult(); if(!retried){st.streak++;st.best=Math.max(st.best,st.streak)} else st.streak=0} else st.streak=0;
     $("staffbox").className="staffbox "+(allOk?"good":"bad");
     const last=q.notes[idx];
     if(allOk) setPrompt("good",`✓ Right${retried?" on try 2 · +½":""} · ${q.notes.map(nm).join(" + ")}`,"");
     else if(q.marks[idx]==="bad") setPrompt("bad","✗ Not quite",coachMsg(last,given));
     else setPrompt("bad",`✓ Bottom right · ${nm(last)}`,`Top note was ${nm(q.notes[0])}, ${where(q.notes[0])}.`);
     draw(); play(q.notes.map(midiOf)); render();
-    setTimeout(()=>{ if(!sprintOver) newQuestion() }, allOk?700:2600);
+    setTimeout(()=>{ if(!sprintOver) newQuestion() }, allOk?(arc?400:700):(arc?1300:2600));
   }
   function answerLetter(L){ if(!q||locked||q.wait)return; const n=q.notes[idx];
     grade(L===n.letter&&acc===n.acc,{letter:L,acc,label:L+(acc==="#"?"♯":acc==="b"?"♭":"")}) }
@@ -611,26 +631,68 @@ summary{cursor:pointer;padding:12px 16px;font-weight:600}
   document.querySelectorAll("#seg button").forEach(b=>b.addEventListener("click",()=>{setRadio("mode",b.dataset.mode);store.set("mode",b.dataset.mode);layout();newQuestion(true)}));
 
   const half=x=>Number.isInteger(x)?String(x):(Math.floor(x)||"")+"½";
-  function render(){ $("sCorrect").textContent=`${half(st.points)}/${st.total}`; $("sPct").textContent=st.total?Math.round(100*st.points/st.total)+"%":"–"; $("sStreak").textContent=st.streak; $("sBest").textContent=st.best }
+  function render(){ if(arc) arcBar(); $("sCorrect").textContent=`${half(st.points)}/${st.total}`; $("sPct").textContent=st.total?Math.round(100*st.points/st.total)+"%":"–"; $("sStreak").textContent=st.streak; $("sBest").textContent=st.best }
   function resetScore(){ stopTimer(); st={correct:0,points:0,total:0,streak:0,best:0,misses:{}}; render() }
   $("resetBtn").addEventListener("click",()=>{resetScore();newQuestion(true)});
 
   // ---------- sprint ----------
-  function stopTimer(){ if(timer){clearInterval(timer);timer=null} sprintOver=false; $("clockrow").hidden=true; $("startTimed").textContent="Start 60-second sprint" }
-  function startSprint(){ resetScore(); $("results").hidden=true; timeLeft=60; $("clockrow").hidden=false; showClock(); $("timerfill").style.width="100%"; $("startTimed").textContent="Stop"; newQuestion(true);
+  function stopTimer(){ if(timer){clearInterval(timer);timer=null} sprintOver=false; arcEnd(); $("clockrow").hidden=true; $("startTimed").textContent="Start 60-second sprint" }
+  function startSprint(){ resetScore(); lastMode="sprint"; timeMax=60; $("results").hidden=true; timeLeft=60; $("clockrow").hidden=false; showClock(); $("timerfill").style.width="100%"; $("startTimed").textContent="Stop"; newQuestion(true);
     timer=setInterval(()=>{ timeLeft--; showClock(); $("timerfill").style.width=(timeLeft/60*100)+"%"; if(timeLeft<=0) endSprint() },1000) }
   function showClock(){ const t=Math.max(0,timeLeft); $("clock").textContent=t;
-    $("ring").style.strokeDashoffset=String(326.7*(1-t/60)); $("watch").classList.toggle("hot",t<=10) }
+    $("ring").style.strokeDashoffset=String(326.7*(1-t/timeMax)); $("watch").classList.toggle("hot",t<=10) }
   function endSprint(){ clearInterval(timer); timer=null; sprintOver=true; locked=true; $("startTimed").textContent="Start 60-second sprint";
-    $("rScore").innerHTML=`${half(st.points)} <small>points in 60 s</small>`;
+    $("rTitle").textContent="Sprint complete"; $("againBtn").textContent="Sprint again"; $("rScore").innerHTML=`${half(st.points)} <small>points in 60 s</small>`;
     $("rPct").textContent=(st.total?Math.round(100*st.points/st.total):0)+"%"; $("rTotal").textContent=st.total; $("rBest").textContent=st.best;
     const miss=Object.entries(st.misses).sort((a,b)=>b[1]-a[1]).slice(0,5);
     $("rMiss").innerHTML=miss.length?miss.map(([k,v])=>`<span>${k} ×${v}</span>`).join(""):"<span>None. Clean run.</span>";
     const L=LEVELS.find(x=>x.id===level); const d=new Date();
     $("rStamp").textContent=`Level ${L.id==="C"?"Custom":L.id} · ${L.name} · Key ${keySetting()==="mix"?"Mix":keyName(+keySetting())} · ${d.toLocaleDateString(undefined,{weekday:"short",month:"short",day:"numeric"})} ${d.toLocaleTimeString([], {hour:"numeric",minute:"2-digit"})}`;
     $("results").hidden=false }
-  $("startTimed").addEventListener("click",()=>{ if(timer){stopTimer();newQuestion(true)} else startSprint() });
-  $("againBtn").addEventListener("click",startSprint);
+  $("startTimed").addEventListener("click",()=>{ if(timer||arc){stopTimer();newQuestion(true)} else startSprint() });
+  $("againBtn").addEventListener("click",()=>lastMode==="arcade"?arcStart():startSprint());
+
+  // ---------- arcade: rounds like the arcade hoop game. Score carries over; each round needs a higher running total in the same 30 s ----------
+  // Base running totals for L1 letters; scaled for harder levels and slower answer modes. Last 10 s of a round = on fire, 2x points.
+  const ARC_BASE=[12,27,45,66,90], ARC_T=30, ARC_FIRE=10;
+  const retryOK=()=>$("retryOn").checked&&!arc;
+  const mult=()=>arc&&(arc.bonus||timeLeft<=ARC_FIRE)?2:1;
+  function arcFactor(){ const s=readSettings(), lv={"1":1,"2":1,"3":.6,"4":.55,"5":.6,"C":.8}[level]||.8, md=s.iv?1:{letters:1,piano:.85,mic:.65}[s.mode]||1; return lv*md }
+  function arcNeeds(){ const f=arcFactor(); return ARC_BASE.map(x=>Math.max(1,Math.round(x*f))) }
+  function arcBar(){ if(!arc) return; const need=arc.bonus?null:arc.needs[arc.round-1];
+    $("arcRound").textContent=arc.bonus?"BONUS ROUND":`ROUND ${arc.round} OF 5`;
+    $("arcNeed").textContent=arc.bonus?`SCORE ${half(st.points)}`:(st.points>=need?`✓ ${half(st.points)} / ${need}`:`${half(st.points)} / ${need}`); $("arcNeed").classList.toggle("met",!arc.bonus&&st.points>=need);
+    const fire=arc.bonus||timeLeft<=ARC_FIRE; $("arcFire").hidden=!fire; $("watch").classList.toggle("fire",fire);
+    // target meter: fills toward this round's running total; turns green with a flash the moment it's reached
+    const m=$("arcMeter"), start=arc.bonus||arc.round===1?0:arc.needs[arc.round-2], pct=arc.bonus?100:Math.min(100,Math.max(0,(st.points-start)/(need-start)*100));
+    $("arcFill").style.width=pct+"%"; const hit=!arc.bonus&&st.points>=need; $("arcHit").textContent=arc.bonus?"BONUS: EVERY POINT DOUBLE":"✓ TARGET HIT";
+    if(hit&&!arc.hit){ arc.hit=true; m.classList.remove("flash"); void m.offsetWidth; m.classList.add("flash"); $("staffbox").classList.add("hitglow"); setTimeout(()=>$("staffbox").classList.remove("hitglow"),900) }
+    m.classList.toggle("hit",hit||arc.bonus) }
+  function arcSplash(t,sub,ms,then){ $("arcSplashT").textContent=t; $("arcSplashS").textContent=sub; $("arcSplash").hidden=false; locked=true;
+    setTimeout(()=>{ $("arcSplash").hidden=true; if(arc) then() },ms) }
+  function arcStart(){ resetScore(); lastMode="arcade"; $("results").hidden=true; arc={round:1,bonus:false,needs:arcNeeds()};
+    $("arcbar").hidden=false; $("arcMeter").hidden=false; $("startTimed").textContent="Stop"; $("arcBtn").hidden=true;
+    arcSplash("ROUND 1",`Score ${arc.needs[0]} in 30 seconds. No second tries. Last 10 seconds = 2x points.`,2200,arcRound) }
+  function arcRound(){ timeMax=ARC_T; timeLeft=ARC_T; $("clockrow").hidden=false; showClock(); arcBar(); newQuestion(true);
+    timer=setInterval(()=>{ timeLeft--; showClock(); arcBar(); if(timeLeft<=0) arcRoundEnd() },1000) }
+  function arcRoundEnd(){ clearInterval(timer); timer=null; locked=true;
+    if(arc.bonus) return arcFinish(true);
+    const need=arc.needs[arc.round-1];
+    if(st.points<need) return arcFinish(false);
+    if(arc.round===5){ arc.bonus=true; arc.hit=false; arcBar(); return arcSplash("BONUS ROUND","Every point counts double for 30 seconds. Go.",2000,arcRound) }
+    arc.round++; arc.hit=false; arcBar(); arcSplash(`ROUND ${arc.round}`,`Running total to beat: ${arc.needs[arc.round-1]}. Faster now.`,1800,arcRound) }
+  function arcFinish(won){ const reached=arc.bonus?"Bonus round":`Round ${arc.round}`, key="arcbest-"+level+"-"+readSettings().mode, best=Math.max(store.get(key,0),st.points), isNew=st.points>0&&st.points>=best;
+    store.set(key,best); sprintOver=true; locked=true; arc=null; $("arcbar").hidden=true; $("arcMeter").hidden=true; $("watch").classList.remove("fire"); $("arcBtn").hidden=false; $("startTimed").textContent="Start 60-second sprint";
+    $("rTitle").textContent=won?"Challenge cleared!":"Challenge over"; $("againBtn").textContent="Play again";
+    $("rScore").innerHTML=`${half(st.points)} <small>points · ${reached}${isNew?" · new high score":""}</small>`;
+    $("rPct").textContent=(st.total?Math.round(100*st.correct/st.total):0)+"%"; $("rTotal").textContent=st.total; $("rBest").textContent=st.best;
+    const miss=Object.entries(st.misses).sort((a,b)=>b[1]-a[1]).slice(0,5);
+    $("rMiss").innerHTML=miss.length?miss.map(([k,v])=>`<span>${k} ×${v}</span>`).join(""):"<span>None. Clean run.</span>";
+    const L=LEVELS.find(x=>x.id===level); const d=new Date();
+    $("rStamp").textContent=`CHALLENGE MODE · High score ${half(best)} · Level ${L.id==="C"?"Custom":L.id} · ${L.name} · Key ${keySetting()==="mix"?"Mix":keyName(+keySetting())} · ${d.toLocaleDateString(undefined,{weekday:"short",month:"short",day:"numeric"})} ${d.toLocaleTimeString([], {hour:"numeric",minute:"2-digit"})}`;
+    $("results").hidden=false }
+  function arcEnd(){ if(!arc) return; arc=null; $("arcbar").hidden=true; $("arcMeter").hidden=true; $("arcSplash").hidden=true; $("watch").classList.remove("fire"); $("arcBtn").hidden=false }
+  $("arcBtn").addEventListener("click",()=>{ if(timer) stopTimer(); arcStart() });
   $("closeResults").addEventListener("click",()=>{$("results").hidden=true; stopTimer(); newQuestion(true)});
   $("studentName").value=store.get("name",""); $("studentName").addEventListener("input",e=>store.set("name",e.target.value));
 
@@ -644,6 +706,7 @@ summary{cursor:pointer;padding:12px 16px;font-weight:600}
 
   selectLevel(level,true); if(level==="C"){const c=store.get("custom",null); if(c) applySettings(c)}
   layout(); render(); newQuestion(true);
+  window.__ns={note:()=>q&&!locked?q.notes[idx]:null};   // test hook
   if(document.fonts){ const redraw=()=>{ for(const k in GM) delete GM[k]; q&&draw() };
     document.fonts.load("100px 'Noto Music'","𝄞𝄢♯♭♮").then(redraw).catch(()=>{}); document.fonts.ready.then(redraw) }
 })();
