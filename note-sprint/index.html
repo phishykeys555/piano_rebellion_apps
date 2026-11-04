@@ -92,6 +92,8 @@ button:focus-visible,input:focus-visible{outline:3px solid var(--accent);outline
 .ivfocus button[aria-pressed="true"]{background:var(--accent-soft);border-color:var(--accent);color:var(--accent)}
 .ivans{display:grid;grid-template-columns:repeat(6,1fr);gap:6px}
 .ivans button{font-family:var(--display);font-weight:800;font-size:18px;padding:14px 0}
+.choice{display:flex;gap:8px;justify-content:center}
+.choice button{padding:10px 16px;font-weight:700}
 .keyrow{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
 .keyrow label{font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
 .keyrow select{font:inherit;padding:7px 10px;border-radius:8px;border:1px solid var(--border);background:var(--panel);color:var(--ink)}
@@ -151,7 +153,7 @@ summary{cursor:pointer;padding:12px 16px;font-weight:600}
 
   <section class="card" aria-label="Practice" id="card">
     <div class="stats">
-      <div class="stat"><b id="sCorrect">0/0</b><span>Correct</span></div>
+      <div class="stat"><b id="sCorrect">0/0</b><span>Points</span></div>
       <div class="stat"><b id="sPct">–</b><span>Accuracy</span></div>
       <div class="stat"><b id="sStreak">0</b><span>Streak</span></div>
       <div class="stat"><b id="sBest">0</b><span>Best</span></div>
@@ -165,6 +167,7 @@ summary{cursor:pointer;padding:12px 16px;font-weight:600}
 
     <div class="staffbox" id="staffbox"><svg id="staff" role="img" aria-label="Note on a staff"></svg></div>
     <div class="prompt" id="prompt" aria-live="polite"></div>
+    <div class="choice" id="choice" hidden><button class="primary" id="tryBtn">Try again · ½ pt</button><button class="ghost" id="showBtn">Show me</button></div>
 
     <div id="letterPad">
       <div class="acc" id="accRow" hidden>
@@ -261,7 +264,7 @@ summary{cursor:pointer;padding:12px 16px;font-weight:600}
   const $=id=>document.getElementById(id);
   const store={get(k,d){try{const v=localStorage.getItem("ns2-"+k);return v==null?d:JSON.parse(v)}catch(e){return d}},
                set(k,v){try{localStorage.setItem("ns2-"+k,JSON.stringify(v))}catch(e){}}};
-  let st={correct:0,total:0,streak:0,best:0,misses:{}};
+  let st={correct:0,points:0,total:0,streak:0,best:0,misses:{}};
   KEYS.forEach(([n,k])=>{const o=document.createElement("option");o.value=k;o.textContent=n+(k===0?" (no sharps or flats)":k>0?` (${k}♯)`:` (${-k}♭)`);$("keySel").appendChild(o)});
   {const o=document.createElement("option");o.value="mix";o.textContent="Mix: new key every note";$("keySel").appendChild(o)}
   $("keySel").value=String(store.get("key","0"));
@@ -348,10 +351,10 @@ summary{cursor:pointer;padding:12px 16px;font-weight:600}
         if(s.acc&&Math.random()<.3){const o=["#","b",""].filter(x=>x!==base); a=o[Math.floor(Math.random()*2)]; if(a!==base) pr=a===""?"n":a}
         return {clef,p,letter,octave,acc:a,print:pr}};
       q={iv:true,grand:false,key,num,notes:[mk(lp),mk(lp+num-1)]};
-      q.marks=[null,null]; q.tried=[false,false]; $("staffbox").className="staffbox"; setPrompt(null,"Name the interval"); draw(); return }
+      q.marks=[null,null]; q.tried=[false,false]; $("choice").hidden=true; $("staffbox").className="staffbox"; setPrompt(null,"Name the interval"); draw(); return }
     if(s.staffMode==="grand") q={grand:true,key,notes:[makeNote("treble",s.range,s.acc,prev&&prev.notes[0],key),makeNote("bass",s.range,s.acc,prev&&prev.notes[1],key)]};
     else{const clef=s.staffMode==="mix"?(Math.random()<.5?"treble":"bass"):s.staffMode; q={grand:false,key,notes:[makeNote(clef,s.range,s.acc,prev&&prev.notes[0],key)]}}
-    q.marks=[null,null]; q.tried=[false,false]; $("staffbox").className="staffbox"; setPrompt(); draw();
+    q.marks=[null,null]; q.tried=[false,false]; $("choice").hidden=true; $("staffbox").className="staffbox"; setPrompt(); draw();
   }
   function setPrompt(cls,text,coach){const el=$("prompt");el.className="prompt"+(cls?" "+cls:""); el.textContent="";
     const t=text!=null?text:(q.grand?(idx===0?"Top note first (right hand)":"Now the bottom note (left hand)"):"");
@@ -437,21 +440,26 @@ summary{cursor:pointer;padding:12px 16px;font-weight:600}
   }catch(e){} }
 
   // ---------- intervals ----------
-  function answerIv(k){ if(!q||!q.iv||locked)return; const ok=k===q.num, lo=q.notes[0], hi=q.notes[1];
+  function answerIv(k){ if(!q||!q.iv||locked||q.wait)return; const ok=k===q.num, lo=q.notes[0], hi=q.notes[1];
     if(!ok&&!q.tried[0]){ q.tried[0]=true; st.streak=0; st.misses[IVN[q.num]]=(st.misses[IVN[q.num]]||0)+1; render(); flashBad();
-      setPrompt("bad","✗ Try again", lo.p%2===hi.p%2?`Count every line and space, bottom note = 1. Both notes are ${lo.p%2===0?"on lines":"in spaces"}, so it's odd: 3rd, 5th or 7th.`:"Count every line and space, bottom note = 1. One is on a line, one in a space, so it's even: 4th, 6th or octave."); return }
+      offerChoice( lo.p%2===hi.p%2?`Count every line and space, bottom note = 1. Both notes are ${lo.p%2===0?"on lines":"in spaces"}, so it's odd: 3rd, 5th or 7th.`:"Count every line and space, bottom note = 1. One is on a line, one in a space, so it's even: 4th, 6th or octave.", ()=>answerIv(k)); return }
     const retried=q.tried[0];
     locked=true; q.marks=[ok?"good":"bad",ok?"good":"bad"]; st.total++;
-    if(ok){st.correct++; if(!retried){st.streak++;st.best=Math.max(st.best,st.streak)}} else st.streak=0;
+    if(ok){st.correct++; st.points+=retried?0.5:1; if(!retried){st.streak++;st.best=Math.max(st.best,st.streak)}} else st.streak=0;
     const both=lo.p%2===0?"lines":"spaces", odd=q.num%2===1;
     const rule=odd?`Both notes are ${lo.p%2===0?"on lines":"in spaces"}: that's always an odd interval (3rd, 5th, 7th).`:`One on a line, one in a space: that's always an even interval (4th, 6th, octave).`;
     $("staffbox").className="staffbox "+(ok?"good":"bad");
-    if(ok) setPrompt("good",`✓ Right${retried?" on try 2":""} · ${IVN[q.num]}`,`${nm(lo)} up to ${nm(hi)}.`);
+    if(ok) setPrompt("good",`✓ Right${retried?" on try 2 · +½":""} · ${IVN[q.num]}`,`${nm(lo)} up to ${nm(hi)}.`);
     else setPrompt("bad","✗ Not quite",`You said ${IVN[k]}. This is a${q.num===8?"n":""} ${IVN[q.num]}: ${nm(lo)} up to ${nm(hi)}. Count every line and space, starting with the bottom note as 1. ${rule}`);
     draw(); play([midiOf(lo),midiOf(hi)]); render();
     setTimeout(()=>{ if(!sprintOver) newQuestion() }, ok?700:3200) }
 
   // ---------- one retry per note ----------
+  // after a first miss the student picks: Try again (worth ½) or Show me (answer, 0 points)
+  function offerChoice(hint,again){ q.wait=true; q.again=again; flashBad(); setPrompt("bad","✗ Not quite",hint); $("choice").hidden=false }
+  function hideChoice(){ $("choice").hidden=true; if(q) q.wait=false }
+  $("tryBtn").addEventListener("click",()=>{ if(!q||!q.wait)return; hideChoice(); setPrompt("bad","Try again",$("prompt").querySelector(".coach")?.textContent.replace(/ Try again\.$/,"")||"") });
+  $("showBtn").addEventListener("click",()=>{ if(!q||!q.wait)return; const f=q.again; hideChoice(); f() });
   function flashBad(){ $("staffbox").className="staffbox bad"; setTimeout(()=>{ if(!locked) $("staffbox").className="staffbox" },650) }
   function hintMsg(n,given){
     if(given&&given.midi!=null&&given.midi%12===midiOf(n)%12) return "Right note name, wrong octave. Try again.";
@@ -461,27 +469,27 @@ summary{cursor:pointer;padding:12px 16px;font-weight:600}
 
   // ---------- grading ----------
   function grade(ok,given){
-    if(locked)return; const n=q.notes[idx];
+    if(locked||q.wait)return; const n=q.notes[idx];
     if(!ok&&!q.tried[idx]){ q.tried[idx]=true; st.streak=0; const k=nm(n).replace(/\d/,""); st.misses[k]=(st.misses[k]||0)+1;
-      render(); flashBad(); setPrompt("bad","✗ Try again",hintMsg(n,given)); return }
+      render(); offerChoice(hintMsg(n,given),()=>grade(false,given)); return }
     q.marks[idx]=ok?"good":"bad";
     if(q.grand&&idx===0){ idx=1; setAcc(""); play([midiOf(n)]); draw();
       setPrompt(ok?"good":"bad", ok?(q.tried[0]?`✓ Right on try 2 · ${nm(n)}`:`✓ Right · ${nm(n)}`):"✗ Not quite", (ok?"":coachMsg(n,given)+" ")+"Now the bottom note (left hand)."); return }
     locked=true;
     const allOk=q.marks.every(m=>m==="good"||m===null);
     const retried=q.tried.some(Boolean);
-    st.total++; if(allOk){st.correct++; if(!retried){st.streak++;st.best=Math.max(st.best,st.streak)} else st.streak=0} else st.streak=0;
+    st.total++; if(allOk){st.correct++; st.points+=retried?0.5:1; if(!retried){st.streak++;st.best=Math.max(st.best,st.streak)} else st.streak=0} else st.streak=0;
     $("staffbox").className="staffbox "+(allOk?"good":"bad");
     const last=q.notes[idx];
-    if(allOk) setPrompt("good",`✓ Right${retried?" on try 2":""} · ${q.notes.map(nm).join(" + ")}`,"");
+    if(allOk) setPrompt("good",`✓ Right${retried?" on try 2 · +½":""} · ${q.notes.map(nm).join(" + ")}`,"");
     else if(q.marks[idx]==="bad") setPrompt("bad","✗ Not quite",coachMsg(last,given));
     else setPrompt("bad",`✓ Bottom right · ${nm(last)}`,`Top note was ${nm(q.notes[0])}, ${where(q.notes[0])}.`);
     draw(); play(q.notes.map(midiOf)); render();
     setTimeout(()=>{ if(!sprintOver) newQuestion() }, allOk?700:2600);
   }
-  function answerLetter(L){ if(!q||locked)return; const n=q.notes[idx];
+  function answerLetter(L){ if(!q||locked||q.wait)return; const n=q.notes[idx];
     grade(L===n.letter&&acc===n.acc,{letter:L,acc,label:L+(acc==="#"?"♯":acc==="b"?"♭":"")}) }
-  function answerMidi(m,btn){ if(!q||locked)return; const target=midiOf(q.notes[idx]), ok=m===target;
+  function answerMidi(m,btn){ if(!q||locked||q.wait)return; const target=midiOf(q.notes[idx]), ok=m===target;
     btn.classList.add(ok?"hit":"miss"); setTimeout(()=>btn.classList.remove("hit","miss"),450);
     if(!ok&&q.tried[idx]){const c=$("piano").querySelector(`[data-midi="${target}"]`); if(c){c.classList.add("show"); setTimeout(()=>c.classList.remove("show"),1800)}}
     grade(ok,{midi:m,label:mname(m)}) }
@@ -534,12 +542,13 @@ summary{cursor:pointer;padding:12px 16px;font-weight:600}
     if(m.armed){ const f=acf(m.buf,audio.sampleRate); if(f>40&&f<2200){const md=Math.round(69+12*Math.log2(f/440)); m.cand.push(md); $("heard").textContent=mname(md)}
       if(m.cand.length>=4){ const srt=[...m.cand].sort((a,b)=>a-b), md=srt[Math.floor(srt.length/2)]; m.armed=false; m.cool=now+450; $("heard").textContent=mname(md); answerHeard(md) }
       else if(now-m.armedAt>600){m.armed=false} } }
-  function answerHeard(md){ if(!q||locked)return; const t=midiOf(q.notes[idx]); grade(md===t,{midi:md,label:mname(md)}) }
+  function answerHeard(md){ if(!q||locked||q.wait)return; const t=midiOf(q.notes[idx]); grade(md===t,{midi:md,label:mname(md)}) }
   $("micBtn").addEventListener("click",()=>micStart($("micSel").value||undefined));
   document.querySelectorAll("#seg button").forEach(b=>b.addEventListener("click",()=>{setRadio("mode",b.dataset.mode);store.set("mode",b.dataset.mode);layout();newQuestion(true)}));
 
-  function render(){ $("sCorrect").textContent=`${st.correct}/${st.total}`; $("sPct").textContent=st.total?Math.round(100*st.correct/st.total)+"%":"–"; $("sStreak").textContent=st.streak; $("sBest").textContent=st.best }
-  function resetScore(){ stopTimer(); st={correct:0,total:0,streak:0,best:0,misses:{}}; render() }
+  const half=x=>Number.isInteger(x)?String(x):(Math.floor(x)||"")+"½";
+  function render(){ $("sCorrect").textContent=`${half(st.points)}/${st.total}`; $("sPct").textContent=st.total?Math.round(100*st.points/st.total)+"%":"–"; $("sStreak").textContent=st.streak; $("sBest").textContent=st.best }
+  function resetScore(){ stopTimer(); st={correct:0,points:0,total:0,streak:0,best:0,misses:{}}; render() }
   $("resetBtn").addEventListener("click",()=>{resetScore();newQuestion(true)});
 
   // ---------- sprint ----------
@@ -549,8 +558,8 @@ summary{cursor:pointer;padding:12px 16px;font-weight:600}
   function showClock(){ const t=Math.max(0,timeLeft); $("clock").textContent=t;
     $("ring").style.strokeDashoffset=String(326.7*(1-t/60)); $("watch").classList.toggle("hot",t<=10) }
   function endSprint(){ clearInterval(timer); timer=null; sprintOver=true; locked=true; $("startTimed").textContent="Start 60-second sprint";
-    $("rScore").innerHTML=`${st.correct} <small>correct in 60 s</small>`;
-    $("rPct").textContent=(st.total?Math.round(100*st.correct/st.total):0)+"%"; $("rTotal").textContent=st.total; $("rBest").textContent=st.best;
+    $("rScore").innerHTML=`${half(st.points)} <small>points in 60 s</small>`;
+    $("rPct").textContent=(st.total?Math.round(100*st.points/st.total):0)+"%"; $("rTotal").textContent=st.total; $("rBest").textContent=st.best;
     const miss=Object.entries(st.misses).sort((a,b)=>b[1]-a[1]).slice(0,5);
     $("rMiss").innerHTML=miss.length?miss.map(([k,v])=>`<span>${k} ×${v}</span>`).join(""):"<span>None. Clean run.</span>";
     const L=LEVELS.find(x=>x.id===level); const d=new Date();
@@ -563,6 +572,7 @@ summary{cursor:pointer;padding:12px 16px;font-weight:600}
 
   document.addEventListener("keydown",e=>{
     if(e.target.tagName==="INPUT")return; const k=e.key.toUpperCase();
+    if(q&&q.wait){ if(e.key==="Enter"){e.preventDefault();$("tryBtn").click()} else if(k==="S"){e.preventDefault();$("showBtn").click()} return }
     if(readSettings().iv&&/^[3-8]$/.test(k)){e.preventDefault();answerIv(+k);return}
     if(k==="-"){setAcc("b");return} if(k==="="||k==="+"){setAcc("#");return}
     if(k.length===1&&LET.includes(k)&&readSettings().mode==="letters"){e.preventDefault();answerLetter(k)}
