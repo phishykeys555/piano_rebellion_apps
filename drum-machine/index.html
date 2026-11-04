@@ -487,7 +487,7 @@ function genFill(len){const A=+$('fa').value/100,sty=$('fs').value,n=steps(),ev=
  return ev}
 // ===== storage =====
 const store=(()=>{for(const k of ['localStorage','sessionStorage']){try{const st=window[k],t='__dk';st.setItem(t,'1');st.removeItem(t);return st}catch(e){}}const mm={};return{getItem:k=>k in mm?mm[k]:null,setItem:(k,v)=>mm[k]=v,removeItem:k=>delete mm[k],mem:true}})();
-const SKEY='drumMachine:'+(()=>{let r='';try{const u=new URL(document.referrer);if(u.pathname.length>1)r=u.host+u.pathname}catch(e){}return r+'|'+location.host+location.pathname})();
+const SKEY='drumMachine:'+(()=>{let r='';try{const u=new URL(document.referrer);if(u.pathname.length>1)r=u.host+u.pathname}catch(e){}return r+'|'+location.host+location.pathname+location.search})();
 const esc=x=>String(x).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 // ===== extra voices (recorded samples) =====
 const PERC={82:'l_cabasa',54:'l_tamb',39:'l_clap',63:'l_congah',64:'l_congal',60:'c_bongoh',61:'c_bongol',73:'c_guiro'};
@@ -725,8 +725,16 @@ function applyState(st){if(!st||!st.c)return false;restoring=true;const c=st.c;
 function uiRefresh(){fatUI();swUI();$('mvt').textContent=$('mv').value+'%';$('cpl').style.display=$('prog').value==='custom'?'':'none';$('beat').classList.toggle('big',$('bigl').checked);
  if(out)out.gain.setTargetAtTime($('mv').value/100,ctx.currentTime,0.02);if(revSend)revSend.gain.setTargetAtTime($('room').value/100*0.5,ctx.currentTime,0.05);chordPreview()}
 function save(){if(restoring)return;clearTimeout(saveT);saveT=setTimeout(()=>{try{store.setItem(SKEY,JSON.stringify(getState(true)));$('sv').textContent=store.mem?'Settings kept until reload':'✓ Settings saved'}catch(e){$('sv').textContent='Saving not available here'}},300)}
+// Song presets from the link: ?pre=rock&bpm=80&key=A&md=aeolian&prog=custom&cprog=Am%20G&bon=1&bs=pedal&tr=1&trg=108 ...
+// Any control id works. Used only until the student changes something; ↺ Reset goes back to the link's settings.
+function applyParams(){const sp=new URLSearchParams(location.search);if(![...sp.keys()].length)return false;restoring=true;
+ if(sp.get('pre')&&P[sp.get('pre')]){preset(sp.get('pre'));$('pre').value=curName}
+ sp.forEach((val,k)=>{if(k==='pre'||k==='bpm'||k==='view')return;const e=$(k);if(!e||!e.hasAttribute('data-s'))return;
+  if(e.type==='checkbox')e.checked=val==='1'||val==='true';else if(e.tagName==='SELECT')setSel(e,val);else e.value=val});
+ if(sp.get('sw'))setSwing(+sp.get('sw'));if(sp.get('view'))setView(sp.get('view'),true);
+ setBpm(+sp.get('bpm')||80);uiRefresh();draw();restoring=false;$('sv').textContent='✓ Song settings loaded';return true}
 function restore(){let st=null;try{st=JSON.parse(store.getItem(SKEY)||'null')}catch(e){}
- if(applyState(st))$('sv').textContent='✓ Restored your last settings';else{preset('rock');setBpm(80)}}
+ if(applyState(st))$('sv').textContent='✓ Restored your last settings';else if(!applyParams()){preset('rock');setBpm(80)}}
 function setView(vw,quiet){document.body.classList.toggle('simple',vw==='simple');$('vS').classList.toggle('sel',vw==='simple');$('vA').classList.toggle('sel',vw!=='simple');if(!quiet)save()}
 const PKEY='drumMachine:presets';
 function presets(){try{return JSON.parse(store.getItem(PKEY)||'{}')||{}}catch(e){return {}}}
