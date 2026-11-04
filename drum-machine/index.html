@@ -176,13 +176,13 @@ textarea{width:100%;box-sizing:border-box;height:54px;font-size:12px;font-family
 <label>Style <select id="bs" data-s><option value="auto" selected>Auto (matches groove)</option><option value="kick">Follow the Kick</option><option value="root">Long Root Notes</option><option value="roots8">Driving 8ths</option><option value="rootfifth">Root – Fifth</option><option value="octave">Disco Octaves</option><option value="funk">Funk (syncopated)</option><option value="walk">Walking Jazz</option><option value="bossa">Bossa / Latin</option><option value="reggae">Reggae</option><option value="trap">Trap 808 (glides)</option><option value="arp">Arpeggio</option><option value="modal">Modal Riff (scale runs)</option><option value="pedal">Pedal Tone (drone on key note)</option></select></label>
 </div>
 <div class="row">
-<label>Key <select id="key" data-s><option value="C">C</option><option value="C#">C♯ / D♭</option><option value="D">D</option><option value="D#">D♯ / E♭</option><option value="E">E</option><option value="F">F</option><option value="F#">F♯ / G♭</option><option value="G">G</option><option value="G#">G♯ / A♭</option><option value="A">A</option><option value="A#">A♯ / B♭</option><option value="B">B</option></select></label>
-<label title="The scale the bass line uses for passing notes and runs. Picking a modal chord progression sets this for you.">Mode <select id="md" data-s><option value="auto" selected>Auto (from chords)</option><optgroup label="Modes"><option value="ionian">Ionian (major)</option><option value="dorian">Dorian</option><option value="phrygian">Phrygian</option><option value="lydian">Lydian</option><option value="mixolydian">Mixolydian</option><option value="aeolian">Aeolian (natural minor)</option><option value="locrian">Locrian</option></optgroup><optgroup label="Other scales"><option value="harmonic">Harmonic minor</option><option value="melodic">Melodic minor</option><option value="phrdom">Phrygian dominant</option><option value="majpent">Major pentatonic</option><option value="minpent">Minor pentatonic</option><option value="blues">Blues</option></optgroup></select></label>
-<label>Chords <select id="prog" data-s><option value="I V vi IV" selected>I – V – vi – IV (pop)</option><option value="vi IV I V">vi – IV – I – V</option><option value="I vi IV V">I – vi – IV – V (50s)</option><option value="I IV V IV">I – IV – V – IV (rock)</option><option value="I IV vi V">I – IV – vi – V</option><option value="i VI III VII">i – VI – III – VII (minor pop)</option><option value="i iv v i">i – iv – v – i (minor)</option><option value="i VII VI V">i – VII – VI – V (Andalusian)</option><option value="ii7 V7 Imaj7 Imaj7">ii – V – I (jazz)</option><option value="I7 I7 I7 I7 IV7 IV7 I7 I7 V7 IV7 I7 V7">12-Bar Blues</option><option value="I">One chord (vamp)</option><optgroup label="Modal"><option value="i IV" data-md="dorian">Dorian: i – IV (Oye Como Va)</option><option value="i ii III IV" data-md="dorian">Dorian: i – ii – ♭III – IV</option><option value="i VII IV i" data-md="dorian">Dorian: i – ♭VII – IV – i</option><option value="i II" data-md="phrygian">Phrygian: i – ♭II (Spanish)</option><option value="i II III II" data-md="phrygian">Phrygian: i – ♭II – ♭III – ♭II</option><option value="i vii VI II" data-md="phrygian">Phrygian: i – ♭vii – ♭VI – ♭II</option><option value="I II" data-md="lydian">Lydian: I – II (dreamy)</option><option value="I II vii I" data-md="lydian">Lydian: I – II – vii – I</option><option value="I II iii II" data-md="lydian">Lydian: I – II – iii – II</option><option value="I VII IV I" data-md="mixolydian">Mixolydian: I – ♭VII – IV – I</option><option value="I v IV I" data-md="mixolydian">Mixolydian: I – v – IV – I</option><option value="I VII I IV" data-md="mixolydian">Mixolydian: I – ♭VII – I – IV</option><option value="i VI VII i" data-md="aeolian">Aeolian: i – ♭VI – ♭VII – i (epic)</option><option value="i VII VI VII" data-md="aeolian">Aeolian: i – ♭VII – ♭VI – ♭VII</option><option value="i iv VII III" data-md="aeolian">Aeolian: i – iv – ♭VII – ♭III</option><option value="i° II iv II" data-md="locrian">Locrian: i° – ♭II – iv – ♭II</option><option value="i iv V i" data-md="harmonic">Harmonic minor: i – iv – V – i</option><option value="I II vii II" data-md="phrdom">Phrygian dominant: I – ♭II – ♭vii – ♭II</option></optgroup><option value="custom">Custom…</option></select></label>
+<label title="CHMA theory: always name the major parent key (the 1). The mode says which number you start on.">Parent key (the 1) <select id="key" data-s><option value="C">C</option><option value="C#">C♯ / D♭</option><option value="D">D</option><option value="D#">D♯ / E♭</option><option value="E">E</option><option value="F">F</option><option value="F#">F♯ / G♭</option><option value="G">G</option><option value="G#">G♯ / A♭</option><option value="A">A</option><option value="A#">A♯ / B♭</option><option value="B">B</option></select></label>
+<label title="The scale the bass line uses for passing notes and runs. Picking a modal chord progression sets this for you.">Mode <select id="md" data-s><option value="auto" selected>Auto (the chord you start on)</option><optgroup label="Modes: the number you start on"><option value="ionian">1 · Ionian (major)</option><option value="dorian">2 · Dorian</option><option value="phrygian">3 · Phrygian</option><option value="lydian">4 · Lydian</option><option value="mixolydian">5 · Mixolydian</option><option value="aeolian">6 · Aeolian (minor)</option><option value="locrian">7 · Locrian</option></optgroup><optgroup label="Other scales"><option value="harmonic">6 · Harmonic minor (raised 7)</option><option value="melodic">6 · Melodic minor (raised 6 and 7)</option><option value="phrdom">3 · Phrygian dominant (major III)</option><option value="majpent">Major pentatonic</option><option value="minpent">Minor pentatonic</option><option value="blues">Blues</option></optgroup></select></label>
+<label>Chords <select id="prog" data-s><option value="I V vi IV" selected>I – V – vi – IV (pop)</option><option value="vi IV I V">vi – IV – I – V (minor pop, on the 6)</option><option value="I vi IV V">I – vi – IV – V (50s)</option><option value="I IV V IV">I – IV – V – IV (rock)</option><option value="I IV vi V">I – IV – vi – V</option><option value="vi ii iii vi">vi – ii – iii – vi (on the 6)</option><option value="vi V IV III">vi – V – IV – III (Andalusian, major III)</option><option value="ii7 V7 Imaj7 Imaj7">ii – V – I (jazz)</option><option value="I7 I7 I7 I7 IV7 IV7 I7 I7 V7 IV7 I7 V7">12-Bar Blues</option><option value="I">One chord (vamp)</option><optgroup label="Modal (numbers from the parent key)"><option value="ii V" data-md="dorian">Dorian (2): ii – V (Oye Como Va)</option><option value="ii iii IV V" data-md="dorian">Dorian (2): ii – iii – IV – V</option><option value="ii I V ii" data-md="dorian">Dorian (2): ii – I – V – ii</option><option value="iii IV" data-md="phrygian">Phrygian (3): iii – IV (Spanish)</option><option value="iii IV V IV" data-md="phrygian">Phrygian (3): iii – IV – V – IV</option><option value="iii ii I IV" data-md="phrygian">Phrygian (3): iii – ii – I – IV</option><option value="IV V" data-md="lydian">Lydian (4): IV – V (dreamy)</option><option value="IV V iii IV" data-md="lydian">Lydian (4): IV – V – iii – IV</option><option value="IV V vi V" data-md="lydian">Lydian (4): IV – V – vi – V</option><option value="V IV I V" data-md="mixolydian">Mixolydian (5): V – IV – I – V</option><option value="V ii I V" data-md="mixolydian">Mixolydian (5): V – ii – I – V</option><option value="V IV V I" data-md="mixolydian">Mixolydian (5): V – IV – V – I</option><option value="vi IV V vi" data-md="aeolian">Aeolian (6): vi – IV – V – vi (epic)</option><option value="vi V IV V" data-md="aeolian">Aeolian (6): vi – V – IV – V</option><option value="vi ii V I" data-md="aeolian">Aeolian (6): vi – ii – V – I</option><option value="vii° I iii I" data-md="locrian">Locrian (7): vii° – I – iii – I</option><option value="vi ii III vi" data-md="harmonic">Harmonic minor (6): vi – ii – III – vi</option><option value="III IV ii IV" data-md="phrdom">Phrygian dominant (3): III – IV – ii – IV</option></optgroup><option value="custom">Custom…</option></select></label>
 <label class="adv">Bars per chord <select id="bpc" data-s><option>1</option><option>2</option></select></label>
 </div>
 <div class="row adv">
-<label id="cpl" style="display:none">Custom <input type="text" id="cprog" data-s value="I V vi IV" placeholder="e.g. Eb Bb Cm Ab  or  I V vi IV" style="width:210px"></label>
+<label id="cpl" style="display:none">Custom <input type="text" id="cprog" data-s value="I V vi IV" placeholder="e.g. Gm Dm F C  or  ii vi I V" style="width:210px"></label>
 <label title="How often the bass adds passing notes, octave jumps and pickups">Variation <input type="range" id="bvar" data-s min="0" max="100" value="35" style="width:90px"></label>
 <label>Bass volume <input type="range" id="bv" data-s min="0" max="150" value="100" style="width:90px"></label>
 <button id="bnew">🎲 New bass line</button>
@@ -451,7 +451,7 @@ const HAT={ac:null,
  h909:{42:(t,a)=>{const g=envTo(t,0.38*a,0.06);nz(t,0.08,g,[['highpass',8000]]);metal(t,0.18*a,0.05,8000);return g},44:(t,a)=>{const g=envTo(t,0.26*a,0.04);nz(t,0.06,g,[['highpass',8000]]);return g},46:(t,a)=>{const g=envTo(t,0.35*a,0.45);nz(t,0.5,g,[['highpass',8000]]);return g}},
  lofi:{42:(t,a)=>smp(42,t,a*0.9,0.95,5000),44:(t,a)=>smp(44,t,a*0.9,0.95,5000),46:(t,a)=>smp(46,t,a*0.9,0.95,5000)}};
 const NOTES=['C','C#','D','D#','E','F','F#','G','G#','A','A#','B'];
-function keyF(){const i=Math.max(0,NOTES.indexOf($('key').value));return 440*Math.pow(2,((i<4?i+36:i+24)-69)/12)} // E1..D#2 (41–78 Hz)
+function keyF(){const i=tonicNow;return 440*Math.pow(2,((i<4?i+36:i+24)-69)/12)} // E1..D#2 (41–78 Hz)
 function tom(t,a,f,d){sweep(t,'sine',f*1.4,f,0.06,d,envTo(t,0.75*a,d-0.05));sweep(t,'triangle',f*2.1,f*1.5,0.05,0.15,envTo(t,0.1*a,0.12));nz(t,0.04,envTo(t,0.18*a,0.03),[['bandpass',f*6,1]]);nz(t,0.3,envTo(t,0.05*a,0.25),[['bandpass',f*3,2]])}
 Object.assign(SYN,{50:(t,a)=>tom(t,a,220,0.45),47:(t,a)=>tom(t,a,165,0.5),43:(t,a)=>tom(t,a,110,0.65),35:(t,a)=>{const f=keyF();sweep(t,'sine',f*2.4,f,0.08,1.6,envTo(t,0.95*a,1.5,null,0.003));click(t,0.08*a,2500)}});
 const TOM808={50:(t,a)=>{const f=keyF()*4;sweep(t,'sine',f*1.7,f,0.08,0.7,envTo(t,0.8*a,0.65))},47:(t,a)=>{const f=keyF()*3;sweep(t,'sine',f*1.7,f,0.08,0.75,envTo(t,0.85*a,0.7))},43:(t,a)=>{const f=keyF()*2;sweep(t,'sine',f*1.7,f,0.08,0.85,envTo(t,0.9*a,0.8))}};
@@ -549,33 +549,45 @@ const CHSC={majpent:'ionian',minpent:'aeolian',blues:'aeolian'};
 let bassScale=MAJ,modeNow='ionian';
 const keyPc=()=>Math.max(0,NOTES.indexOf($('key').value));
 const mod12=x=>((x%12)+12)%12;
+// CHMA theory (Derek): every Roman numeral counts from the MAJOR PARENT key (the 1). Minor is never i: A minor in C is vi.
+// The mode is the number you start on: 1 Ionian, 2 Dorian, 3 Phrygian, 4 Lydian, 5 Mixolydian, 6 Aeolian, 7 Locrian.
+const MODEDEG={ionian:0,dorian:1,phrygian:2,lydian:3,mixolydian:4,aeolian:5,locrian:6,harmonic:5,melodic:5,phrdom:2};
+const DEGMODE=['ionian','dorian','phrygian','lydian','mixolydian','aeolian','locrian'],NUMW=['1','2','3','4','5','6','7'];
+let tonicNow=0,tonicName='C',parentName='C';
+const qualOf=(deg)=>{const t3=mod12(MAJ[(deg+2)%7]-MAJ[deg]),t5=mod12(MAJ[(deg+4)%7]-MAJ[deg]),t7=mod12(MAJ[(deg+6)%7]-MAJ[deg]);return{q:t3===4?'maj':t5===6?'dim':'min',s7:t7===11?'maj7':(t3===4?'7':t5===6?'m7b5':'m7')}};
+const rnText=(acc,deg,q,sv)=>{const up=q==='maj'||q==='aug',num=up?ROM[deg]:ROM[deg].toLowerCase();
+ return acc+num+(q==='aug'?'+':'')+(q==='dim'?(sv==='m7'?'ø7':sv==='dim7'?'°7':'°'):(sv==='maj7'?(q==='min'?'(maj7)':'maj7'):sv?'7':''))};
 function parseProg(){const txt=$('prog').value==='custom'?$('cprog').value:$('prog').value;
  const toks=txt.replace(/[|,–—]+/g,' ').replace(/\s-\s/g,' ').trim().split(/\s+/).filter(Boolean);
- const minorKey=toks.some(t=>/^i(7|m7|maj7|°|o)?$/.test(t)),kp=keyPc();let flat=['F','A#','D#','G#','C#'].includes($('key').value);
- const md=$('md').value,useMode=md!=='auto';modeNow=useMode?md:(minorKey?'aeolian':'ionian');const SC=MODES[CHSC[modeNow]||modeNow];
- bassScale=MODES[modeNow].map(x=>mod12(x+kp));
+ const kp=keyPc();let flat=['F','A#','D#','G#','C#'].includes($('key').value);
+ const pn=(flat?FLAT:SHARP)[kp],pli=LTR.indexOf(pn[0]);parentName=pn;
+ const spell=(pc,deg)=>{const L=LTR[(pli+deg)%7];let df=mod12(pc-LET[L]);if(df>6)df-=12;return L+(ACCN[df]||'')};
  const res=[];
- for(const t of toks){let mm=t.match(/^([b#♭♯]?)(VII|VI|IV|V|III|II|I|vii|vi|iv|v|iii|ii|i)(°|o|dim|maj7|m7|7)?$/);let ch=null;
-  if(mm){const deg=ROM.indexOf(mm[2].toUpperCase()),acc=/[b♭]/.test(mm[1])?-1:/[#♯]/.test(mm[1])?1:0,lower=mm[2]!==mm[2].toUpperCase(),sf=mm[3]||'';
-   let q=lower?'min':'maj';if(/°|o|dim/.test(sf))q='dim';const sev=sf==='maj7'?'maj7':(sf==='7'||sf==='m7')?(q==='maj'?'7':'m7'):'';
-   let iv;if(useMode)iv=acc?MAJ[deg]+acc:SC[deg];else iv=(minorKey?MIN:MAJ)[deg]+acc;
-   let shown=mm[1];if(useMode&&!acc){const dd=SC[deg]-MAJ[deg];shown=dd<0?'♭':dd>0?'♯':''}else shown=shown.replace('b','♭').replace('#','♯');
-   let rn=shown+mm[2]+(sf==='o'?'°':sf),sv=sev;
-   if(useMode&&!acc){ // a chosen mode decides the chord: stack thirds inside its scale (CHMA fix: minor modes no longer play a major 3rd)
-    const t3=mod12(SC[(deg+2)%7]-SC[deg]),t5=mod12(SC[(deg+4)%7]-SC[deg]),t7=mod12(SC[(deg+6)%7]-SC[deg]);
-    q=t3===4?(t5===8?'aug':'maj'):(t5===6?'dim':'min');
-    if(/7/.test(sf))sv=t7===11?'maj7':t7===9?'dim7':(q==='min'||q==='dim'?'m7':'7');else sv='';
-    const up=q==='maj'||q==='aug',num=up?mm[2].toUpperCase():mm[2].toLowerCase();
-    rn=shown+num+(q==='aug'?'+':'')+(q==='dim'?(sv==='m7'?'ø7':sv==='dim7'?'°7':'°'):(sv==='maj7'?(q==='min'?'(maj7)':'maj7'):sv?'7':''))}
-   const kn=(flat?FLAT:SHARP)[kp],li=(LTR.indexOf(kn[0])+deg)%7,L=LTR[li];let df=mod12(mod12(kp+iv)-LET[L]);if(df>6)df-=12;
-   ch={pc:mod12(kp+iv),q,sev:sv,rn,name:L+(ACCN[df]||'')}}
-  else if((mm=t.match(/^([A-G])([#b♯♭]?)(maj7|m7|min7|min|m|dim|°|o|7)?$/))){const acc=/[b♭]/.test(mm[2])?-1:/[#♯]/.test(mm[2])?1:0,sf=mm[3]||'';if(acc<0)flat=true;
-   let q=/^(m|min|m7|min7)$/.test(sf)?'min':/dim|°|o/.test(sf)?'dim':'maj';const sev=sf==='maj7'?'maj7':/7/.test(sf)?(q==='min'?'m7':'7'):'';
-   ch={pc:mod12(LET[mm[1]]+acc),q,sev,rn:''}}
+ for(const t of toks){let mm=t.match(/^([b#♭♯]?)(VII|VI|IV|V|III|II|I|vii|vi|iv|v|iii|ii|i)(°|o|ø|dim|maj7|m7|7|ø7|°7)?$/);let ch=null;
+  if(mm){const deg=ROM.indexOf(mm[2].toUpperCase()),acc=/[b♭]/.test(mm[1])?-1:/[#♯]/.test(mm[1])?1:0,lower=mm[2]!==mm[2].toUpperCase(),sf=mm[3]||'',dia=qualOf(deg);
+   let q,sv='';const pc=mod12(kp+MAJ[deg]+acc);
+   const caseMatches=!acc&&(lower===(dia.q!=='maj'));
+   if(caseMatches&&!/°|o|ø|dim/.test(sf)){q=dia.q; if(/7/.test(sf)) sv=lower?(dia.s7==='m7b5'?'m7':'m7'):(sf==='maj7'?'maj7':sf==='7'?'7':dia.s7)}   // diatonic: the parent scale decides
+   else{q=lower?'min':'maj';if(/°|o|dim/.test(sf))q='dim';if(/ø/.test(sf)){q='dim';sv='m7'}else if(sf==='°7'){q='dim';sv='dim7'}else if(sf==='maj7')sv='maj7';else if(/7/.test(sf))sv=q==='maj'?'7':'m7'}
+   if(caseMatches&&q==='dim'&&/7/.test(sf))sv='m7';
+   ch={pc,q,sev:sv,rn:rnText(acc<0?'♭':acc>0?'♯':'',deg,q,sv),name:spell(pc,deg),deg:acc?-1:deg,dia:caseMatches&&(!sv||sv===(dia.s7==='m7b5'?'m7':dia.s7))}}
+  else if((mm=t.match(/^([A-G])([#b♯♭]?)(maj7|m7|min7|min|m|dim|°|o|ø7|ø|7)?$/))){const acc=/[b♭]/.test(mm[2])?-1:/[#♯]/.test(mm[2])?1:0,sf=mm[3]||'';if(acc<0)flat=true;
+   let q=/^(m|min|m7|min7)$/.test(sf)?'min':/dim|°|o|ø/.test(sf)?'dim':'maj';const sev=sf==='maj7'?'maj7':/ø/.test(sf)?'m7':/7/.test(sf)?(q==='min'?'m7':'7'):'';
+   const pc=mod12(LET[mm[1]]+acc),iv=mod12(pc-kp);let deg=MAJ.indexOf(iv),a='';
+   if(deg<0){deg=MAJ.indexOf(mod12(iv+1));a='♭';if(deg<0){deg=MAJ.indexOf(mod12(iv-1));a='♯'}}
+   const dia=deg>=0&&!a?qualOf(deg):null,isDia=!!dia&&dia.q===q&&(!sev||sev===(dia.s7==='m7b5'?'m7':dia.s7));
+   ch={pc,q,sev,rn:deg>=0?rnText(a,deg,q,sev):'',name:mm[1]+(acc<0?'♭':acc>0?'♯':''),deg:a?-1:deg,dia:isDia}}
   if(ch)res.push(ch)}
- if(!res.length)res.push({pc:kp,q:'maj',sev:'',rn:'I'});
+ if(!res.length)res.push({pc:kp,q:'maj',sev:'',rn:'I',deg:0,dia:true});
+ // the mode = the number you start on (Auto), or the one picked; the bass scale is that mode from its own starting note
+ const md=$('md').value;modeNow=md!=='auto'?md:(res[0].dia&&res[0].deg>=0?DEGMODE[res[0].deg]:'ionian');
+ if(md==='majpent'||md==='minpent'||md==='blues')tonicNow=res[0].pc;else tonicNow=mod12(kp+MAJ[MODEDEG[modeNow]||0]);
+ tonicName=MODEDEG[modeNow]!=null?spell(tonicNow,MODEDEG[modeNow]):(res[0].name||(flat?FLAT:SHARP)[tonicNow]);
+ bassScale=MODES[modeNow].map(x=>mod12(x+tonicNow));
  res.forEach(c=>c.label=(c.name||(flat?FLAT:SHARP)[c.pc])+(c.q==='min'?'m':c.q==='aug'?'+':'')+(c.q==='dim'?(c.sev==='m7'?'ø7':c.sev==='dim7'?'°7':'°'):(c.sev==='maj7'?(c.q==='min'?'(maj7)':'maj7'):c.sev?'7':'')));
  return res}
+function modeLine(){const d=MODEDEG[modeNow];if(d==null)return tonicName+' '+(MODEN[modeNow]||'');
+ return tonicName+' '+MODEN[modeNow].replace(' (major)','').replace(' (minor)','')+(d===0?' · the 1 of '+parentName:' · on the '+NUMW[d]+' of '+parentName+' major')}
 const bassRoot=pc=>28+mod12(pc-4); // E1..D#2
 const third=c=>(c.q==='maj'||c.q==='aug')?4:3,fifth=c=>c.q==='dim'?6:c.q==='aug'?8:7,sev7=c=>c.sev==='maj7'?11:c.sev==='dim7'?9:10;
 function scStep(m,dir){for(let k=1;k<=12;k++){const x=m+dir*k;if(bassScale.includes(mod12(x)))return x}return m+dir}
@@ -689,7 +701,7 @@ function blUI(e){let h='';
  else{if(e.sec)h+='<span class="tag sec">'+e.sec+'</span>';if(e.mu)h+='<span class="tag mute">DROP-OUT</span>🤫 Keep going!';else if(e.f)h+='<span class="tag">FILL</span>';if(e.tr)h+=' '+esc(e.tr)}
  $('blm').innerHTML=h||'&nbsp;';
  $('chord').innerHTML=e.ch&&$('bon').checked?esc(e.ch.label)+(e.ch.rn?' <small>'+esc(e.ch.rn)+'</small>':'')+(e.nx?' <small>→ '+esc(e.nx.label)+'</small>':''):''}
-function chordPreview(){if(playing)return;$('chord').innerHTML=$('bon').checked?'<small>'+parseProg().map(c=>esc(c.label)).join(' – ')+' · '+esc(MODEN[modeNow]||'')+'</small>':''}
+function chordPreview(){if(playing)return;if(!$('bon').checked){$('chord').innerHTML='';return}const pr=parseProg();$('chord').innerHTML='<small>'+pr.map(c=>esc(c.label)).join(' – ')+(pr.every(c=>c.rn)?' · '+pr.map(c=>esc(c.rn)).join(' – '):'')+'<br>'+esc(modeLine())+'</small>'}
 async function start(){await init();playing=true;pos=0;barN=0;cin=+$('ci').value;muted=false;prevFill=false;fillBar=false;forceBar=-1;secName='';lastBassM=null;trMsg='';q=[];next=ctx.currentTime+0.08;timer=setInterval(sched,25);sched();anim();p.textContent='■ Stop';logStart()}
 function stop(){playing=false;clearInterval(timer);forceBar=-1;document.querySelectorAll('.now').forEach(c=>c.classList.remove('now'));[...$('dots').children].forEach(d=>d.classList.remove('on'));$('blm').innerHTML='Press ▶ Play or Space';p.textContent='▶ Play';chordPreview();logStop()}
 function fillNow(){if(!playing){start().then(()=>{forceBar=0});return}if(isCount){forceBar=0;return}const n=steps(),fl=fillBeats()*sub;
@@ -710,9 +722,14 @@ function logUI(){const L=loadLog(),now=Date.now();let wk=0,streak=0;for(let k=0;
 let saveT=null,savedDevInit='';
 const LOCAL=new Set(['mv','mode']);
 function getState(full){const c={};document.querySelectorAll('[data-s]').forEach(e=>{if(!full&&LOCAL.has(e.id))return;c[e.id]=e.type==='checkbox'?e.checked:e.value});
- const st={v:2,tm2:1,c,bpm,grid,rowVol,seed:bassSeed};if(full){st.dev=$('dev').value;st.view=document.body.classList.contains('simple')?'simple':'adv'}return st}
+ const st={v:2,tm2:1,pk:1,c,bpm,grid,rowVol,seed:bassSeed};if(full){st.dev=$('dev').value;st.view=document.body.classList.contains('simple')?'simple':'adv'}return st}
+const OLDPROG={'i VI III VII':'vi IV I V','i iv v i':'vi ii iii vi','i VII VI V':'vi V IV III','i IV':'ii V','i ii III IV':'ii iii IV V','i VII IV i':'ii I V ii','i II':'iii IV','i II III II':'iii IV V IV','i vii VI II':'iii ii I IV','I II':'IV V','I II vii I':'IV V iii IV','I II iii II':'IV V vi V','I VII IV I':'V IV I V','I v IV I':'V ii I V','I VII I IV':'V IV V I','i VI VII i':'vi IV V vi','i VII VI VII':'vi V IV V','i iv VII III':'vi ii V I','i° II iv II':'vii° I iii I','i iv V i':'vi ii III vi','I II vii II':'III IV ii IV'};
+function legacyKey(c){if(!c)return;const old=c.prog,md=c.md||'auto';let deg=MODEDEG[md];
+ if(deg==null&&md==='auto'&&old&&/^i[\s°]/.test(old+' '))deg=5;
+ if(OLDPROG[old])c.prog=OLDPROG[old];
+ if(deg&&c.key!=null){const i=NOTES.indexOf(c.key);if(i>=0)c.key=NOTES[mod12(i-MAJ[deg])]}}
 function setSel(e,val){if([...e.options].some(o=>o.value==val))e.value=val}
-function applyState(st){if(!st||!st.c)return false;restoring=true;const c=st.c;
+function applyState(st){if(!st||!st.c)return false;restoring=true;const c=st.c;if(!st.pk)legacyKey(c);
  for(const id in c){const e=$(id);if(!e)continue;if(e.type==='checkbox')e.checked=!!c[id];else if(e.tagName==='SELECT')setSel(e,c[id]);else e.value=c[id]}
  preset(P[c.pre]?c.pre:'rock');$('pre').value=curName;
  const nb=+c.b||beats,ns=+c.sub||sub;if(nb!==beats||ns!==sub){beats=nb;sub=ns;$('b').value=beats;$('sub').value=sub;fill()}
@@ -725,11 +742,13 @@ function applyState(st){if(!st||!st.c)return false;restoring=true;const c=st.c;
 function uiRefresh(){fatUI();swUI();$('mvt').textContent=$('mv').value+'%';$('cpl').style.display=$('prog').value==='custom'?'':'none';$('beat').classList.toggle('big',$('bigl').checked);
  if(out)out.gain.setTargetAtTime($('mv').value/100,ctx.currentTime,0.02);if(revSend)revSend.gain.setTargetAtTime($('room').value/100*0.5,ctx.currentTime,0.05);chordPreview()}
 function save(){if(restoring)return;clearTimeout(saveT);saveT=setTimeout(()=>{try{store.setItem(SKEY,JSON.stringify(getState(true)));$('sv').textContent=store.mem?'Settings kept until reload':'✓ Settings saved'}catch(e){$('sv').textContent='Saving not available here'}},300)}
-// Song presets from the link: ?pre=rock&bpm=80&key=A&md=aeolian&prog=custom&cprog=Am%20G&bon=1&bs=pedal&tr=1&trg=108 ...
+// Song presets from the link: ?pk=1&pre=rock&bpm=80&key=C&md=aeolian&prog=custom&cprog=Am%20G&bon=1&bs=pedal&tr=1&trg=108 ...
+// key = the major PARENT key. Links without pk=1 are older: their key was the mode's own starting note and is converted.
 // Any control id works. Used only until the student changes something; ↺ Reset goes back to the link's settings.
 function applyParams(){const sp=new URLSearchParams(location.search);if(![...sp.keys()].length)return false;restoring=true;
- if(sp.get('pre')&&P[sp.get('pre')]){preset(sp.get('pre'));$('pre').value=curName}
- sp.forEach((val,k)=>{if(k==='pre'||k==='bpm'||k==='view')return;const e=$(k);if(!e||!e.hasAttribute('data-s'))return;
+ if(!sp.get('pk')){const c={key:sp.get('key'),md:sp.get('md'),prog:sp.get('prog')};legacyKey(c);if(c.key)sp.set('key',c.key);if(c.prog)sp.set('prog',c.prog)}
+ preset(sp.get('pre')&&P[sp.get('pre')]?sp.get('pre'):'rock');$('pre').value=curName;
+ sp.forEach((val,k)=>{if(k==='pre'||k==='bpm'||k==='view'||k==='pk')return;const e=$(k);if(!e||!e.hasAttribute('data-s'))return;
   if(e.type==='checkbox')e.checked=val==='1'||val==='true';else if(e.tagName==='SELECT')setSel(e,val);else e.value=val});
  if(sp.get('sw'))setSwing(+sp.get('sw'));if(sp.get('view'))setView(sp.get('view'),true);
  setBpm(+sp.get('bpm')||80);uiRefresh();draw();restoring=false;$('sv').textContent='✓ Song settings loaded';return true}
@@ -742,10 +761,10 @@ function psUI(sel){const P2=presets(),e=$('ps');e.innerHTML='<option value="">�
 function cmsg(t){$('cmsg').textContent=t}
 const GV=x=>x<=0?'.':x<0.5?'g':x<0.85?'m':'x',VG={'.':0,g:.35,m:.7,x:1};
 function encodeCode(){const st=getState(false),gr={};for(const k in st.grid)if(st.grid[k].some(x=>x>0))gr[k]=st.grid[k].map(GV).join('');const rv={};for(const k in rowVol)if(rowVol[k]!==1)rv[k]=rowVol[k];
- const o={v:2,c:st.c,bpm:st.bpm,g:gr,r:rv,seed:st.seed};return 'DM2.'+btoa(unescape(encodeURIComponent(JSON.stringify(o)))).replace(/=+$/,'')}
+ const o={v:2,pk:1,c:st.c,bpm:st.bpm,g:gr,r:rv,seed:st.seed};return 'DM2.'+btoa(unescape(encodeURIComponent(JSON.stringify(o)))).replace(/=+$/,'')}
 function decodeCode(txt){const m2=txt.trim().replace(/\s+/g,'').match(/DM2\.([A-Za-z0-9+/]+)/);if(!m2)throw new Error('No pattern code found');
  const o=JSON.parse(decodeURIComponent(escape(atob(m2[1]))));const nb=+o.c.b||4,ns=+o.c.sub||2,grd={};ROWS.forEach(([k])=>{grd[k]=o.g&&o.g[k]?[...o.g[k]].map(ch=>VG[ch]||0):new Array(nb*ns).fill(0)});
- const rv={};ROWS.forEach(([k])=>rv[k]=o.r&&o.r[k]!=null?o.r[k]:1);return {c:o.c,bpm:o.bpm,grid:grd,rowVol:rv,seed:o.seed}}
+ const rv={};ROWS.forEach(([k])=>rv[k]=o.r&&o.r[k]!=null?o.r[k]:1);return {pk:o.pk,c:o.c,bpm:o.bpm,grid:grd,rowVol:rv,seed:o.seed}}
 // ===== controls =====
 document.addEventListener('change',save);document.addEventListener('input',save);
 p.onclick=async()=>{if(playing){stop();return}p.disabled=true;p.textContent='Loading sounds…';try{await start()}catch(e){p.textContent='▶ Play';status('Audio could not start. Try again.');console.error(e)}finally{p.disabled=false}};
@@ -766,7 +785,7 @@ $('room').oninput=e=>{if(revSend)revSend.gain.setTargetAtTime(e.target.value/100
 ['kk','sn','hh','tm'].forEach(id=>$(id).addEventListener('change',async()=>{await init();const n=id=='kk'?36:id=='sn'?38:id=='hh'?42:47;hit(n,ctx.currentTime+0.02,1)}));
 const previewBass=async()=>{await init();bassNote(ctx.currentTime+0.03,bassRoot(keyPc()),0.6,0.9)};
 $('bt').addEventListener('change',previewBass);
-$('md').addEventListener('change',async()=>{chordPreview();if($('bon').checked){await init();const k=keyPc(),seq=MODES[modeNow].concat([12]);seq.forEach((x,i)=>bassNote(ctx.currentTime+0.05+i*0.17,bassRoot(k)+x,0.15,0.85))}});
+$('md').addEventListener('change',async()=>{chordPreview();if($('bon').checked){await init();parseProg();const k=tonicNow,seq=MODES[modeNow].concat([12]);seq.forEach((x,i)=>bassNote(ctx.currentTime+0.05+i*0.17,bassRoot(k)+x,0.15,0.85))}});
 $('key').addEventListener('change',async()=>{chordPreview();await init();if($('bon').checked)previewBass();else hit(ELEC.includes($('kk').value)?36:35,ctx.currentTime+0.02,1)});
 $('bnew').onclick=async()=>{bassSeed=Math.floor(Math.random()*1e6);save();$('bnew').textContent='🎲 New line ✓';setTimeout(()=>$('bnew').textContent='🎲 New bass line',900)};
 $('mode').onchange=async()=>{await init();route()};
