@@ -1,0 +1,329 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Rhythm Trainer · Clarendon Hills Music Academy</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Music&family=Archivo:wght@400;600;800&family=JetBrains+Mono:wght@500;700&display=swap">
+<style>
+/* Layout: level + tempo pickers, one card with the written bar on engraving paper, the tap timeline under it (aligned to the notes), a big tap pad, and a results sheet after 5 rhythms. */
+:root{
+  --bg:#eef1f5; --panel:#ffffff; --paper:#fbfaf6; --ink:#16181d; --muted:#5d6472;
+  --accent:#2457d6; --accent-ink:#ffffff; --accent-soft:#e3eafc; --good:#1f8a4c; --ok:#c98a06; --bad:#c2352b;
+  --border:#d6dbe3;
+  --display:"Archivo","Helvetica Neue",Arial,sans-serif; --mono:"JetBrains Mono",ui-monospace,Menlo,monospace;
+}
+@media (prefers-color-scheme: dark){ :root:not([data-theme="light"]){
+  --bg:#101318; --panel:#181c23; --paper:#f4f2ea; --ink:#eef0f4; --muted:#9aa3b2;
+  --accent:#6e95ff; --accent-ink:#0b1020; --accent-soft:#1f2a45; --good:#45c07a; --ok:#e3b341; --bad:#ff6b5e; --border:#2b313c; color-scheme:dark } }
+:root[data-theme="dark"]{ --bg:#101318; --panel:#181c23; --paper:#f4f2ea; --ink:#eef0f4; --muted:#9aa3b2;
+  --accent:#6e95ff; --accent-ink:#0b1020; --accent-soft:#1f2a45; --good:#45c07a; --ok:#e3b341; --bad:#ff6b5e; --border:#2b313c; color-scheme:dark }
+*{box-sizing:border-box} [hidden]{display:none!important}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--display);font-size:15px;
+  padding:20px max(16px,env(safe-area-inset-right,0px)) 28px max(16px,env(safe-area-inset-left,0px))}
+.wrap{max-width:620px;margin:0 auto;display:flex;flex-direction:column;gap:14px}
+h1{font-weight:800;font-size:30px;letter-spacing:-.02em;margin:0} h1 em{font-style:normal;color:var(--accent)}
+.byline{font-weight:600;font-size:15px;margin:2px 0 0} .sub{color:var(--muted);font-size:13px;margin:2px 0 0}
+button{font:inherit;cursor:pointer;border-radius:10px;border:1px solid var(--border);background:var(--panel);color:var(--ink)}
+button:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+.row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.levels{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}
+.lvl{padding:8px 4px;display:flex;flex-direction:column;gap:2px;align-items:center;text-align:center}
+.lvl b{font-family:var(--mono);font-size:15px} .lvl span{font-size:11px;color:var(--muted);line-height:1.2}
+.lvl[aria-pressed="true"]{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)} .lvl[aria-pressed="true"] span{color:var(--accent-ink);opacity:.85}
+.tempo{display:flex;gap:6px;align-items:center;flex-wrap:wrap}
+.tempo span{font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-right:4px}
+.tempo button{padding:6px 10px;font-family:var(--mono);font-size:13px}
+.tempo button[aria-pressed="true"]{background:var(--ink);color:var(--panel);border-color:var(--ink)}
+.card{background:var(--panel);border:1px solid var(--border);border-radius:14px;padding:16px;display:flex;flex-direction:column;gap:12px;position:relative}
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+.stat b{font-family:var(--mono);font-weight:700;font-size:20px;display:block} .stat span{font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.paper{background:var(--paper);border-radius:10px;overflow:hidden}
+svg{display:block;width:100%;height:auto}
+.msg{text-align:center;min-height:44px;display:flex;flex-direction:column;gap:2px;align-items:center;justify-content:center}
+.msg .v{font-weight:800;font-size:19px} .msg .c{font-size:14px;color:var(--ink)}
+.msg.good .v{color:var(--good)} .msg.ok .v{color:var(--ok)} .msg.bad .v{color:var(--bad)}
+.pad{height:120px;border-radius:14px;border:2px solid var(--accent);background:var(--accent-soft);color:var(--accent);font-weight:800;font-size:22px;letter-spacing:.06em;
+  touch-action:manipulation;user-select:none;-webkit-user-select:none}
+.pad.hit{background:var(--accent);color:var(--accent-ink)}
+.primary{background:var(--accent);color:var(--accent-ink);border-color:var(--accent);font-weight:700;padding:11px 16px}
+.ghost{padding:11px 14px}
+.tip{font-size:13px;color:var(--muted);text-align:center;margin:0}
+details{border:1px solid var(--border);border-radius:12px;background:var(--panel)} summary{cursor:pointer;padding:12px 16px;font-weight:600}
+.set{padding:4px 16px 16px;display:flex;flex-direction:column;gap:10px;font-size:14px}
+.set label{display:flex;gap:8px;align-items:center}
+.results{position:absolute;inset:0;background:var(--panel);border-radius:14px;padding:22px;display:flex;flex-direction:column;gap:14px;z-index:5;overflow:auto}
+.results h2{margin:0;font-weight:800;font-size:22px}
+.big{font-family:var(--mono);font-weight:700;font-size:60px;line-height:1} .big small{font-size:18px;color:var(--muted);font-weight:500}
+.rgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.rgrid div{background:var(--accent-soft);border-radius:10px;padding:10px} .rgrid b{font-family:var(--mono);font-size:18px;display:block} .rgrid span{font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+.stamp{font-size:12px;color:var(--muted)}
+.namefield input{font:inherit;padding:8px 10px;border-radius:8px;border:1px solid var(--border);background:var(--panel);color:var(--ink);width:100%}
+@media (max-width:440px){ .levels{grid-template-columns:repeat(4,1fr)} .stat b{font-size:17px} .big{font-size:48px} }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>Rhythm <em>Trainer</em></h1>
+    <p class="byline">By Clarendon Hills Music Academy</p>
+    <p class="sub">Count it. Tap it. Line up with every note.</p>
+  </header>
+
+  <div class="levels" id="levels" role="group" aria-label="Level"></div>
+  <div class="tempo" id="tempo" role="group" aria-label="Tempo"><span>Tempo</span></div>
+
+  <section class="card" id="card">
+    <div class="stats">
+      <div class="stat"><b id="sRound">1/5</b><span>Rhythm</span></div>
+      <div class="stat"><b id="sScore">–</b><span>Last</span></div>
+      <div class="stat"><b id="sAvg">–</b><span>Round</span></div>
+      <div class="stat"><b id="sBest">–</b><span>Best</span></div>
+    </div>
+    <div class="paper"><svg id="bar" role="img" aria-label="Rhythm to tap"></svg></div>
+    <div class="msg" id="msg"><div class="v">Press Start</div><div class="c">You'll hear one bar of clicks first. Start tapping on beat 1 of the next bar.</div></div>
+    <button class="pad" id="pad">TAP</button>
+    <div class="row" style="justify-content:space-between">
+      <button class="ghost" id="hear">▶ Hear it</button>
+      <button class="ghost" id="again" hidden>↺ Try this one again</button>
+      <button class="primary" id="go">Start</button>
+    </div>
+    <p class="tip">Tap the pad, press the space bar, or turn on "Clap or play" below. Rests are silent: don't tap them.</p>
+
+    <div class="results" id="results" hidden>
+      <h2>Round complete</h2>
+      <div class="big" id="rScore">0<small>%</small></div>
+      <div class="rgrid">
+        <div><b id="rPerfect">0</b><span>Perfect hits</span></div>
+        <div><b id="rTiming">–</b><span>Average timing</span></div>
+        <div><b id="rMissed">0</b><span>Missed / extra</span></div>
+      </div>
+      <div class="namefield"><input id="who" placeholder="Your first name" autocomplete="off" aria-label="Name"></div>
+      <div class="stamp" id="rStamp"></div>
+      <p class="tip" style="text-align:left">Screenshot this screen and send it to your instructor.</p>
+      <div class="stamp">Rhythm Trainer · By Clarendon Hills Music Academy</div>
+      <div class="row" style="justify-content:space-between"><button class="ghost" id="close">Back</button><button class="primary" id="newRound">New round</button></div>
+    </div>
+  </section>
+
+  <details>
+    <summary>Settings</summary>
+    <div class="set">
+      <label><input type="checkbox" id="counts" checked> Show the counts under the notes</label>
+      <label><input type="checkbox" id="guide"> Play the rhythm with me (easier)</label>
+      <label><input type="checkbox" id="micOn"> Clap or play: listen with the microphone</label>
+      <div class="row"><button class="ghost" id="cal">Calibrate timing</button><span class="stamp" id="calTxt"></span></div>
+      <span class="stamp">Calibrate once per device (and again with Bluetooth headphones): tap along with 8 clicks.</span>
+    </div>
+  </details>
+</div>
+
+<script>
+(function(){
+  const $=id=>document.getElementById(id);
+  const store={get(k,d){try{const v=localStorage.getItem("rt-"+k);return v==null?d:JSON.parse(v)}catch(e){return d}},set(k,v){try{localStorage.setItem("rt-"+k,JSON.stringify(v))}catch(e){}}};
+  // Time is counted in 16th notes: a 4/4 bar = 16 units, a beat = 4.
+  // Cells fill one beat (or two beats / a whole bar for longer values). r:true = rest.
+  const C={
+    Q:[{d:4}], H:[{d:8}], W:[{d:16}], EE:[{d:2},{d:2}],
+    QR:[{d:4,r:true}], RE:[{d:2,r:true},{d:2}], ER:[{d:2},{d:2,r:true}],
+    DQE:[{d:6},{d:2}], SSSS:[{d:1},{d:1},{d:1},{d:1}], ESS:[{d:2},{d:1},{d:1}], SSE:[{d:1},{d:1},{d:2}],
+    // syncopation 1: off-beat eighths and the short-long-short "E Q E" inside a half bar
+    EQE:[{d:2},{d:4},{d:2}], RERE:[{d:2,r:true},{d:2},{d:2,r:true},{d:2}],
+    // syncopation 2: notes held across the beat, written as ties (beat stays visible)
+    ETIE:[{d:2},{d:2},{d:2,t:true},{d:2}], ANT:[{d:4},{d:2,r:true},{d:2},{d:4,t:true},{d:4}], C332:[{d:6},{d:2},{d:4,t:true},{d:4}],
+    // syncopation 3: sixteenth-level
+    SES:[{d:1},{d:2},{d:1}], DES:[{d:3},{d:1}], SDE:[{d:1},{d:3}], RSE:[{d:1,r:true},{d:1},{d:2}]};
+  const SPAN={Q:1,H:2,W:4,EE:1,QR:1,RE:1,ER:1,DQE:2,SSSS:1,ESS:1,SSE:1,EQE:2,RERE:2,ETIE:2,ANT:4,C332:4,SES:1,DES:1,SDE:1,RSE:1};
+  const LEVELS=[
+    {id:"1",name:"Quarters & halves",cells:{Q:5,H:2,W:1}},
+    {id:"2",name:"Eighths",cells:{Q:4,H:1,EE:4}},
+    {id:"3",name:"Rests",cells:{Q:3,EE:3,QR:2,RE:2,ER:1}},
+    {id:"4",name:"Dotted",cells:{Q:2,EE:3,QR:1,DQE:3,RE:1}},
+    {id:"5",name:"16ths",cells:{Q:2,EE:2,SSSS:2,ESS:2,SSE:2,DQE:1}},
+    {id:"6",name:"Syncopation 1",cells:{Q:2,EE:2,EQE:4,RERE:2,RE:2}},
+    {id:"7",name:"Syncopation 2",cells:{Q:2,EE:2,EQE:2,ETIE:3,ANT:2,C332:2}},
+    {id:"8",name:"Syncopation 3",cells:{EE:2,SSSS:1,SES:3,DES:3,SDE:2,RSE:2,EQE:1}}];
+  const TEMPOS=[60,72,84,96,108,120];
+  let level=store.get("level","1"), bpm=store.get("bpm",72), latency=store.get("lat",0);
+  let bar=null, taps=[], run=null, round=[], best=store.get("best",null), audio=null, mic=null;
+
+  // ---------- rhythm generator ----------
+  function pick(w){ const t=Object.values(w).reduce((a,b)=>a+b,0); let r=Math.random()*t; for(const k in w){ r-=w[k]; if(r<=0) return k } return Object.keys(w)[0] }
+  function makeBar(){
+    const L=LEVELS.find(x=>x.id===level); let beat=0, ev=[], t=0, guard=0;
+    while(beat<4&&guard++<50){ const k=pick(L.cells), sp=SPAN[k];
+      if(beat+sp>4) continue; if(sp===2&&beat%2) continue; if(sp===4&&beat) continue;
+      for(const e of C[k]){ ev.push({s:t,d:e.d,r:!!e.r,tie:!!e.t,cell:k}); t+=e.d } beat+=sp }
+    const notes=ev.filter(e=>!e.r&&!e.tie);
+    if(!notes.length) return makeBar();
+    if(ev.length===1&&level!=="1") return makeBar();
+    if(+level>=6&&!ev.some(e=>["EQE","RERE","ETIE","ANT","C332","SES","DES","SDE","RSE"].includes(e.cell))) return makeBar();
+    return {ev,notes} }
+
+  // ---------- engraving (single-line rhythm staff, proportional spacing so notes sit over the timeline) ----------
+  const GAP=14, X0=74, BW=264, W=360, LY=64, U=BW/16;
+  const xOf=s=>X0+8+s*U;
+  const CNT=s=>{const b=Math.floor(s/4)+1,p=s%4;return p===0?String(b):p===2?"&":p===1?"e":"a"};
+  function drawBar(res,playX){
+    const ink="#16181d", line="#2a2d33"; let h="";
+    h+=`<line x1="16" x2="${W-14}" y1="${LY}" y2="${LY}" stroke="${line}" stroke-width="1.5"/>`;
+    h+=`<line x1="16" x2="16" y1="${LY-14}" y2="${LY+14}" stroke="${line}" stroke-width="1.5"/><line x1="${W-14}" x2="${W-14}" y1="${LY-14}" y2="${LY+14}" stroke="${line}" stroke-width="2"/>`;
+    h+=`<text x="36" y="${LY-3}" text-anchor="middle" font-family="Archivo" font-weight="800" font-size="24" fill="${ink}">4</text><text x="36" y="${LY+21}" text-anchor="middle" font-family="Archivo" font-weight="800" font-size="24" fill="${ink}">4</text>`;
+    if(!bar){ document.getElementById("bar").setAttribute("viewBox",`0 0 ${W} 170`); document.getElementById("bar").innerHTML=h; return }
+    const ev=bar.ev, sTop=LY-3.5*GAP;
+    // beams: consecutive eighths/16ths inside one beat
+    const groups=[]; let g=[];
+    ev.forEach((e,i)=>{ const beamable=!e.r&&e.d<4, beat=Math.floor(e.s/4);
+      if(beamable&&g.length&&Math.floor(g[0].s/4)===beat&&g[g.length-1].i===i-1) g.push({...e,i}); else { if(g.length) groups.push(g); g=beamable?[{...e,i}]:[] } });
+    if(g.length) groups.push(g);
+    const beamed=new Set(); groups.forEach(gr=>{ if(gr.length>1) gr.forEach(e=>beamed.add(e.i)) });
+    ev.forEach((e,i)=>{
+      const x=xOf(e.s), col=res&&!e.r&&!e.tie?(res.byNote.get(i)?.col||ink):ink;
+      if(e.tie){ const px=xOf(ev[i-1].s); h+=`<path d="M${px+3} ${LY+8} Q ${(px+x)/2} ${LY+19} ${x-3} ${LY+8} Q ${(px+x)/2} ${LY+15} ${px+3} ${LY+8} z" fill="${ink}"/>` }
+      if(e.r){ // rests: quarter (zigzag glyph), eighth (glyph), half sits on the line, whole hangs from it
+        if(e.d===4) h+=`<text x="${x-6}" y="${LY+11}" font-family="Noto Music" font-size="${GAP*2.6}" fill="${ink}">𝄽</text>`;
+        else if(e.d===2) h+=`<text x="${x-5}" y="${LY+8}" font-family="Noto Music" font-size="${GAP*2.4}" fill="${ink}">𝄾</text>`;
+        else if(e.d===8) h+=`<rect x="${x-7}" y="${LY-6}" width="15" height="6" fill="${ink}"/>`;
+        else { const cx=e.d===16?xOf(8)-8:x; h+=`<rect x="${cx-7}" y="${LY}" width="15" height="6" fill="${ink}"/>` } // whole-bar rest: centered
+      } else {
+        const open=e.d>=8, dotted=e.d===6||e.d===12||e.d===3;
+        h+=`<ellipse cx="${x}" cy="${LY}" rx="${open?8.6:8.2}" ry="${open?6.2:5.9}" transform="rotate(-20 ${x} ${LY})" fill="${open?"none":col}" stroke="${col}" stroke-width="${open?2.4:0}"/>`;
+        if(dotted) h+=`<circle cx="${x+15}" cy="${LY-4}" r="2.4" fill="${col}"/>`;
+        if(e.d<16){ h+=`<line x1="${x+7.6}" x2="${x+7.6}" y1="${LY-1}" y2="${sTop}" stroke="${col}" stroke-width="1.8"/>`;
+          if(e.d<4&&!beamed.has(i)){ // single flag(s)
+            for(let f=0;f<(e.d===1?2:1);f++){const y0=sTop+f*8; h+=`<path d="M${x+7.6} ${y0} c 3 8, 12 10, 9 22 c 0 -8, -5 -12, -9 -14 z" fill="${col}"/>`} } }
+      }
+      if($("counts").checked) h+=`<text x="${x}" y="${LY+32}" text-anchor="middle" font-family="JetBrains Mono" font-size="12" font-weight="700" fill="${e.r||e.tie?"#9aa0aa":"#5d6472"}">${e.r||e.tie?"("+CNT(e.s)+")":CNT(e.s)}</text>`;
+    });
+    groups.forEach(gr=>{ if(gr.length<2) return; const x1=xOf(gr[0].s)+7.6, x2=xOf(gr[gr.length-1].s)+7.6;
+      h+=`<rect x="${x1-0.9}" y="${sTop}" width="${x2-x1+1.8}" height="5" fill="${ink}"/>`;
+      // secondary beam over runs of 16ths
+      for(let k=0;k<gr.length;k++){ if(gr[k].d!==1) continue; let j=k; while(j+1<gr.length&&gr[j+1].d===1) j++;
+        if(j>k){ const a=xOf(gr[k].s)+7.6,b=xOf(gr[j].s)+7.6; h+=`<rect x="${a-0.9}" y="${sTop+8}" width="${b-a+1.8}" height="5" fill="${ink}"/>` }
+        else { const a=xOf(gr[k].s)+7.6, dir=k===gr.length-1?-1:1; h+=`<rect x="${dir>0?a-0.9:a-9}" y="${sTop+8}" width="10" height="5" fill="${ink}"/>` } k=j } });
+    // timeline: beats + subdivisions, aligned with the notes above
+    const TY=128;
+    h+=`<line x1="${xOf(0)-8}" x2="${xOf(16)-8}" y1="${TY}" y2="${TY}" stroke="#c4c9d2" stroke-width="2"/>`;
+    for(let s=0;s<=16;s++){ const big=s%4===0, x=xOf(s); if(s<16||big) h+=`<line x1="${x}" x2="${x}" y1="${TY-(big?7:3)}" y2="${TY+(big?7:3)}" stroke="#9aa0aa" stroke-width="${big?2:1}"/>`;
+      if(big&&s<16) h+=`<text x="${x}" y="${TY+22}" text-anchor="middle" font-family="JetBrains Mono" font-size="11" fill="#9aa0aa">${s/4+1}</text>` }
+    bar.notes.forEach(n=>{ h+=`<line x1="${xOf(n.s)}" x2="${xOf(n.s)}" y1="${LY+38}" y2="${TY-10}" stroke="#d7dbe2" stroke-width="1" stroke-dasharray="2 3"/>` });
+    if(res){ res.taps.forEach(t=>{ const x=xOf(t.s16); const c=t.col; h+=`<circle cx="${x}" cy="${TY}" r="6" fill="${c}" stroke="#fff" stroke-width="1.5"/>`;
+        if(t.extra) h+=`<text x="${x}" y="${TY-12}" text-anchor="middle" font-size="12" font-weight="800" fill="${c}">×</text>` });
+      res.missed.forEach(s=>{ const x=xOf(s); h+=`<circle cx="${x}" cy="${TY}" r="6" fill="none" stroke="#c2352b" stroke-width="2" stroke-dasharray="3 2"/>` }) }
+    if(playX!=null) h+=`<line x1="${playX}" x2="${playX}" y1="${LY-56}" y2="${TY+10}" stroke="#2457d6" stroke-width="2" opacity=".75"/>`;
+    const svg=$("bar"); svg.setAttribute("viewBox",`0 0 ${W} 170`); svg.innerHTML=h;
+  }
+
+  // ---------- sound ----------
+  function ctx(){ audio=audio||new (window.AudioContext||window.webkitAudioContext)(); return audio }
+  function click(t,accent){ const a=ctx(), o=a.createOscillator(), g=a.createGain(); o.type="sine"; o.frequency.value=accent?1760:1175;
+    g.gain.setValueAtTime(0.0001,t); g.gain.exponentialRampToValueAtTime(accent?0.5:0.32,t+0.002); g.gain.exponentialRampToValueAtTime(0.0001,t+0.06); o.connect(g).connect(a.destination); o.start(t); o.stop(t+0.07) }
+  function wood(t,dur){ const a=ctx(), o=a.createOscillator(), g=a.createGain(); o.type="triangle"; o.frequency.value=880;
+    g.gain.setValueAtTime(0.0001,t); g.gain.exponentialRampToValueAtTime(0.42,t+0.003); g.gain.exponentialRampToValueAtTime(0.0001,t+Math.min(0.25,dur)); o.connect(g).connect(a.destination); o.start(t); o.stop(t+0.3) }
+
+  // ---------- run a bar: 1 count-in bar of clicks, then the rhythm bar ----------
+  const spb=()=>60/bpm, u16=()=>spb()/4;
+  async function play(mode){ // mode: "test" | "hear"
+    if(run) return; const a=ctx(); await a.resume(); if($("micOn").checked&&mode==="test") await micStart();
+    taps=[]; $("results").hidden=true; $("again").hidden=true; $("go").disabled=true; $("hear").disabled=true;
+    const t0=a.currentTime+0.15, start=t0+4*spb(), end=start+16*u16();
+    for(let b=0;b<8;b++){ if(mode==="hear"&&b<4) continue; click(t0+b*spb(),b%4===0) }
+    if(mode==="hear"||$("guide").checked) bar.notes.forEach(n=>wood(start+n.s*u16(),n.d*u16()));
+    msg(null, mode==="hear"?"Listen…":"Count in: 1 · 2 · 3 · 4", mode==="hear"?"":"Start tapping on beat 1 of the next bar.");
+    run={mode,start,end,t0}; if(mode==="test") lastStart=start;
+    const tick=()=>{ if(!run) return; const now=a.currentTime; let px=null;
+      if(now>=start&&now<=end) px=xOf((now-start)/u16());
+      else if(now<start&&mode==="test"){ const left=Math.ceil((start-now)/spb()); $("msg").querySelector(".v").textContent=left<=4?"Count in: "+["","1","2","3","4"][5-left]:"Get ready"; }
+      drawBar(null,px);
+      if(now>end+0.35){ const m=run.mode; run=null; $("go").disabled=false; $("hear").disabled=false; if(m==="test") grade(); else { drawBar(null); msg(null,"Your turn","Press Start, count in, then tap it.") } return }
+      requestAnimationFrame(tick) };
+    tick() }
+
+  function tapAt(tsec){ if(!run||run.mode!=="test") return; const t=tsec-latency/1000; if(t<run.start-0.3||t>run.end+0.2) return; taps.push(t);
+    $("pad").classList.add("hit"); setTimeout(()=>$("pad").classList.remove("hit"),90) }
+  $("pad").addEventListener("pointerdown",e=>{ e.preventDefault(); if(audio) tapAt(audio.currentTime) });
+  document.addEventListener("keydown",e=>{ if(e.target.tagName==="INPUT") return; if(e.code==="Space"){ e.preventDefault(); if(audio&&run) tapAt(audio.currentTime); else if(!run) $("go").click() } });
+
+  // ---------- grading ----------
+  // Each note gets the nearest unused tap within 250 ms. Perfect ≤ 60 ms = 1, Good ≤ 120 ms = 0.75, Close ≤ 200 ms = 0.4.
+  // Extra taps (rests, doubles) cost 0.25 each.
+  function grade(){
+    const st=lastStart, u=u16();
+    const notes=bar.notes, used=new Set(), byNote=new Map(), resTaps=[], missed=[]; let pts=0, errs=[], perfect=0;
+    notes.forEach(n=>{ const target=st+n.s*u; let bi=-1, bd=1e9;
+      taps.forEach((t,i)=>{ if(used.has(i)) return; const d=t-target; if(Math.abs(d)<Math.abs(bd)&&Math.abs(d)<=0.25){bd=d;bi=i} });
+      const idx=bar.ev.indexOf(n);
+      if(bi<0){ missed.push(n.s); byNote.set(idx,{col:"#c2352b"}); return }
+      used.add(bi); const ms=bd*1000, ad=Math.abs(ms); errs.push(ms);
+      let sc, col; if(ad<=60){sc=1;col="#1f8a4c";perfect++} else if(ad<=120){sc=.75;col="#c98a06"} else {sc=.4;col="#e0702c"}
+      pts+=sc; byNote.set(idx,{col}); resTaps.push({s16:(taps[bi]-st)/u,col}) });
+    const extras=taps.filter((t,i)=>!used.has(i)); extras.forEach(t=>resTaps.push({s16:Math.max(-0.5,Math.min(16.3,(t-st)/u)),col:"#7a808b",extra:true}));
+    const score=Math.max(0,Math.round(100*(pts-0.25*extras.length)/notes.length));
+    const res={byNote,taps:resTaps,missed}; drawBar(res);
+    // coaching: the biggest problem first, in counting language
+    const avg=errs.length?errs.reduce((a,b)=>a+b,0)/errs.length:0;
+    let v, c, cls;
+    if(score>=90){ v=`✓ Locked in · ${score}%`; cls="good"; c=perfect===notes.length?"Every note perfect.":"Tight. Keep the same feel at the next tempo." }
+    else { v=`${score}%`; cls=score>=65?"ok":"bad";
+      if(missed.length) c=`Missed the note on "${CNT(missed[0])}". Count it out loud and tap with the count.`;
+      else if(extras.length){ const rs=bar.ev.find(e=>(e.r||e.tie)&&extras.some(t=>{const s=(t-st)/u;return s>=e.s-0.5&&s<e.s+e.d})); c=rs?(rs.tie?`Extra tap on "${CNT(rs.s)}": that note is tied, so hold it through the beat.`:`Extra tap in the rest on "${CNT(rs.s)}". Rests are silent: count them, don't tap them.`):"Extra taps. One tap per note." }
+      else if(avg<-45) c=`Rushing: about ${Math.round(-avg)} ms early on average. Wait for the beat.`;
+      else if(avg>45) c=`Dragging: about ${Math.round(avg)} ms late on average. Lock onto the click.`;
+      else { const worst=bar.notes[errs.map(Math.abs).indexOf(Math.max(...errs.map(Math.abs)))]; c=worst?`Close. Watch "${CNT(worst.s)}". Say the counts out loud while you tap.`:"Close. Say the counts out loud while you tap." } }
+    msg(cls,v,c);
+    round.push({score,perfect,notes:notes.length,errs,missed:missed.length,extras:extras.length});
+    if(round.length>=5) setTimeout(showResults,1400); else { $("go").textContent="Next rhythm"; $("again").hidden=false }
+    stats() }
+  let lastStart=0;
+  function msg(cls,v,c){ const el=$("msg"); el.className="msg"+(cls?" "+cls:""); el.querySelector(".v").textContent=v; el.querySelector(".c").textContent=c||"" }
+  function stats(){ $("sRound").textContent=`${Math.min(round.length+1,5)}/5`; const l=round[round.length-1];
+    $("sScore").textContent=l?l.score+"%":"–"; $("sAvg").textContent=round.length?Math.round(round.reduce((a,b)=>a+b.score,0)/round.length)+"%":"–"; $("sBest").textContent=best!=null?best+"%":"–" }
+  function showResults(){ const avg=Math.round(round.reduce((a,b)=>a+b.score,0)/round.length), all=round.flatMap(r=>r.errs);
+    const mean=all.length?all.reduce((a,b)=>a+b,0)/all.length:0; best=Math.max(best||0,avg); store.set("best",best);
+    $("rScore").innerHTML=`${avg}<small>%</small>`; $("rPerfect").textContent=`${round.reduce((a,b)=>a+b.perfect,0)}/${round.reduce((a,b)=>a+b.notes,0)}`;
+    $("rTiming").textContent=Math.abs(mean)<15?"On time":Math.round(Math.abs(mean))+" ms "+(mean<0?"early":"late");
+    $("rMissed").textContent=`${round.reduce((a,b)=>a+b.missed,0)} / ${round.reduce((a,b)=>a+b.extras,0)}`;
+    const L=LEVELS.find(x=>x.id===level), d=new Date();
+    $("rStamp").textContent=`Level ${L.id} · ${L.name} · ${bpm} BPM · ${d.toLocaleDateString(undefined,{weekday:"short",month:"short",day:"numeric"})} ${d.toLocaleTimeString([],{hour:"numeric",minute:"2-digit"})}`;
+    $("results").hidden=false; stats() }
+
+  // ---------- controls ----------
+  function newBar(){ bar=makeBar(); drawBar(null) }
+  $("go").addEventListener("click",async()=>{ if(round.length>=5){ round=[]; stats() } if($("go").textContent==="Next rhythm"||!bar) newBar(); $("go").textContent="Start"; $("again").hidden=true; await startTest() });
+  $("again").addEventListener("click",async()=>{ $("again").hidden=true; if(round.length) round.pop(); stats(); await startTest() });
+  $("hear").addEventListener("click",()=>{ if(!bar) newBar(); play("hear") });
+  async function startTest(){ await play("test") }
+  $("close").addEventListener("click",()=>{ $("results").hidden=true; round=[]; stats(); newBar() });
+  $("newRound").addEventListener("click",()=>{ $("results").hidden=true; round=[]; stats(); newBar(); $("go").textContent="Start"; msg(null,"New round","Press Start.") });
+  $("counts").addEventListener("change",()=>drawBar(null)); $("who").value=store.get("who",""); $("who").addEventListener("input",e=>store.set("who",e.target.value));
+  LEVELS.forEach(L=>{ const b=document.createElement("button"); b.className="lvl"; b.innerHTML=`<b>L${L.id}</b><span>${L.name}</span>`;
+    b.addEventListener("click",()=>{ level=L.id; store.set("level",level); mark(); round=[]; stats(); newBar(); $("go").textContent="Start"; msg(null,"Level "+L.id+": "+L.name,"Press Hear it to listen first, or Start.") }); b.dataset.id=L.id; $("levels").appendChild(b) });
+  TEMPOS.forEach(t=>{ const b=document.createElement("button"); b.textContent=t; b.dataset.t=t; b.addEventListener("click",()=>{ bpm=t; store.set("bpm",bpm); mark() }); $("tempo").appendChild(b) });
+  function mark(){ document.querySelectorAll(".lvl").forEach(b=>b.setAttribute("aria-pressed",String(b.dataset.id===level))); document.querySelectorAll("#tempo button").forEach(b=>b.setAttribute("aria-pressed",String(+b.dataset.t===bpm))) }
+
+  // ---------- calibration: tap with 8 clicks, the median offset becomes the latency correction ----------
+  $("calTxt").textContent=latency?`Offset ${latency} ms`:"";
+  $("cal").addEventListener("click",async()=>{ if(run) return; const a=ctx(); await a.resume(); const t0=a.currentTime+0.4, sp=0.6, hits=[];
+    for(let i=0;i<8;i++) click(t0+i*sp,i===0); $("calTxt").textContent="Tap the pad with each click…";
+    const h=e=>{ e.preventDefault(); hits.push(a.currentTime) }; $("pad").addEventListener("pointerdown",h);
+    setTimeout(()=>{ $("pad").removeEventListener("pointerdown",h); const offs=[]; hits.forEach(t=>{ const k=Math.round((t-t0)/sp); if(k>=0&&k<8) offs.push((t-(t0+k*sp))*1000) });
+      if(offs.length<5){ $("calTxt").textContent="Not enough taps. Try again."; return } offs.sort((a,b)=>a-b); latency=Math.round(offs[Math.floor(offs.length/2)]); store.set("lat",latency); $("calTxt").textContent=`Offset ${latency} ms (saved)` }, 400+8*sp*1000+500) });
+
+  // ---------- microphone (clap or play): onset detection ----------
+  async function micStart(){ if(mic) return; try{ const a=ctx(); const s=await navigator.mediaDevices.getUserMedia({audio:{echoCancellation:false,noiseSuppression:false,autoGainControl:false}});
+      const src=a.createMediaStreamSource(s), an=a.createAnalyser(), mute=a.createGain(); an.fftSize=1024; mute.gain.value=0; src.connect(an); an.connect(mute); mute.connect(a.destination);
+      const buf=new Float32Array(an.fftSize); let last=0, prev=0;
+      mic={s,timer:setInterval(()=>{ an.getFloatTimeDomainData(buf); let r=0; for(let i=0;i<buf.length;i++) r+=buf[i]*buf[i]; r=Math.sqrt(r/buf.length);
+        const now=a.currentTime; if(r>0.04&&r>prev*2.2&&now-last>0.09){ last=now; tapAt(now-0.012) } prev=r*0.6+prev*0.4 },10)};
+    }catch(e){ $("micOn").checked=false; msg("bad","Microphone blocked","Allow the microphone, or tap the pad instead.") } }
+  $("micOn").addEventListener("change",e=>{ if(!e.target.checked&&mic){ clearInterval(mic.timer); mic.s.getTracks().forEach(t=>t.stop()); mic=null } });
+
+  window.__rt={bar:()=>bar,start:()=>lastStart,tap:t=>tapAt(t),now:()=>audio&&audio.currentTime,u:()=>u16(),setBar:b=>{bar=b;drawBar(null)}}; // test hook
+  mark(); stats(); newBar();
+  if(document.fonts) document.fonts.ready.then(()=>drawBar(null));
+})();
+</script>
+</body>
+</html>
