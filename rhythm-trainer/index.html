@@ -46,6 +46,15 @@ svg{display:block;width:100%;height:auto}
 .msg.good .v{color:var(--good)} .msg.ok .v{color:var(--ok)} .msg.bad .v{color:var(--bad)}
 .pad{height:120px;border-radius:14px;border:2px solid var(--accent);background:var(--accent-soft);color:var(--accent);font-weight:800;font-size:22px;letter-spacing:.06em;
   touch-action:manipulation;user-select:none;-webkit-user-select:none}
+.seg{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+.seg button{padding:9px 6px;font-weight:700;font-size:14px}
+.seg button[aria-pressed="true"]{background:var(--ink);color:var(--panel);border-color:var(--ink)}
+.micp{display:grid;grid-template-columns:auto 1fr;gap:8px 10px;align-items:center;font-size:12px;color:var(--muted)}
+.micp select{font:inherit;font-size:13px;padding:6px 8px;border-radius:8px;border:1px solid var(--border);background:var(--panel);color:var(--ink);min-width:0;width:100%}
+.micp input[type=range]{width:100%;accent-color:var(--accent)}
+.meter{position:relative;height:8px;border-radius:4px;background:var(--border);overflow:visible}
+.meter i{display:block;height:100%;width:0;border-radius:4px;background:var(--good)}
+.meter .thr{position:absolute;top:-4px;bottom:-4px;width:2px;background:var(--ink);opacity:.65}
 .pad.hit{background:var(--accent);color:var(--accent-ink)}
 .primary{background:var(--accent);color:var(--accent-ink);border-color:var(--accent);font-weight:700;padding:11px 16px}
 .ghost{padding:11px 14px}
@@ -83,13 +92,24 @@ details{border:1px solid var(--border);border-radius:12px;background:var(--panel
     </div>
     <div class="paper"><svg id="bar" role="img" aria-label="Rhythm to tap"></svg></div>
     <div class="msg" id="msg"><div class="v">Press Start</div><div class="c">You'll hear one bar of clicks first. Start tapping on beat 1 of the next bar.</div></div>
+    <div class="seg" id="inSeg" role="group" aria-label="How you answer"><button data-in="tap">👆 Tap</button><button data-in="clap">👏 Clap or snap</button></div>
+    <div id="micBox" hidden>
+      <div class="row" style="justify-content:center;margin-bottom:8px"><button class="primary" id="micBtn">Turn on the microphone</button></div>
+      <div class="micp" id="micCtl" hidden>
+        <label for="micSel">Microphone</label><select id="micSel"></select>
+        <label for="micGain">Sensitivity</label><input type="range" id="micGain" min="0.25" max="12" step="0.25" value="3">
+        <span>Noise</span><label style="display:flex;gap:8px;align-items:center;color:var(--ink)"><input type="checkbox" id="gateOn"> Block background noise</label>
+        <span>Level</span><div class="meter"><i id="meterFill"></i><span class="thr" id="thr"></span></div>
+      </div>
+      <p class="tip" id="micStat" style="margin-top:6px">Clap or snap once: the Level bar should jump past the line and the pad lights up.</p>
+    </div>
     <button class="pad" id="pad">TAP</button>
     <div class="row" style="justify-content:space-between">
       <button class="ghost" id="hear">▶ Hear it</button>
       <button class="ghost" id="again" hidden>↺ Try this one again</button>
       <button class="primary" id="go">Start</button>
     </div>
-    <p class="tip">Tap the pad, press the space bar, or turn on "Clap or play" below. Rests are silent: don't tap them.</p>
+    <p class="tip">Tap the pad or the space bar, or switch to Clap or snap. Rests are silent: don't tap them. Clapping with speakers? Headphones give the cleanest timing.</p>
 
     <div class="results" id="results" hidden>
       <h2>Round complete</h2>
@@ -112,9 +132,8 @@ details{border:1px solid var(--border);border-radius:12px;background:var(--panel
     <div class="set">
       <label><input type="checkbox" id="counts" checked> Show the counts under the notes</label>
       <label><input type="checkbox" id="guide"> Play the rhythm with me (easier)</label>
-      <label><input type="checkbox" id="micOn"> Clap or play: listen with the microphone</label>
       <div class="row"><button class="ghost" id="cal">Calibrate timing</button><span class="stamp" id="calTxt"></span></div>
-      <span class="stamp">Calibrate once per device (and again with Bluetooth headphones): tap along with 8 clicks.</span>
+      <span class="stamp">Calibrate once per device, and again with Bluetooth headphones: tap (or clap, in Clap mode) along with 8 clicks. Tap and Clap keep separate settings.</span>
     </div>
   </details>
 </div>
@@ -146,7 +165,7 @@ details{border:1px solid var(--border);border-radius:12px;background:var(--panel
     {id:"7",name:"Syncopation 2",cells:{Q:2,EE:2,EQE:2,ETIE:3,ANT:2,C332:2}},
     {id:"8",name:"Syncopation 3",cells:{EE:2,SSSS:1,SES:3,DES:3,SDE:2,RSE:2,EQE:1}}];
   const TEMPOS=[60,72,84,96,108,120];
-  let level=store.get("level","1"), bpm=store.get("bpm",72), latency=store.get("lat",0);
+  let level=store.get("level","1"), bpm=store.get("bpm",72), latency=store.get("lat",0), latMic=store.get("latMic",0), inMode=store.get("in","tap");
   let bar=null, taps=[], run=null, round=[], best=store.get("best",null), audio=null, mic=null;
 
   // ---------- rhythm generator ----------
@@ -226,7 +245,7 @@ details{border:1px solid var(--border);border-radius:12px;background:var(--panel
   // ---------- run a bar: 1 count-in bar of clicks, then the rhythm bar ----------
   const spb=()=>60/bpm, u16=()=>spb()/4;
   async function play(mode){ // mode: "test" | "hear"
-    if(run) return; const a=ctx(); await a.resume(); if($("micOn").checked&&mode==="test") await micStart();
+    if(run) return; const a=ctx(); await a.resume(); if(inMode==="clap"&&mode==="test"&&!mic) await micStart($("micSel").value||undefined);
     taps=[]; $("results").hidden=true; $("again").hidden=true; $("go").disabled=true; $("hear").disabled=true;
     const t0=a.currentTime+0.15, start=t0+4*spb(), end=start+16*u16();
     for(let b=0;b<8;b++){ if(mode==="hear"&&b<4) continue; click(t0+b*spb(),b%4===0) }
@@ -234,14 +253,14 @@ details{border:1px solid var(--border);border-radius:12px;background:var(--panel
     msg(null, mode==="hear"?"Listen…":"Count in: 1 · 2 · 3 · 4", mode==="hear"?"":"Start tapping on beat 1 of the next bar.");
     run={mode,start,end,t0}; if(mode==="test") lastStart=start;
     const tick=()=>{ if(!run) return; const now=a.currentTime; let px=null;
-      if(now>=start&&now<=end) px=xOf((now-start)/u16());
+      if(now>=start&&now<=end){ px=xOf((now-start)/u16()); if(mode==="test"&&!run.go){ run.go=true; msg(null,"Go!",inMode==="clap"?"Clap or snap every note.":"Tap every note.") } }
       else if(now<start&&mode==="test"){ const left=Math.ceil((start-now)/spb()); $("msg").querySelector(".v").textContent=left<=4?"Count in: "+["","1","2","3","4"][5-left]:"Get ready"; }
       drawBar(null,px);
       if(now>end+0.35){ const m=run.mode; run=null; $("go").disabled=false; $("hear").disabled=false; if(m==="test") grade(); else { drawBar(null); msg(null,"Your turn","Press Start, count in, then tap it.") } return }
       requestAnimationFrame(tick) };
     tick() }
 
-  function tapAt(tsec){ if(!run||run.mode!=="test") return; const t=tsec-latency/1000; if(t<run.start-0.3||t>run.end+0.2) return; taps.push(t);
+  function tapAt(tsec,src){ if(calHook){ calHook(tsec); return } if(!run||run.mode!=="test") return; const t=tsec-(src==="mic"?latMic:latency)/1000; if(t<run.start-0.3||t>run.end+0.2) return; taps.push(t);
     $("pad").classList.add("hit"); setTimeout(()=>$("pad").classList.remove("hit"),90) }
   $("pad").addEventListener("pointerdown",e=>{ e.preventDefault(); if(audio) tapAt(audio.currentTime) });
   document.addEventListener("keydown",e=>{ if(e.target.tagName==="INPUT") return; if(e.code==="Space"){ e.preventDefault(); if(audio&&run) tapAt(audio.currentTime); else if(!run) $("go").click() } });
@@ -303,22 +322,54 @@ details{border:1px solid var(--border);border-radius:12px;background:var(--panel
   TEMPOS.forEach(t=>{ const b=document.createElement("button"); b.textContent=t; b.dataset.t=t; b.addEventListener("click",()=>{ bpm=t; store.set("bpm",bpm); mark() }); $("tempo").appendChild(b) });
   function mark(){ document.querySelectorAll(".lvl").forEach(b=>b.setAttribute("aria-pressed",String(b.dataset.id===level))); document.querySelectorAll("#tempo button").forEach(b=>b.setAttribute("aria-pressed",String(+b.dataset.t===bpm))) }
 
-  // ---------- calibration: tap with 8 clicks, the median offset becomes the latency correction ----------
-  $("calTxt").textContent=latency?`Offset ${latency} ms`:"";
-  $("cal").addEventListener("click",async()=>{ if(run) return; const a=ctx(); await a.resume(); const t0=a.currentTime+0.4, sp=0.6, hits=[];
-    for(let i=0;i<8;i++) click(t0+i*sp,i===0); $("calTxt").textContent="Tap the pad with each click…";
-    const h=e=>{ e.preventDefault(); hits.push(a.currentTime) }; $("pad").addEventListener("pointerdown",h);
-    setTimeout(()=>{ $("pad").removeEventListener("pointerdown",h); const offs=[]; hits.forEach(t=>{ const k=Math.round((t-t0)/sp); if(k>=0&&k<8) offs.push((t-(t0+k*sp))*1000) });
-      if(offs.length<5){ $("calTxt").textContent="Not enough taps. Try again."; return } offs.sort((a,b)=>a-b); latency=Math.round(offs[Math.floor(offs.length/2)]); store.set("lat",latency); $("calTxt").textContent=`Offset ${latency} ms (saved)` }, 400+8*sp*1000+500) });
+  // ---------- calibration: tap (or clap) with 8 clicks; the median offset becomes the correction for that input ----------
+  let calHook=null;
+  const calLabel=()=>{ const v=inMode==="clap"?latMic:latency; $("calTxt").textContent=v?`${inMode==="clap"?"Clap":"Tap"} offset ${v} ms`:"" }; calLabel();
+  $("cal").addEventListener("click",async()=>{ if(run||calHook) return; const a=ctx(); await a.resume(); if(inMode==="clap"&&!mic) await micStart($("micSel").value||undefined);
+    const t0=a.currentTime+0.6, sp=0.6, hits=[]; for(let i=0;i<8;i++) click(t0+i*sp,i===0);
+    $("calTxt").textContent=inMode==="clap"?"Clap with each click…":"Tap the pad with each click…";
+    calHook=t=>hits.push(t); const h=e=>{ e.preventDefault(); hits.push(a.currentTime) }; if(inMode!=="clap") $("pad").addEventListener("pointerdown",h);
+    setTimeout(()=>{ calHook=null; $("pad").removeEventListener("pointerdown",h); const offs=[]; hits.forEach(t=>{ const k=Math.round((t-t0)/sp); if(k>=0&&k<8&&Math.abs(t-(t0+k*sp))<0.25) offs.push((t-(t0+k*sp))*1000) });
+      if(offs.length<5){ $("calTxt").textContent="Not enough hits. Try again."; return } offs.sort((x,y)=>x-y); const v=Math.round(offs[Math.floor(offs.length/2)]);
+      if(inMode==="clap"){ latMic=v; store.set("latMic",v) } else { latency=v; store.set("lat",v) } calLabel(); $("calTxt").textContent+=" (saved)" }, 600+8*sp*1000+500) });
 
-  // ---------- microphone (clap or play): onset detection ----------
-  async function micStart(){ if(mic) return; try{ const a=ctx(); const s=await navigator.mediaDevices.getUserMedia({audio:{echoCancellation:false,noiseSuppression:false,autoGainControl:false}});
-      const src=a.createMediaStreamSource(s), an=a.createAnalyser(), mute=a.createGain(); an.fftSize=1024; mute.gain.value=0; src.connect(an); an.connect(mute); mute.connect(a.destination);
+  // ---------- microphone: clap or snap ----------
+  // Echo cancellation keeps the app's own clicks out; a high-pass filter drops piano bass and room rumble so sharp claps and snaps stand out.
+  // The onset time is taken from the first loud sample inside the buffer, not from when the buffer was read.
+  const BASE_THR=0.03; let thr=BASE_THR;
+  function setThr(v){ thr=v; $("thr").style.left=Math.min(100,thr*300)+"%" }
+  async function micStart(deviceId){ try{ const a=ctx(); await a.resume(); if(mic) micStop();
+      const c={echoCancellation:true,noiseSuppression:false,autoGainControl:false}; if(deviceId) c.deviceId={exact:deviceId};
+      const s=await navigator.mediaDevices.getUserMedia({audio:c});
+      const src=a.createMediaStreamSource(s), hp=a.createBiquadFilter(), g=a.createGain(), an=a.createAnalyser(), mute=a.createGain();
+      hp.type="highpass"; hp.frequency.value=500; g.gain.value=+$("micGain").value; an.fftSize=512; mute.gain.value=0;
+      src.connect(hp); hp.connect(g); g.connect(an); an.connect(mute); mute.connect(a.destination);
       const buf=new Float32Array(an.fftSize); let last=0, prev=0;
-      mic={s,timer:setInterval(()=>{ an.getFloatTimeDomainData(buf); let r=0; for(let i=0;i<buf.length;i++) r+=buf[i]*buf[i]; r=Math.sqrt(r/buf.length);
-        const now=a.currentTime; if(r>0.04&&r>prev*2.2&&now-last>0.09){ last=now; tapAt(now-0.012) } prev=r*0.6+prev*0.4 },10)};
-    }catch(e){ $("micOn").checked=false; msg("bad","Microphone blocked","Allow the microphone, or tap the pad instead.") } }
-  $("micOn").addEventListener("change",e=>{ if(!e.target.checked&&mic){ clearInterval(mic.timer); mic.s.getTracks().forEach(t=>t.stop()); mic=null } });
+      mic={s,g,mute,an,buf,timer:setInterval(()=>{ an.getFloatTimeDomainData(buf); let r=0, pk=0; for(let i=0;i<buf.length;i++){ r+=buf[i]*buf[i]; pk=Math.max(pk,Math.abs(buf[i])) } r=Math.sqrt(r/buf.length);
+        $("meterFill").style.width=Math.min(100,r*300)+"%"; const now=a.currentTime;
+        if(r>thr&&r>prev*2&&now-last>0.08){ let k=0; const lim=Math.max(thr*1.5,pk*0.3); while(k<buf.length&&Math.abs(buf[k])<lim) k++;
+          const t=now-(buf.length-k)/a.sampleRate; last=now; tapAt(t,"mic"); $("pad").classList.add("hit"); setTimeout(()=>$("pad").classList.remove("hit"),90) }
+        prev=r*0.5+prev*0.5 },8)};
+      $("micBtn").textContent="Microphone on"; $("micBtn").disabled=true; $("micCtl").hidden=false; setThr(thr);
+      const devs=(await navigator.mediaDevices.enumerateDevices()).filter(d=>d.kind==="audioinput"), cur=s.getAudioTracks()[0].getSettings().deviceId;
+      $("micSel").innerHTML=devs.map((d,i)=>`<option value="${d.deviceId}">${(d.label||("Microphone "+(i+1))).replace(/[<>&]/g,"")}</option>`).join(""); if(cur) $("micSel").value=cur;
+      $("micStat").textContent="Listening. Clap or snap once: the bar should jump past the line. Too low? Raise Sensitivity.";
+      if($("gateOn").checked) setTimeout(calibrateRoom,300);
+    }catch(e){ $("micStat").textContent=e&&e.name==="NotAllowedError"?"Microphone permission was blocked. Allow it in your browser's site settings, then tap the button again.":"No microphone found. Plug one in or pick another, then tap the button again." } }
+  function micStop(){ if(!mic) return; clearInterval(mic.timer); mic.s.getTracks().forEach(t=>t.stop()); try{mic.mute.disconnect()}catch(e){} mic=null;
+    $("micBtn").textContent="Turn on the microphone"; $("micBtn").disabled=false; $("micCtl").hidden=true }
+  async function calibrateRoom(){ if(!mic) return; $("micStat").textContent="Checking room noise. Stay quiet for 2 seconds…"; const vals=[], t0=performance.now();
+    await new Promise(res=>{ const iv=setInterval(()=>{ if(!mic){clearInterval(iv);return res()} mic.an.getFloatTimeDomainData(mic.buf); let r=0; for(let i=0;i<mic.buf.length;i++) r+=mic.buf[i]*mic.buf[i]; vals.push(Math.sqrt(r/mic.buf.length)); if(performance.now()-t0>1500){clearInterval(iv);res()} },30) });
+    vals.sort((x,y)=>x-y); const room=vals[Math.floor(vals.length*0.9)]||0; setThr(Math.min(0.15,Math.max(BASE_THR,room*4)));
+    $("micStat").textContent="Noise blocker on. Only claps and snaps above the line count." }
+  $("micBtn").addEventListener("click",()=>micStart($("micSel").value||undefined));
+  $("micSel").addEventListener("change",e=>micStart(e.target.value));
+  $("micGain").value=store.get("gain","3"); $("micGain").addEventListener("input",e=>{ if(mic) mic.g.gain.value=+e.target.value; store.set("gain",e.target.value) });
+  $("gateOn").checked=!!store.get("gate",false); $("gateOn").addEventListener("change",e=>{ store.set("gate",e.target.checked); if(e.target.checked) calibrateRoom(); else { setThr(BASE_THR); $("micStat").textContent="Noise blocker off." } });
+  function setIn(m){ inMode=m; store.set("in",m); document.querySelectorAll("#inSeg button").forEach(b=>b.setAttribute("aria-pressed",String(b.dataset.in===m)));
+    $("micBox").hidden=m!=="clap"; $("pad").textContent=m==="clap"?"CLAP · SNAP · TAP":"TAP"; if(m!=="clap") micStop(); calLabel() }
+  document.querySelectorAll("#inSeg button").forEach(b=>b.addEventListener("click",()=>setIn(b.dataset.in)));
+  setIn(inMode);
 
   window.__rt={bar:()=>bar,start:()=>lastStart,tap:t=>tapAt(t),now:()=>audio&&audio.currentTime,u:()=>u16(),setBar:b=>{bar=b;drawBar(null)}}; // test hook
   mark(); stats(); newBar();
