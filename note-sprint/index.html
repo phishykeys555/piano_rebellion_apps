@@ -348,10 +348,10 @@ summary{cursor:pointer;padding:12px 16px;font-weight:600}
         if(s.acc&&Math.random()<.3){const o=["#","b",""].filter(x=>x!==base); a=o[Math.floor(Math.random()*2)]; if(a!==base) pr=a===""?"n":a}
         return {clef,p,letter,octave,acc:a,print:pr}};
       q={iv:true,grand:false,key,num,notes:[mk(lp),mk(lp+num-1)]};
-      q.marks=[null,null]; $("staffbox").className="staffbox"; setPrompt(null,"Name the interval"); draw(); return }
+      q.marks=[null,null]; q.tried=[false,false]; $("staffbox").className="staffbox"; setPrompt(null,"Name the interval"); draw(); return }
     if(s.staffMode==="grand") q={grand:true,key,notes:[makeNote("treble",s.range,s.acc,prev&&prev.notes[0],key),makeNote("bass",s.range,s.acc,prev&&prev.notes[1],key)]};
     else{const clef=s.staffMode==="mix"?(Math.random()<.5?"treble":"bass"):s.staffMode; q={grand:false,key,notes:[makeNote(clef,s.range,s.acc,prev&&prev.notes[0],key)]}}
-    q.marks=[null,null]; $("staffbox").className="staffbox"; setPrompt(); draw();
+    q.marks=[null,null]; q.tried=[false,false]; $("staffbox").className="staffbox"; setPrompt(); draw();
   }
   function setPrompt(cls,text,coach){const el=$("prompt");el.className="prompt"+(cls?" "+cls:""); el.textContent="";
     const t=text!=null?text:(q.grand?(idx===0?"Top note first (right hand)":"Now the bottom note (left hand)"):"");
@@ -438,29 +438,42 @@ summary{cursor:pointer;padding:12px 16px;font-weight:600}
 
   // ---------- intervals ----------
   function answerIv(k){ if(!q||!q.iv||locked)return; const ok=k===q.num, lo=q.notes[0], hi=q.notes[1];
+    if(!ok&&!q.tried[0]){ q.tried[0]=true; st.streak=0; st.misses[IVN[q.num]]=(st.misses[IVN[q.num]]||0)+1; render(); flashBad();
+      setPrompt("bad","✗ Try again", lo.p%2===hi.p%2?`Count every line and space, bottom note = 1. Both notes are ${lo.p%2===0?"on lines":"in spaces"}, so it's odd: 3rd, 5th or 7th.`:"Count every line and space, bottom note = 1. One is on a line, one in a space, so it's even: 4th, 6th or octave."); return }
+    const retried=q.tried[0];
     locked=true; q.marks=[ok?"good":"bad",ok?"good":"bad"]; st.total++;
-    if(ok){st.correct++;st.streak++;st.best=Math.max(st.best,st.streak)} else {st.streak=0; st.misses[IVN[q.num]]=(st.misses[IVN[q.num]]||0)+1}
+    if(ok){st.correct++; if(!retried){st.streak++;st.best=Math.max(st.best,st.streak)}} else st.streak=0;
     const both=lo.p%2===0?"lines":"spaces", odd=q.num%2===1;
     const rule=odd?`Both notes are ${lo.p%2===0?"on lines":"in spaces"}: that's always an odd interval (3rd, 5th, 7th).`:`One on a line, one in a space: that's always an even interval (4th, 6th, octave).`;
     $("staffbox").className="staffbox "+(ok?"good":"bad");
-    if(ok) setPrompt("good",`✓ Right · ${IVN[q.num]}`,`${nm(lo)} up to ${nm(hi)}.`);
+    if(ok) setPrompt("good",`✓ Right${retried?" on try 2":""} · ${IVN[q.num]}`,`${nm(lo)} up to ${nm(hi)}.`);
     else setPrompt("bad","✗ Not quite",`You said ${IVN[k]}. This is a${q.num===8?"n":""} ${IVN[q.num]}: ${nm(lo)} up to ${nm(hi)}. Count every line and space, starting with the bottom note as 1. ${rule}`);
     draw(); play([midiOf(lo),midiOf(hi)]); render();
     setTimeout(()=>{ if(!sprintOver) newQuestion() }, ok?700:3200) }
 
+  // ---------- one retry per note ----------
+  function flashBad(){ $("staffbox").className="staffbox bad"; setTimeout(()=>{ if(!locked) $("staffbox").className="staffbox" },650) }
+  function hintMsg(n,given){
+    if(given&&given.midi!=null&&given.midi%12===midiOf(n)%12) return "Right note name, wrong octave. Try again.";
+    if(given&&given.letter===n.letter&&given.acc!==undefined&&given.acc!==n.acc)
+      return n.print?"Look at the sign in front of the note. Try again.":(n.acc?"Check the key signature. Try again.":"No sharp or flat on this one. Try again.");
+    return "Find a line you know, then count up or down to the note. Try again." }
+
   // ---------- grading ----------
   function grade(ok,given){
     if(locked)return; const n=q.notes[idx];
-    if(!ok){const k=nm(n).replace(/\d/,""); st.misses[k]=(st.misses[k]||0)+1}
+    if(!ok&&!q.tried[idx]){ q.tried[idx]=true; st.streak=0; const k=nm(n).replace(/\d/,""); st.misses[k]=(st.misses[k]||0)+1;
+      render(); flashBad(); setPrompt("bad","✗ Try again",hintMsg(n,given)); return }
     q.marks[idx]=ok?"good":"bad";
     if(q.grand&&idx===0){ idx=1; setAcc(""); play([midiOf(n)]); draw();
-      setPrompt(ok?"good":"bad", ok?`✓ Right · ${nm(n)}`:"✗ Not quite", (ok?"":coachMsg(n,given)+" ")+"Now the bottom note (left hand)."); return }
+      setPrompt(ok?"good":"bad", ok?(q.tried[0]?`✓ Right on try 2 · ${nm(n)}`:`✓ Right · ${nm(n)}`):"✗ Not quite", (ok?"":coachMsg(n,given)+" ")+"Now the bottom note (left hand)."); return }
     locked=true;
     const allOk=q.marks.every(m=>m==="good"||m===null);
-    st.total++; if(allOk){st.correct++;st.streak++;st.best=Math.max(st.best,st.streak)} else st.streak=0;
+    const retried=q.tried.some(Boolean);
+    st.total++; if(allOk){st.correct++; if(!retried){st.streak++;st.best=Math.max(st.best,st.streak)} else st.streak=0} else st.streak=0;
     $("staffbox").className="staffbox "+(allOk?"good":"bad");
     const last=q.notes[idx];
-    if(allOk) setPrompt("good",`✓ Right · ${q.notes.map(nm).join(" + ")}`,"");
+    if(allOk) setPrompt("good",`✓ Right${retried?" on try 2":""} · ${q.notes.map(nm).join(" + ")}`,"");
     else if(q.marks[idx]==="bad") setPrompt("bad","✗ Not quite",coachMsg(last,given));
     else setPrompt("bad",`✓ Bottom right · ${nm(last)}`,`Top note was ${nm(q.notes[0])}, ${where(q.notes[0])}.`);
     draw(); play(q.notes.map(midiOf)); render();
@@ -470,7 +483,7 @@ summary{cursor:pointer;padding:12px 16px;font-weight:600}
     grade(L===n.letter&&acc===n.acc,{letter:L,acc,label:L+(acc==="#"?"♯":acc==="b"?"♭":"")}) }
   function answerMidi(m,btn){ if(!q||locked)return; const target=midiOf(q.notes[idx]), ok=m===target;
     btn.classList.add(ok?"hit":"miss"); setTimeout(()=>btn.classList.remove("hit","miss"),450);
-    if(!ok){const c=$("piano").querySelector(`[data-midi="${target}"]`); if(c){c.classList.add("show"); setTimeout(()=>c.classList.remove("show"),1800)}}
+    if(!ok&&q.tried[idx]){const c=$("piano").querySelector(`[data-midi="${target}"]`); if(c){c.classList.add("show"); setTimeout(()=>c.classList.remove("show"),1800)}}
     grade(ok,{midi:m,label:mname(m)}) }
 
   // ---------- microphone: hear a real piano, no MIDI ----------
