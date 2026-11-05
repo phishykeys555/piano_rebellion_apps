@@ -212,7 +212,7 @@ summary{cursor:pointer;padding:12px 16px;font-weight:600}
       <div class="heard" id="heard" aria-live="polite">–</div>
       <div class="micctl" id="micCtl" hidden>
         <label for="micSel">Microphone</label><select id="micSel"></select>
-        <label for="micGain">Sensitivity</label><input type="range" id="micGain" min="0.25" max="12" step="0.25" value="3">
+        <label for="micGain">Sensitivity</label><input type="range" id="micGain" min="0" max="100" step="1" value="64">
         <span>Noise</span><label style="display:flex;gap:8px;align-items:center;color:var(--ink)"><input type="checkbox" id="gateOn"> Block background noise</label>
         <span>Level</span><div class="meter" style="max-width:none"><i id="meterFill"></i><span class="thr" id="thr"></span></div>
       </div>
@@ -238,10 +238,10 @@ summary{cursor:pointer;padding:12px 16px;font-weight:600}
       </div>
       <div><div class="stamp">Missed most</div><div class="misses" id="rMiss"></div></div>
       <div class="namefield"><label for="studentName" class="stamp">Name</label><input id="studentName" placeholder="Your first name" autocomplete="off"></div>
-      <div class="stamp" id="rStamp"></div>
+      <div id="rWhy" style="font-weight:600"></div><div class="stamp" id="rStamp"></div>
       <p class="tip" style="text-align:left">Screenshot this screen and send it to your instructor.</p>
       <div class="stamp">Note Sprint · By Clarendon Hills Music Academy</div>
-      <div class="row"><button class="ghost" id="closeResults">Back to practice</button><button class="primary" id="againBtn">Sprint again</button></div>
+      <div class="row"><button class="ghost" id="closeResults">Back to practice</button><button class="ghost" id="retryRound" hidden>Retry round</button><button class="primary" id="againBtn">Sprint again</button></div>
     </div>
   </section>
 
@@ -594,6 +594,7 @@ summary{cursor:pointer;padding:12px 16px;font-weight:600}
   // Background-noise blocker: listens to the room for 1.5 s, sets the trigger line at 3x the room's level,
   // and only accepts a clear, steady pitch (speech and clatter don't have one).
   let MINHZ=45;
+  const micG=x=>0.25*Math.pow(48,(+x)/100);
   const THR=0.015; let thr=THR, CLARITY=0.5;
   function setThr(v){ thr=v; $("thr").style.left=Math.min(100,thr*600)+"%" }
   async function calibrate(){ if(!mic) return; $("micStat").textContent="Checking room noise. Stay quiet for 2 seconds…"; const vals=[];
@@ -609,7 +610,7 @@ summary{cursor:pointer;padding:12px 16px;font-weight:600}
     const c={echoCancellation:false,noiseSuppression:false,autoGainControl:false}; if(deviceId) c.deviceId={exact:deviceId};
     const stream=await navigator.mediaDevices.getUserMedia({audio:c});
     const src=audio.createMediaStreamSource(stream), g=audio.createGain(), an=audio.createAnalyser(), mute=audio.createGain();
-    g.gain.value=+$("micGain").value; an.fftSize=4096; mute.gain.value=0; src.connect(g); g.connect(an); an.connect(mute); mute.connect(audio.destination);
+    g.gain.value=micG($("micGain").value); an.fftSize=4096; mute.gain.value=0; src.connect(g); g.connect(an); an.connect(mute); mute.connect(audio.destination);
     mic={stream,g,an,src,mute,buf:new Float32Array(an.fftSize),hist:[],armed:false,armedAt:0,cand:[],cool:0};
     mic.timer=setInterval(micTick,40); $("micBtn").textContent="Microphone on"; $("micBtn").disabled=true; $("micCtl").hidden=false;
     setThr(THR); if($("gateOn").checked) setTimeout(calibrate,300);
@@ -620,8 +621,8 @@ summary{cursor:pointer;padding:12px 16px;font-weight:600}
   function micStop(keepUi){ if(!mic)return; clearInterval(mic.timer); mic.stream.getTracks().forEach(t=>t.stop()); try{mic.mute.disconnect()}catch(e){} mic=null;
     if(!keepUi){ $("micBtn").textContent="Turn on the microphone"; $("micBtn").disabled=false; $("micCtl").hidden=true } }
   $("micSel").addEventListener("change",e=>micStart(e.target.value));
-  $("micGain").addEventListener("input",e=>{ if(mic) mic.g.gain.value=+e.target.value; store.set("gain",e.target.value) });
-  $("micGain").value=store.get("gain","3");
+  $("micGain").addEventListener("input",e=>{ if(mic) mic.g.gain.value=micG(e.target.value); store.set("gain2",e.target.value) });
+  { const old=store.get("gain",null); $("micGain").value=store.get("gain2",old!=null?String(Math.round(100*Math.log(Math.max(0.25,+old)/0.25)/Math.log(48))):"64") }
   function micTick(){ const m=mic; m.an.getFloatTimeDomainData(m.buf); let r=0; for(let i=0;i<m.buf.length;i++) r+=m.buf[i]*m.buf[i]; r=Math.sqrt(r/m.buf.length);
     $("meterFill").style.width=Math.min(100,r*600)+"%"; const now=performance.now(), avg=m.hist.length?m.hist.reduce((a,b)=>a+b,0)/m.hist.length:0;
     m.hist.push(r); if(m.hist.length>6) m.hist.shift();
@@ -645,7 +646,7 @@ summary{cursor:pointer;padding:12px 16px;font-weight:600}
   function showClock(){ const t=Math.max(0,timeLeft); $("clock").textContent=t;
     $("ring").style.strokeDashoffset=String(326.7*(1-t/timeMax)); $("watch").classList.toggle("hot",t<=10) }
   function endSprint(){ clearInterval(timer); timer=null; sprintOver=true; locked=true; $("startTimed").textContent="Start 60-second sprint";
-    $("rTitle").textContent="Sprint complete"; $("againBtn").textContent="Sprint again"; $("rScore").innerHTML=`${half(st.points)} <small>points in 60 s</small>`;
+    $("rTitle").textContent="Sprint complete"; $("rWhy").textContent=""; $("retryRound").hidden=true; $("againBtn").textContent="Sprint again"; $("rScore").innerHTML=`${half(st.points)} <small>points in 60 s</small>`;
     $("rPct").textContent=(st.total?Math.round(100*st.points/st.total):0)+"%"; $("rTotal").textContent=st.total; $("rBest").textContent=st.best;
     const miss=Object.entries(st.misses).sort((a,b)=>b[1]-a[1]).slice(0,5);
     $("rMiss").innerHTML=miss.length?miss.map(([k,v])=>`<span>${k} ×${v}</span>`).join(""):"<span>None. Clean run.</span>";
@@ -653,11 +654,12 @@ summary{cursor:pointer;padding:12px 16px;font-weight:600}
     $("rStamp").textContent=`Level ${L.id==="C"?"Custom":L.id} · ${L.name} · Key ${keySetting()==="mix"?"Mix":keyName(+keySetting())} · ${d.toLocaleDateString(undefined,{weekday:"short",month:"short",day:"numeric"})} ${d.toLocaleTimeString([], {hour:"numeric",minute:"2-digit"})}`;
     $("results").hidden=false }
   $("startTimed").addEventListener("click",()=>{ if(timer||arc){stopTimer();newQuestion(true)} else startSprint() });
+  $("retryRound").addEventListener("click",()=>arcRetry());
   $("againBtn").addEventListener("click",()=>lastMode==="arcade"?arcStart():startSprint());
 
   // ---------- arcade: rounds like the arcade hoop game. Score carries over; each round needs a higher running total in the same 30 s ----------
   // Base running totals for L1 letters; scaled for harder levels and slower answer modes. Last 10 s of a round = on fire, 2x points.
-  const ARC_BASE=[12,27,45,66,90], ARC_T=30, ARC_FIRE=10;
+  const ARC_BASE=[10,24,40,60,84], ARC_T=30, ARC_FIRE=10;
   const retryOK=()=>$("retryOn").checked&&!arc;
   const mult=()=>arc&&(arc.bonus||timeLeft<=ARC_FIRE)?2:1;
   function arcFactor(){ const s=readSettings(), lv={"1":1,"2":1,"3":.6,"4":.55,"5":.6,"C":.8}[level]||.8, md=s.iv?1:{letters:1,piano:.85,mic:.65}[s.mode]||1; return lv*md }
@@ -673,6 +675,10 @@ summary{cursor:pointer;padding:12px 16px;font-weight:600}
     m.classList.toggle("hit",hit||arc.bonus) }
   function arcSplash(t,sub,ms,then){ $("arcSplashT").textContent=t; $("arcSplashS").textContent=sub; $("arcSplash").hidden=false; locked=true;
     setTimeout(()=>{ $("arcSplash").hidden=true; if(arc) then() },ms) }
+  let arcRetryRound=0;
+  function arcRetry(){ const r=arcRetryRound||1; resetScore(); lastMode="arcade"; $("results").hidden=true; arc={round:r,bonus:false,needs:arcNeeds()}; st.points=r>1?arc.needs[r-2]:0;
+    $("arcbar").hidden=false; $("arcMeter").hidden=false; $("startTimed").textContent="Stop"; $("arcBtn").hidden=true; render();
+    arcSplash(`ROUND ${r}`,`Running total to beat: ${arc.needs[r-1]}. You start at ${half(st.points)}.`,2000,arcRound) }
   function arcStart(){ resetScore(); lastMode="arcade"; $("results").hidden=true; arc={round:1,bonus:false,needs:arcNeeds()};
     $("arcbar").hidden=false; $("arcMeter").hidden=false; $("startTimed").textContent="Stop"; $("arcBtn").hidden=true;
     arcSplash("ROUND 1",`Score ${arc.needs[0]} in 30 seconds. No second tries. Last 10 seconds = 2x points.`,2200,arcRound) }
@@ -681,12 +687,14 @@ summary{cursor:pointer;padding:12px 16px;font-weight:600}
   function arcRoundEnd(){ clearInterval(timer); timer=null; locked=true;
     if(arc.bonus) return arcFinish(true);
     const need=arc.needs[arc.round-1];
-    if(st.points<need) return arcFinish(false);
+    if(st.points<need) return arcFinish(false,need);
     if(arc.round===5){ arc.bonus=true; arc.hit=false; arcBar(); return arcSplash("BONUS ROUND","Every point counts double for 30 seconds. Go.",2000,arcRound) }
     arc.round++; arc.hit=false; arcBar(); arcSplash(`ROUND ${arc.round}`,`Running total to beat: ${arc.needs[arc.round-1]}. Faster now.`,1800,arcRound) }
-  function arcFinish(won){ const reached=arc.bonus?"Bonus round":`Round ${arc.round}`, key="arcbest-"+level+"-"+readSettings().mode, best=Math.max(store.get(key,0),st.points), isNew=st.points>0&&st.points>=best;
+  function arcFinish(won,need){ const failedRound=won?0:arc.round; const reached=arc.bonus?"Bonus round":`Round ${arc.round}`, key="arcbest-"+level+"-"+readSettings().mode, best=Math.max(store.get(key,0),st.points), isNew=st.points>0&&st.points>=best;
     store.set(key,best); sprintOver=true; locked=true; arc=null; $("arcbar").hidden=true; $("arcMeter").hidden=true; $("watch").classList.remove("fire"); $("arcBtn").hidden=!$("chalOn").checked; $("startTimed").textContent="Start 60-second sprint";
     $("rTitle").textContent=won?"Challenge cleared!":"Challenge over"; $("againBtn").textContent="Play again";
+    $("rWhy").textContent=won?"All 5 rounds cleared, plus the bonus round.":`Round ${failedRound} target was ${half(need)}. You had ${half(st.points)}. Hit the target before the 30 seconds run out to unlock Round ${failedRound+1}.`;
+    arcRetryRound=won?0:failedRound; $("retryRound").hidden=won; $("retryRound").textContent=`Retry round ${failedRound}`;
     $("rScore").innerHTML=`${half(st.points)} <small>points · ${reached}${isNew?" · new high score":""}</small>`;
     $("rPct").textContent=(st.total?Math.round(100*st.correct/st.total):0)+"%"; $("rTotal").textContent=st.total; $("rBest").textContent=st.best;
     const miss=Object.entries(st.misses).sort((a,b)=>b[1]-a[1]).slice(0,5);
