@@ -1,55 +1,88 @@
 <!doctype html>
 <html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Major 7th Play-Along · Clarendon Hills Music Academy</title>
-<meta name="description" content="Major 7th inversions around the circle of 5ths: play-along tracks with a speed control that keeps the pitch.">
+<meta name="description" content="Major 7th inversions around the circle of 5ths: play-along tracks with speed, key, volume, A-B loop and a speed-up trainer.">
 <style>
-:root{--bg:#191919;--card:#232323;--line:#3a3a3a;--text:#f0efed;--mut:#a5a29c;--acc:#ff5a3c;--acc2:#ffb020}
-@media (prefers-color-scheme:light){:root{--bg:#ffffff;--card:#f7f6f3;--line:#d9d7d2;--text:#2c2c2b;--mut:#6b6964;--acc:#d9411e;--acc2:#b77700}}
-*{box-sizing:border-box}body{margin:0;padding:16px;background:var(--bg);color:var(--text);font:16px/1.45 system-ui,-apple-system,Segoe UI,sans-serif}
-main{max-width:640px;margin:0 auto}.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px}
-h1{font-size:19px;margin:0 0 2px;letter-spacing:.02em}.by{font-size:13px;color:var(--mut);margin:0 0 14px}.by a{color:inherit}
-.tracks{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:14px}
-.tracks button{min-height:52px;border-radius:10px;border:1px solid var(--line);background:transparent;color:var(--text);font:600 15px system-ui;cursor:pointer}
-.tracks button small{display:block;font-weight:400;font-size:11px;color:var(--mut)}
-.tracks button.on{border-color:var(--acc);background:color-mix(in srgb,var(--acc) 16%,transparent)}
-.transport{display:flex;align-items:center;gap:12px;margin-bottom:10px}
-#play{width:58px;height:58px;border-radius:50%;border:0;background:var(--acc);color:#fff;font-size:22px;cursor:pointer;flex:none}
-.time{flex:1}.time input{width:100%;accent-color:var(--acc)}.time div{display:flex;justify-content:space-between;font-size:12px;color:var(--mut)}
-.bpm{text-align:center;margin:8px 0 2px}.bpm b{font:700 34px ui-monospace,Menlo,monospace;color:var(--acc2)}.bpm span{font-size:13px;color:var(--mut)}
-.speed{display:flex;align-items:center;gap:8px}.speed input{flex:1;accent-color:var(--acc);height:40px}
-.speed button,.row button{min-width:44px;min-height:40px;border-radius:8px;border:1px solid var(--line);background:transparent;color:var(--text);font:600 14px system-ui;cursor:pointer}
-.row{display:flex;justify-content:space-between;align-items:center;margin-top:10px;gap:8px;flex-wrap:wrap}
-label{display:flex;align-items:center;gap:6px;font-size:14px;min-height:40px}input[type=checkbox]{width:20px;height:20px;accent-color:var(--acc)}
-.steps{font-size:13px;color:var(--mut);margin:12px 0 0;padding-left:18px}
+:root{--bg:#191919;--card:#232323;--line:#3a3a3a;--text:#f0efed;--mut:#a5a29c;--acc:#ff5a3c;--acc2:#ffb020;--ok:#4cc38a}
+@media (prefers-color-scheme:light){:root{--bg:#ffffff;--card:#f7f6f3;--line:#d9d7d2;--text:#2c2c2b;--mut:#6b6964;--acc:#d9411e;--acc2:#b77700;--ok:#1f8a57}}
+*{box-sizing:border-box}body{margin:0;padding:12px;background:var(--bg);color:var(--text);font:15px/1.45 system-ui,-apple-system,Segoe UI,sans-serif}
+main{max-width:660px;margin:0 auto}.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px}
+h1{font-size:18px;margin:0 0 2px;letter-spacing:.02em}.by{font-size:13px;color:var(--mut);margin:0 0 12px}.by a{color:inherit}
+.tracks{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:12px}
+button{font:600 14px system-ui;color:var(--text);background:transparent;border:1px solid var(--line);border-radius:9px;min-height:40px;cursor:pointer}
+button.on{border-color:var(--acc);background:color-mix(in srgb,var(--acc) 16%,transparent)}
+.tracks button{min-height:50px;font-size:15px}.tracks small{display:block;font-weight:400;font-size:11px;color:var(--mut)}
+.transport{display:flex;align-items:center;gap:12px}
+#play{width:56px;height:56px;border-radius:50%;border:0;background:var(--acc);color:#fff;font-size:21px;flex:none}
+.time{flex:1;position:relative}.time input{width:100%;accent-color:var(--acc)}.time .lbl{display:flex;justify-content:space-between;font-size:12px;color:var(--mut)}
+#ab{position:absolute;top:5px;height:6px;background:color-mix(in srgb,var(--ok) 55%,transparent);border-radius:3px;pointer-events:none;display:none}
+.readout{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:12px 0 4px;text-align:center}
+.readout div{border:1px solid var(--line);border-radius:10px;padding:6px 4px}.readout b{display:block;font:700 26px ui-monospace,Menlo,monospace;color:var(--acc2);line-height:1.15}.readout span{font-size:11px;color:var(--mut)}
+.ctl{display:grid;grid-template-columns:62px 40px 1fr 40px;align-items:center;gap:6px;margin-top:8px}
+.ctl label{font-size:12px;font-weight:700;color:var(--mut);letter-spacing:.04em}.ctl input{width:100%;accent-color:var(--acc);height:34px}
+.row{display:flex;gap:6px;flex-wrap:wrap;margin-top:10px;align-items:center}.row button{padding:0 10px}
+.chk{display:flex;align-items:center;gap:6px;font-size:13px;min-height:40px}.chk input{width:18px;height:18px;accent-color:var(--acc)}
+details{margin-top:12px;border-top:1px solid var(--line);padding-top:8px}summary{cursor:pointer;font-weight:700;font-size:13px;color:var(--mut)}
+.steps{font-size:13px;color:var(--mut);margin:8px 0 0;padding-left:18px}.keys{font-size:12px;color:var(--mut);margin-top:6px}
+select{font:600 13px system-ui;color:var(--text);background:var(--card);border:1px solid var(--line);border-radius:8px;min-height:36px;padding:0 6px}
 </style></head><body><main><div class="card">
 <h1>MAJOR 7TH INVERSIONS · CIRCLE OF 5THS</h1>
 <p class="by">Play-along tracks · <a href="https://clarendonhillsmusicacademy.com" target="_blank" rel="noopener">Clarendon Hills Music Academy</a></p>
 <div class="tracks" id="tracks"></div>
 <div class="transport"><button id="play" aria-label="Play">▶</button>
-<div class="time"><input id="seek" type="range" min="0" max="1000" value="0" aria-label="Position"><div><span id="cur">0:00</span><span id="dur">0:00</span></div></div></div>
-<div class="bpm"><b id="bpm">60</b> <span>BPM · <span id="sp">1.00×</span> speed, same pitch</span></div>
-<div class="speed"><button id="dn">−</button><input id="speed" type="range" min="50" max="150" step="5" value="100" aria-label="Speed"><button id="up">+</button></div>
-<div class="row"><label><input type="checkbox" id="loop" checked> Loop</label><button id="back">↺ 10 s</button><button id="reset">1.00×</button></div>
+<div class="time"><div id="ab"></div><input id="seek" type="range" min="0" max="1000" value="0" aria-label="Position"><div class="lbl"><span id="cur">0:00</span><span id="dur">0:00</span></div></div></div>
+<div class="readout"><div><b id="bpm">60</b><span>BPM</span></div><div><b id="keyN">C</b><span id="keyS">first chord · original key</span></div><div><b id="volN">100</b><span>volume %</span></div></div>
+<div class="ctl"><label for="speed">SPEED</label><button id="sdn" aria-label="Slower">−</button><input id="speed" type="range" min="50" max="150" step="1" value="100"><button id="sup" aria-label="Faster">+</button></div>
+<div class="ctl"><label for="key">KEY</label><button id="kdn" aria-label="Key down">♭</button><input id="key" type="range" min="-6" max="6" step="1" value="0"><button id="kup" aria-label="Key up">♯</button></div>
+<div class="ctl"><label for="vol">VOLUME</label><button id="vdn" aria-label="Quieter">−</button><input id="vol" type="range" min="0" max="150" step="5" value="100"><button id="vup" aria-label="Louder">+</button></div>
+<div class="row"><button id="back">↺ 10 s</button><button id="fwd">10 s ↻</button><button id="reset">Reset</button><label class="chk"><input type="checkbox" id="loop" checked> Loop</label></div>
+<details id="adv"><summary>ADVANCED: section loop + speed trainer</summary>
+<div class="row"><button id="setA">Set A</button><button id="setB">Set B</button><button id="clrAB">Clear</button><span class="keys" id="abTxt">No section set: loops the whole track.</span></div>
+<div class="row"><label class="chk"><input type="checkbox" id="ramp"> Speed up each loop by</label><select id="rampStep"><option value="2">2%</option><option value="5" selected>5%</option><option value="10">10%</option></select><span class="keys">until</span><select id="rampMax"><option value="100">100%</option><option value="110">110%</option><option value="125">125%</option><option value="150" selected>150%</option></select></div>
+<p class="keys">Keyboard: Space play/pause · ← → 5 s · ↑ ↓ speed · [ ] key · A / B set section</p>
+</details>
 <ol class="steps"><li>Ascending: one inversion per measure.</li><li>Ascending and descending: split the measure, two inversions each.</li><li>Bonus: add the block-and-fill pattern.</li></ol>
 </div></main>
-<audio id="a" preload="metadata"></audio>
+<audio id="a" preload="metadata" crossorigin="anonymous"></audio>
 <script>
 const T=[{b:60,f:'audio/major7-circle-60.mp3'},{b:70,f:'audio/major7-circle-70.mp3'},{b:90,f:'audio/major7-circle-90.mp3'}];
-const $=i=>document.getElementById(i),a=$('a');let cur=0;
+const KEYS=['C','D♭','D','E♭','E','F','G♭','G','A♭','A','B♭','B'],IVN={0:'original key',1:'half step up',2:'whole step up',3:'minor 3rd up',4:'major 3rd up',5:'4th up',6:'tritone up','-1':'half step down','-2':'whole step down','-3':'minor 3rd down','-4':'major 3rd down','-5':'4th down','-6':'tritone down'};
+const $=i=>document.getElementById(i),a=$('a');let cur=0,ctx=null,gain=null,ps=null,A=null,B=null,wrapping=false;
+const LS={get(){try{return JSON.parse(localStorage.getItem('m7player')||'{}')}catch(e){return {}}},set(o){try{localStorage.setItem('m7player',JSON.stringify(o))}catch(e){}}};
 a.preservesPitch=true;a.mozPreservesPitch=true;a.webkitPreservesPitch=true;
 const fmt=s=>isFinite(s)?Math.floor(s/60)+':'+String(Math.floor(s%60)).padStart(2,'0'):'0:00';
-function rate(){return +$('speed').value/100}
-function show(){$('sp').textContent=rate().toFixed(2)+'×';$('bpm').textContent=Math.round(T[cur].b*rate())}
-function pick(i,auto){cur=i;[...$('tracks').children].forEach((b,j)=>b.classList.toggle('on',j===i));const was=!a.paused||auto;a.src=T[i].f;a.load();a.playbackRate=rate();show();if(was)a.play()}
+const rate=()=>+$('speed').value/100,semi=()=>+$('key').value,vol=()=>+$('vol').value/100;
+function save(){LS.set({t:cur,s:$('speed').value,k:$('key').value,v:$('vol').value,l:$('loop').checked})}
+async function audio(){if(ctx)return;try{const AC=window.AudioContext||window.webkitAudioContext;ctx=new AC();const src=ctx.createMediaElementSource(a);gain=ctx.createGain();
+  try{await ctx.audioWorklet.addModule('ps-worklet.js');ps=new AudioWorkletNode(ctx,'pitch-shift',{outputChannelCount:[2]});src.connect(ps);ps.connect(gain)}catch(e){src.connect(gain);ps=null;$('keyS').textContent='key shift not supported here'}
+  gain.connect(ctx.destination);a.volume=1;apply()}catch(e){ctx=null}}
+function apply(){a.playbackRate=rate();a.preservesPitch=true;a.webkitPreservesPitch=true;
+ if(gain)gain.gain.setTargetAtTime(vol(),ctx.currentTime,0.02);else a.volume=Math.min(1,vol());
+ if(ps)ps.parameters.get('pitch').setTargetAtTime(Math.pow(2,semi()/12),ctx.currentTime,0.01);
+ const k=semi();$('bpm').textContent=Math.round(T[cur].b*rate());$('keyN').textContent=KEYS[(k+12)%12];if(ctx&&!ps){}else $('keyS').textContent='first chord · '+IVN[k];
+ $('volN').textContent=$('vol').value;save()}
+function pick(i){const was=!a.paused;cur=i;[...$('tracks').children].forEach((b,j)=>b.classList.toggle('on',j===i));A=B=null;showAB();a.src=T[i].f;a.load();apply();if(was)a.play()}
 T.forEach((t,i)=>{const b=document.createElement('button');b.innerHTML=t.b+' BPM<small>track '+(i+1)+'</small>';b.onclick=()=>pick(i);$('tracks').appendChild(b)});
-$('play').onclick=()=>{if(a.paused)a.play();else a.pause()};
-a.onplay=()=>{$('play').textContent='❚❚'};a.onpause=()=>{$('play').textContent='▶'};
-a.onloadedmetadata=()=>{$('dur').textContent=fmt(a.duration);a.playbackRate=rate()};
-a.ontimeupdate=()=>{$('cur').textContent=fmt(a.currentTime);if(a.duration)$('seek').value=Math.round(1000*a.currentTime/a.duration)};
-a.onended=()=>{if($('loop').checked){a.currentTime=0;a.play()}};
+async function toggle(){await audio();if(ctx&&ctx.state==='suspended')ctx.resume();if(a.paused)a.play();else a.pause()}
+$('play').onclick=toggle;a.onplay=()=>{$('play').textContent='❚❚'};a.onpause=()=>{$('play').textContent='▶'};
+a.onloadedmetadata=()=>{$('dur').textContent=fmt(a.duration);apply()};
+function onLoop(){if($('ramp').checked){const mx=+$('rampMax').value,nv=Math.min(mx,+$('speed').value+ +$('rampStep').value);$('speed').value=nv;apply()}}
+function tick(){if(a.duration){$('cur').textContent=fmt(a.currentTime);$('seek').value=Math.round(1000*a.currentTime/a.duration);
+  if(A!=null&&B!=null&&a.currentTime>=B&&!wrapping){if($('loop').checked){wrapping=true;a.currentTime=A;onLoop();setTimeout(()=>wrapping=false,200)}else a.pause()}}
+ requestAnimationFrame(tick)}requestAnimationFrame(tick);
+a.onended=()=>{if($('loop').checked){a.currentTime=A!=null?A:0;onLoop();a.play()}};
 $('seek').oninput=e=>{if(a.duration)a.currentTime=a.duration*e.target.value/1000};
-const setR=v=>{$('speed').value=Math.max(50,Math.min(150,v));a.playbackRate=rate();a.preservesPitch=true;show()};
-$('speed').oninput=()=>setR(+$('speed').value);$('dn').onclick=()=>setR(+$('speed').value-5);$('up').onclick=()=>setR(+$('speed').value+5);
-$('reset').onclick=()=>setR(100);$('back').onclick=()=>{a.currentTime=Math.max(0,a.currentTime-10)};
-pick(0);
+const nudge=(id,d)=>{const el=$(id);el.value=Math.max(+el.min,Math.min(+el.max,+el.value+d));apply()};
+['speed','key','vol'].forEach(id=>$(id).oninput=apply);
+$('sdn').onclick=()=>nudge('speed',-5);$('sup').onclick=()=>nudge('speed',5);$('kdn').onclick=()=>nudge('key',-1);$('kup').onclick=()=>nudge('key',1);$('vdn').onclick=()=>nudge('vol',-10);$('vup').onclick=()=>nudge('vol',10);
+$('back').onclick=()=>{a.currentTime=Math.max(0,a.currentTime-10)};$('fwd').onclick=()=>{a.currentTime=Math.min(a.duration||0,a.currentTime+10)};
+$('reset').onclick=()=>{$('speed').value=100;$('key').value=0;$('vol').value=100;$('ramp').checked=false;A=B=null;showAB();apply()};
+$('loop').onchange=save;
+function showAB(){const el=$('ab');if(A!=null&&a.duration){const b=B!=null?B:a.currentTime;el.style.display='block';el.style.left=(100*A/a.duration)+'%';el.style.width=Math.max(0.5,100*(b-A)/a.duration)+'%'}else el.style.display='none';
+ $('abTxt').textContent=A==null?'No section set: loops the whole track.':B==null?'A = '+fmt(A)+'. Now set B.':'Looping '+fmt(A)+' to '+fmt(B)+'.'}
+$('setA').onclick=()=>{A=a.currentTime;if(B!=null&&B<=A)B=null;showAB()};$('setB').onclick=()=>{if(A==null)A=0;if(a.currentTime>A+0.5)B=a.currentTime;showAB()};$('clrAB').onclick=()=>{A=B=null;showAB()};
+document.addEventListener('keydown',e=>{if(e.target.tagName==='SELECT')return;const k=e.key;if(k===' '){e.preventDefault();toggle()}else if(k==='ArrowLeft')a.currentTime=Math.max(0,a.currentTime-5);else if(k==='ArrowRight')a.currentTime+=5;
+ else if(k==='ArrowUp'){e.preventDefault();nudge('speed',1)}else if(k==='ArrowDown'){e.preventDefault();nudge('speed',-1)}else if(k==='[')nudge('key',-1);else if(k===']')nudge('key',1);else if(k==='a'||k==='A')$('setA').click();else if(k==='b'||k==='B')$('setB').click()});
+const sv=LS.get();if(sv.s)$('speed').value=sv.s;if(sv.k)$('key').value=sv.k;if(sv.v)$('vol').value=sv.v;if(sv.l===false)$('loop').checked=false;
+pick(sv.t>=0&&sv.t<3?sv.t:0);
 </script></body></html>
