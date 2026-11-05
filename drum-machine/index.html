@@ -232,7 +232,7 @@ label{color:#b8b0a0;text-transform:uppercase;font-size:11px;letter-spacing:.08em
 <div class="row">
 <label><input type="checkbox" id="bon" data-s> Bass on</label>
 <label>Sound <select id="bt" data-s><optgroup label="Studio (multi-layer, loads when picked)"><option value="jbass" selected>Jazz Bass – smooth (neck pickup, tone rolled back)</option><option value="jbflat">Jazz Bass – flatwound / Motown (dark, short)</option><option value="jbbright">Jazz Bass – bright (both pickups, for slap-pop parts)</option><option value="dbass">Upright Double Bass – pizzicato (1958 Rubner)</option></optgroup><optgroup label="Recorded"><option value="finger">Electric – Fingered (Yamaha RBX)</option><option value="pick">Electric – Pick (Yamaha RBX)</option><option value="slap">Slap Bass</option><option value="upright">Electric Upright / Jazz</option><option value="fretless">Fretless</option><option value="lately">80s FM Bass (DX7 "Lately Bass")</option><option value="sb1">Analog Synth Bass (warm)</option><option value="sb2">Analog Synth Bass (punchy)</option></optgroup><optgroup label="Synth"><option value="synth1">Synth Bass (classic)</option><option value="sub808">808 Sub (glide)</option><option value="moog">Moog-Style Fat</option><option value="acid">Acid 303</option><option value="reese">Reese (dark, wide)</option></optgroup></select></label><label title="Shapes the bass like a mixing engineer would: EQ and a compressor on the bass channel">Bass tone <select id="btone" data-s><option value="studio" selected>Studio (round + clear)</option><option value="warm">Warm (dark, Motown)</option><option value="punchy">Punchy (rock / funk)</option><option value="bright">Bright (slap / pop)</option><option value="amp">Vintage amp (grit)</option><option value="flat">Flat (raw)</option></select></label>
-<label>Style <select id="bs" data-s><option value="auto" selected>Auto (matches groove)</option><option value="kick">Follow the Kick</option><option value="root">Long Root Notes</option><option value="roots8">Driving 8ths</option><option value="rootfifth">Root – Fifth</option><option value="octave">Disco Octaves</option><option value="funk">Funk (syncopated)</option><option value="walk">Walking Jazz</option><option value="bossa">Bossa / Latin</option><option value="reggae">Reggae</option><option value="trap">Trap 808 (glides)</option><option value="arp">Arpeggio</option><option value="modal">Modal Riff (scale runs)</option><option value="pedal">Pedal Tone (drone on key note)</option></select></label>
+<label>Style <select id="bs" data-s><option value="auto" selected>Auto (matches groove)</option><option value="kick">Follow the Kick</option><option value="root">Long Root Notes</option><option value="roots8">Driving 8ths</option><option value="rootfifth">Root – Fifth</option><option value="octave">Disco Octaves</option><option value="funk">Funk (syncopated)</option><option value="walk">Walking Jazz (approach notes into every chord)</option><option value="twofeel">Jazz Two-Feel (half notes, skips)</option><option value="broken">Modern Jazz Broken Time</option><option value="boogie">Blues Boogie / Shuffle</option><option value="jamerson">Motown (Jamerson chromatics)</option><option value="jbfunk">James Brown (on the One)</option><option value="tower">Tower of Power (16th notes, Rocco)</option><option value="meters">The Meters (sparse)</option><option value="bootsy">Bootsy / P-Funk</option><option value="vulf">Vulfpeck (melodic 16ths)</option><option value="cowfunk">Phish Cow Funk</option><option value="neosoul">Neo-Soul (laid back, slides)</option><option value="afrobeat">Afrobeat Ostinato</option><option value="melodic">Jam Band Melodic (Phil Lesh)</option><option value="prog">Prog Odd-Meter Riff</option><option value="modalvamp">Modal Vamp (So What / McCoy)</option><option value="afro68">Afro 6/8 Ostinato</option><option value="tumbao">Salsa Tumbao (anticipated)</option><option value="samba">Samba (surdo on 2)</option><option value="bossa">Bossa / Latin</option><option value="reggae">Reggae</option><option value="trap">Trap 808 (glides)</option><option value="arp">Arpeggio</option><option value="modal">Modal Riff (scale runs)</option><option value="pedal">Pedal Tone (drone on key note)</option></select></label>
 </div>
 <div class="row">
 <label title="CHMA theory: always name the major parent key (the 1). The mode says which number you start on.">Parent key (the 1) <select id="key" data-s><option value="C">C</option><option value="C#">C♯ / D♭</option><option value="D">D</option><option value="D#">D♯ / E♭</option><option value="E">E</option><option value="F">F</option><option value="F#">F♯ / G♭</option><option value="G">G</option><option value="G#">G♯ / A♭</option><option value="A">A</option><option value="A#">A♯ / B♭</option><option value="B">B</option></select></label>
@@ -717,7 +717,7 @@ const third=c=>(c.q==='maj'||c.q==='aug')?4:3,fifth=c=>c.q==='dim'?6:c.q==='aug'
 function scStep(m,dir){for(let k=1;k<=12;k++){const x=m+dir*k;if(bassScale.includes(mod12(x)))return x}return m+dir}
 function rng(a){return function(){a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296}}
 let bassSeed=Math.floor(Math.random()*1e6);
-const AUTO={jbcow:'funk',jbdead:'rootfifth',jbshuf:'rootfifth',jbwhip:'kick',mjstraight:'modal',mjbroken:'walk',mjfunk:'funk',mjafro:'modal',p54swing:'walk',p54rock:'kick',p74:'kick',p78:'kick',p98:'kick',fjb:'funk',fone:'funk',ftop:'funk',fmeters:'funk',fvulf:'funk',jazz:'walk',twofeel:'walk',bebop:'walk',uptempo:'walk',bigband:'walk',jballad:'walk',jwaltz:'walk',snapswing:'walk',funk:'funk',neosoul:'funk',afrobeat:'funk',disco:'octave',pop:'octave',trap808:'trap',bossa:'bossa',samba:'bossa',tumbao:'bossa',onedrop:'reggae',ballad:'root',half:'root',slowblues:'rootfifth',shuffle:'rootfifth',texas:'rootfifth',train:'rootfifth',waltz:'rootfifth',sixeight:'rootfifth',punk:'roots8',motown:'roots8',swing8:'roots8',popshaker:'roots8',click:'root',click8:'root',click16:'root'};
+const AUTO={jbcow:'cowfunk',jbdead:'melodic',jbshuf:'boogie',jbwhip:'prog',mjstraight:'modalvamp',mjbroken:'broken',mjfunk:'vulf',mjafro:'afro68',p54swing:'walk',p54rock:'prog',p74:'prog',p78:'prog',p98:'prog',fjb:'jbfunk',fone:'bootsy',ftop:'tower',fmeters:'meters',fvulf:'vulf',jazz:'walk',twofeel:'twofeel',bebop:'walk',uptempo:'walk',bigband:'walk',jballad:'twofeel',jwaltz:'walk',snapswing:'walk',funk:'funk',neosoul:'neosoul',afrobeat:'afrobeat',disco:'octave',pop:'octave',trap808:'trap',bossa:'bossa',samba:'samba',tumbao:'tumbao',onedrop:'reggae',ballad:'root',half:'root',slowblues:'boogie',shuffle:'boogie',texas:'boogie',train:'boogie',halfshuf:'boogie',waltz:'rootfifth',sixeight:'rootfifth',punk:'roots8',motown:'jamerson',swing8:'roots8',popshaker:'roots8',click:'root',click8:'root',click16:'root'};
 // "Change it up": a fresh bass line every N bars; Surprise also changes the feel (within styles that suit the groove) and how busy it is
 let surStyle=null,surV=null;
 const SUR_OK={kick:['kick','roots8','rootfifth','octave'],roots8:['roots8','kick','rootfifth','octave'],rootfifth:['rootfifth','kick','roots8'],octave:['octave','roots8','kick'],root:['root','rootfifth','kick'],funk:['funk','octave','kick']};
@@ -726,7 +726,132 @@ function bassAuto(){const a=$('bauto').value;if(a==='0'||barN===0)return;const e
  bassSeed=Math.floor(Math.random()*1e6);
  if(a==='surprise'){const base=AUTO[curName]||'kick',opts=SUR_OK[base];surStyle=opts?opts[Math.floor(Math.random()*opts.length)]:null;surV=0.15+Math.random()*0.65}else{surStyle=null;surV=null}
  trMsg=trMsg||'New bass line'}
-function genBass(ch,nx,last,bk){const R=rng(bassSeed*977+bk*131+7),V=surV!=null?surV:+$('bvar').value/100,n=steps(),B=sub,ev=[],st=bassStyle();
+// ===== Idiomatic bass engine (2026-11-05) =====
+// How real players build lines: chord tones on the strong beats, scale tones between, an approach note into every new chord,
+// and each style's own rhythm vocabulary. Scales come from the major parent key (the mode = the number the chord starts on).
+let bassPrevM=null,bassPlan=null,bassSpan=0,bassIB=0,bassRun=0,bassLastCk='';
+const IDI={walk:1,twofeel:1,broken:1,melodic:1,boogie:1,tumbao:1,samba:1,prog:1,funk:1,jbfunk:1,tower:1,meters:1,bootsy:1,vulf:1,cowfunk:1,neosoul:1,afrobeat:1,jamerson:1,modalvamp:1,afro68:1};
+function chordScale(ch){if(ch.deg>=0&&ch.dia){const d=ch.deg;return [0,1,2,3,4,5,6].map(k=>mod12(MAJ[(d+k)%7]-MAJ[d]))}
+ if(ch.q==='min')return [0,2,3,5,7,9,10];if(ch.q==='dim')return [0,1,3,5,6,8,10];if(ch.q==='aug')return [0,2,4,6,8,9,11];
+ return ch.sev==='maj7'?[0,2,4,5,7,9,11]:[0,2,4,5,7,9,10]}
+const LO=28,HI=55;
+function nearM(m,ref){let x=m;while(x-ref>6)x-=12;while(ref-x>6)x+=12;while(x<LO)x+=12;while(x>HI-3)x-=12;return x}
+function chordPcs(ch){const cs=chordScale(ch);return {sc:cs.map(x=>mod12(ch.pc+x)),ct:[0,third(ch),fifth(ch),cs[6]].map(x=>mod12(ch.pc+x))}}
+// approach note into target T: chromatic from below or above, a scale step, or the dominant (the target's 5th)
+function approachTo(T,prev,ch,R){const k=R();let a;
+ if(k<0.3)a=T-1;else if(k<0.56)a=T+1;else if(k<0.82){const {sc}=chordPcs(ch),up=R()<0.5;a=T-1;for(let d=1;d<=3;d++){const c=T+(up?d:-d);if(sc.includes(mod12(c))){a=c;break}}}
+ else{const x=T+7,y=T-5;a=Math.abs(x-prev)<=Math.abs(y-prev)?x:y}
+ if(a<LO)a=T+1;if(a>HI)a=T-1;return a}
+// pick k notes between a0 and the approach note: steps preferred, chord tones on strong beats, always able to reach the target
+function appNear(nr,prev,R){const c=[nr-1,nr+1,nr+7,nr-5].filter(x=>x>=LO-1&&x<=HI);c.sort((a,b)=>Math.abs(a-prev)-Math.abs(b-prev));const ok=c.filter(x=>Math.abs(x-prev)<=9),pool=ok.length?ok:[c[0]];return pool[Math.floor(R()*Math.min(pool.length,2))]}
+function pathNotes(a0,k,aEnd,ch,strong,R,lo,hi,chromP){const {sc,ct}=chordPcs(ch),out=[];let prev=a0,dir=Math.sign(aEnd-a0)||(R()<0.5?1:-1);
+ for(let i=0;i<k;i++){const rem=k-i;let best=null,bs=-1e9;
+  for(let c=prev-9;c<=prev+9;c++){if(c<lo||c>hi||c===prev)continue;const pc=mod12(c),inS=sc.includes(pc),isCT=ct.includes(pc);
+   if(!inS&&!(Math.abs(c-prev)===1&&sc.includes(mod12(prev))&&sc.includes(mod12(c+(c-prev)))&&Math.abs(aEnd-c)<Math.abs(aEnd-prev)&&R()<chromP))continue;
+   const st=Math.abs(c-prev);let s=st<=2?3:st<=4?2:st<=7?0:-3;
+   s+=strong[i]?(isCT?3:-1.5):(isCT?0.6:0.9);
+   s-=Math.max(0,Math.abs(aEnd-c)-3*rem)*0.9;if(Math.sign(c-prev)===dir)s+=1;
+   if(c===aEnd)s-=3;if(i===k-1&&Math.abs(c-aEnd)>5)s-=2;s+=R()*2.4;
+   if(s>bs){bs=s;best=c}}
+  if(best==null)best=Math.min(hi,Math.max(lo,prev+2*dir));if(Math.sign(best-prev)!==dir&&R()<0.5)dir=Math.sign(best-prev)||dir;out.push(best);prev=best}
+ return out}
+// the bar's first note and where the line is heading (root of the next chord, or a new chord tone when the chord holds)
+function lineEnds(ch,nx,last,R,ref){const r=bassRoot(ch.pc),{ct}=chordPcs(ch);let s;
+ if(bassPlan!=null&&ct.includes(mod12(bassPlan)))s=bassPlan;else s=nearM(bassIB>0?r+(R()<0.5?third(ch):fifth(ch)):r,ref);
+ const g=s>45?s-7:s<33?s+5:s,T=last?nearM(bassRoot(nx.pc),g):nearM(r+[third(ch),fifth(ch),0][Math.floor(R()*3)],g);return [s,T===s?nearM(r+fifth(ch),s+3):T]}
+function walkNotes(ch,nx,last,S,R,V){const ref=bassPrevM!=null?bassPrevM:bassRoot(ch.pc)+5,[s,T]=lineEnds(ch,nx,last,R,ref);
+ if(S===1){bassPlan=T;return [s]}
+ let ap=approachTo(T,s,ch,R);const mids=S-2,strong=Array.from({length:mids},(_,i)=>(i+1)%2===0);
+ let mid=pathNotes(s,mids,ap,ch,strong,R,LO,HI-4,0);
+ if(S>=4&&R()<0.15+V*0.25){const {sc}=chordPcs(ch);let up=T+1;for(let d=1;d<=2;d++)if(sc.includes(mod12(T+d))){up=T+d;break}mid[mids-1]=up;ap=T-1} // enclosure: above, then below, then the target
+ const pv=mids?mid[mids-1]:s;if(pv===ap)ap=T+(pv>T?1:-1);
+ bassPlan=T;return [s,...mid,ap]}
+// rhythm templates: [position, tone, velocity, length, flag]; u = template steps per beat. D = dead (muted) note, A = approach, G = slide
+const TPL={
+ jb1:{u:4,n:[[0,'R',1,2],[3,'8',.65,1],[4,'D'],[6,'7',.75,1],[7,'8',.7,1],[10,'5',.8,2],[13,'D'],[14,'7',.75,1],[15,'A',.7,1]]},
+ jb2:{u:4,n:[[0,'R',1,2],[2,'D'],[3,'R',.7,1],[6,'3',.7,1],[7,'5',.75,1],[8,'7',.85,2],[11,'5',.6,1],[12,'R',.8,2],[14,'D']]},
+ jb3:{u:4,n:[[0,'R',1,3],[5,'R',.6,1],[7,'8',.75,1],[10,'7',.7,1],[11,'5',.75,2],[14,'L5',.7,1],[15,'A',.7,1]]},
+ top1:{u:4,n:[[0,'R',1,1],[1,'D'],[2,'D'],[3,'8',.8,1],[4,'D'],[5,'D'],[6,'7',.8,1],[7,'D'],[8,'R',.9,1],[9,'D'],[10,'5',.8,1],[11,'D'],[12,'R',.85,1],[13,'D'],[14,'8',.8,1],[15,'A',.75,1]]},
+ top2:{u:4,n:[[0,'R',1,1],[1,'R',.5,1],[2,'D'],[3,'R',.7,1],[4,'5',.8,1],[5,'D'],[6,'8',.85,1],[7,'D'],[8,'7',.8,1],[9,'D'],[10,'5',.8,1],[11,'D'],[12,'3',.8,1],[13,'D'],[14,'5',.75,1],[15,'A',.75,1]]},
+ met1:{u:4,n:[[0,'R',1,1],[3,'R',.8,1],[6,'5',.75,1],[10,'7',.8,1],[11,'8',.7,1],[14,'5',.7,1]]},
+ met2:{u:4,n:[[0,'R',1,1],[2,'D'],[3,'8',.75,1],[7,'R',.8,1],[10,'5',.75,1],[12,'7',.7,1],[13,'8',.7,1]]},
+ boo1:{u:4,n:[[0,'R',1,4],[5,'8',.8,1],[6,'7',.7,1],[7,'5',.7,1],[10,'R',.85,2],[14,'b3',.6,1],[15,'3',.75,1]]},
+ boo2:{u:4,n:[[0,'R',1,3],[4,'D'],[6,'8',.85,1,'G'],[7,'7',.7,1],[8,'5',.8,2],[11,'R',.7,1],[12,'R',.6,1],[14,'8',.7,1],[15,'A',.7,1]]},
+ vul1:{u:4,n:[[0,'R',1,1],[2,'R',.6,1],[3,'8',.8,1],[5,'7',.7,1],[6,'5',.8,1],[8,'4',.75,1],[9,'3',.7,1],[10,'R',.85,2],[13,'5',.6,1],[14,'6',.7,1],[15,'A',.7,1]]},
+ vul2:{u:4,n:[[0,'R',1,2],[3,'R',.7,1],[4,'9',.7,1],[5,'3',.8,1],[7,'5',.75,1],[8,'8',.9,1],[10,'7',.75,1],[11,'5',.7,1],[12,'4',.7,1],[13,'3',.7,1],[14,'9',.65,1],[15,'A',.7,1]]},
+ cow1:{u:4,n:[[0,'R',1,2],[3,'R',.65,1],[5,'D'],[6,'5',.8,1],[7,'6',.7,1],[8,'7',.85,2,'G'],[11,'R',.7,1],[14,'A',.75,1]]},
+ cow2:{u:4,n:[[0,'R',1,3],[4,'D'],[6,'R',.7,1],[7,'8',.8,2,'G'],[10,'7',.7,1],[11,'5',.75,1],[12,'D'],[13,'4',.6,1],[14,'3',.7,1],[15,'A',.7,1]]},
+ neo1:{u:4,n:[[0,'R',1,5],[6,'5',.7,2],[8,'7',.8,3,'G'],[11,'R',.6,1],[14,'9',.7,2]]},
+ neo2:{u:4,n:[[0,'R',1,3],[3,'D'],[4,'R',.6,2],[7,'3',.7,1,'G'],[8,'5',.8,4],[13,'7',.65,1],[14,'A',.7,2,'G']]},
+ afr1:{u:4,n:[[0,'R',1,2],[3,'5',.7,1],[4,'7',.8,2],[6,'R',.7,1],[10,'R',.8,1],[11,'b3',.7,1],[12,'4',.75,2],[14,'5',.7,1]]},
+ afr2:{u:4,n:[[0,'R',1,1],[2,'R',.7,1],[3,'8',.8,1],[6,'7',.75,2],[8,'5',.8,1],[10,'4',.7,1],[11,'5',.75,1],[14,'7',.7,1]]},
+ jam1:{u:2,n:[[0,'R',1,1],[1,'R',.7,1],[2,'5',.85,1],[3,'6',.75,1],[4,'8',.9,1],[5,'7',.7,.9],[6,'5',.85,1],[7,'A',.8,1]]},
+ jam2:{u:2,n:[[0,'R',1,1.5],[3,'5',.75,.9],[4,'R',.9,1],[5,'3',.75,.9],[6,'5',.85,1],[7,'A',.8,1]]},
+ jam3:{u:2,n:[[0,'R',1,2],[2,'R',.75,.9],[3,'3',.7,.9],[4,'5',.9,1.5],[6,'6',.8,1],[7,'A',.8,1]]},
+ mv1:{u:4,n:[[0,'R',1,6],[6,'5',.75,2],[8,'8',.8,4],[12,'4',.7,2],[14,'5',.7,2]]},
+ mv2:{u:4,n:[[0,'R',1,4],[4,'7',.75,4],[8,'R',.85,2],[10,'5',.7,2],[12,'9',.7,2],[14,'A',.7,2]]},
+ a68a:{u:3,n:[[0,'R',1,3],[3,'5',.75,2],[5,'7',.7,1],[6,'8',.85,3],[9,'5',.75,2],[11,'A',.7,1]]},
+ a68b:{u:3,n:[[0,'R',1,2],[2,'5',.65,1],[3,'8',.8,3],[6,'R',.9,2],[8,'7',.7,1],[9,'5',.8,3]]},
+ sam:{u:4,n:[[0,'R',.85,3],[3,'5',.6,1],[4,'5',1,4]]},
+ sam2:{u:4,n:[[0,'R',.85,3],[3,'R',.6,1],[4,'5',1,3],[7,'A',.6,1]]}};
+const FAMS={funk:['jb1','jb2','met1','boo1','vul1'],jbfunk:['jb1','jb2','jb3'],tower:['top1','top2'],meters:['met1','met2'],bootsy:['boo1','boo2'],vulf:['vul1','vul2'],
+ cowfunk:['cow1','cow2'],neosoul:['neo1','neo2'],afrobeat:['afr1','afr2'],jamerson:['jam1','jam2','jam3'],modalvamp:['mv1','mv2'],afro68:['a68a','a68b']};
+function toneOf(c,ch,r,o){const cs=chordScale(ch);switch(c){case'R':return r;case'3':return r+third(ch);case'5':return r+fifth(ch);
+ case'7':return r+(cs[6]===11&&ch.sev!=='maj7'?9:cs[6]);case'8':return r+12;case'6':return r+cs[5];case'9':return r+cs[1];case'4':return r+cs[3];
+ case'b3':return r+3;case'L5':return r+fifth(ch)-12>=LO?r+fifth(ch)-12:r+fifth(ch);case'A':return o.app();default:return r}}
+function tplBass(name,ch,nx,last,S,B,R,V,odd){const T=TPL[name],u=T.u,len=4*u,n=S*B,ev=[],r=bassRoot(ch.pc);
+ const nr=bassRoot(nx.pc);let prevM=r;const o={app:()=>last?appNear(nr,prevM,R):appNear(r,prevM,R)};
+ const has=T.n.some(x=>x[1]==='A');
+ for(let p=0;p<S*u;p++){for(const x of T.n){if(x[0]!==p%len&&!(len>S*u&&false))continue;if(x[0]!==p%len)continue;
+   if((p*B)%u)continue;const s=p*B/u;let [,c,v,d,f]=x;
+   if(p&&c!=='A'&&V>0){if((v||0)<0.8&&R()<V*0.18)continue;if(c!=='D'&&R()<V*0.2)c=['8','5','7'][Math.floor(R()*3)]}
+   if(c==='D'){ev.push({s,m:prevM,d:0.3*B/u*(u/4)+0.15,v:0.32,g:false,x:1});continue}
+   const m=toneOf(c,ch,r,o);prevM=m;ev.push({s,m,d:Math.max(0.4,(d||1)*B/u*0.88),v:v||0.8,g:f==='G'})}}
+ // the bar into a new chord ends on an approach note
+ if(last&&!has){const q=ev.filter(e=>e.s>=n*0.7&&!e.x);const e=q.length?q[q.length-1]:null;const pv=ev.filter(x=>!x.x&&x!==e);prevM=pv.length?pv[pv.length-1].m:r;const ap=o.app();if(e)e.m=ap;else ev.push({s:n-Math.max(1,Math.round(B/2)),m:ap,d:B/2*0.85,v:0.75,g:false})}
+ // second bar of a phrase: a short fill on the last beat, landing on the next downbeat
+ if(odd&&S>=2&&R()<0.25+V*0.6){const s0=(S-1)*B;for(let i=ev.length-1;i>=0;i--)if(ev[i].s>=s0)ev.splice(i,1);
+  const fl=B>=4?['8','7','5','A']:B===3?['8','5','A']:['5','A'],k=fl.length;fl.forEach((c,i)=>{const m=toneOf(c,ch,r,o);prevM=m;ev.push({s:s0+Math.round(i*B/k),m,d:B/k*0.85,v:0.7+0.08*i,g:false})})}
+ bassPlan=null;return ev.sort((a,b)=>a.s-b.s)}
+function idiomBass(st,ch,nx,last,bk){const S=bassSpan||beats,B=sub,n=S*B,R=rng(bassSeed*977+bk*131+7),V=surV!=null?surV:+$('bvar').value/100,ev=[],r=bassRoot(ch.pc);
+ const ck=ch.pc+ch.q;bassRun=ck===bassLastCk?bassRun+1:0;bassLastCk=ck;const odd=bassRun%2===1,seedR=rng(bassSeed*13+5);
+ const add=(s,m,d,v,x)=>{if(s>=0&&s<n)ev.push({s,m,d:Math.max(0.3,d),v:v||0.85,g:false,x:x?1:0})};
+ if(FAMS[st]){const f=FAMS[st];return fin(tplBass(f[Math.floor(seedR()*f.length)],ch,nx,last,S,B,R,V,odd))}
+ if(st==='samba'){const out=[];for(let h=0;h<Math.max(1,Math.floor(S/2));h++){const e=tplBass(h%2||odd&&R()<0.5?'sam2':'sam',ch,nx,last&&h==Math.floor(S/2)-1,Math.min(2,S),B,R,V*0.3,false);e.forEach(x=>out.push({...x,s:x.s+h*2*B}))}return fin(out)}
+ if(st==='walk'||st==='broken'){const N=walkNotes(ch,nx,last,S,R,V);N.forEach((m,b)=>{
+   if(st==='broken'&&b>0){const k=R();if(k<0.22)return;if(k<0.42&&B>=2){add(b*B-1,m,B*0.9,0.78);return}}
+   add(b*B,m,B*0.93,b===0?0.95:b%2?0.86:0.8);
+   if(B===3&&b>0&&R()<V*0.28)add(b*B-1,R()<0.5?N[b]:N[b-1],0.4,0.4,1)}); // triplet rake / ghost before the beat
+  return fin(ev)}
+ if(st==='twofeel'){if(S<4)return idiomBass('walk',ch,nx,last,bk);const ref=bassPrevM!=null?bassPrevM:r+5,[s,T]=lineEnds(ch,nx,last,R,ref);
+  const h=Math.floor(S/2)*B;let m3=last?approachTo(T,s,ch,R):pathNotes(s,1,T,ch,[true],R,LO,HI-4,0)[0];if(m3===s)m3=T+(s>T?1:-1);
+  add(0,s,h*0.95,0.95);if(R()<0.15+V*0.5){add(h-1,R()<0.5?m3:s,1*0.9,0.55);ev[0].d=(h-1)*0.95}add(h,m3,(n-h)*0.95,0.85);
+  if(R()<V*0.35){ev[ev.length-1].d=(n-h-1)*0.95;add(n-1,approachTo(T,m3,ch,R),0.9,0.55)}bassPlan=T;return fin(ev)}
+ if(st==='melodic'){const ref=bassPrevM!=null?bassPrevM:r+12,[s0,T]=lineEnds(ch,nx,last,R,ref);let s=s0;if(s<36&&R()<0.6)s+=12;
+  const RH=[[0,2,4,5,6],[0,3,4,6,7],[0,1,2,4,6],[0,2,3,4,6,7],[0,4,5,6],[0,2,4,6,7]];let on;
+  if(S===4){on=RH[Math.floor(R()*RH.length)]}else{on=[];for(let b=0;b<S;b++){on.push(b*2);if(R()<0.35+V*0.3)on.push(b*2+1)}}
+  const k=on.length,ap=last?approachTo(T,s,ch,R):null,end=ap!=null?ap:nearM(T,s)+(R()<0.5?12:0);
+  const strong=on.slice(1,-1).map(p=>p%4===0);const mid=pathNotes(s,Math.max(0,k-2),Math.min(end,HI),ch,strong,R,LO,HI,0.2+V*0.3);
+  const ps=k>1?[s,...mid,Math.min(end,HI)]:[s];on.forEach((p,i)=>{const st2=p*B/2;if(st2%1)return;const nx2=i+1<k?on[i+1]*B/2:n;add(st2,ps[i],(nx2-st2)*0.92,i===0?0.95:p%2?0.72:0.85)});
+  bassPlan=last?T:null;return fin(ev)}
+ if(st==='boogie'){const minr=ch.q==='min',sx=minr?[0,3,5,7,10,7,5,3]:[0,4,7,9,10,9,7,4],S2=minr?[0,3,7,10,12,10,7,3]:[0,4,7,9,10,9,7,4];
+  const fam=curName==='texas'?'tex':curName==='slowblues'||curName==='halfshuf'||curName==='jbshuf'?'chi':(seedR()<0.5?'boo':'chi');
+  const half=odd?4:0,eighth=B===3?2:B/2;
+  for(let b=0;b<S;b++){const iv=fam==='tex'?[0,0,7,7,9,9,7,7][(b*2)%8]:(fam==='chi'?S2:sx)[(b+half)%8];let m=r+iv;
+   if(last&&b===S-1&&b>0){const pv=ev.filter(x=>!x.x);m=appNear(bassRoot(nx.pc),pv.length?pv[pv.length-1].m:m,R)}
+   if(fam==='chi'||B===1)add(b*B,m,B*0.9,b%2?0.82:0.95);else{add(b*B,m,eighth*0.85,0.95);add(b*B+eighth,fam==='tex'?m:m,(B-eighth)*0.8,0.7)}}
+  return fin(ev)}
+ if(st==='tumbao'){const q=B, an=Math.round(1.5*q),nr=last?bassRoot(nx.pc):r;if(bassPrevM==null)add(0,r,an*0.9,0.9);
+  for(let b=0;b+1<S;b+=4){const base=b*q;add(base+an,r+(R()<0.8?fifth(ch):12),(2*q-an+q)*0.95,0.85);if(V>0.4&&R()<V*0.4)add(base+an+q,r+third(ch),q*0.45,0.6);
+   const b4=base+Math.min(3,S-1)*q;add(b4,base+4*q>=n?nr:r,q*1.7,0.95)}return fin(ev)}
+ if(st==='prog'){const h=[];for(let i=0;i<n;i++)if((grid[36]&&grid[36][i]>0)||(grid[35]&&grid[35][i]>0))h.push(i);if(!h.length)h.push(0);
+  const C=[['R','R','8','7','5'],['R','8','R','5','7'],['R','3','5','7','8'],['R','R','5','4','b3']][Math.floor(seedR()*4)],chug=seedR()<0.7,o={app:()=>{const nr=bassRoot(nx.pc);return R()<0.5?nr-1:nr+1}};
+  const g=[];h.forEach((s,k)=>{const e=k+1<h.length?h[k+1]:n;let x=s;while(e-x>4){g.push(x);x+=3}g.push(x)});
+  g.forEach((s,k)=>{const e=k+1<g.length?g[k+1]:n;let c=C[k%C.length];if(last&&k===g.length-1&&k>0)c='A';const pv=ev.filter(z=>z.v>0.6);o.p=pv.length?pv[pv.length-1].m:r;
+   const m=c==='A'?appNear(bassRoot(nx.pc),o.p,R):toneOf(c,ch,r,o);add(s,m,(chug&&c!=='A'?1:e-s)*0.85,k===0?1:0.9);if(chug&&c!=='A')for(let j=s+1;j<e;j++)add(j,r,0.55,0.5)});return fin(ev)}
+ return ev}
+function fin(ev){ev.sort((a,b)=>a.s-b.s);for(const e of ev)if(!e.x)bassPrevM=e.m;return ev}
+function genBass(ch,nx,last,bk){const st0=bassStyle();if(IDI[st0])return idiomBass(st0,ch,nx,last,bk);const R=rng(bassSeed*977+bk*131+7),V=surV!=null?surV:+$('bvar').value/100,n=steps(),B=sub,ev=[],st=st0;
  const r=bassRoot(ch.pc),th=r+third(ch),fi=r+fifth(ch),oc=r+12,sv=r+sev7(ch);
  let tgt=bassRoot(nx.pc);if(tgt-r>6)tgt-=12;if(r-tgt>6)tgt+=12;
  const modal=$('md').value!=='auto',appr=()=>{const up=R()<0.5;if(!modal||R()<0.25)return tgt+(up?1:-1);return scStep(tgt,up?1:-1)},off8=B==3?2:B/2,add=(s,mi,d,vv,gl)=>{if(s<n&&s>=0)ev.push({s,m:mi,d:Math.max(0.5,d),v:vv||0.9,g:!!gl})};
@@ -751,15 +876,16 @@ function genBass(ch,nx,last,bk){const R=rng(bassSeed*977+bk*131+7),V=surV!=null?
  else if(st==='reggae'){if(beats>=4){add(B,r,B*0.7,0.95);add(2*B+off8,R()<V*0.5?oc:fi,off8*0.8,0.75);add(3*B,last?appr():r,B*0.6,0.85)}else add(B,r,B,0.9)}
  else if(st==='arp'){const tones=[r,th,fi,ch.sev?sv:oc,fi,th];for(let j=0;j<beats*2;j++){const s=Math.floor(j/2)*B+(j%2?off8:0);let mi=tones[j%tones.length];if(last&&j==beats*2-1)mi=appr();add(s,mi,(B==3?(j%2?1:2):off8)*0.85,j%2?0.75:0.9)}}
  else if(st==='modal'){let cur2=r,dir=1;const cnt=beats*2;for(let j=0;j<cnt;j++){const s=Math.floor(j/2)*B+(j%2?off8:0);let mi;
-   if(j==0)mi=r;else if(last&&j==cnt-1)mi=appr();else{if(R()<0.22+V*0.3)dir=-dir;let nx2=scStep(cur2,dir);if(nx2>oc+2||nx2<r-5){dir=-dir;nx2=scStep(cur2,dir)}
+   if(j==0)mi=r;else if(last&&j==cnt-1)mi=appr();else{if(R()<0.22+V*0.3)dir=-dir;let nx2=scStep(cur2,dir);if(nx2>oc+2||nx2<Math.max(r-5,LO)){dir=-dir;nx2=scStep(cur2,dir)}
     mi=(j%2==0&&R()<0.5-V*0.3)?(R()<0.5?r:fi):nx2;if(j%2==1&&R()<0.25*(1-V))continue}
    cur2=mi;add(s,mi,(B==3?(j%2?1:2):off8)*0.85,j%2?0.72:(j==0?1:0.88))}}
  else if(st==='pedal'){const pr=bassRoot(keyPc());for(let j=0;j<beats*2;j++){const s=Math.floor(j/2)*B+(j%2?off8:0);let mi=pr;
    if(j%2&&R()<V*0.35)mi=pr+12;else if(j>1&&j%2==0&&R()<V*0.25)mi=scStep(pr,R()<0.5?1:-1);if(last&&j==beats*2-1&&R()<0.5)mi=scStep(pr,-1);add(s,mi,(B==3?(j%2?1:2):off8)*0.85,j%2?0.72:0.95)}}
- return varyBass(ev.sort((a,b)=>a.s-b.s),{st,V,n,B,r,th,fi,oc,sv:ch.sev?sv:null,tgt,last,bk,off8,appr,modal})}
+ return lowFix(varyBass(ev.sort((a,b)=>a.s-b.s),{st,V,n,B,r,th,fi,oc,sv:ch.sev?sv:null,tgt,last,bk,off8,appr,modal}))}
+function lowFix(ev){for(const e of ev)while(e.m<26)e.m+=12;return ev}
 // Variation layer on top of every style: passing notes, octave pops, pickups into the next chord and short runs at chord changes.
 // Seeded by the bass line (New bass line / Change it up), scaled by the Variation slider. Walking and funk lines already vary on their own.
-function varyBass(ev,o){const {st,V,n,B,r,th,fi,oc,sv,tgt,last,bk,off8,appr,modal}=o;if(V<=0.02||st==='walk'||st==='pedal')return ev;
+function varyBass(ev,o){const {st,V,n,B,r,th,fi,oc,sv,tgt,last,bk,off8,appr,modal}=o;if(V<=0.02||IDI[st]||st==='pedal')return ev;
  const R=rng(bassSeed*31+bk*17+3),step=(m,d)=>modal?scStep(m,d):m+(d>0?2:-2),tones=[th,fi,oc].concat(sv!=null?[sv]:[]);
  const busy=st==='funk'?0.5:1;
  // 1) offbeat and weak-beat notes: chord tones, octave pops, scale neighbors
@@ -864,10 +990,10 @@ function barStart(){isCount=cin>0;if(isCount)return;
  const prog=parseProg(),bpc=+$('bpc').value;
  if(bpc<1){ // half a bar per chord: two chords in every bar, the change lands on the middle beat
   const L=prog.length,a=(2*barN)%L,n=steps();halfAt=Math.round(beats/2)*sub;chordNow=prog[a];chordB=prog[(a+1)%L];chordC=prog[(a+2)%L];chordNext=chordB;
-  if($('bon').checked){const seed=(2*barN)%(L*2),A=genBass(chordNow,chordB,false,seed),B=genBass(chordB,chordC,true,seed+1),clip=(e,end)=>({...e,d:Math.min(e.d,end-e.s)});
+  if($('bon').checked){const seed=(2*barN)%(L*2),A=(bassIB=0,bassSpan=Math.round(halfAt/sub),genBass(chordNow,chordB,true,seed)),B=(bassSpan=beats-Math.round(halfAt/sub),genBass(chordB,chordC,true,seed+1)),clip=(e,end)=>({...e,d:Math.min(e.d,end-e.s)});
    bassEv=A.filter(e=>e.s<halfAt).map(e=>clip(e,halfAt)).concat(B.filter(e=>e.s<n-halfAt).map(e=>clip({...e,s:e.s+halfAt},n)))}else bassEv=[]}
  else{ halfAt=0;const ci=Math.floor(barN/bpc)%prog.length;chordNow=prog[ci];chordNext=prog[(ci+1)%prog.length];
-  bassEv=$('bon').checked?genBass(chordNow,chordNext,barN%bpc==bpc-1,barN%(prog.length*bpc*2)):[];}
+  bassIB=barN%bpc;bassSpan=beats;bassEv=$('bon').checked?genBass(chordNow,chordNext,barN%bpc==bpc-1,barN%(prog.length*bpc*2)):[];}
  if(bpm===lastBpm)barsAtBpm++;else{lastBpm=bpm;barsAtBpm=1}if(barsAtBpm>=8&&!muted)logBest(bpm)}
 function sched(){while(next<ctx.currentTime+0.1){if(pos===0)barStart();
  const dt=60/bpm/sub,n=steps(),i=pos,t=next+((sub!==3&&i%2)?(swing-.5)*2*dt:0),H=+$('hu').value/100;
@@ -893,7 +1019,7 @@ function blUI(e){let h='';
  $('blm').innerHTML=h||'&nbsp;';
  $('chord').innerHTML=e.ch&&$('bon').checked?esc(e.ch.label)+(e.ch.rn?' <small>'+esc(e.ch.rn)+'</small>':'')+(e.nx?' <small>→ '+esc(e.nx.label)+'</small>':''):''}
 function chordPreview(){if(playing)return;if(!$('bon').checked){$('chord').innerHTML='';return}const pr=parseProg();$('chord').innerHTML='<small>'+pr.map(c=>esc(c.label)).join(' – ')+(pr.every(c=>c.rn)?' · '+pr.map(c=>esc(c.rn)).join(' – '):'')+'<br>'+esc(modeLine())+'</small>'}
-async function start(){await init();playing=true;pos=0;barN=0;surStyle=null;surV=null;cin=+$('ci').value;muted=false;prevFill=false;fillBar=false;forceBar=-1;secName='';lastBassM=null;trMsg='';q=[];next=ctx.currentTime+0.08;timer=setInterval(sched,25);sched();anim();p.textContent='■ Stop';logStart()}
+async function start(){await init();playing=true;pos=0;barN=0;surStyle=null;surV=null;cin=+$('ci').value;muted=false;prevFill=false;fillBar=false;forceBar=-1;secName='';lastBassM=null;bassPrevM=null;bassPlan=null;bassRun=0;bassLastCk='';trMsg='';q=[];next=ctx.currentTime+0.08;timer=setInterval(sched,25);sched();anim();p.textContent='■ Stop';logStart()}
 function stop(){playing=false;clearInterval(timer);forceBar=-1;document.querySelectorAll('.now').forEach(c=>c.classList.remove('now'));[...$('dots').children].forEach(d=>d.classList.remove('on'));$('blm').innerHTML='Press ▶ Play or Space';p.textContent='▶ Play';chordPreview();logStop()}
 function fillNow(){if(!playing){start().then(()=>{forceBar=0});return}if(isCount){forceBar=0;return}const n=steps(),fl=fillBeats()*sub;
  if(pos<n-fl&&!muted){fillBar=true;curFill=genFill(fl);prevFill=true}else forceBar=barN+1}
