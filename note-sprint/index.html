@@ -69,7 +69,7 @@ button:focus-visible,input:focus-visible{outline:3px solid var(--accent);outline
 .pianoScroll{overflow-x:auto;-webkit-overflow-scrolling:touch;border-radius:8px;scrollbar-width:thin}
 .piano{position:relative;height:150px;display:flex;user-select:none;-webkit-user-select:none}
 .piano .w{flex:1;min-width:0;background:var(--key-w);border:1px solid #9aa0aa;border-radius:0 0 7px 7px;margin-right:-1px;padding:0;display:flex;align-items:flex-end;justify-content:center;padding-bottom:6px;font-family:var(--mono);font-size:10px;color:#8a909b}
-.piano .w.mc{color:var(--accent);font-weight:700}
+.piano .w.mc{color:var(--accent);font-weight:700;font-size:9px;line-height:1.1;text-align:center;white-space:normal}
 .piano .b{position:absolute;top:0;height:60%;background:var(--key-b);border:1px solid #000;border-radius:0 0 5px 5px;z-index:2;padding:0}
 .piano button.hit,.piano button.show{background:var(--good)!important;color:#fff}
 .piano button.miss{background:var(--bad)!important;color:#fff}
@@ -244,6 +244,7 @@ summary{cursor:pointer;padding:12px 16px;font-weight:600}
       <button class="primary" id="startTimed">Start 60-second sprint</button>
     </div>
     <p class="tip">Keyboard: A–G to answer. In a key with sharps or flats, tap ♯ or ♭ first (or press = / −). Piano keys must be the exact key, right octave.</p>
+    <p class="tip" id="appVer">Version 2026-11-05.4 · fresh target each round · full keyboard · YIN mic</p>
 
     <div class="arcsplash" id="arcSplash" hidden><div class="boom"></div><div id="arcPcs"></div><div class="pre" id="arcSplashP"></div><b id="arcSplashT">ROUND 2</b><span id="arcSplashS"></span></div><div class="hitstamp" id="hitStamp">TARGET HIT!</div>
     <div class="results" id="results" hidden>
@@ -414,12 +415,19 @@ summary{cursor:pointer;padding:12px 16px;font-weight:600}
   // keyboard covers exactly the register the staff can show, padded one key each side
   function buildPiano(s){
     const clefs=s.staffMode==="grand"||s.staffMode==="mix"?["treble","bass"]:[s.staffMode];
-    const ds=clefs.flatMap(c=>cands(s,c).map(p=>BASE[c]+p)), lo=Math.min(...ds)-1, hi=Math.max(...ds)+1;
+    const ds=clefs.flatMap(c=>cands(s,c).map(p=>BASE[c]+p)), nLo=Math.min(...ds)-1, nHi=Math.max(...ds)+1;
+    // show as many keys as fit at finger size (KEYW px per white key), centred on the notes in play; whole black-key groups only
+    const KEYW=44, A0=5, C8=56, avail=($("pianoScroll").clientWidth||$("pianoPad").clientWidth||window.innerWidth)-2, fit=Math.max(nHi-nLo+1,Math.floor(avail/KEYW));
+    let lo=nLo, hi=nHi, extra=fit-(hi-lo+1);
+    while(extra>0){ if(lo>A0){lo--;extra--} if(extra>0&&hi<C8){hi++;extra--} if(lo<=A0&&hi>=C8) break }
+    const isStart=d=>"CF".includes(LET[d%7])||d===A0, isEnd=d=>"EB".includes(LET[d%7])||d===C8;
+    while(!isStart(lo)&&lo<nLo) lo++; while(!isStart(lo)) lo--;
+    while(!isEnd(hi)&&hi>nHi) hi--; while(!isEnd(hi)) hi++;
     const el=$("piano"); el.innerHTML=""; const n=hi-lo+1, w=100/n;
-    el.style.minWidth=(n*30)+"px";
+    el.style.minWidth=(n*KEYW)+"px";
     for(let d=lo;d<=hi;d++){const L=LET[d%7], o=Math.floor(d/7), m=12*(o+1)+PC[L];
       const b=document.createElement("button"); b.className="w"+(m===60?" mc":""); b.dataset.midi=m; b.setAttribute("aria-label",L+o);
-      if(L==="C") b.textContent="C"+o; b.addEventListener("click",()=>answerMidi(m,b)); el.appendChild(b);
+      if(m===60) b.textContent="Middle C"; else if(L==="C") b.textContent="C"+o; b.addEventListener("click",()=>answerMidi(m,b)); el.appendChild(b);
       if("CDFGA".includes(L)&&d<hi){const k=document.createElement("button"); k.className="b"; k.dataset.midi=m+1; k.style.width=(w*0.6)+"%"; k.style.left=((d-lo+1)*w-w*0.3)+"%";
         k.setAttribute("aria-label",L+"♯"+o); k.addEventListener("click",()=>answerMidi(m+1,k)); el.appendChild(k)}}
     requestAnimationFrame(()=>{const sc=$("pianoScroll"), mc=el.querySelector(".mc");
@@ -613,16 +621,20 @@ summary{cursor:pointer;padding:12px 16px;font-weight:600}
   // Onset (a fresh attack) arms the detector; the pitch is the median of the next few frames, so a ringing old note never answers the new question.
   let mic=null;
   const NOTE=["C","C♯","D","E♭","E","F","F♯","G","A♭","A","B♭","B"], mname=m=>NOTE[m%12]+(Math.floor(m/12)-1);
-  function acf(buf,sr){ let n=buf.length, rms=0; for(let i=0;i<n;i++) rms+=buf[i]*buf[i]; rms=Math.sqrt(rms/n); if(rms<0.008) return -1;
-    let r1=0,r2=n-1; for(let i=0;i<n/2;i++) if(Math.abs(buf[i])<0.2){r1=i;break} for(let i=1;i<n/2;i++) if(Math.abs(buf[n-i])<0.2){r2=n-i;break}
-    const b=buf.slice(r1,r2), N=b.length, maxLag=Math.min(N-1,Math.floor(sr/MINHZ)), c=new Float32Array(maxLag+2);
-    for(let l=0;l<=maxLag+1;l++){let v=0; for(let j=0;j<N-l;j++) v+=b[j]*b[j+l]; c[l]=v}
-    let d=0; while(d<maxLag&&c[d]>c[d+1]) d++; let mv=-1,mp=-1; for(let l=d;l<=maxLag;l++) if(c[l]>mv){mv=c[l];mp=l}
-    if(mp<1||mv<CLARITY*c[0]) return -1; const x1=c[mp-1],x2=c[mp],x3=c[mp+1],a=(x1+x3-2*x2)/2,bb=(x3-x1)/2; const T=a?mp-bb/(2*a):mp; return sr/T }
+  // YIN pitch detector (de Cheveigne & Kawahara 2002): cumulative-mean-normalised difference, absolute threshold, parabolic refinement.
+  // Far fewer octave slips than plain autocorrelation on piano, whose 2nd harmonic is often louder than the fundamental.
+  function acf(buf,sr){ const n=buf.length; let rms=0; for(let i=0;i<n;i++) rms+=buf[i]*buf[i]; rms=Math.sqrt(rms/n); if(rms<0.008) return -1;
+    const maxLag=Math.min(Math.floor(sr/MINHZ),Math.floor(n/2)), minLag=Math.max(2,Math.floor(sr/4400)), W=n-maxLag-1, d=new Float32Array(maxLag+2);
+    for(let t=1;t<=maxLag+1;t++){let v=0; for(let j=0;j<W;j++){const x=buf[j]-buf[j+t]; v+=x*x} d[t]=v}
+    const c=new Float32Array(maxLag+2); c[0]=1; let run=0; for(let t=1;t<=maxLag+1;t++){run+=d[t]; c[t]=run>0?d[t]*t/run:1}
+    const TH=CLARITY>=0.75?0.1:0.15; let T=-1;
+    for(let t=minLag;t<=maxLag;t++) if(c[t]<TH){ while(t+1<=maxLag&&c[t+1]<c[t]) t++; T=t; break }
+    if(T<0){ let mv=1,mp=-1; for(let t=minLag;t<=maxLag;t++) if(c[t]<mv){mv=c[t];mp=t} if(mp<0||mv>0.3) return -1; T=mp }
+    const x1=c[T-1],x2=c[T],x3=c[T+1],a=(x1+x3-2*x2)/2,b=(x3-x1)/2, Tf=a>0?T-b/(2*a):T; return sr/Tf }
   // Routed source -> gain (sensitivity) -> analyser -> muted output: Safari/iOS only process nodes that reach the destination.
   // Background-noise blocker: listens to the room for 1.5 s, sets the trigger line at 3x the room's level,
   // and only accepts a clear, steady pitch (speech and clatter don't have one).
-  let MINHZ=45;
+  let MINHZ=45, tuneOff=+store.get("tuneOff",0)||0;
   const micG=x=>0.25*Math.pow(48,(+x)/100);
   const THR=0.015; let thr=THR, CLARITY=0.5;
   function setThr(v){ thr=v; $("thr").style.left=Math.min(100,thr*600)+"%" }
@@ -655,10 +667,19 @@ summary{cursor:pointer;padding:12px 16px;font-weight:600}
   function micTick(){ const m=mic; m.an.getFloatTimeDomainData(m.buf); let r=0; for(let i=0;i<m.buf.length;i++) r+=m.buf[i]*m.buf[i]; r=Math.sqrt(r/m.buf.length);
     $("meterFill").style.width=Math.min(100,r*600)+"%"; const now=performance.now(), avg=m.hist.length?m.hist.reduce((a,b)=>a+b,0)/m.hist.length:0;
     m.hist.push(r); if(m.hist.length>6) m.hist.shift();
-    if(!m.armed&&now>m.cool&&r>thr&&r>avg*1.7){m.armed=true;m.armedAt=now;m.cand=[]}
-    if(m.armed){ const f=acf(m.buf,audio.sampleRate); if(f>MINHZ*0.9&&f<4400){const md=Math.round(69+12*Math.log2(f/440)); m.cand.push(md); $("heard").textContent=mname(md)}
-      if(m.cand.length>=4){ const srt=[...m.cand].sort((a,b)=>a-b), md=srt[Math.floor(srt.length/2)]; m.armed=false; m.cool=now+450; $("heard").textContent=mname(md); answerHeard(md) }
-      else if(now-m.armedAt>600){m.armed=false} } }
+    if(!m.armed&&now>m.cool&&r>thr&&r>avg*1.7){m.armed=true;m.armedAt=now;m.cand=[];m.res=[];m.raw=[]}
+    if(m.armed&&now-m.armedAt>=70){ const f=acf(m.buf,audio.sampleRate);
+      // tuneOff = how sharp/flat this piano sits (semitones), learned from every confirmed note, so a home piano that's a bit off still reads exactly
+      if(f>MINHZ*0.9&&f<4400){ const x=69+12*Math.log2(f/440)-tuneOff, md=Math.round(x); m.raw.push(x-md); if(Math.abs(x-md)<=0.45){ m.cand.push(md); m.res.push(x-md); $("heard").textContent=mname(md) } }
+      const cnt={}; let best=null, bc=0; for(const v of m.cand){cnt[v]=(cnt[v]||0)+1; if(cnt[v]>bc){bc=cnt[v];best=v}}
+      if(bc>=4&&bc>=0.7*m.cand.length){ const rs=m.res.filter((_,i)=>m.cand[i]===best).sort((a,b)=>a-b), med=rs[Math.floor(rs.length/2)]||0;
+        tuneOff=Math.max(-0.6,Math.min(0.6,tuneOff+0.5*med)); store.set("tuneOff",tuneOff);
+        m.armed=false; m.cool=now+450; $("heard").textContent=mname(best); answerHeard(best) }
+      else if(now-m.armedAt>900){ m.armed=false;
+        // a steady pitch that sits between two keys = the piano itself is off: re-centre on it and ask for the note again
+        const rr=[...m.raw].sort((a,b)=>a-b), md=rr[rr.length>>1];
+        if(rr.length>=4&&rr.filter(v=>Math.abs(v-md)<0.1).length>=0.75*rr.length&&Math.abs(md)>0.3){ tuneOff=Math.max(-0.6,Math.min(0.6,tuneOff+md)); store.set("tuneOff",tuneOff); $("heard").textContent="Tuning to your piano. Play it again." }
+        else if(m.cand.length||rr.length) $("heard").textContent="Didn't catch that. Play it again." } } }
   function answerHeard(md){ if(!q||locked||q.wait)return; const t=midiOf(q.notes[idx]); grade(md===t,{midi:md,label:mname(md)}) }
   $("micBtn").addEventListener("click",()=>micStart($("micSel").value||undefined));
   document.querySelectorAll("#seg button").forEach(b=>b.addEventListener("click",()=>{setRadio("mode",b.dataset.mode);store.set("mode",b.dataset.mode);layout();newQuestion(true)}));
@@ -686,7 +707,7 @@ summary{cursor:pointer;padding:12px 16px;font-weight:600}
   $("retryRound").addEventListener("click",()=>arcRetry());
   $("againBtn").addEventListener("click",()=>lastMode==="arcade"?arcStart():startSprint());
 
-  // ---------- arcade: rounds like the arcade hoop game. Score carries over; each round needs a higher running total in the same 30 s ----------
+  // ---------- arcade: rounds like the arcade hoop game. Total score carries over, but each round has its own fresh target: extra points never count toward the next round ----------
   // Base running totals for L1 letters; scaled for harder levels and slower answer modes. Last 10 s of a round = on fire, 2x points.
   const ARC_BASE=[10,24,40,60,84], ARC_T=30, ARC_FIRE=10;
   const retryOK=()=>$("retryOn").checked&&!arc;
@@ -697,10 +718,10 @@ summary{cursor:pointer;padding:12px 16px;font-weight:600}
       const fire=timeLeft<=ARC_FIRE; $("arcFire").hidden=!fire; $("watch").classList.toggle("fire",fire); $("arcFill").style.width=(100*(ARC_T-timeLeft)/ARC_T)+"%"; $("arcMeter").classList.remove("hit"); return }
     const need=arc.bonus?null:arc.needs[arc.round-1];
     $("arcRound").textContent=arc.bonus?"BONUS ROUND":`ROUND ${arc.round} OF 5`;
-    $("arcNeed").textContent=arc.bonus?`SCORE ${half(st.points)}`:(st.points>=need?`✓ ${half(st.points)} / ${need}`:`${half(st.points)} / ${need}`); $("arcNeed").classList.toggle("met",!arc.bonus&&st.points>=need);
+    const rp=st.points-(arc.start||0), rn=need-(arc.start||0); $("arcNeed").textContent=arc.bonus?`SCORE ${half(st.points)}`:(st.points>=need?`✓ ${half(rp)} / ${half(rn)}`:`${half(rp)} / ${half(rn)}`); $("arcNeed").classList.toggle("met",!arc.bonus&&st.points>=need);
     const fire=arc.bonus||timeLeft<=ARC_FIRE; $("arcFire").hidden=!fire; $("watch").classList.toggle("fire",fire);
     // target meter: fills toward this round's running total; turns green with a flash the moment it's reached
-    const m=$("arcMeter"), start=arc.bonus||arc.round===1?0:arc.needs[arc.round-2], pct=arc.bonus?100:Math.min(100,Math.max(0,(st.points-start)/(need-start)*100));
+    const m=$("arcMeter"), start=arc.bonus?0:(arc.start||0), pct=arc.bonus?100:Math.min(100,Math.max(0,(st.points-start)/(need-start)*100));
     $("arcFill").style.width=pct+"%"; const hit=!arc.bonus&&st.points>=need; $("arcHit").textContent=arc.bonus?"BONUS: EVERY POINT DOUBLE":"✓ TARGET HIT";
     if(hit&&!arc.hit){ arc.hit=true; m.classList.remove("flash"); void m.offsetWidth; m.classList.add("flash"); const hs=$("hitStamp"); hs.classList.remove("go"); void hs.offsetWidth; hs.classList.add("go"); chime(); $("card")&&$("card").classList.add("met"); $("staffbox").classList.add("hitglow"); setTimeout(()=>$("staffbox").classList.remove("hitglow"),900) }
     m.classList.toggle("hit",hit||arc.bonus) }
@@ -708,10 +729,10 @@ summary{cursor:pointer;padding:12px 16px;font-weight:600}
     const pcs=$("arcPcs"); pcs.innerHTML=""; const cols=["var(--accent)","var(--good)","#ff8a1f","#ffd23f"]; for(let i=0;i<22;i++){const a=Math.random()*Math.PI*2,d=110+Math.random()*170,e=document.createElement("i");e.className="pc";e.style.cssText=`background:${cols[i%4]};--dx:${Math.cos(a)*d}px;--dy:${Math.sin(a)*d}px;--r:${Math.random()*720-360}deg`;pcs.appendChild(e)}
     sp.classList.remove("go"); void sp.offsetWidth; sp.classList.add("go"); whoosh();
     setTimeout(()=>{ $("arcSplash").hidden=true; if(arc) then() },ms) }
-  let arcRetryRound=0, arcNeedsSaved=null;
-  function arcRetry(){ const r=arcRetryRound||1; if(r<2||!arcNeedsSaved) return arcStart(); resetScore(); lastMode="arcade"; $("results").hidden=true; arc={round:r,bonus:false,warm:false,needs:arcNeedsSaved.slice()}; st.points=arc.needs[r-2];
+  let arcRetryRound=0, arcIncSaved=null;
+  function arcRetry(){ const r=arcRetryRound||1; if(r<2||!arcIncSaved) return arcStart(); resetScore(); lastMode="arcade"; $("results").hidden=true; arc={round:r,bonus:false,warm:false,inc:arcIncSaved.slice(),needs:[],start:0}; arc.needs[r-1]=arc.inc[r-1];
     $("arcbar").hidden=false; $("arcMeter").hidden=false; $("startTimed").textContent="Stop"; $("arcBtn").hidden=true; render();
-    arcSplash(`ROUND ${r}`,`Running total to beat: ${arc.needs[r-1]}. You start at ${half(st.points)}.`,2000,arcRound) }
+    arcSplash(`ROUND ${r}`,`Target this round: ${half(arc.inc[r-1])} points.`,2000,arcRound) }
   function arcStart(){ resetScore(); lastMode="arcade"; $("results").hidden=true; arc={round:1,bonus:false,warm:true,needs:[]};
     $("arcbar").hidden=false; $("arcMeter").hidden=false; $("startTimed").textContent="Stop"; $("arcBtn").hidden=true;
     arcSplash("ROUND 1","Warm-up: score as many as you can in 30 seconds. Your score sets your targets. Last 10 seconds = 2x points.",2600,arcRound,"CHALLENGE MODE") }
@@ -720,17 +741,17 @@ summary{cursor:pointer;padding:12px 16px;font-weight:600}
   function arcRoundEnd(){ clearInterval(timer); timer=null; locked=true;
     if(arc.bonus) return arcFinish(true);
     if(arc.warm){ // the warm-up sets the targets: each later round asks for a little more than this student's own first round
-      const B=Math.max(3,st.points); let cum=st.points; arc.needs=[st.points]; for(let r=2;r<=5;r++){ cum+=Math.max(2,Math.round(B*(1+0.08*(r-2)))); arc.needs.push(cum) }
-      arc.warm=false; arcNeedsSaved=arc.needs.slice(); arc.round=2; arc.hit=false; arcBar();
-      return arcSplash("ROUND 2",`Running total to beat: ${arc.needs[1]}. Match your warm-up: ${half(arc.needs[1]-arc.needs[0])} more points.`,2600,arcRound,`WARM-UP DONE · YOUR BASELINE ${half(st.points)}`) }
+      const B=Math.max(3,st.points); arc.inc=[st.points]; for(let r=2;r<=5;r++) arc.inc.push(Math.max(2,Math.round(B*(1+0.08*(r-2))))); arc.start=st.points; arc.needs=[st.points,st.points+arc.inc[1]];
+      arc.warm=false; arcIncSaved=arc.inc.slice(); arc.round=2; arc.hit=false; arcBar();
+      return arcSplash("ROUND 2",`Target this round: ${half(arc.inc[1])} points. Fresh count, extras don't carry.`,2600,arcRound,`WARM-UP DONE · YOUR BASELINE ${half(st.points)}`) }
     const need=arc.needs[arc.round-1];
-    if(st.points<need) return arcFinish(false,need);
+    if(st.points<need) return arcFinish(false,need-(arc.start||0),st.points-(arc.start||0));
     if(arc.round===5){ arc.bonus=true; arc.hit=false; arcBar(); return arcSplash("BONUS ROUND","Every point counts double for 30 seconds. Go.",2400,arcRound,"ROUND 5 CLEARED ✓") }
-    const cleared=arc.round; arc.round++; arc.hit=false; arcBar(); arcSplash(`ROUND ${arc.round}`,`Running total to beat: ${arc.needs[arc.round-1]}. That's ${half(arc.needs[arc.round-1]-st.points)} more points.`,2400,arcRound,`ROUND ${cleared} CLEARED ✓`) }
-  function arcFinish(won,need){ const failedRound=won?0:arc.round; const reached=arc.bonus?"Bonus round":`Round ${arc.round}`, key="arcbest-"+level+"-"+readSettings().mode, best=Math.max(store.get(key,0),st.points), isNew=st.points>0&&st.points>=best;
+    const cleared=arc.round; arc.round++; arc.start=st.points; arc.needs[arc.round-1]=st.points+arc.inc[arc.round-1]; arc.hit=false; arcBar(); arcSplash(`ROUND ${arc.round}`,`Target this round: ${half(arc.inc[arc.round-1])} points. Fresh count, extras don't carry.`,2400,arcRound,`ROUND ${cleared} CLEARED ✓`) }
+  function arcFinish(won,need,got){ const failedRound=won?0:arc.round; const reached=arc.bonus?"Bonus round":`Round ${arc.round}`, key="arcbest-"+level+"-"+readSettings().mode, best=Math.max(store.get(key,0),st.points), isNew=st.points>0&&st.points>=best;
     store.set(key,best); sprintOver=true; locked=true; arc=null; $("arcbar").hidden=true; $("arcMeter").hidden=true; $("watch").classList.remove("fire"); $("arcBtn").hidden=!$("chalOn").checked; $("startTimed").textContent="Start 60-second sprint";
     $("rTitle").textContent=won?"Challenge cleared!":"Challenge over"; $("againBtn").textContent="Play again";
-    $("rWhy").textContent=won?"All 5 rounds cleared, plus the bonus round.":`Round ${failedRound} target was ${half(need)}. You had ${half(st.points)}. Hit the target before the 30 seconds run out to unlock Round ${failedRound+1}.`;
+    $("rWhy").textContent=won?"All 5 rounds cleared, plus the bonus round.":`Round ${failedRound} target was ${half(need)}. You had ${half(got)}. Hit the target before the 30 seconds run out to unlock Round ${failedRound+1}.`;
     arcRetryRound=won?0:failedRound; $("retryRound").hidden=won; $("retryRound").textContent=`Retry round ${failedRound}`;
     $("rScore").innerHTML=`${half(st.points)} <small>points · ${reached}${isNew?" · new high score":""}</small>`;
     $("rPct").textContent=(st.total?Math.min(100,Math.round(100*st.correct/st.total)):0)+"%"; $("rTotal").textContent=st.total; $("rBest").textContent=st.best;
