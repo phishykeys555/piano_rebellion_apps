@@ -188,7 +188,7 @@ label{color:#b8b0a0;text-transform:uppercase;font-size:11px;letter-spacing:.08em
 </div>
 <div class="row">
 <label>Ride <select id="rv" data-s><option value="zil" selected>Zildjian A 24 (recorded)</option><option value="sab">Sabian AAX 20, bright (recorded)</option><option value="soft">Soft (recorded)</option><option value="bright">Bright (recorded)</option><option value="linn">LinnDrum</option><option value="classic">Classic (old)</option></select></label>
-<label>Hats <select id="hh" data-s><option value="studio" selected>Studio (Sabian, recorded)</option><option value="ac">Acoustic</option><option value="linn">LinnDrum</option><option value="cr78">CR-78</option><option value="h808">808 Hats</option><option value="h909">909 Hats</option><option value="lofi">Lo-Fi Hats</option></select></label>
+<label>Hats <select id="hh" data-s><option value="studio" selected>Studio (Sabian, recorded)</option><option value="ac">Acoustic</option><option value="linn">LinnDrum</option><option value="cr78">CR-78</option><option value="h808">808 Hats</option><option value="h909">909 Hats</option><option value="lofi">Lo-Fi Hats</option></select></label><label title="Tight = closed and choked. Loose = the hats a little open, sloshy.">Hat feel <select id="hfeel" data-s><option value="t">Tight</option><option value="n" selected>Normal</option><option value="l">Loose</option></select></label><label title="Tight = damped, higher crack. Open = lower, fatter, more ring.">Snare feel <select id="sfeel" data-s><option value="t">Tight</option><option value="n" selected>Normal</option><option value="l">Open / fat</option></select></label><label title="Tight = short, punchy, damped. Boomy = lower and longer.">Kick feel <select id="kfeel" data-s><option value="t">Tight</option><option value="n" selected>Normal</option><option value="l">Boomy</option></select></label>
 <label>Toms <select id="tm" data-s><option value="bp" selected>Black Pearl 12/13/16 (5 layers)</option><option value="rz">Ludwig 14/16/18 vintage (5 layers)</option><option value="pearl">Pearl Studio (recorded)</option><option value="linn">LinnDrum</option><option value="e808">808 toms (electronic, tuned to key)</option><option value="synth">Synth</option></select></label>
 <label>Percussion <select id="pc" data-s><option value="smp" selected>Recorded</option><option value="syn">Synth</option></select></label>
 <label title="Plate reverb amount">Room <input type="range" id="room" data-s min="0" max="100" value="15" style="width:80px"></label>
@@ -369,7 +369,7 @@ function filt(ty,f,Q,dst){const b=ctx.createBiquadFilter();b.type=ty;b.frequency
 function sweep(t,ty,f0,f1,ft,dur,dst){const o=ctx.createOscillator();o.type=ty;o.frequency.setValueAtTime(f0,t);o.frequency.exponentialRampToValueAtTime(f1,t+ft);o.connect(dst);o.start(t);o.stop(t+dur+0.05)}
 function tone(t,ty,f,dur,dst){const o=ctx.createOscillator();o.type=ty;o.frequency.value=f;o.connect(dst);o.start(t);o.stop(t+dur+0.05)}
 function click(t,a,f){nz(t,0.015,envTo(t,a,0.012),[['highpass',f||3000]])}
-function smp(n,t,a,rate,lp,drive){const b=buf[n];if(!b)return SYN[n]?SYN[n](t,a):null;const src=ctx.createBufferSource(),gn=ctx.createGain();src.buffer=b;src.playbackRate.value=rate||1;gn.gain.value=a*(0.94+Math.random()*0.06);src.connect(gn);let node=gn;
+function smp(n,t,a,rate,lp,drive){const b=buf[n];if(!b)return SYN[n]?SYN[n](t,a):null;const src=ctx.createBufferSource(),gn=ctx.createGain();src.buffer=b;src.playbackRate.value=(rate||1)*ARTRATE;gn.gain.value=a*(0.94+Math.random()*0.06);src.connect(gn);let node=gn;
  if(lp){const f=ctx.createBiquadFilter();f.type='lowpass';f.frequency.value=lp;node.connect(f);node=f}
  if(drive){const w=shaper(drive),g2=ctx.createGain();g2.gain.value=0.7;node.connect(w);w.connect(g2);node=g2}
  node.connect(master);src.start(t);return gn}
@@ -455,7 +455,9 @@ function fillPhrase(fam,beatsN,A,sty){const pick=b=>{const L=FILLS[fam][b];let a
    const fresh=arr.filter(x=>!lastFill.includes(x));if(fresh.length)arr=fresh;return arr[Math.floor(Math.random()*arr.length)]};
  let parts=[];if(FILLS[fam][beatsN])parts=[pick(beatsN)];else{let r=beatsN;while(r>0){const b=r>=4?4:r>=2?2:1;parts.push(pick(b));r-=b}}
  const ph=parts.join(' ');lastFill=ph;return ph.split(' ')}
-function genFill(len){const A=+$('fa').value/100,sty=$('fs').value,n=steps(),ev=[];for(let k=0;k<len;k++)ev.push([]);
+let fillFirst=0;
+function genFill(len){const ev=genFill0(len);const f=ev.findIndex(x=>x&&x.length);fillFirst=f<0?len:f;return ev}
+function genFill0(len){const A=+$('fa').value/100,sty=$('fs').value,n=steps(),ev=[];for(let k=0;k<len;k++)ev.push([]);
  const bN=Math.max(1,Math.round(len/sub));
  if(sty==='build'){ // pop/EDM build: snare 8ths, then 16ths, rising to the downbeat
   for(let k=0;k<len;k++){const p=(k+1)/len,v=0.3+0.7*p;ev[k].push({n:38,v});if(sub!==3&&p>0.5)ev[k].push({n:38,v:v*0.85,o:0.5})}return ev}
@@ -501,7 +503,7 @@ async function loadKit(k){if(!DKIT[k]||!ctx)return;if(kitBuf[k])return kitBuf[k]
  kitLoading[k]=(async()=>{const out={};await Promise.all(Object.values(DV).flatMap(v=>[1,2,3,4,5].map(async i=>{try{const ab=await (await fetch(new URL(DKIT[k]+v+'_'+i+'.mp3',location.href).href)).arrayBuffer();
   out[v+'_'+i]=await new Promise((res,rej)=>{const pr=ctx.decodeAudioData(ab,res,rej);if(pr&&pr.then)pr.then(res,rej)})}catch(e){}})));kitBuf[k]=out;return out})();return kitLoading[k]}
 function kitHit(k,n,t,a){const B=kitBuf[k];if(!B){loadKit(k);return null}const v=DV[n],vel=velOf(n,a),i=vel<.3?1:vel<.5?2:vel<.72?3:vel<.95?4:5,b=B[v+'_'+i];if(!b)return null;
- const src=ctx.createBufferSource(),gn=ctx.createGain();src.buffer=b;src.playbackRate.value=0.995+Math.random()*0.01;gn.gain.value=DG[v]*(a/Math.max(vel,0.05))*(0.55+0.45*Math.min(1.2,vel));src.connect(gn);gn.connect(master);src.start(t);return gn}
+ const src=ctx.createBufferSource(),gn=ctx.createGain();src.buffer=b;src.playbackRate.value=(0.995+Math.random()*0.01)*ARTRATE;gn.gain.value=DG[v]*(a/Math.max(vel,0.05))*(0.55+0.45*Math.min(1.2,vel));src.connect(gn);gn.connect(master);src.start(t);return gn}
 const kitVoice=(k,n)=>(t,a)=>kitHit(k,n,t,a)||(n==36?smp('p_kick',t,a):n==38?smp('p_sn2',t,a):null);
 Object.assign(KICK,{bp:kitVoice('bp',36),rz:kitVoice('rz',36)});Object.assign(SNARE,{bp:kitVoice('bp',38),rz:kitVoice('rz',38)});
 TOMV.bp={50:kitVoice('bp',50),47:kitVoice('bp',47),43:kitVoice('bp',43)};TOMV.rz={50:kitVoice('rz',50),47:kitVoice('rz',47),43:kitVoice('rz',43)};
@@ -548,10 +550,17 @@ function pocketHit(k,i,val){const pk=pocketNow();if(pk===PK.machine)return [0,1]
  if(SNR.has(k)&&val>=0.5&&i%sub===0&&Math.floor(i/sub)===beats-1)vm*=1.04;
  return [ms/1000,vm]}
 function volG(x){x=+x;return x<=0?0:Math.pow(10,(-45+45*x/100)/20)}
-function hit(n,t,vel){if(!ctx||!rowVol[n])return;const a=VOL[n]*rowVol[n]*vel;
+// Feel controls: how the drummer plays each piece. Tight = damped and short, loose/boomy = open and ringing.
+let ARTRATE=1;
+function artOf(n){const id=n==36||n==35?'kfeel':n==38?'sfeel':n==42?'hfeel':null;return id&&$(id)?$(id).value:'n'}
+function hit(n,t,vel){if(!ctx||!rowVol[n])return;const a=VOL[n]*rowVol[n]*vel;const art=artOf(n);
+ ARTRATE=art==='n'?1:n==38?(art==='t'?1.04:0.93):n==36?(art==='t'?1.03:0.92):1;
+ if(n==42&&art==='l'){const h=HAT[$('hh').value],o=h&&h[46]?h[46](t,a*0.3):(buf[46]?smp(46,t,a*0.3):null);if(o&&o.gain){o.gain.setTargetAtTime(0,t+0.13,0.045)}}
  if((n==42||n==44)&&openHat){try{openHat.gain.cancelScheduledValues(t);openHat.gain.setTargetAtTime(0,t,0.015)}catch(e){};openHat=null}
  const alt=altVoice(n);let gg;
  if(alt)gg=alt(t,a);else if(!buf[n]){SYN[n]&&SYN[n](t,a);return}else gg=smp(n,t,a,1,vel<0.6?3800:0);
+ ARTRATE=1;
+ if(gg&&gg.gain&&art==='t'){const [h,tc]=n==42?[0.028,0.012]:n==38?[0.06,0.03]:n==36?[0.09,0.03]:[9,1];if(h<9)gg.gain.setTargetAtTime(0,t+h,tc)}
  if(n==46&&gg)openHat=gg}
 function clickV(t,acc){sweep(t,'sine',acc?1900:1300,acc?1800:1200,0.01,0.06,envTo(t,acc?0.6:0.42,0.05,comp))}
 // ===== grooves & grid =====
@@ -917,8 +926,10 @@ function sched(){while(next<ctx.currentTime+0.1){if(pos===0)barStart();
  if(isCount){if(i%sub==0)clickV(t,i==0);item.cnt=Math.floor(i/sub)+1;item.cb=cin}
  else{const fl=fillBeats()*sub,inFill=fillBar&&i>=n-fl;Object.assign(item,{f:inFill,mu:muted,sec:secName,ch:halfAt&&i>=halfAt?chordB:chordNow,nx:halfAt&&i>=halfAt?chordC:chordNext,tr:trMsg});
   if(!muted){const hj=()=>H?(Math.random()-.5)*0.02*H:0,hv=()=>H?1+(Math.random()-.5)*0.3*H:1,now=ctx.currentTime;
-   ROWS.forEach(([k])=>{if(inFill&&KITROWS.has(k))return;let val=grid[k]&&grid[k][i];if(!inFill&&k==38){if(pkMove.gAdd===i&&!val)val=0.3;if(pkMove.gDrop===i)val=0}if(val){let kk=k;if(k==42&&$('cy').value==='ride')kk=51;if(kk==42&&pkMove.lift===i&&!inFill)kk=46;if(kk==51&&bellAt(i))kk=53;const [po,pv]=pocketHit(kk,i,val),acc=pocketNow()===PK.machine&&(kk==42||kk==51)?(i%sub?0.65:1):1;hit(kk,Math.max(now,t+po+hj()),Math.min(1.3,val*acc*pv*hv()))}});
-   if(inFill)for(const e of (curFill[i-(n-fl)]||[]))hit(e.n,Math.max(now,t+(e.o||0)*dt+hj()),e.v*hv());
+   const fIdx=i-(n-fl),fillOn=inFill&&fIdx>=fillFirst,fHere=fillOn&&curFill[fIdx]&&curFill[fIdx].length>0;
+   if(fillOn&&i%sub===0&&!(grid[44]&&grid[44].some(v=>v>0)))hit(44,Math.max(now,t),0.42); // hi-hat foot keeps time under the fill
+   ROWS.forEach(([k])=>{if(fillOn&&KITROWS.has(k)&&k!==44&&!((k==36||k==35)&&!fHere))return;let val=grid[k]&&grid[k][i];if(!inFill&&k==38){if(pkMove.gAdd===i&&!val)val=0.3;if(pkMove.gDrop===i)val=0}if(val){let kk=k;if(k==42&&$('cy').value==='ride')kk=51;if(kk==42&&pkMove.lift===i&&!inFill)kk=46;if(kk==51&&bellAt(i))kk=53;const [po,pv]=pocketHit(kk,i,val),acc=pocketNow()===PK.machine&&(kk==42||kk==51)?(i%sub?0.65:1):1;hit(kk,Math.max(now,t+po+hj()),Math.min(1.3,val*acc*pv*hv()))}});
+   if(fillOn)for(const e of (curFill[fIdx]||[]))hit(e.n,Math.max(now,t+(e.o||0)*dt+hj()),e.v*hv());
    if(i===0&&crashNow&&!grid[49][0]){hit(49,next,0.95);if(!grid[36][0]&&!grid[35][0])hit(36,next,0.9)}
    else if(i===0&&$('crash').checked&&barN%4==0&&!grid[49][0])hit(49,next,0.9);
    for(const e of bassEv)if(e.s===i)bassNote(Math.max(now,t+hj()*0.5),e.m,e.d*dt,e.v*hv(),e.g)}}
