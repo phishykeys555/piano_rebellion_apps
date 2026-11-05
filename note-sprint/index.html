@@ -80,6 +80,7 @@ button:focus-visible,input:focus-visible{outline:3px solid var(--accent);outline
 .meter{position:relative}
 .meter .thr{position:absolute;top:-3px;bottom:-3px;width:2px;background:var(--ink);opacity:.6}
 .heard{font-family:var(--mono);font-weight:700;font-size:40px;min-height:48px}
+.heard.msg{font-family:var(--display);font-weight:600;font-size:17px;line-height:1.3;text-align:center;color:var(--muted);display:flex;align-items:center;justify-content:center;gap:8px;padding:10px 14px;margin:0 auto;max-width:420px;border:1px dashed var(--border);border-radius:12px}
 .micstat{font-size:13px;color:var(--muted);text-align:center}
 .meter{width:100%;max-width:320px;height:6px;border-radius:3px;background:var(--border);overflow:hidden}
 .meter i{display:block;height:100%;width:0;background:var(--good)}
@@ -244,7 +245,7 @@ summary{cursor:pointer;padding:12px 16px;font-weight:600}
       <button class="primary" id="startTimed">Start 60-second sprint</button>
     </div>
     <p class="tip">Keyboard: A–G to answer. In a key with sharps or flats, tap ♯ or ♭ first (or press = / −). Piano keys must be the exact key, right octave.</p>
-    <p class="tip" id="appVer">Version 2026-11-05.9 · fresh target each round · full keyboard · YIN mic</p>
+    <p class="tip" id="appVer">Version 2026-11-05.10 · fresh target each round · full keyboard · YIN mic</p>
 
     <div class="arcsplash" id="arcSplash" hidden><div class="boom"></div><div id="arcPcs"></div><div class="pre" id="arcSplashP"></div><b id="arcSplashT">ROUND 2</b><span id="arcSplashS"></span></div><div class="hitstamp" id="hitStamp">TARGET HIT!</div>
     <div class="results" id="results" hidden>
@@ -679,16 +680,18 @@ summary{cursor:pointer;padding:12px 16px;font-weight:600}
     if(!m.armed&&now>m.cool&&r>thr&&r>avg*1.7){m.armed=true;m.armedAt=now;m.cand=[];m.res=[];m.raw=[]}
     if(m.armed&&now-m.armedAt>=70){ const f=acf(m.buf,audio.sampleRate);
       // tuneOff = how sharp/flat this piano sits (semitones), learned from every confirmed note, so a home piano that's a bit off still reads exactly
-      if(f>MINHZ*0.9&&f<4400){ const x=69+12*Math.log2(f/440)-tuneOff, md=Math.round(x); m.raw.push(x-md); if(Math.abs(x-md)<=0.45){ m.cand.push(md); m.res.push(x-md); $("heard").textContent=mname(md) } }
+      if(f>MINHZ*0.9&&f<4400){ const x=69+12*Math.log2(f/440)-tuneOff, md=Math.round(x); m.raw.push(x-md); if(Math.abs(x-md)<=0.45){ m.cand.push(md); m.res.push(x-md); heardNote(md) } }
       const cnt={}; let best=null, bc=0; for(const v of m.cand){cnt[v]=(cnt[v]||0)+1; if(cnt[v]>bc){bc=cnt[v];best=v}}
       if(bc>=4&&bc>=0.7*m.cand.length){ const rs=m.res.filter((_,i)=>m.cand[i]===best).sort((a,b)=>a-b), med=rs[Math.floor(rs.length/2)]||0;
         tuneOff=Math.max(-0.6,Math.min(0.6,tuneOff+0.5*med)); store.set("tuneOff",tuneOff);
-        m.armed=false; m.cool=now+450; $("heard").textContent=mname(best); answerHeard(best) }
+        m.armed=false; m.cool=now+450; heardNote(best); answerHeard(best) }
       else if(now-m.armedAt>900){ m.armed=false;
         // a steady pitch that sits between two keys = the piano itself is off: re-centre on it and ask for the note again
         const rr=[...m.raw].sort((a,b)=>a-b), md=rr[rr.length>>1];
-        if(rr.length>=4&&rr.filter(v=>Math.abs(v-md)<0.1).length>=0.75*rr.length&&Math.abs(md)>0.3){ tuneOff=Math.max(-0.6,Math.min(0.6,tuneOff+md)); store.set("tuneOff",tuneOff); $("heard").textContent="Tuning to your piano. Play it again." }
-        else if(m.cand.length||rr.length) $("heard").textContent="Didn't catch that. Play it again." } } }
+        if(rr.length>=4&&rr.filter(v=>Math.abs(v-md)<0.1).length>=0.75*rr.length&&Math.abs(md)>0.3){ tuneOff=Math.max(-0.6,Math.min(0.6,tuneOff+md)); store.set("tuneOff",tuneOff); heardMsg("Tuning to your piano. Play that key again.") }
+        else if(m.cand.length||rr.length) heardMsg("Didn't catch that one. Play the key again, a little firmer.") } } }
+  function heardNote(md){ const h=$("heard"); h.classList.remove("msg"); h.textContent=mname(md) }
+  function heardMsg(t){ const h=$("heard"); h.classList.add("msg"); h.textContent=t }
   function answerHeard(md){ if(!q||locked||q.wait)return; const t=midiOf(q.notes[idx]); grade(md===t,{midi:md,label:mname(md)}) }
   $("micBtn").addEventListener("click",()=>micStart($("micSel").value||undefined));
   document.querySelectorAll("#seg button").forEach(b=>b.addEventListener("click",()=>{setRadio("mode",b.dataset.mode);store.set("mode",b.dataset.mode);layout();newQuestion(true)}));
