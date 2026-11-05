@@ -414,11 +414,16 @@ summary{cursor:pointer;padding:12px 16px;font-weight:600}
   // keyboard covers exactly the register the staff can show, padded one key each side
   function buildPiano(s){
     const clefs=s.staffMode==="grand"||s.staffMode==="mix"?["treble","bass"]:[s.staffMode];
-    const ds=clefs.flatMap(c=>cands(s,c).map(p=>BASE[c]+p)); let lo=Math.min(...ds)-1, hi=Math.max(...ds)+1;
-    // widen to whole black-key groups: start on C or F, end on E or B
-    while(!"CF".includes(LET[((lo%7)+7)%7])) lo--; while(!"EB".includes(LET[((hi%7)+7)%7])) hi++;
+    const ds=clefs.flatMap(c=>cands(s,c).map(p=>BASE[c]+p)), nLo=Math.min(...ds)-1, nHi=Math.max(...ds)+1;
+    // show as many keys as fit at finger size (KEYW px per white key), centred on the notes in play; whole black-key groups only
+    const KEYW=44, A0=5, C8=56, avail=($("pianoScroll").clientWidth||$("pianoPad").clientWidth||window.innerWidth)-2, fit=Math.max(nHi-nLo+1,Math.floor(avail/KEYW));
+    let lo=nLo, hi=nHi, extra=fit-(hi-lo+1);
+    while(extra>0){ if(lo>A0){lo--;extra--} if(extra>0&&hi<C8){hi++;extra--} if(lo<=A0&&hi>=C8) break }
+    const isStart=d=>"CF".includes(LET[d%7])||d===A0, isEnd=d=>"EB".includes(LET[d%7])||d===C8;
+    while(!isStart(lo)&&lo<nLo) lo++; while(!isStart(lo)) lo--;
+    while(!isEnd(hi)&&hi>nHi) hi--; while(!isEnd(hi)) hi++;
     const el=$("piano"); el.innerHTML=""; const n=hi-lo+1, w=100/n;
-    el.style.minWidth=(n*30)+"px";
+    el.style.minWidth=(n*KEYW)+"px";
     for(let d=lo;d<=hi;d++){const L=LET[d%7], o=Math.floor(d/7), m=12*(o+1)+PC[L];
       const b=document.createElement("button"); b.className="w"+(m===60?" mc":""); b.dataset.midi=m; b.setAttribute("aria-label",L+o);
       if(m===60) b.textContent="Middle C"; else if(L==="C") b.textContent="C"+o; b.addEventListener("click",()=>answerMidi(m,b)); el.appendChild(b);
