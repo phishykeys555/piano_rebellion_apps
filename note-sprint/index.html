@@ -688,7 +688,7 @@ summary{cursor:pointer;padding:12px 16px;font-weight:600}
   $("retryRound").addEventListener("click",()=>arcRetry());
   $("againBtn").addEventListener("click",()=>lastMode==="arcade"?arcStart():startSprint());
 
-  // ---------- arcade: rounds like the arcade hoop game. Score carries over; each round needs a higher running total in the same 30 s ----------
+  // ---------- arcade: rounds like the arcade hoop game. Total score carries over, but each round has its own fresh target: extra points never count toward the next round ----------
   // Base running totals for L1 letters; scaled for harder levels and slower answer modes. Last 10 s of a round = on fire, 2x points.
   const ARC_BASE=[10,24,40,60,84], ARC_T=30, ARC_FIRE=10;
   const retryOK=()=>$("retryOn").checked&&!arc;
@@ -699,10 +699,10 @@ summary{cursor:pointer;padding:12px 16px;font-weight:600}
       const fire=timeLeft<=ARC_FIRE; $("arcFire").hidden=!fire; $("watch").classList.toggle("fire",fire); $("arcFill").style.width=(100*(ARC_T-timeLeft)/ARC_T)+"%"; $("arcMeter").classList.remove("hit"); return }
     const need=arc.bonus?null:arc.needs[arc.round-1];
     $("arcRound").textContent=arc.bonus?"BONUS ROUND":`ROUND ${arc.round} OF 5`;
-    $("arcNeed").textContent=arc.bonus?`SCORE ${half(st.points)}`:(st.points>=need?`✓ ${half(st.points)} / ${need}`:`${half(st.points)} / ${need}`); $("arcNeed").classList.toggle("met",!arc.bonus&&st.points>=need);
+    const rp=st.points-(arc.start||0), rn=need-(arc.start||0); $("arcNeed").textContent=arc.bonus?`SCORE ${half(st.points)}`:(st.points>=need?`✓ ${half(rp)} / ${half(rn)}`:`${half(rp)} / ${half(rn)}`); $("arcNeed").classList.toggle("met",!arc.bonus&&st.points>=need);
     const fire=arc.bonus||timeLeft<=ARC_FIRE; $("arcFire").hidden=!fire; $("watch").classList.toggle("fire",fire);
     // target meter: fills toward this round's running total; turns green with a flash the moment it's reached
-    const m=$("arcMeter"), start=arc.bonus||arc.round===1?0:arc.needs[arc.round-2], pct=arc.bonus?100:Math.min(100,Math.max(0,(st.points-start)/(need-start)*100));
+    const m=$("arcMeter"), start=arc.bonus?0:(arc.start||0), pct=arc.bonus?100:Math.min(100,Math.max(0,(st.points-start)/(need-start)*100));
     $("arcFill").style.width=pct+"%"; const hit=!arc.bonus&&st.points>=need; $("arcHit").textContent=arc.bonus?"BONUS: EVERY POINT DOUBLE":"✓ TARGET HIT";
     if(hit&&!arc.hit){ arc.hit=true; m.classList.remove("flash"); void m.offsetWidth; m.classList.add("flash"); const hs=$("hitStamp"); hs.classList.remove("go"); void hs.offsetWidth; hs.classList.add("go"); chime(); $("card")&&$("card").classList.add("met"); $("staffbox").classList.add("hitglow"); setTimeout(()=>$("staffbox").classList.remove("hitglow"),900) }
     m.classList.toggle("hit",hit||arc.bonus) }
@@ -710,10 +710,10 @@ summary{cursor:pointer;padding:12px 16px;font-weight:600}
     const pcs=$("arcPcs"); pcs.innerHTML=""; const cols=["var(--accent)","var(--good)","#ff8a1f","#ffd23f"]; for(let i=0;i<22;i++){const a=Math.random()*Math.PI*2,d=110+Math.random()*170,e=document.createElement("i");e.className="pc";e.style.cssText=`background:${cols[i%4]};--dx:${Math.cos(a)*d}px;--dy:${Math.sin(a)*d}px;--r:${Math.random()*720-360}deg`;pcs.appendChild(e)}
     sp.classList.remove("go"); void sp.offsetWidth; sp.classList.add("go"); whoosh();
     setTimeout(()=>{ $("arcSplash").hidden=true; if(arc) then() },ms) }
-  let arcRetryRound=0, arcNeedsSaved=null;
-  function arcRetry(){ const r=arcRetryRound||1; if(r<2||!arcNeedsSaved) return arcStart(); resetScore(); lastMode="arcade"; $("results").hidden=true; arc={round:r,bonus:false,warm:false,needs:arcNeedsSaved.slice()}; st.points=arc.needs[r-2];
+  let arcRetryRound=0, arcIncSaved=null;
+  function arcRetry(){ const r=arcRetryRound||1; if(r<2||!arcIncSaved) return arcStart(); resetScore(); lastMode="arcade"; $("results").hidden=true; arc={round:r,bonus:false,warm:false,inc:arcIncSaved.slice(),needs:[],start:0}; arc.needs[r-1]=arc.inc[r-1];
     $("arcbar").hidden=false; $("arcMeter").hidden=false; $("startTimed").textContent="Stop"; $("arcBtn").hidden=true; render();
-    arcSplash(`ROUND ${r}`,`Running total to beat: ${arc.needs[r-1]}. You start at ${half(st.points)}.`,2000,arcRound) }
+    arcSplash(`ROUND ${r}`,`Target this round: ${half(arc.inc[r-1])} points.`,2000,arcRound) }
   function arcStart(){ resetScore(); lastMode="arcade"; $("results").hidden=true; arc={round:1,bonus:false,warm:true,needs:[]};
     $("arcbar").hidden=false; $("arcMeter").hidden=false; $("startTimed").textContent="Stop"; $("arcBtn").hidden=true;
     arcSplash("ROUND 1","Warm-up: score as many as you can in 30 seconds. Your score sets your targets. Last 10 seconds = 2x points.",2600,arcRound,"CHALLENGE MODE") }
@@ -722,17 +722,17 @@ summary{cursor:pointer;padding:12px 16px;font-weight:600}
   function arcRoundEnd(){ clearInterval(timer); timer=null; locked=true;
     if(arc.bonus) return arcFinish(true);
     if(arc.warm){ // the warm-up sets the targets: each later round asks for a little more than this student's own first round
-      const B=Math.max(3,st.points); let cum=st.points; arc.needs=[st.points]; for(let r=2;r<=5;r++){ cum+=Math.max(2,Math.round(B*(1+0.08*(r-2)))); arc.needs.push(cum) }
-      arc.warm=false; arcNeedsSaved=arc.needs.slice(); arc.round=2; arc.hit=false; arcBar();
-      return arcSplash("ROUND 2",`Running total to beat: ${arc.needs[1]}. Match your warm-up: ${half(arc.needs[1]-arc.needs[0])} more points.`,2600,arcRound,`WARM-UP DONE · YOUR BASELINE ${half(st.points)}`) }
+      const B=Math.max(3,st.points); arc.inc=[st.points]; for(let r=2;r<=5;r++) arc.inc.push(Math.max(2,Math.round(B*(1+0.08*(r-2))))); arc.start=st.points; arc.needs=[st.points,st.points+arc.inc[1]];
+      arc.warm=false; arcIncSaved=arc.inc.slice(); arc.round=2; arc.hit=false; arcBar();
+      return arcSplash("ROUND 2",`Target this round: ${half(arc.inc[1])} points. Fresh count, extras don't carry.`,2600,arcRound,`WARM-UP DONE · YOUR BASELINE ${half(st.points)}`) }
     const need=arc.needs[arc.round-1];
-    if(st.points<need) return arcFinish(false,need);
+    if(st.points<need) return arcFinish(false,need-(arc.start||0),st.points-(arc.start||0));
     if(arc.round===5){ arc.bonus=true; arc.hit=false; arcBar(); return arcSplash("BONUS ROUND","Every point counts double for 30 seconds. Go.",2400,arcRound,"ROUND 5 CLEARED ✓") }
-    const cleared=arc.round; arc.round++; arc.hit=false; arcBar(); arcSplash(`ROUND ${arc.round}`,`Running total to beat: ${arc.needs[arc.round-1]}. That's ${half(arc.needs[arc.round-1]-st.points)} more points.`,2400,arcRound,`ROUND ${cleared} CLEARED ✓`) }
-  function arcFinish(won,need){ const failedRound=won?0:arc.round; const reached=arc.bonus?"Bonus round":`Round ${arc.round}`, key="arcbest-"+level+"-"+readSettings().mode, best=Math.max(store.get(key,0),st.points), isNew=st.points>0&&st.points>=best;
+    const cleared=arc.round; arc.round++; arc.start=st.points; arc.needs[arc.round-1]=st.points+arc.inc[arc.round-1]; arc.hit=false; arcBar(); arcSplash(`ROUND ${arc.round}`,`Target this round: ${half(arc.inc[arc.round-1])} points. Fresh count, extras don't carry.`,2400,arcRound,`ROUND ${cleared} CLEARED ✓`) }
+  function arcFinish(won,need,got){ const failedRound=won?0:arc.round; const reached=arc.bonus?"Bonus round":`Round ${arc.round}`, key="arcbest-"+level+"-"+readSettings().mode, best=Math.max(store.get(key,0),st.points), isNew=st.points>0&&st.points>=best;
     store.set(key,best); sprintOver=true; locked=true; arc=null; $("arcbar").hidden=true; $("arcMeter").hidden=true; $("watch").classList.remove("fire"); $("arcBtn").hidden=!$("chalOn").checked; $("startTimed").textContent="Start 60-second sprint";
     $("rTitle").textContent=won?"Challenge cleared!":"Challenge over"; $("againBtn").textContent="Play again";
-    $("rWhy").textContent=won?"All 5 rounds cleared, plus the bonus round.":`Round ${failedRound} target was ${half(need)}. You had ${half(st.points)}. Hit the target before the 30 seconds run out to unlock Round ${failedRound+1}.`;
+    $("rWhy").textContent=won?"All 5 rounds cleared, plus the bonus round.":`Round ${failedRound} target was ${half(need)}. You had ${half(got)}. Hit the target before the 30 seconds run out to unlock Round ${failedRound+1}.`;
     arcRetryRound=won?0:failedRound; $("retryRound").hidden=won; $("retryRound").textContent=`Retry round ${failedRound}`;
     $("rScore").innerHTML=`${half(st.points)} <small>points · ${reached}${isNew?" · new high score":""}</small>`;
     $("rPct").textContent=(st.total?Math.min(100,Math.round(100*st.correct/st.total)):0)+"%"; $("rTotal").textContent=st.total; $("rBest").textContent=st.best;
