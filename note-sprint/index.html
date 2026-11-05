@@ -69,7 +69,7 @@ button:focus-visible,input:focus-visible{outline:3px solid var(--accent);outline
 .pianoScroll{overflow-x:auto;-webkit-overflow-scrolling:touch;border-radius:8px;scrollbar-width:thin}
 .piano{position:relative;height:150px;display:flex;user-select:none;-webkit-user-select:none}
 .piano .w{flex:1;min-width:0;background:var(--key-w);border:1px solid #9aa0aa;border-radius:0 0 7px 7px;margin-right:-1px;padding:0;display:flex;align-items:flex-end;justify-content:center;padding-bottom:6px;font-family:var(--mono);font-size:10px;color:#8a909b}
-.piano .w.mc{color:var(--accent);font-weight:700}
+.piano .w.mc{color:var(--accent);font-weight:700;font-size:9px;line-height:1.1;text-align:center;white-space:normal}
 .piano .b{position:absolute;top:0;height:60%;background:var(--key-b);border:1px solid #000;border-radius:0 0 5px 5px;z-index:2;padding:0}
 .piano button.hit,.piano button.show{background:var(--good)!important;color:#fff}
 .piano button.miss{background:var(--bad)!important;color:#fff}
@@ -414,12 +414,14 @@ summary{cursor:pointer;padding:12px 16px;font-weight:600}
   // keyboard covers exactly the register the staff can show, padded one key each side
   function buildPiano(s){
     const clefs=s.staffMode==="grand"||s.staffMode==="mix"?["treble","bass"]:[s.staffMode];
-    const ds=clefs.flatMap(c=>cands(s,c).map(p=>BASE[c]+p)), lo=Math.min(...ds)-1, hi=Math.max(...ds)+1;
+    const ds=clefs.flatMap(c=>cands(s,c).map(p=>BASE[c]+p)); let lo=Math.min(...ds)-1, hi=Math.max(...ds)+1;
+    // widen to whole black-key groups: start on C or F, end on E or B
+    while(!"CF".includes(LET[((lo%7)+7)%7])) lo--; while(!"EB".includes(LET[((hi%7)+7)%7])) hi++;
     const el=$("piano"); el.innerHTML=""; const n=hi-lo+1, w=100/n;
     el.style.minWidth=(n*30)+"px";
     for(let d=lo;d<=hi;d++){const L=LET[d%7], o=Math.floor(d/7), m=12*(o+1)+PC[L];
       const b=document.createElement("button"); b.className="w"+(m===60?" mc":""); b.dataset.midi=m; b.setAttribute("aria-label",L+o);
-      if(L==="C") b.textContent="C"+o; b.addEventListener("click",()=>answerMidi(m,b)); el.appendChild(b);
+      if(m===60) b.textContent="Middle C"; else if(L==="C") b.textContent="C"+o; b.addEventListener("click",()=>answerMidi(m,b)); el.appendChild(b);
       if("CDFGA".includes(L)&&d<hi){const k=document.createElement("button"); k.className="b"; k.dataset.midi=m+1; k.style.width=(w*0.6)+"%"; k.style.left=((d-lo+1)*w-w*0.3)+"%";
         k.setAttribute("aria-label",L+"♯"+o); k.addEventListener("click",()=>answerMidi(m+1,k)); el.appendChild(k)}}
     requestAnimationFrame(()=>{const sc=$("pianoScroll"), mc=el.querySelector(".mc");
