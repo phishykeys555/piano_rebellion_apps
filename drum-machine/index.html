@@ -113,6 +113,7 @@ label{color:#b8b0a0;text-transform:uppercase;font-size:11px;letter-spacing:.08em
 <button id="tap">Tap</button><button id="fnow">🥁 Fill now</button>
 <label class="vol">🔊 <input type="range" id="mv" data-s min="0" max="100" value="50"><span id="mvt">50%</span></label>
 </div>
+<div class="row exp"><label title="Renders your current groove, bass, chords, fills and tempo into an MP3 you can keep">Export MP3 <select id="xlen" data-s><option value="2">2 min</option><option value="3" selected>3 min</option><option value="4">4 min</option><option value="5">5 min</option><option value="6">6 min</option><option value="7">7 min</option></select></label><button id="xbtn">⬇ Export loop</button><span id="xst" style="font-size:12px;opacity:.8"></span></div>
 
 <div class="sec"><h4>Groove</h4>
 <div class="row">
@@ -924,7 +925,7 @@ function barStart(){isCount=cin>0;if(isCount)return;pocketBar();
  else{ halfAt=0;const ci=Math.floor(barN/bpc)%prog.length;chordNow=prog[ci];chordNext=prog[(ci+1)%prog.length];
   bassIB=barN%bpc;bassSpan=beats;bassEv=$('bon').checked?genBass(chordNow,chordNext,barN%bpc==bpc-1,barN%(prog.length*bpc*2)):[];}
  if(bpm===lastBpm)barsAtBpm++;else{lastBpm=bpm;barsAtBpm=1}if(barsAtBpm>=8&&!muted)logBest(bpm)}
-function sched(){while(next<ctx.currentTime+0.1){if(pos===0)barStart();
+function sched(h){const H=typeof h==='number'?h:ctx.currentTime+0.1;while(next<H){if(pos===0)barStart();
  const dt=60/bpm/sub,n=steps(),i=pos,t=next+((sub!==3&&i%2)?(swing-.5)*2*dt:0),H=+$('hu').value/100;
  const item={t,i,b:i%sub==0?i/sub:-1};
  if(isCount){if(i%sub==0)clickV(t,i==0);item.cnt=Math.floor(i/sub)+1;item.cb=cin}
@@ -950,6 +951,37 @@ function blUI(e){let h='';
  $('blm').innerHTML=h||'&nbsp;';
  $('chord').innerHTML=e.ch&&$('bon').checked?esc(e.ch.label)+(e.ch.rn?' <small>'+esc(e.ch.rn)+'</small>':'')+(e.nx?' <small>→ '+esc(e.nx.label)+'</small>':''):''}
 function chordPreview(){if(playing)return;if(!$('bon').checked){$('chord').innerHTML='';return}const pr=parseProg();$('chord').innerHTML='<small>'+pr.map(c=>esc(c.label)).join(' – ')+(pr.every(c=>c.rn)?' · '+pr.map(c=>esc(c.rn)).join(' – '):'')+'<br>'+esc(modeLine())+'</small>'}
+
+// ===== Export: render the current settings offline (faster than real time) and encode an MP3 =====
+function loadScript(u){return new Promise((res,rej)=>{if(window.lamejs)return res();const sc=document.createElement('script');sc.src=u;sc.onload=res;sc.onerror=rej;document.head.appendChild(sc)})}
+async function exportMp3(){const mins=+$('xlen').value,secs=mins*60,SR=44100,xst=$('xst'),btn=$('xbtn');btn.disabled=true;
+ try{xst.textContent='Loading sounds…';await init();if(playing)stop();
+  if(LIB[$('bt').value])await loadLib($('bt').value);for(const id of ['kk','sn','tm'])if(DKIT[$(id).value])await loadKit($(id).value);
+  await loadScript('https://cdnjs.cloudflare.com/ajax/libs/lamejs/1.2.1/lame.min.js');
+  const keep={ctx,out,comp,master,revSend,bassBus,bassStrip,conv,openHat},keepBpm=bpm;
+  const oc=new OfflineAudioContext(2,SR*secs,SR);ctx=oc;
+  out=oc.createGain();out.gain.value=1;out.connect(oc.destination);
+  comp=oc.createDynamicsCompressor();comp.threshold.value=-10;comp.ratio.value=3;const lim=oc.createDynamicsCompressor();lim.threshold.value=-6;lim.knee.value=0;lim.ratio.value=20;lim.attack.value=0.001;lim.release.value=0.12;const trim=oc.createGain();trim.gain.value=0.85;comp.connect(trim);trim.connect(lim);lim.connect(out);
+  master=oc.createGain();master.connect(comp);revSend=oc.createGain();revSend.gain.value=$('room').value/100*0.5;master.connect(revSend);
+  bassBus=oc.createGain();bassBus.gain.value=0.9;bassBus.connect(buildStrip(comp));conv=oc.createConvolver();conv.buffer=buf.ir_plate||makeIR(1.6);revSend.connect(conv);conv.connect(comp);openHat=null;
+  pos=0;barN=0;surStyle=null;surV=null;cin=+$('ci').value;muted=false;prevFill=false;fillBar=false;forceBar=-1;secName='';lastBassM=null;bassPrevM=null;bassPlan=null;bassRun=0;bassLastCk='';trMsg='';q=[];next=0.05;
+  xst.textContent='Building '+mins+' min…';sched(secs-0.05);q=[];
+  xst.textContent='Rendering… 0%';for(let tt=5;tt<secs;tt+=5)oc.suspend(tt).then(()=>{xst.textContent='Rendering… '+Math.round(100*tt/secs)+'%';oc.resume()});const b=await oc.startRendering();
+  ctx=keep.ctx;bpm=keepBpm;barsAtBpm=0;out=keep.out;comp=keep.comp;master=keep.master;revSend=keep.revSend;bassBus=keep.bassBus;bassStrip=keep.bassStrip;conv=keep.conv;openHat=keep.openHat;applyTone();
+  // normalize to -1 dBFS, 1.5 s fade at the end
+  const L=b.getChannelData(0),Rr=b.getChannelData(1),n=L.length;let pk=0;for(let i=0;i<n;i++){pk=Math.max(pk,Math.abs(L[i]),Math.abs(Rr[i]))}
+  const g=pk>0?0.89/pk:1,fade=Math.floor(SR*1.5),toI=(x,i)=>{let v=x*g*(i>n-fade?(n-i)/fade:1);v=Math.max(-1,Math.min(1,v));return v<0?v*32768:v*32767};
+  const enc=new lamejs.Mp3Encoder(2,SR,192),blk=1152,parts=[],li=new Int16Array(blk),ri=new Int16Array(blk);
+  for(let i=0;i<n;i+=blk){const m=Math.min(blk,n-i);for(let j=0;j<m;j++){li[j]=toI(L[i+j],i+j);ri[j]=toI(Rr[i+j],i+j)}
+   const d=enc.encodeBuffer(m<blk?li.subarray(0,m):li,m<blk?ri.subarray(0,m):ri);if(d.length)parts.push(new Uint8Array(d));
+   if(i%(blk*400)===0){xst.textContent='Encoding MP3… '+Math.round(100*i/n)+'%';await new Promise(r=>setTimeout(r,0))}}
+  const e=enc.flush();if(e.length)parts.push(new Uint8Array(e));
+  const blob=new Blob(parts,{type:'audio/mpeg'}),url=URL.createObjectURL(blob),gname=($('pre').selectedOptions[0]||{}).textContent||curName;
+  const fn=('Modal Metronome - '+gname.replace(/\s*\(.*\)/,'')+' - '+bpm+' BPM - '+mins+' min').replace(/[^\w\- ]+/g,'').replace(/\s+/g,' ').trim()+'.mp3';
+  const a=document.createElement('a');a.href=url;a.download=fn;document.body.appendChild(a);a.click();a.remove();
+  xst.innerHTML='Done: '+(blob.size/1048576).toFixed(1)+' MB · <a href="'+url+'" download="'+fn+'">save again</a>';
+ }catch(err){xst.textContent='Export failed: '+(err&&err.message||err);console.error(err);if(ctx instanceof OfflineAudioContext)location.reload()}
+ finally{btn.disabled=false}}
 async function start(){await init();playing=true;pos=0;barN=0;surStyle=null;surV=null;cin=+$('ci').value;muted=false;prevFill=false;fillBar=false;forceBar=-1;secName='';lastBassM=null;bassPrevM=null;bassPlan=null;bassRun=0;bassLastCk='';trMsg='';q=[];next=ctx.currentTime+0.08;timer=setInterval(sched,25);sched();anim();p.textContent='■ Stop';logStart()}
 function stop(){playing=false;clearInterval(timer);forceBar=-1;document.querySelectorAll('.now').forEach(c=>c.classList.remove('now'));[...$('dots').children].forEach(d=>d.classList.remove('on'));$('blm').innerHTML='Press ▶ Play or Space';p.textContent='▶ Play';chordPreview();logStop()}
 function fillNow(){if(!playing){start().then(()=>{forceBar=0});return}if(isCount){forceBar=0;return}const n=steps(),fl=fillBeats()*sub;
@@ -1016,6 +1048,7 @@ function decodeCode(txt){const m2=txt.trim().replace(/\s+/g,'').match(/DM2\.([A-
  const rv={};ROWS.forEach(([k])=>rv[k]=o.r&&o.r[k]!=null?o.r[k]:1);return {pk:o.pk,c:o.c,bpm:o.bpm,grid:grd,rowVol:rv,seed:o.seed}}
 // ===== controls =====
 document.addEventListener('change',save);document.addEventListener('input',save);
+$('xbtn').onclick=exportMp3;
 p.onclick=async()=>{if(playing){stop();return}p.disabled=true;p.textContent='Loading sounds…';try{await start()}catch(e){p.textContent='▶ Play';status('Audio could not start. Try again.');console.error(e)}finally{p.disabled=false}};
 s.oninput=e=>setBpm(+e.target.value);
 $('mv').oninput=e=>{$('mvt').textContent=e.target.value+'%';if(out)out.gain.setTargetAtTime(volG(e.target.value),ctx.currentTime,0.02)};
