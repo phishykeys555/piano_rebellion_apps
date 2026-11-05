@@ -1,0 +1,210 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Key Finder · Clarendon Hills Music Academy</title>
+<meta name="description" content="Key Finder: learn every key on the piano by sight. No sheet music, just the keyboard. Built by Clarendon Hills Music Academy.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;600;800&family=JetBrains+Mono:wght@500;700&display=swap">
+<style>
+/* One practice card: score strip, prompt, keyboard, answer pad. Results sheet over the card when a sprint ends. */
+:root{
+  --bg:#eef1f5; --panel:#ffffff; --ink:#16181d; --muted:#5d6472;
+  --accent:#2457d6; --accent-ink:#ffffff; --accent-soft:#e3eafc; --good:#1f8a4c; --bad:#c2352b; --glow:#ffb020;
+  --key-w:#ffffff; --key-b:#1b1d22; --border:#d6dbe3;
+  --display:"Archivo","Helvetica Neue",Arial,sans-serif; --mono:"JetBrains Mono",ui-monospace,Menlo,monospace;
+}
+@media (prefers-color-scheme: dark){ :root:not([data-theme="light"]){
+  --bg:#101318; --panel:#181c23; --ink:#eef0f4; --muted:#9aa3b2;
+  --accent:#6e95ff; --accent-ink:#0b1020; --accent-soft:#1f2a45; --good:#45c07a; --bad:#ff6b5e;
+  --key-w:#f4f2ea; --key-b:#0b0d10; --border:#2b313c; color-scheme:dark } }
+:root[data-theme="dark"]{
+  --bg:#101318; --panel:#181c23; --ink:#eef0f4; --muted:#9aa3b2;
+  --accent:#6e95ff; --accent-ink:#0b1020; --accent-soft:#1f2a45; --good:#45c07a; --bad:#ff6b5e;
+  --key-w:#f4f2ea; --key-b:#0b0d10; --border:#2b313c; color-scheme:dark }
+*{box-sizing:border-box} [hidden]{display:none!important}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--display);font-size:15px;
+  padding:20px max(16px,env(safe-area-inset-right,0px)) 20px max(16px,env(safe-area-inset-left,0px))}
+.wrap{max-width:900px;margin:0 auto;display:flex;flex-direction:column;gap:14px}
+h1{font-weight:800;font-size:30px;letter-spacing:-.02em;margin:0} h1 em{font-style:normal;color:var(--accent)}
+.byline{font-weight:600;margin:2px 0 0} .byline a{color:inherit} .sub{color:var(--muted);font-size:13px;margin:4px 0 0}
+.row{display:flex;gap:8px;flex-wrap:wrap}
+.pick button,.seg button,.btn{font:inherit;font-weight:600;border:1px solid var(--border);background:var(--panel);color:var(--ink);border-radius:12px;padding:10px 14px;cursor:pointer;min-height:44px}
+.pick button{flex:1;min-width:120px;display:flex;flex-direction:column;align-items:center;gap:2px}
+.pick button b{font-family:var(--mono);font-size:15px} .pick button span{font-size:12px;color:var(--muted);font-weight:400}
+.pick button[aria-pressed="true"],.seg button[aria-pressed="true"]{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+.pick button[aria-pressed="true"] span{color:var(--accent-ink)}
+.seg{display:flex;gap:8px} .seg button{flex:1}
+.card{position:relative;background:var(--panel);border:1px solid var(--border);border-radius:18px;padding:16px;display:flex;flex-direction:column;gap:14px}
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+.stats b{font-family:var(--mono);font-size:22px;display:block} .stats span{font-size:11px;letter-spacing:.12em;color:var(--muted);text-transform:uppercase}
+.clock{display:flex;align-items:center;gap:10px;font-family:var(--mono)} .bar{flex:1;height:8px;background:var(--accent-soft);border-radius:8px;overflow:hidden} .bar i{display:block;height:100%;background:var(--accent);width:100%}
+.prompt{text-align:center;font-size:20px;font-weight:600;min-height:56px;display:flex;align-items:center;justify-content:center;gap:10px}
+.prompt .big{font-family:var(--mono);font-size:40px;font-weight:700;color:var(--accent)}
+.fb{text-align:center;min-height:22px;font-size:14px;color:var(--muted)} .fb.good{color:var(--good)} .fb.bad{color:var(--bad)}
+.pianoScroll{overflow-x:auto;-webkit-overflow-scrolling:touch;border-radius:10px}
+.piano{position:relative;height:170px;display:flex;user-select:none;-webkit-user-select:none;touch-action:manipulation}
+.piano .w{flex:1;min-width:0;background:var(--key-w);border:1px solid #9aa0aa;border-radius:0 0 8px 8px;margin-right:-1px;padding:0 0 8px;display:flex;align-items:flex-end;justify-content:center;font-family:var(--mono);font-size:10px;color:#8a909b;cursor:pointer}
+.piano .w.mc{color:var(--accent);font-weight:700;font-size:9px;line-height:1.1;text-align:center}
+.piano .b{position:absolute;top:0;height:60%;background:var(--key-b);border:1px solid #000;border-radius:0 0 6px 6px;z-index:2;padding:0;cursor:pointer}
+.piano button.glow{background:var(--glow)!important;box-shadow:0 0 0 3px color-mix(in srgb,var(--glow) 45%,transparent) inset}
+.piano button.hit,.piano button.show{background:var(--good)!important;color:#fff}
+.piano button.miss{background:var(--bad)!important;color:#fff}
+.pad{display:grid;grid-template-columns:repeat(7,1fr);gap:8px}
+.pad button{font:inherit;font-family:var(--mono);font-weight:700;font-size:20px;min-height:52px;border-radius:12px;border:1px solid var(--border);background:var(--panel);color:var(--ink);cursor:pointer}
+.pad.blk{grid-template-columns:repeat(5,1fr)} .pad.blk button{font-size:15px;background:var(--key-b);color:#fff;border-color:#000}
+.pad button.hit{background:var(--good);color:#fff} .pad button.miss{background:var(--bad);color:#fff}
+.actions{display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap} .btn.primary{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+.tip{color:var(--muted);font-size:12px;text-align:center;margin:0}
+.results{position:absolute;inset:0;background:var(--panel);border-radius:18px;padding:22px;display:flex;flex-direction:column;gap:12px;z-index:5;overflow:auto}
+.results h2{margin:0} .results .score{font-family:var(--mono);font-size:44px;font-weight:700} .results .score small{font-size:14px;color:var(--muted)}
+.rgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px} .rgrid b{font-family:var(--mono);font-size:22px;display:block} .rgrid span{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.1em}
+.miss span{display:inline-block;margin:3px 6px 0 0;padding:4px 8px;border-radius:8px;background:var(--accent-soft);font-family:var(--mono);font-size:13px}
+.stamp{font-size:12px;color:var(--muted)}
+details{background:var(--panel);border:1px solid var(--border);border-radius:14px;padding:12px 14px} summary{font-weight:700;cursor:pointer}
+details label{display:flex;gap:8px;align-items:center;margin-top:10px}
+.appver{text-align:center;font-size:11px;opacity:.6;margin:6px 0 0;font-family:var(--mono)}
+@media (max-width:560px){ .stats b{font-size:18px} .pad button{font-size:17px;min-height:48px} .pick button{min-width:46%} }
+</style></head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>Key <em>Finder</em></h1>
+    <p class="byline">By <a href="https://clarendonhillsmusicacademy.com/" target="_blank" rel="noopener">Clarendon Hills Music Academy</a></p>
+    <p class="sub">No sheet music. Just the keys. Learn every key on the piano by sight.</p>
+  </header>
+
+  <div class="row pick" id="levels"></div>
+
+  <div class="seg" id="seg" role="group" aria-label="Game type">
+    <button data-mode="name">Name the key</button><button data-mode="find">Find the key</button>
+  </div>
+
+  <div class="card" id="card">
+    <div class="stats">
+      <div><b id="sPts">0</b><span>Points</span></div><div><b id="sPct">–</b><span>Accuracy</span></div>
+      <div><b id="sStreak">0</b><span>Streak</span></div><div><b id="sBest">0</b><span>Best</span></div>
+    </div>
+    <div class="clock" id="clock" hidden><b id="tLeft">60</b><div class="bar"><i id="tFill"></i></div></div>
+    <div class="prompt" id="prompt"></div>
+    <div class="pianoScroll" id="pianoScroll"><div class="piano" id="piano"></div></div>
+    <div class="fb" id="fb"></div>
+    <div id="padWrap"><div class="pad" id="padW"></div><div class="pad blk" id="padB" style="margin-top:8px"></div></div>
+    <div class="actions"><button class="btn" id="resetBtn">Reset score</button><button class="btn primary" id="sprintBtn">Start 60-second sprint</button></div>
+    <p class="tip">Practice: take your time, try again if you miss. 60-second sprint: one try per key, no second chances.</p>
+
+    <div class="results" id="results" hidden>
+      <h2 id="rTitle">Sprint complete</h2>
+      <div class="score" id="rScore"></div>
+      <div class="rgrid"><div><b id="rPct">0%</b><span>Accuracy</span></div><div><b id="rTotal">0</b><span>Keys</span></div><div><b id="rBest">0</b><span>Best streak</span></div></div>
+      <div><b>Missed most</b><div class="miss" id="rMiss"></div></div>
+      <div class="stamp" id="rStamp"></div>
+      <div class="actions"><button class="btn" id="closeBtn">Back to practice</button><button class="btn primary" id="againBtn">Sprint again</button></div>
+    </div>
+  </div>
+
+  <details><summary>Settings</summary>
+    <label><input type="checkbox" id="soundOn" checked> Play the key's sound</label>
+    <label><input type="checkbox" id="labelsOn"> Show letter names on every white key (easier)</label>
+    <label><input type="checkbox" id="flatsOn"> Call black keys by their flat name (D♭) in Find the key</label>
+  </details>
+  <p class="appver" id="appVer">Key Finder · Version 2026-11-05.1</p>
+</div>
+
+<script>
+(()=>{
+  const $=id=>document.getElementById(id);
+  const store={get(k,d){try{const v=localStorage.getItem("kf-"+k);return v==null?d:JSON.parse(v)}catch(e){return d}},set(k,v){try{localStorage.setItem("kf-"+k,JSON.stringify(v))}catch(e){}}};
+  // pitch classes: name for answer checking, sharp/flat spellings for black keys
+  const PCN=["C","C♯","D","D♯","E","F","F♯","G","G♯","A","A♯","B"], FLAT={1:"D♭",3:"E♭",6:"G♭",8:"A♭",10:"B♭"}, BLACK=[1,3,6,8,10];
+  const both=pc=>BLACK.includes(pc)?`${PCN[pc]} / ${FLAT[pc]}`:PCN[pc];
+  // levels: which keys can be asked (MIDI), and which keys are drawn
+  const LEVELS=[
+    {id:"1",name:"White keys",sub:"Middle C octave",lo:60,hi:71,ask:m=>!BLACK.includes(m%12)},
+    {id:"2",name:"White keys",sub:"Two octaves",lo:48,hi:71,ask:m=>!BLACK.includes(m%12)},
+    {id:"3",name:"Black keys",sub:"Sharps & flats",lo:48,hi:71,ask:m=>BLACK.includes(m%12)},
+    {id:"4",name:"Every key",sub:"Two octaves",lo:48,hi:71,ask:()=>true},
+    {id:"5",name:"Every key",sub:"Four octaves",lo:36,hi:83,ask:()=>true}];
+  let level=store.get("level","1"), mode=store.get("mode","name");
+  let st, q=null, locked=false, timer=null, tLeft=60, sprint=false, lastM=null;
+  const L=()=>LEVELS.find(x=>x.id===level)||LEVELS[0];
+
+  // ---------- sound: short piano-like tone ----------
+  let ac=null;
+  function tone(m){ if(!$("soundOn").checked) return; try{ ac=ac||new (window.AudioContext||window.webkitAudioContext)(); if(ac.state==="suspended") ac.resume();
+    const f=440*Math.pow(2,(m-69)/12), t=ac.currentTime, g=ac.createGain(); g.gain.setValueAtTime(0.0001,t); g.gain.exponentialRampToValueAtTime(0.35,t+0.01); g.gain.exponentialRampToValueAtTime(0.0001,t+1.2); g.connect(ac.destination);
+    [[1,1],[2,0.4],[3,0.15]].forEach(([h,a])=>{const o=ac.createOscillator(),og=ac.createGain(); o.type="sine"; o.frequency.value=f*h; og.gain.value=a; o.connect(og); og.connect(g); o.start(t); o.stop(t+1.25)}) }catch(e){} }
+  function chime(){ if(!$("soundOn").checked) return; [72,76,79,84].forEach((m,i)=>setTimeout(()=>tone(m),i*90)) }
+
+  // ---------- keyboard: fills the width at finger size (44px+ per white key), whole black-key groups ----------
+  function buildPiano(){ const lv=L(), el=$("piano"); el.innerHTML="";
+    const whites=[]; for(let m=lv.lo;m<=lv.hi;m++) if(!BLACK.includes(m%12)) whites.push(m);
+    const n=whites.length, w=100/n; el.style.minWidth=(n*44)+"px";
+    whites.forEach((m,i)=>{ const b=document.createElement("button"); b.className="w"+(m===60?" mc":""); b.dataset.midi=m; b.setAttribute("aria-label",PCN[m%12]+(Math.floor(m/12)-1));
+      if(m===60) b.textContent="Middle C"; else if($("labelsOn").checked) b.textContent=PCN[m%12]; else if(m%12===0) b.textContent="C"+(Math.floor(m/12)-1);
+      b.addEventListener("click",()=>keyTap(m,b)); el.appendChild(b);
+      if(BLACK.includes((m+1)%12)&&m+1<=lv.hi){ const k=document.createElement("button"); k.className="b"; k.dataset.midi=m+1; k.style.width=(w*0.6)+"%"; k.style.left=((i+1)*w-w*0.3)+"%";
+        k.setAttribute("aria-label",both((m+1)%12)); k.addEventListener("click",()=>keyTap(m+1,k)); el.appendChild(k) } });
+    requestAnimationFrame(()=>{ const sc=$("pianoScroll"), mc=el.querySelector(".mc"); if(mc) sc.scrollLeft=mc.offsetLeft-sc.clientWidth/2+mc.offsetWidth/2 }) }
+  const keyEl=m=>$("piano").querySelector(`[data-midi="${m}"]`);
+  function clearKeys(){ $("piano").querySelectorAll("button").forEach(b=>b.classList.remove("glow","hit","miss","show")); document.querySelectorAll(".pad button").forEach(b=>b.classList.remove("hit","miss")) }
+
+  // ---------- answer pad (Name the key) ----------
+  function buildPad(){ const lv=L(), pw=$("padW"), pb=$("padB"); pw.innerHTML=""; pb.innerHTML="";
+    const asksW=[0,2,4,5,7,9,11].some(pc=>lv.ask(60+pc)), asksB=BLACK.some(pc=>lv.ask(60+pc));
+    ["C","D","E","F","G","A","B"].forEach(n=>{ const b=document.createElement("button"); b.textContent=n; b.dataset.pc=PCN.indexOf(n); b.addEventListener("click",()=>padTap(+b.dataset.pc,b)); pw.appendChild(b) });
+    BLACK.forEach(pc=>{ const b=document.createElement("button"); b.textContent=both(pc); b.dataset.pc=pc; b.addEventListener("click",()=>padTap(pc,b)); pb.appendChild(b) });
+    pw.hidden=!asksW&&false; pb.hidden=!asksB; $("padWrap").hidden=mode!=="name" }
+
+  // ---------- questions ----------
+  function pool(){ const lv=L(), a=[]; for(let m=lv.lo;m<=lv.hi;m++) if(lv.ask(m)) a.push(m); return a }
+  function newQ(){ clearKeys(); $("fb").textContent=""; $("fb").className="fb"; const p=pool(); let m, t=0; do{ m=p[Math.floor(Math.random()*p.length)] }while(p.length>1&&m===lastM&&t++<20); lastM=m;
+    q={m,tried:false}; locked=false;
+    if(mode==="name"){ $("prompt").innerHTML="What key is glowing?"; keyEl(m).classList.add("glow") }
+    else { const pc=m%12, nm=BLACK.includes(pc)?($("flatsOn").checked?FLAT[pc]:PCN[pc]):PCN[pc]; $("prompt").innerHTML=`Find <span class="big">${nm}</span>` } }
+  function grade(ok,btn,answerLabel){ if(!q||locked) return; const pc=q.m%12;
+    if(ok){ if(!q.tried||!sprint){ if(!q.tried){ st.pts++; st.streak++; st.best=Math.max(st.best,st.streak) } } st.correct+=q.tried?0:1; if(!q.tried) st.total++;
+      btn&&btn.classList.add("hit"); keyEl(q.m).classList.remove("glow"); keyEl(q.m).classList.add("hit"); $("fb").textContent=q.tried?`There it is: ${both(pc)}.`:`Yes! ${both(pc)}.`; $("fb").className="fb good"; locked=true; render(); setTimeout(newQ,sprint?350:700); return }
+    // wrong
+    btn&&btn.classList.add("miss"); if(!q.tried){ st.total++; st.streak=0; st.miss[both(pc)]=(st.miss[both(pc)]||0)+1 } q.tried=true; render();
+    if(sprint){ keyEl(q.m).classList.remove("glow"); keyEl(q.m).classList.add("show"); $("fb").textContent=`That was ${answerLabel}. This one is ${both(pc)}.`; $("fb").className="fb bad"; locked=true; setTimeout(newQ,900) }
+    else { $("fb").textContent=`Not ${answerLabel}. Try again.`; $("fb").className="fb bad"; setTimeout(()=>btn&&btn.classList.remove("miss"),500) } }
+  function padTap(pc,btn){ if(mode!=="name"||!q||locked) return; grade(pc===q.m%12,btn,both(pc)) }
+  function keyTap(m,btn){ tone(m); if(mode!=="find"||!q||locked) return; grade(m%12===q.m%12,btn,both(m%12)) }
+
+  // ---------- score + sprint ----------
+  function resetScore(){ st={pts:0,correct:0,total:0,streak:0,best:0,miss:{}}; render() }
+  function render(){ $("sPts").textContent=st.pts; $("sPct").textContent=st.total?Math.min(100,Math.round(100*st.correct/st.total))+"%":"–"; $("sStreak").textContent=st.streak; $("sBest").textContent=st.best }
+  function startSprint(){ resetScore(); sprint=true; tLeft=60; $("clock").hidden=false; $("tLeft").textContent=60; $("tFill").style.width="100%"; $("sprintBtn").textContent="Stop"; $("results").hidden=true; newQ();
+    timer=setInterval(()=>{ tLeft--; $("tLeft").textContent=tLeft; $("tFill").style.width=(100*tLeft/60)+"%"; if(tLeft<=0) endSprint() },1000) }
+  function stopSprint(){ clearInterval(timer); timer=null; sprint=false; $("clock").hidden=true; $("sprintBtn").textContent="Start 60-second sprint" }
+  function endSprint(){ stopSprint(); locked=true; const pct=st.total?Math.min(100,Math.round(100*st.correct/st.total)):0;
+    $("rScore").innerHTML=`${st.pts} <small>keys in 60 s</small>`; $("rPct").textContent=pct+"%"; $("rTotal").textContent=st.total; $("rBest").textContent=st.best;
+    const miss=Object.entries(st.miss).sort((a,b)=>b[1]-a[1]).slice(0,5); $("rMiss").innerHTML=miss.length?miss.map(([k,v])=>`<span>${k} ×${v}</span>`).join(""):"<span>None. Clean run.</span>";
+    const d=new Date(), lv=L(), key="best-"+level+"-"+mode, hi=Math.max(store.get(key,0),st.pts); store.set(key,hi);
+    $("rStamp").textContent=`Key Finder · Level ${lv.id} · ${lv.name} (${lv.sub}) · ${mode==="name"?"Name the key":"Find the key"} · High score ${hi} · ${d.toLocaleDateString(undefined,{weekday:"short",month:"short",day:"numeric"})} ${d.toLocaleTimeString([],{hour:"numeric",minute:"2-digit"})}`;
+    $("results").hidden=false; if(pct>=90&&st.total>=5) fireworks() }
+
+  // ---------- fireworks for 90%+ (skipped for reduced motion) ----------
+  function fireworks(){ chime(); if(window.matchMedia&&matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    const c=document.createElement("canvas"); c.style.cssText="position:fixed;inset:0;width:100vw;height:100vh;pointer-events:none;z-index:9999"; document.body.appendChild(c);
+    const dpr=Math.min(2,devicePixelRatio||1), W=c.width=innerWidth*dpr, H=c.height=innerHeight*dpr, g=c.getContext("2d"), P=[], cols=["#ff4d6d","#ffd23f","#3ddc97","#4d9bff","#c77dff","#ff8a1f","#ffffff"]; const t0=performance.now(); let next=0;
+    const burst=(x,y)=>{const col=cols[Math.floor(Math.random()*cols.length)],n=60+Math.floor(Math.random()*30); for(let i=0;i<n;i++){const a=Math.PI*2*i/n,v=(2+Math.random()*3.5)*dpr; P.push({x,y,vx:Math.cos(a)*v,vy:Math.sin(a)*v,life:1,col})}};
+    (function fr(now){ const el=now-t0; if(el<2600&&now>=next){ burst(W*(0.15+Math.random()*0.7),H*(0.12+Math.random()*0.38)); next=now+260+Math.random()*220 }
+      g.clearRect(0,0,W,H); for(const p of P){ p.vy+=0.06*dpr; p.vx*=0.985; p.vy*=0.985; p.x+=p.vx; p.y+=p.vy; p.life-=0.012; if(p.life>0){ g.globalAlpha=p.life; g.fillStyle=p.col; g.beginPath(); g.arc(p.x,p.y,2.4*dpr,0,7); g.fill() } }
+      for(let i=P.length-1;i>=0;i--) if(P[i].life<=0) P.splice(i,1); if(el<2600||P.length) requestAnimationFrame(fr); else c.remove() })(t0) }
+
+  // ---------- wiring ----------
+  LEVELS.forEach(lv=>{ const b=document.createElement("button"); b.innerHTML=`<b>L${lv.id}</b>${lv.name}<span>${lv.sub}</span>`; b.dataset.id=lv.id; b.addEventListener("click",()=>{ level=lv.id; store.set("level",level); setup() }); $("levels").appendChild(b) });
+  document.querySelectorAll("#seg button").forEach(b=>b.addEventListener("click",()=>{ mode=b.dataset.mode; store.set("mode",mode); setup() }));
+  ["soundOn","labelsOn","flatsOn"].forEach(id=>{ $(id).checked=store.get(id,$(id).checked); $(id).addEventListener("change",()=>{ store.set(id,$(id).checked); setup() }) });
+  $("resetBtn").addEventListener("click",()=>{ stopSprint(); resetScore(); newQ() });
+  $("sprintBtn").addEventListener("click",()=>{ if(timer){ stopSprint(); newQ() } else startSprint() });
+  $("againBtn").addEventListener("click",startSprint); $("closeBtn").addEventListener("click",()=>{ $("results").hidden=true; resetScore(); newQ() });
+  document.addEventListener("keydown",e=>{ if(mode!=="name"||e.target.tagName==="INPUT") return; const k=e.key.toUpperCase(); const i=["C","D","E","F","G","A","B"].indexOf(k); if(i<0) return;
+    let pc=[0,2,4,5,7,9,11][i]; if(e.shiftKey) pc=(pc+1)%12; const btn=document.querySelector(`.pad button[data-pc="${pc}"]`); padTap(pc,btn) });
+  window.addEventListener("resize",()=>{ const m=q&&q.m; buildPiano(); if(m!=null&&mode==="name"&&!locked) keyEl(m).classList.add("glow") });
+  function setup(){ stopSprint(); $("results").hidden=true; document.querySelectorAll("#levels button").forEach(b=>b.setAttribute("aria-pressed",String(b.dataset.id===level)));
+    document.querySelectorAll("#seg button").forEach(b=>b.setAttribute("aria-pressed",String(b.dataset.mode===mode))); buildPiano(); buildPad(); resetScore(); newQ() }
+  setup();
+})();
+</script>
+</body></html>
