@@ -1,0 +1,55 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Major 7th Play-Along · Clarendon Hills Music Academy</title>
+<meta name="description" content="Major 7th inversions around the circle of 5ths: play-along tracks with a speed control that keeps the pitch.">
+<style>
+:root{--bg:#191919;--card:#232323;--line:#3a3a3a;--text:#f0efed;--mut:#a5a29c;--acc:#ff5a3c;--acc2:#ffb020}
+@media (prefers-color-scheme:light){:root{--bg:#ffffff;--card:#f7f6f3;--line:#d9d7d2;--text:#2c2c2b;--mut:#6b6964;--acc:#d9411e;--acc2:#b77700}}
+*{box-sizing:border-box}body{margin:0;padding:16px;background:var(--bg);color:var(--text);font:16px/1.45 system-ui,-apple-system,Segoe UI,sans-serif}
+main{max-width:640px;margin:0 auto}.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px}
+h1{font-size:19px;margin:0 0 2px;letter-spacing:.02em}.by{font-size:13px;color:var(--mut);margin:0 0 14px}.by a{color:inherit}
+.tracks{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:14px}
+.tracks button{min-height:52px;border-radius:10px;border:1px solid var(--line);background:transparent;color:var(--text);font:600 15px system-ui;cursor:pointer}
+.tracks button small{display:block;font-weight:400;font-size:11px;color:var(--mut)}
+.tracks button.on{border-color:var(--acc);background:color-mix(in srgb,var(--acc) 16%,transparent)}
+.transport{display:flex;align-items:center;gap:12px;margin-bottom:10px}
+#play{width:58px;height:58px;border-radius:50%;border:0;background:var(--acc);color:#fff;font-size:22px;cursor:pointer;flex:none}
+.time{flex:1}.time input{width:100%;accent-color:var(--acc)}.time div{display:flex;justify-content:space-between;font-size:12px;color:var(--mut)}
+.bpm{text-align:center;margin:8px 0 2px}.bpm b{font:700 34px ui-monospace,Menlo,monospace;color:var(--acc2)}.bpm span{font-size:13px;color:var(--mut)}
+.speed{display:flex;align-items:center;gap:8px}.speed input{flex:1;accent-color:var(--acc);height:40px}
+.speed button,.row button{min-width:44px;min-height:40px;border-radius:8px;border:1px solid var(--line);background:transparent;color:var(--text);font:600 14px system-ui;cursor:pointer}
+.row{display:flex;justify-content:space-between;align-items:center;margin-top:10px;gap:8px;flex-wrap:wrap}
+label{display:flex;align-items:center;gap:6px;font-size:14px;min-height:40px}input[type=checkbox]{width:20px;height:20px;accent-color:var(--acc)}
+.steps{font-size:13px;color:var(--mut);margin:12px 0 0;padding-left:18px}
+</style></head><body><main><div class="card">
+<h1>MAJOR 7TH INVERSIONS · CIRCLE OF 5THS</h1>
+<p class="by">Play-along tracks · <a href="https://clarendonhillsmusicacademy.com" target="_blank" rel="noopener">Clarendon Hills Music Academy</a></p>
+<div class="tracks" id="tracks"></div>
+<div class="transport"><button id="play" aria-label="Play">▶</button>
+<div class="time"><input id="seek" type="range" min="0" max="1000" value="0" aria-label="Position"><div><span id="cur">0:00</span><span id="dur">0:00</span></div></div></div>
+<div class="bpm"><b id="bpm">60</b> <span>BPM · <span id="sp">1.00×</span> speed, same pitch</span></div>
+<div class="speed"><button id="dn">−</button><input id="speed" type="range" min="50" max="150" step="5" value="100" aria-label="Speed"><button id="up">+</button></div>
+<div class="row"><label><input type="checkbox" id="loop" checked> Loop</label><button id="back">↺ 10 s</button><button id="reset">1.00×</button></div>
+<ol class="steps"><li>Ascending: one inversion per measure.</li><li>Ascending and descending: split the measure, two inversions each.</li><li>Bonus: add the block-and-fill pattern.</li></ol>
+</div></main>
+<audio id="a" preload="metadata"></audio>
+<script>
+const T=[{b:60,f:'audio/major7-circle-60.mp3'},{b:70,f:'audio/major7-circle-70.mp3'},{b:90,f:'audio/major7-circle-90.mp3'}];
+const $=i=>document.getElementById(i),a=$('a');let cur=0;
+a.preservesPitch=true;a.mozPreservesPitch=true;a.webkitPreservesPitch=true;
+const fmt=s=>isFinite(s)?Math.floor(s/60)+':'+String(Math.floor(s%60)).padStart(2,'0'):'0:00';
+function rate(){return +$('speed').value/100}
+function show(){$('sp').textContent=rate().toFixed(2)+'×';$('bpm').textContent=Math.round(T[cur].b*rate())}
+function pick(i,auto){cur=i;[...$('tracks').children].forEach((b,j)=>b.classList.toggle('on',j===i));const was=!a.paused||auto;a.src=T[i].f;a.load();a.playbackRate=rate();show();if(was)a.play()}
+T.forEach((t,i)=>{const b=document.createElement('button');b.innerHTML=t.b+' BPM<small>track '+(i+1)+'</small>';b.onclick=()=>pick(i);$('tracks').appendChild(b)});
+$('play').onclick=()=>{if(a.paused)a.play();else a.pause()};
+a.onplay=()=>{$('play').textContent='❚❚'};a.onpause=()=>{$('play').textContent='▶'};
+a.onloadedmetadata=()=>{$('dur').textContent=fmt(a.duration);a.playbackRate=rate()};
+a.ontimeupdate=()=>{$('cur').textContent=fmt(a.currentTime);if(a.duration)$('seek').value=Math.round(1000*a.currentTime/a.duration)};
+a.onended=()=>{if($('loop').checked){a.currentTime=0;a.play()}};
+$('seek').oninput=e=>{if(a.duration)a.currentTime=a.duration*e.target.value/1000};
+const setR=v=>{$('speed').value=Math.max(50,Math.min(150,v));a.playbackRate=rate();a.preservesPitch=true;show()};
+$('speed').oninput=()=>setR(+$('speed').value);$('dn').onclick=()=>setR(+$('speed').value-5);$('up').onclick=()=>setR(+$('speed').value+5);
+$('reset').onclick=()=>setR(100);$('back').onclick=()=>{a.currentTime=Math.max(0,a.currentTime-10)};
+pick(0);
+</script></body></html>
