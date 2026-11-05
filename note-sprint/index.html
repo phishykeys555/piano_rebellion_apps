@@ -657,7 +657,7 @@ summary{cursor:pointer;padding:12px 16px;font-weight:600}
   document.querySelectorAll("#seg button").forEach(b=>b.addEventListener("click",()=>{setRadio("mode",b.dataset.mode);store.set("mode",b.dataset.mode);layout();newQuestion(true)}));
 
   const half=x=>Number.isInteger(x)?String(x):(Math.floor(x)||"")+"½";
-  function render(){ if(arc) arcBar(); $("sCorrect").textContent=arc?`${half(st.points)}`:`${half(st.points)}/${st.total}`; $("sPct").textContent=st.total?Math.round(100*(arc?st.correct:st.points)/st.total)+"%":"–"; $("sStreak").textContent=st.streak; $("sBest").textContent=st.best }
+  function render(){ if(arc) arcBar(); $("sCorrect").textContent=arc?`${half(st.points)}`:`${half(st.points)}/${st.total}`; $("sPct").textContent=st.total?Math.min(100,Math.round(100*(arc?st.correct:st.points)/st.total))+"%":"–"; $("sStreak").textContent=st.streak; $("sBest").textContent=st.best }
   function resetScore(){ stopTimer(); st={correct:0,points:0,total:0,streak:0,best:0,misses:{}}; render() }
   $("resetBtn").addEventListener("click",()=>{resetScore();newQuestion(true)});
 
@@ -669,7 +669,7 @@ summary{cursor:pointer;padding:12px 16px;font-weight:600}
     $("ring").style.strokeDashoffset=String(326.7*(1-t/timeMax)); $("watch").classList.toggle("hot",t<=10) }
   function endSprint(){ clearInterval(timer); timer=null; sprintOver=true; locked=true; $("startTimed").textContent="Start 60-second sprint";
     $("rTitle").textContent="Sprint complete"; $("rWhy").textContent=""; $("retryRound").hidden=true; $("againBtn").textContent="Sprint again"; $("rScore").innerHTML=`${half(st.points)} <small>points in 60 s</small>`;
-    $("rPct").textContent=(st.total?Math.round(100*st.points/st.total):0)+"%"; $("rTotal").textContent=st.total; $("rBest").textContent=st.best;
+    $("rPct").textContent=(st.total?Math.min(100,Math.round(100*st.points/st.total)):0)+"%"; $("rTotal").textContent=st.total; $("rBest").textContent=st.best;
     const miss=Object.entries(st.misses).sort((a,b)=>b[1]-a[1]).slice(0,5);
     $("rMiss").innerHTML=miss.length?miss.map(([k,v])=>`<span>${k} ×${v}</span>`).join(""):"<span>None. Clean run.</span>";
     const L=LEVELS.find(x=>x.id===level); const d=new Date();
@@ -726,7 +726,7 @@ summary{cursor:pointer;padding:12px 16px;font-weight:600}
     $("rWhy").textContent=won?"All 5 rounds cleared, plus the bonus round.":`Round ${failedRound} target was ${half(need)}. You had ${half(st.points)}. Hit the target before the 30 seconds run out to unlock Round ${failedRound+1}.`;
     arcRetryRound=won?0:failedRound; $("retryRound").hidden=won; $("retryRound").textContent=`Retry round ${failedRound}`;
     $("rScore").innerHTML=`${half(st.points)} <small>points · ${reached}${isNew?" · new high score":""}</small>`;
-    $("rPct").textContent=(st.total?Math.round(100*st.correct/st.total):0)+"%"; $("rTotal").textContent=st.total; $("rBest").textContent=st.best;
+    $("rPct").textContent=(st.total?Math.min(100,Math.round(100*st.correct/st.total)):0)+"%"; $("rTotal").textContent=st.total; $("rBest").textContent=st.best;
     const miss=Object.entries(st.misses).sort((a,b)=>b[1]-a[1]).slice(0,5);
     $("rMiss").innerHTML=miss.length?miss.map(([k,v])=>`<span>${k} ×${v}</span>`).join(""):"<span>None. Clean run.</span>";
     const L=LEVELS.find(x=>x.id===level); const d=new Date();
