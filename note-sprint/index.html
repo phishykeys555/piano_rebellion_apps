@@ -139,7 +139,25 @@ summary{cursor:pointer;padding:12px 16px;font-weight:600}
 .staffbox.hitglow{box-shadow:0 0 0 3px var(--good),0 0 24px color-mix(in srgb,var(--good) 60%,transparent)}
 .arcbar .fire{border-color:#ff8a1f;color:#ff8a1f;animation:pulse 1s ease-in-out infinite}
 .watch.fire .ring{stroke:#ff8a1f} .watch.fire .num{color:#ff8a1f}
-.arcsplash{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;background:var(--panel);border-radius:14px;z-index:4;text-align:center;padding:20px}
+.arcsplash{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;background:radial-gradient(circle at 50% 45%,color-mix(in srgb,var(--accent) 30%,var(--panel)) 0%,var(--panel) 70%);border-radius:14px;z-index:4;text-align:center;padding:20px;overflow:hidden}
+.arcsplash .pre{font-family:var(--mono);font-size:13px;letter-spacing:.14em;color:var(--good);font-weight:700;min-height:16px}
+.arcsplash.go .pre{animation:fadeup .35s .05s both}
+.arcsplash.go b{animation:swoop .75s .25s cubic-bezier(.2,1.4,.3,1) both}
+.arcsplash.go span{animation:fadeup .4s .75s both}
+.arcsplash .boom{position:absolute;left:50%;top:46%;width:24px;height:24px;margin:-12px;border-radius:50%;border:5px solid var(--accent);opacity:0;pointer-events:none}
+.arcsplash.go .boom{animation:boom .85s .2s ease-out}
+.arcsplash .pc{position:absolute;left:50%;top:46%;width:8px;height:14px;border-radius:2px;opacity:0;pointer-events:none}
+.arcsplash.go .pc{animation:pc 1.1s .22s cubic-bezier(.15,.8,.3,1) forwards}
+@keyframes swoop{0%{opacity:0;transform:translateX(130%) skewX(-28deg) scale(.6)}60%{opacity:1;transform:translateX(-6%) skewX(8deg) scale(1.1)}100%{opacity:1;transform:none}}
+@keyframes fadeup{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+@keyframes boom{0%{opacity:.95;transform:scale(.2)}100%{opacity:0;transform:scale(24)}}
+@keyframes pc{0%{opacity:1;transform:translate(0,0) rotate(0)}100%{opacity:0;transform:translate(var(--dx),var(--dy)) rotate(var(--r))}}
+.hitstamp{position:absolute;left:50%;top:40%;z-index:6;pointer-events:none;font-family:var(--display);font-weight:800;font-size:42px;line-height:1;color:#fff;background:var(--good);padding:12px 24px;border-radius:14px;box-shadow:0 10px 40px color-mix(in srgb,var(--good) 60%,transparent);letter-spacing:.03em;opacity:0;white-space:nowrap;transform:translate(-50%,-50%)}
+.hitstamp.go{animation:stamp 1.7s cubic-bezier(.2,1.5,.4,1) forwards}
+@keyframes stamp{0%{opacity:0;transform:translate(-50%,-50%) scale(2.8) rotate(-14deg)}16%{opacity:1;transform:translate(-50%,-50%) scale(1) rotate(-6deg)}75%{opacity:1;transform:translate(-50%,-50%) scale(1) rotate(-6deg)}100%{opacity:0;transform:translate(-50%,-50%) scale(.7) rotate(-6deg)}}
+.card.met{border-color:var(--good);box-shadow:0 0 0 2px var(--good),0 0 28px color-mix(in srgb,var(--good) 35%,transparent)}
+.arcbar .need.met{background:var(--good);color:#fff}
+@media (prefers-reduced-motion:reduce){.arcsplash.go *,.hitstamp.go{animation-duration:.01s!important;animation-delay:0s!important}}
 .arcsplash b{font-family:var(--display);font-weight:800;font-size:40px;line-height:1}
 .arcsplash span{font-size:15px;color:var(--muted)}
 .timerbar{height:10px;border-radius:3px;background:var(--border);overflow:hidden}
@@ -227,7 +245,7 @@ summary{cursor:pointer;padding:12px 16px;font-weight:600}
     </div>
     <p class="tip">Keyboard: A–G to answer. In a key with sharps or flats, tap ♯ or ♭ first (or press = / −). Piano keys must be the exact key, right octave.</p>
 
-    <div class="arcsplash" id="arcSplash" hidden><b id="arcSplashT">ROUND 2</b><span id="arcSplashS"></span></div>
+    <div class="arcsplash" id="arcSplash" hidden><div class="boom"></div><div id="arcPcs"></div><div class="pre" id="arcSplashP"></div><b id="arcSplashT">ROUND 2</b><span id="arcSplashS"></span></div><div class="hitstamp" id="hitStamp">TARGET HIT!</div>
     <div class="results" id="results" hidden>
       <h2 id="rTitle">Sprint complete</h2>
       <div class="big" id="rScore">0 <small>correct</small></div>
@@ -526,6 +544,10 @@ summary{cursor:pointer;padding:12px 16px;font-weight:600}
         o.connect(g).connect(out); o.start(t0); o.stop(t0+1.7)})});
   }catch(e){} }
 
+  function tone(f,t,d,v,type){ try{ audio=audio||new (window.AudioContext||window.webkitAudioContext)(); const o=audio.createOscillator(),g=audio.createGain(); o.type=type||"sine"; o.frequency.value=f; g.gain.setValueAtTime(0.0001,t); g.gain.exponentialRampToValueAtTime(v,t+0.01); g.gain.exponentialRampToValueAtTime(0.0001,t+d); o.connect(g).connect(audio.destination); o.start(t); o.stop(t+d+0.05) }catch(e){} }
+  function chime(){ if(!readSettings().sound) return; try{ audio=audio||new (window.AudioContext||window.webkitAudioContext)(); const t=audio.currentTime; [72,76,79,84].forEach((m,i)=>tone(440*Math.pow(2,(m-69)/12),t+i*0.07,0.5,0.14,"triangle")) }catch(e){} }
+  function whoosh(){ if(!readSettings().sound) return; try{ audio=audio||new (window.AudioContext||window.webkitAudioContext)(); const t=audio.currentTime+0.2, o=audio.createOscillator(), g=audio.createGain(); o.type="sawtooth"; o.frequency.setValueAtTime(180,t); o.frequency.exponentialRampToValueAtTime(900,t+0.45); g.gain.setValueAtTime(0.0001,t); g.gain.exponentialRampToValueAtTime(0.05,t+0.2); g.gain.exponentialRampToValueAtTime(0.0001,t+0.5); o.connect(g).connect(audio.destination); o.start(t); o.stop(t+0.55) }catch(e){} }
+
   // ---------- intervals ----------
   function answerIv(k){ if(!q||!q.iv||locked||q.wait)return; const ok=k===q.num, lo=q.notes[0], hi=q.notes[1];
     if(!ok&&!q.tried[0]&&!retryOK()){ st.misses[IVN[q.num]]=(st.misses[IVN[q.num]]||0)+1 }
@@ -635,7 +657,7 @@ summary{cursor:pointer;padding:12px 16px;font-weight:600}
   document.querySelectorAll("#seg button").forEach(b=>b.addEventListener("click",()=>{setRadio("mode",b.dataset.mode);store.set("mode",b.dataset.mode);layout();newQuestion(true)}));
 
   const half=x=>Number.isInteger(x)?String(x):(Math.floor(x)||"")+"½";
-  function render(){ if(arc) arcBar(); $("sCorrect").textContent=`${half(st.points)}/${st.total}`; $("sPct").textContent=st.total?Math.round(100*st.points/st.total)+"%":"–"; $("sStreak").textContent=st.streak; $("sBest").textContent=st.best }
+  function render(){ if(arc) arcBar(); $("sCorrect").textContent=arc?`${half(st.points)}`:`${half(st.points)}/${st.total}`; $("sPct").textContent=st.total?Math.round(100*(arc?st.correct:st.points)/st.total)+"%":"–"; $("sStreak").textContent=st.streak; $("sBest").textContent=st.best }
   function resetScore(){ stopTimer(); st={correct:0,points:0,total:0,streak:0,best:0,misses:{}}; render() }
   $("resetBtn").addEventListener("click",()=>{resetScore();newQuestion(true)});
 
@@ -664,32 +686,40 @@ summary{cursor:pointer;padding:12px 16px;font-weight:600}
   const mult=()=>arc&&(arc.bonus||timeLeft<=ARC_FIRE)?2:1;
   function arcFactor(){ const s=readSettings(), lv={"1":1,"2":1,"3":.6,"4":.55,"5":.6,"C":.8}[level]||.8, md=s.iv?1:{letters:1,piano:.85,mic:.65}[s.mode]||1; return lv*md }
   function arcNeeds(){ const f=arcFactor(); return ARC_BASE.map(x=>Math.max(1,Math.round(x*f))) }
-  function arcBar(){ if(!arc) return; const need=arc.bonus?null:arc.needs[arc.round-1];
+  function arcBar(){ if(!arc) return; if(arc.warm){ $("arcRound").textContent="ROUND 1 OF 5 · WARM-UP"; $("arcNeed").textContent=`SCORE ${half(st.points)}`; $("arcNeed").classList.remove("met");
+      const fire=timeLeft<=ARC_FIRE; $("arcFire").hidden=!fire; $("watch").classList.toggle("fire",fire); $("arcFill").style.width=(100*(ARC_T-timeLeft)/ARC_T)+"%"; $("arcMeter").classList.remove("hit"); return }
+    const need=arc.bonus?null:arc.needs[arc.round-1];
     $("arcRound").textContent=arc.bonus?"BONUS ROUND":`ROUND ${arc.round} OF 5`;
     $("arcNeed").textContent=arc.bonus?`SCORE ${half(st.points)}`:(st.points>=need?`✓ ${half(st.points)} / ${need}`:`${half(st.points)} / ${need}`); $("arcNeed").classList.toggle("met",!arc.bonus&&st.points>=need);
     const fire=arc.bonus||timeLeft<=ARC_FIRE; $("arcFire").hidden=!fire; $("watch").classList.toggle("fire",fire);
     // target meter: fills toward this round's running total; turns green with a flash the moment it's reached
     const m=$("arcMeter"), start=arc.bonus||arc.round===1?0:arc.needs[arc.round-2], pct=arc.bonus?100:Math.min(100,Math.max(0,(st.points-start)/(need-start)*100));
     $("arcFill").style.width=pct+"%"; const hit=!arc.bonus&&st.points>=need; $("arcHit").textContent=arc.bonus?"BONUS: EVERY POINT DOUBLE":"✓ TARGET HIT";
-    if(hit&&!arc.hit){ arc.hit=true; m.classList.remove("flash"); void m.offsetWidth; m.classList.add("flash"); $("staffbox").classList.add("hitglow"); setTimeout(()=>$("staffbox").classList.remove("hitglow"),900) }
+    if(hit&&!arc.hit){ arc.hit=true; m.classList.remove("flash"); void m.offsetWidth; m.classList.add("flash"); const hs=$("hitStamp"); hs.classList.remove("go"); void hs.offsetWidth; hs.classList.add("go"); chime(); $("card")&&$("card").classList.add("met"); $("staffbox").classList.add("hitglow"); setTimeout(()=>$("staffbox").classList.remove("hitglow"),900) }
     m.classList.toggle("hit",hit||arc.bonus) }
-  function arcSplash(t,sub,ms,then){ $("arcSplashT").textContent=t; $("arcSplashS").textContent=sub; $("arcSplash").hidden=false; locked=true;
+  function arcSplash(t,sub,ms,then,pre){ $("arcSplashT").textContent=t; $("arcSplashS").textContent=sub; $("arcSplashP").textContent=pre||""; const sp=$("arcSplash"); sp.hidden=false; locked=true; $("card")&&$("card").classList.remove("met");
+    const pcs=$("arcPcs"); pcs.innerHTML=""; const cols=["var(--accent)","var(--good)","#ff8a1f","#ffd23f"]; for(let i=0;i<22;i++){const a=Math.random()*Math.PI*2,d=110+Math.random()*170,e=document.createElement("i");e.className="pc";e.style.cssText=`background:${cols[i%4]};--dx:${Math.cos(a)*d}px;--dy:${Math.sin(a)*d}px;--r:${Math.random()*720-360}deg`;pcs.appendChild(e)}
+    sp.classList.remove("go"); void sp.offsetWidth; sp.classList.add("go"); whoosh();
     setTimeout(()=>{ $("arcSplash").hidden=true; if(arc) then() },ms) }
-  let arcRetryRound=0;
-  function arcRetry(){ const r=arcRetryRound||1; resetScore(); lastMode="arcade"; $("results").hidden=true; arc={round:r,bonus:false,needs:arcNeeds()}; st.points=r>1?arc.needs[r-2]:0;
+  let arcRetryRound=0, arcNeedsSaved=null;
+  function arcRetry(){ const r=arcRetryRound||1; if(r<2||!arcNeedsSaved) return arcStart(); resetScore(); lastMode="arcade"; $("results").hidden=true; arc={round:r,bonus:false,warm:false,needs:arcNeedsSaved.slice()}; st.points=arc.needs[r-2];
     $("arcbar").hidden=false; $("arcMeter").hidden=false; $("startTimed").textContent="Stop"; $("arcBtn").hidden=true; render();
     arcSplash(`ROUND ${r}`,`Running total to beat: ${arc.needs[r-1]}. You start at ${half(st.points)}.`,2000,arcRound) }
-  function arcStart(){ resetScore(); lastMode="arcade"; $("results").hidden=true; arc={round:1,bonus:false,needs:arcNeeds()};
+  function arcStart(){ resetScore(); lastMode="arcade"; $("results").hidden=true; arc={round:1,bonus:false,warm:true,needs:[]};
     $("arcbar").hidden=false; $("arcMeter").hidden=false; $("startTimed").textContent="Stop"; $("arcBtn").hidden=true;
-    arcSplash("ROUND 1",`Score ${arc.needs[0]} in 30 seconds. No second tries. Last 10 seconds = 2x points.`,2200,arcRound) }
+    arcSplash("ROUND 1","Warm-up: score as many as you can in 30 seconds. Your score sets your targets. Last 10 seconds = 2x points.",2600,arcRound,"CHALLENGE MODE") }
   function arcRound(){ timeMax=ARC_T; timeLeft=ARC_T; $("clockrow").hidden=false; showClock(); arcBar(); newQuestion(true);
     timer=setInterval(()=>{ timeLeft--; showClock(); arcBar(); if(timeLeft<=0) arcRoundEnd() },1000) }
   function arcRoundEnd(){ clearInterval(timer); timer=null; locked=true;
     if(arc.bonus) return arcFinish(true);
+    if(arc.warm){ // the warm-up sets the targets: each later round asks for a little more than this student's own first round
+      const B=Math.max(3,st.points); let cum=st.points; arc.needs=[st.points]; for(let r=2;r<=5;r++){ cum+=Math.max(2,Math.round(B*(1+0.08*(r-2)))); arc.needs.push(cum) }
+      arc.warm=false; arcNeedsSaved=arc.needs.slice(); arc.round=2; arc.hit=false; arcBar();
+      return arcSplash("ROUND 2",`Running total to beat: ${arc.needs[1]}. Match your warm-up: ${half(arc.needs[1]-arc.needs[0])} more points.`,2600,arcRound,`WARM-UP DONE · YOUR BASELINE ${half(st.points)}`) }
     const need=arc.needs[arc.round-1];
     if(st.points<need) return arcFinish(false,need);
-    if(arc.round===5){ arc.bonus=true; arc.hit=false; arcBar(); return arcSplash("BONUS ROUND","Every point counts double for 30 seconds. Go.",2000,arcRound) }
-    arc.round++; arc.hit=false; arcBar(); arcSplash(`ROUND ${arc.round}`,`Running total to beat: ${arc.needs[arc.round-1]}. Faster now.`,1800,arcRound) }
+    if(arc.round===5){ arc.bonus=true; arc.hit=false; arcBar(); return arcSplash("BONUS ROUND","Every point counts double for 30 seconds. Go.",2400,arcRound,"ROUND 5 CLEARED ✓") }
+    const cleared=arc.round; arc.round++; arc.hit=false; arcBar(); arcSplash(`ROUND ${arc.round}`,`Running total to beat: ${arc.needs[arc.round-1]}. That's ${half(arc.needs[arc.round-1]-st.points)} more points.`,2400,arcRound,`ROUND ${cleared} CLEARED ✓`) }
   function arcFinish(won,need){ const failedRound=won?0:arc.round; const reached=arc.bonus?"Bonus round":`Round ${arc.round}`, key="arcbest-"+level+"-"+readSettings().mode, best=Math.max(store.get(key,0),st.points), isNew=st.points>0&&st.points>=best;
     store.set(key,best); sprintOver=true; locked=true; arc=null; $("arcbar").hidden=true; $("arcMeter").hidden=true; $("watch").classList.remove("fire"); $("arcBtn").hidden=!$("chalOn").checked; $("startTimed").textContent="Start 60-second sprint";
     $("rTitle").textContent=won?"Challenge cleared!":"Challenge over"; $("againBtn").textContent="Play again";
