@@ -1094,7 +1094,7 @@ function save(){if(restoring)return;clearTimeout(saveT);saveT=setTimeout(()=>{tr
 // Song presets from the link: ?pk=1&pre=rock&bpm=80&key=C&md=aeolian&prog=custom&cprog=Am%20G&bon=1&bs=pedal&tr=1&trg=108 ...
 // key = the major PARENT key. Links without pk=1 are older: their key was the mode's own starting note and is converted.
 // Any control id works. Used only until the student changes something; ↺ Reset goes back to the link's settings.
-function applyParams(){const sp=new URLSearchParams(location.search);if(![...sp.keys()].length)return false;restoring=true;
+function applyParams(){const sp=new URLSearchParams(location.search);if(![...sp.keys()].length)return false;restoring=true;if(sp.get('bass')==='1'&&$('bon'))$('bon').checked=true;
  if(PROG2[sp.get('prog')])sp.set('prog',PROG2[sp.get('prog')]);if(!sp.get('pk')){const c={key:sp.get('key'),md:sp.get('md'),prog:sp.get('prog')};legacyKey(c);if(c.key)sp.set('key',c.key);if(c.prog)sp.set('prog',c.prog)}
  preset(sp.get('pre')&&P[sp.get('pre')]?sp.get('pre'):'rock');$('pre').value=curName;
  sp.forEach((val,k)=>{if(k==='pre'||k==='bpm'||k==='view'||k==='pk')return;const e=$(k);if(!e||!e.hasAttribute('data-s'))return;
