@@ -765,7 +765,7 @@ const IDI={walk:1,twofeel:1,broken:1,melodic:1,boogie:1,tumbao:1,samba:1,prog:1,
 function chordScale(ch){if(ch.deg>=0&&ch.dia){const d=ch.deg;return [0,1,2,3,4,5,6].map(k=>mod12(MAJ[(d+k)%7]-MAJ[d]))}
  if(ch.q==='min')return [0,2,3,5,7,9,10];if(ch.q==='dim')return [0,1,3,5,6,8,10];if(ch.q==='aug')return [0,2,4,6,8,9,11];
  return ch.sev==='maj7'?[0,2,4,5,7,9,11]:[0,2,4,5,7,9,10]}
-const LO=28,HI=55;
+const LO=28,HI=50; // E1 to D3: where bass players actually live
 function nearM(m,ref){let x=m;while(x-ref>6)x-=12;while(ref-x>6)x+=12;while(x<LO)x+=12;while(x>HI-3)x-=12;return x}
 function chordPcs(ch){const cs=chordScale(ch);return {sc:cs.map(x=>mod12(ch.pc+x)),ct:[0,third(ch),fifth(ch),cs[6]].map(x=>mod12(ch.pc+x))}}
 // approach note into target T: chromatic from below or above, a scale step, or the dominant (the target's 5th)
@@ -789,11 +789,11 @@ function pathNotes(a0,k,aEnd,ch,strong,R,lo,hi,chromP){const {sc,ct}=chordPcs(ch
 // the bar's first note and where the line is heading (root of the next chord, or a new chord tone when the chord holds)
 function lineEnds(ch,nx,last,R,ref){const r=bassRoot(ch.pc),{ct}=chordPcs(ch);let s;
  if(bassPlan!=null&&ct.includes(mod12(bassPlan)))s=bassPlan;else s=nearM(bassIB>0?r+(R()<0.5?third(ch):fifth(ch)):r,ref);
- const g=s>45?s-7:s<33?s+5:s,T=last?nearM(bassRoot(nx.pc),g):nearM(r+[third(ch),fifth(ch),0][Math.floor(R()*3)],g);return [s,T===s?nearM(r+fifth(ch),s+3):T]}
+ const g=s>41?s-7:s<31?s+5:s,T=last?nearM(bassRoot(nx.pc),g):nearM(r+[third(ch),fifth(ch),0][Math.floor(R()*3)],g);return [s,T===s?nearM(r+fifth(ch),s+3):T]}
 function walkNotes(ch,nx,last,S,R,V){const ref=bassPrevM!=null?bassPrevM:bassRoot(ch.pc)+5,[s,T]=lineEnds(ch,nx,last,R,ref);
  if(S===1){bassPlan=T;return [s]}
  let ap=approachTo(T,s,ch,R);const mids=S-2,strong=Array.from({length:mids},(_,i)=>(i+1)%2===0);
- let mid=pathNotes(s,mids,ap,ch,strong,R,LO,HI-4,0);
+ let mid=pathNotes(s,mids,ap,ch,strong,R,LO,45,0);
  if(S>=4&&R()<0.15+V*0.25){const {sc}=chordPcs(ch);let up=T+1;for(let d=1;d<=2;d++)if(sc.includes(mod12(T+d))){up=T+d;break}mid[mids-1]=up;ap=T-1} // enclosure: above, then below, then the target
  const pv=mids?mid[mids-1]:s;if(pv===ap)ap=T+(pv>T?1:-1);
  bassPlan=T;return [s,...mid,ap]}
@@ -855,13 +855,13 @@ function idiomBass(st,ch,nx,last,bk){const S=bassSpan||beats,B=sub,n=S*B,R=rng(b
    if(B===3&&b>0&&R()<V*0.28)add(b*B-1,R()<0.5?N[b]:N[b-1],0.4,0.4,1)}); // triplet rake / ghost before the beat
   return fin(ev)}
  if(st==='twofeel'){if(S<4)return idiomBass('walk',ch,nx,last,bk);const ref=bassPrevM!=null?bassPrevM:r+5,[s,T]=lineEnds(ch,nx,last,R,ref);
-  const h=Math.floor(S/2)*B;let m3=last?approachTo(T,s,ch,R):pathNotes(s,1,T,ch,[true],R,LO,HI-4,0)[0];if(m3===s)m3=T+(s>T?1:-1);
+  const h=Math.floor(S/2)*B;let m3=last?approachTo(T,s,ch,R):pathNotes(s,1,T,ch,[true],R,LO,45,0)[0];if(m3===s)m3=T+(s>T?1:-1);
   add(0,s,h*0.95,0.95);if(R()<0.15+V*0.5){add(h-1,R()<0.5?m3:s,1*0.9,0.55);ev[0].d=(h-1)*0.95}add(h,m3,(n-h)*0.95,0.85);
   if(R()<V*0.35){ev[ev.length-1].d=(n-h-1)*0.95;add(n-1,approachTo(T,m3,ch,R),0.9,0.55)}bassPlan=T;return fin(ev)}
- if(st==='melodic'){const ref=bassPrevM!=null?bassPrevM:r+12,[s0,T]=lineEnds(ch,nx,last,R,ref);let s=s0;if(s<36&&R()<0.6)s+=12;
+ if(st==='melodic'){const ref=bassPrevM!=null?bassPrevM:r+5,[s0,T]=lineEnds(ch,nx,last,R,ref);let s=s0;
   const RH=[[0,2,4,5,6],[0,3,4,6,7],[0,1,2,4,6],[0,2,3,4,6,7],[0,4,5,6],[0,2,4,6,7]];let on;
   if(S===4){on=RH[Math.floor(R()*RH.length)]}else{on=[];for(let b=0;b<S;b++){on.push(b*2);if(R()<0.35+V*0.3)on.push(b*2+1)}}
-  const k=on.length,ap=last?approachTo(T,s,ch,R):null,end=ap!=null?ap:nearM(T,s)+(R()<0.5?12:0);
+  const k=on.length,ap=last?approachTo(T,s,ch,R):null,end=ap!=null?ap:nearM(T,s);
   const strong=on.slice(1,-1).map(p=>p%4===0);const mid=pathNotes(s,Math.max(0,k-2),Math.min(end,HI),ch,strong,R,LO,HI,0.2+V*0.3);
   const ps=k>1?[s,...mid,Math.min(end,HI)]:[s];on.forEach((p,i)=>{const st2=p*B/2;if(st2%1)return;const nx2=i+1<k?on[i+1]*B/2:n;add(st2,ps[i],(nx2-st2)*0.92,i===0?0.95:p%2?0.72:0.85)});
   bassPlan=last?T:null;return fin(ev)}
@@ -881,7 +881,7 @@ function idiomBass(st,ch,nx,last,bk){const S=bassSpan||beats,B=sub,n=S*B,R=rng(b
   g.forEach((s,k)=>{const e=k+1<g.length?g[k+1]:n;let c=C[k%C.length];if(last&&k===g.length-1&&k>0)c='A';const pv=ev.filter(z=>z.v>0.6);o.p=pv.length?pv[pv.length-1].m:r;
    const m=c==='A'?appNear(bassRoot(nx.pc),o.p,R):toneOf(c,ch,r,o);add(s,m,(chug&&c!=='A'?1:e-s)*0.85,k===0?1:0.9);if(chug&&c!=='A')for(let j=s+1;j<e;j++)add(j,r,0.55,0.5)});return fin(ev)}
  return ev}
-function fin(ev){ev.sort((a,b)=>a.s-b.s);for(const e of ev)if(!e.x)bassPrevM=e.m;return ev}
+function fin(ev){ev.sort((a,b)=>a.s-b.s);for(const e of ev)while(e.m>HI)e.m-=12;for(const e of ev)if(!e.x)bassPrevM=e.m;return ev}
 function genBass(ch,nx,last,bk){const st0=bassStyle();if(IDI[st0])return idiomBass(st0,ch,nx,last,bk);const R=rng(bassSeed*977+bk*131+7),V=surV!=null?surV:+$('bvar').value/100,n=steps(),B=sub,ev=[],st=st0;
  const r=bassRoot(ch.pc),th=r+third(ch),fi=r+fifth(ch),oc=r+12,sv=r+sev7(ch);
  let tgt=bassRoot(nx.pc);if(tgt-r>6)tgt-=12;if(r-tgt>6)tgt+=12;
@@ -913,7 +913,7 @@ function genBass(ch,nx,last,bk){const st0=bassStyle();if(IDI[st0])return idiomBa
  else if(st==='pedal'){const pr=bassRoot(keyPc());for(let j=0;j<beats*2;j++){const s=Math.floor(j/2)*B+(j%2?off8:0);let mi=pr;
    if(j%2&&R()<V*0.35)mi=pr+12;else if(j>1&&j%2==0&&R()<V*0.25)mi=scStep(pr,R()<0.5?1:-1);if(last&&j==beats*2-1&&R()<0.5)mi=scStep(pr,-1);add(s,mi,(B==3?(j%2?1:2):off8)*0.85,j%2?0.72:0.95)}}
  return lowFix(varyBass(ev.sort((a,b)=>a.s-b.s),{st,V,n,B,r,th,fi,oc,sv:ch.sev?sv:null,tgt,last,bk,off8,appr,modal}))}
-function lowFix(ev){for(const e of ev)while(e.m<26)e.m+=12;return ev}
+function lowFix(ev){for(const e of ev){while(e.m<26)e.m+=12;while(e.m>HI)e.m-=12}return ev}
 // Variation layer on top of every style: passing notes, octave pops, pickups into the next chord and short runs at chord changes.
 // Seeded by the bass line (New bass line / Change it up), scaled by the Variation slider. Walking and funk lines already vary on their own.
 function varyBass(ev,o){const {st,V,n,B,r,th,fi,oc,sv,tgt,last,bk,off8,appr,modal}=o;if(V<=0.02||IDI[st]||st==='pedal')return ev;
