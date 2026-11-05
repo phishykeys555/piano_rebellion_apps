@@ -111,7 +111,7 @@ label{color:#b8b0a0;text-transform:uppercase;font-size:11px;letter-spacing:.08em
 <button class="play" id="p">▶ Play</button>
 <button id="d5">−5</button><button id="d1">−1</button><button id="u1">+1</button><button id="u5">+5</button>
 <button id="tap">Tap</button><button id="fnow">🥁 Fill now</button>
-<label class="vol">🔊 <input type="range" id="mv" data-s min="0" max="150" value="100"><span id="mvt">100%</span></label>
+<label class="vol">🔊 <input type="range" id="mv" data-s min="0" max="100" value="50"><span id="mvt">50%</span></label>
 </div>
 
 <div class="sec"><h4>Groove</h4>
@@ -547,6 +547,7 @@ function pocketHit(k,i,val){const pk=pocketNow();if(pk===PK.machine)return [0,1]
   if(barN%4===3)vm*=1.05}
  if(SNR.has(k)&&val>=0.5&&i%sub===0&&Math.floor(i/sub)===beats-1)vm*=1.04;
  return [ms/1000,vm]}
+function volG(x){x=+x;return x<=0?0:Math.pow(10,(-45+45*x/100)/20)}
 function hit(n,t,vel){if(!ctx||!rowVol[n])return;const a=VOL[n]*rowVol[n]*vel;
  if((n==42||n==44)&&openHat){try{openHat.gain.cancelScheduledValues(t);openHat.gain.setTargetAtTime(0,t,0.015)}catch(e){};openHat=null}
  const alt=altVoice(n);let gg;
@@ -878,7 +879,7 @@ function synthBass(ty,t,mi,dur,a,glide){const f=mtof(mi),end=t+Math.max(0.06,dur
  else{const l=ctx.createBiquadFilter(),d=shaper(1.5);l.type='lowpass';l.Q.value=3;l.frequency.value=650;const lfo=ctx.createOscillator(),lg=ctx.createGain();lfo.frequency.value=0.35;lg.gain.value=320;lfo.connect(lg);lg.connect(l.frequency);lfo.start(t);lfo.stop(end+0.6);
   l.connect(d);d.connect(gn);mk('sawtooth',-14,l,0.35);mk('sawtooth',0,l,0.35);mk('sawtooth',14,l,0.35);mk('sine',0,gn,0.6);amp(a*0.5,0.01,0.05)}}
 // ===== audio init =====
-async function init(){if(!ctx){ctx=new (window.AudioContext||window.webkitAudioContext)({latencyHint:'playback'});ctx.resume().catch(()=>{});out=ctx.createGain();out.gain.value=$('mv').value/100;
+async function init(){if(!ctx){ctx=new (window.AudioContext||window.webkitAudioContext)({latencyHint:'playback'});ctx.resume().catch(()=>{});out=ctx.createGain();out.gain.value=volG($('mv').value);
  comp=ctx.createDynamicsCompressor();comp.threshold.value=-10;comp.ratio.value=3;const lim=ctx.createDynamicsCompressor();lim.threshold.value=-6;lim.knee.value=0;lim.ratio.value=20;lim.attack.value=0.001;lim.release.value=0.12;const trim=ctx.createGain();trim.gain.value=0.85;comp.connect(trim);trim.connect(lim);lim.connect(out);
  master=ctx.createGain();master.connect(comp);revSend=ctx.createGain();revSend.gain.value=$('room').value/100*0.5;master.connect(revSend);
  bassBus=ctx.createGain();bassBus.gain.value=0.9;bassBus.connect(buildStrip(comp));if(LIB[$('bt').value])loadLib($('bt').value);['kk','sn','tm'].forEach(id=>{if(DKIT[$(id).value])loadKit($(id).value)});
@@ -953,7 +954,7 @@ function logUI(){const L=loadLog(),now=Date.now();let wk=0,streak=0;for(let k=0;
 let saveT=null,savedDevInit='';
 const LOCAL=new Set(['mv','mode']);
 function getState(full){const c={};document.querySelectorAll('[data-s]').forEach(e=>{if(!full&&LOCAL.has(e.id))return;c[e.id]=e.type==='checkbox'?e.checked:e.value});
- const st={v:2,tm2:1,pk:1,av:1,bj:1,kt:1,fl:1,c,bpm,grid,rowVol,seed:bassSeed};if(full){st.dev=$('dev').value;st.view=document.body.classList.contains('simple')?'simple':'adv'}return st}
+ const st={v:2,tm2:1,pk:1,av:1,bj:1,kt:1,fl:1,vt:1,c,bpm,grid,rowVol,seed:bassSeed};if(full){st.dev=$('dev').value;st.view=document.body.classList.contains('simple')?'simple':'adv'}return st}
 const OLDPROG={'i VI III VII':'vi IV I V','i iv v i':'vi ii iii vi','i VII VI V':'vi V IV III','i IV':'ii7 V7','i ii III IV':'ii iii IV V','i VII IV i':'ii I V ii','i II':'iii IV','i II III II':'iii IV V IV','i vii VI II':'iii IV iii ii','I II':'IV V','I II vii I':'IV V iii IV','I II iii II':'IVmaj7 V IVmaj7 V','I VII IV I':'V IV I V','I v IV I':'V ii I V','I VII I IV':'V IV I I','i VI VII i':'vi IV V vi','i VII VI VII':'vi V IV V','i iv VII III':'vi iii IV V','i° II iv II':'vii° I','i iv V i':'vi ii III vi','I II vii II':'III IV ii III'};
 const PROG2={'iii ii I IV':'iii IV iii ii','IV V vi V':'IVmaj7 V IVmaj7 V','V IV V I':'V IV I I','vi ii V I':'vi iii IV V','vii° I iii I':'vii° I','III IV ii IV':'III IV ii III','ii V':'ii7 V7'};
 function legacyKey(c){if(!c)return;if(PROG2[c.prog])c.prog=PROG2[c.prog];const old=c.prog,md=c.md||'auto';let deg=MODEDEG[md];
@@ -961,7 +962,7 @@ function legacyKey(c){if(!c)return;if(PROG2[c.prog])c.prog=PROG2[c.prog];const o
  if(OLDPROG[old])c.prog=OLDPROG[old];
  if(deg&&c.key!=null){const i=NOTES.indexOf(c.key);if(i>=0)c.key=NOTES[mod12(i-MAJ[deg])]}}
 function setSel(e,val){if([...e.options].some(o=>o.value==val))e.value=val}
-function applyState(st){if(!st||!st.c)return false;restoring=true;const c=st.c;if(PROG2[c.prog])c.prog=PROG2[c.prog];if(!st.av){if(c.hh==='ac')c.hh='studio';if(c.rv==='soft')c.rv='zil'}if(!st.fl&&(c.hu==null||+c.hu===0))c.hu='30';if(!st.bj){if(c.bt==='finger')c.bt='jbass';if(c.bt==='upright')c.bt='dbass'}if(!st.kt&&(c.kit==='acoustic'||!c.kit)){c.kit='bpearl';c.kk='bp';c.sn='bp';c.tm='bp'}if(!st.pk)legacyKey(c);
+function applyState(st){if(!st||!st.c)return false;restoring=true;const c=st.c;if(PROG2[c.prog])c.prog=PROG2[c.prog];if(!st.av){if(c.hh==='ac')c.hh='studio';if(c.rv==='soft')c.rv='zil'}if(!st.fl&&(c.hu==null||+c.hu===0))c.hu='30';if(!st.vt&&c.mv!=null){const v=+c.mv;c.mv=String(v<=0?0:Math.max(1,Math.min(100,Math.round(100*(1+20*Math.log10(v/100)/45)))))}if(!st.bj){if(c.bt==='finger')c.bt='jbass';if(c.bt==='upright')c.bt='dbass'}if(!st.kt&&(c.kit==='acoustic'||!c.kit)){c.kit='bpearl';c.kk='bp';c.sn='bp';c.tm='bp'}if(!st.pk)legacyKey(c);
  for(const id in c){const e=$(id);if(!e)continue;if(e.type==='checkbox')e.checked=!!c[id];else if(e.tagName==='SELECT')setSel(e,c[id]);else e.value=c[id]}
  preset(P[c.pre]?c.pre:'rock');$('pre').value=curName;
  const nb=+c.b||beats,ns=+c.sub||sub;if(nb!==beats||ns!==sub){beats=nb;sub=ns;$('b').value=beats;$('sub').value=sub;fill()}
@@ -972,7 +973,7 @@ function applyState(st){if(!st||!st.c)return false;restoring=true;const c=st.c;i
  if(st.seed)bassSeed=st.seed;if(st.dev!=null)savedDev=st.dev;if(st.view)setView(st.view,true);
  setBpm(st.bpm||80);uiRefresh();draw();restoring=false;return true}
 function uiRefresh(){fatUI();swUI();$('mvt').textContent=$('mv').value+'%';$('cpl').style.display=$('prog').value==='custom'?'':'none';$('beat').classList.toggle('big',$('bigl').checked);
- if(out)out.gain.setTargetAtTime($('mv').value/100,ctx.currentTime,0.02);if(revSend)revSend.gain.setTargetAtTime($('room').value/100*0.5,ctx.currentTime,0.05);chordPreview()}
+ if(out)out.gain.setTargetAtTime(volG($('mv').value),ctx.currentTime,0.02);if(revSend)revSend.gain.setTargetAtTime($('room').value/100*0.5,ctx.currentTime,0.05);chordPreview()}
 function save(){if(restoring)return;clearTimeout(saveT);saveT=setTimeout(()=>{try{store.setItem(SKEY,JSON.stringify(getState(true)));$('sv').textContent=store.mem?'Settings kept until reload':'✓ Settings saved'}catch(e){$('sv').textContent='Saving not available here'}},300)}
 // Song presets from the link: ?pk=1&pre=rock&bpm=80&key=C&md=aeolian&prog=custom&cprog=Am%20G&bon=1&bs=pedal&tr=1&trg=108 ...
 // key = the major PARENT key. Links without pk=1 are older: their key was the mode's own starting note and is converted.
@@ -1001,7 +1002,7 @@ function decodeCode(txt){const m2=txt.trim().replace(/\s+/g,'').match(/DM2\.([A-
 document.addEventListener('change',save);document.addEventListener('input',save);
 p.onclick=async()=>{if(playing){stop();return}p.disabled=true;p.textContent='Loading sounds…';try{await start()}catch(e){p.textContent='▶ Play';status('Audio could not start. Try again.');console.error(e)}finally{p.disabled=false}};
 s.oninput=e=>setBpm(+e.target.value);
-$('mv').oninput=e=>{$('mvt').textContent=e.target.value+'%';if(out)out.gain.setTargetAtTime(e.target.value/100,ctx.currentTime,0.02)};
+$('mv').oninput=e=>{$('mvt').textContent=e.target.value+'%';if(out)out.gain.setTargetAtTime(volG(e.target.value),ctx.currentTime,0.02)};
 [['d5',-5],['d1',-1],['u1',1],['u5',5]].forEach(([id,n])=>$(id).onclick=()=>setBpm(bpm+n));
 $('pre').onchange=e=>{preset(e.target.value);pos=0};
 $('b').onchange=e=>{beats=+e.target.value;pos=0;fill()};
