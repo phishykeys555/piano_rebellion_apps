@@ -216,6 +216,7 @@ label{color:#b8b0a0;text-transform:uppercase;font-size:11px;letter-spacing:.08em
 </div>
 <div class="row adv">
 <label id="cpl" style="display:none">Custom <input type="text" id="cprog" data-s value="I V vi IV" placeholder="e.g. Gm Dm F C  or  ii vi I V" style="width:210px"></label>
+<label title="Keeps the bass from getting repetitive: writes a fresh bass line every few bars while you play">Change it up <select id="bauto" data-s><option value="0">Off</option><option value="4">New line every 4 bars</option><option value="8" selected>New line every 8 bars</option><option value="16">New line every 16 bars</option><option value="surprise">Surprise me (new line, feel and busyness)</option></select></label>
 <label title="How often the bass adds passing notes, octave jumps and pickups">Variation <input type="range" id="bvar" data-s min="0" max="100" value="35" style="width:90px"></label>
 <label>Bass volume <input type="range" id="bv" data-s min="0" max="150" value="100" style="width:90px"></label>
 <button id="bnew">🎲 New bass line</button>
@@ -662,8 +663,15 @@ function scStep(m,dir){for(let k=1;k<=12;k++){const x=m+dir*k;if(bassScale.inclu
 function rng(a){return function(){a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296}}
 let bassSeed=Math.floor(Math.random()*1e6);
 const AUTO={jazz:'walk',twofeel:'walk',bebop:'walk',uptempo:'walk',bigband:'walk',jballad:'walk',jwaltz:'walk',snapswing:'walk',funk:'funk',neosoul:'funk',afrobeat:'funk',disco:'octave',pop:'octave',trap808:'trap',bossa:'bossa',samba:'bossa',tumbao:'bossa',onedrop:'reggae',ballad:'root',half:'root',slowblues:'rootfifth',shuffle:'rootfifth',texas:'rootfifth',train:'rootfifth',waltz:'rootfifth',sixeight:'rootfifth',punk:'roots8',motown:'roots8',swing8:'roots8',popshaker:'roots8',click:'root',click8:'root',click16:'root'};
-function bassStyle(){const x=$('bs').value;return x==='auto'?(AUTO[curName]||'kick'):x}
-function genBass(ch,nx,last,bk){const R=rng(bassSeed*977+bk*131+7),V=+$('bvar').value/100,n=steps(),B=sub,ev=[],st=bassStyle();
+// "Change it up": a fresh bass line every N bars; Surprise also changes the feel (within styles that suit the groove) and how busy it is
+let surStyle=null,surV=null;
+const SUR_OK={kick:['kick','roots8','rootfifth','octave'],roots8:['roots8','kick','rootfifth','octave'],rootfifth:['rootfifth','kick','roots8'],octave:['octave','roots8','kick'],root:['root','rootfifth','kick'],funk:['funk','octave','kick']};
+function bassStyle(){const x=$('bs').value;return x==='auto'?(surStyle||AUTO[curName]||'kick'):x}
+function bassAuto(){const a=$('bauto').value;if(a==='0'||barN===0)return;const every=a==='surprise'?8:+a;if(barN%every)return;
+ bassSeed=Math.floor(Math.random()*1e6);
+ if(a==='surprise'){const base=AUTO[curName]||'kick',opts=SUR_OK[base];surStyle=opts?opts[Math.floor(Math.random()*opts.length)]:null;surV=0.15+Math.random()*0.65}else{surStyle=null;surV=null}
+ trMsg=trMsg||'New bass line'}
+function genBass(ch,nx,last,bk){const R=rng(bassSeed*977+bk*131+7),V=surV!=null?surV:+$('bvar').value/100,n=steps(),B=sub,ev=[],st=bassStyle();
  const r=bassRoot(ch.pc),th=r+third(ch),fi=r+fifth(ch),oc=r+12,sv=r+sev7(ch);
  let tgt=bassRoot(nx.pc);if(tgt-r>6)tgt-=12;if(r-tgt>6)tgt+=12;
  const modal=$('md').value!=='auto',appr=()=>{const up=R()<0.5;if(!modal||R()<0.25)return tgt+(up?1:-1);return scStep(tgt,up?1:-1)},off8=B==3?2:B/2,add=(s,mi,d,vv,gl)=>{if(s<n&&s>=0)ev.push({s,m:mi,d:Math.max(0.5,d),v:vv||0.9,g:!!gl})};
@@ -743,6 +751,7 @@ function barStart(){isCount=cin>0;if(isCount)return;
  crashNow=prevFill&&$('fc').checked&&!muted;
  const fe=+$('fe').value;fillBar=!muted&&((fe>0&&(barN+1)%fe==0)||barN===forceBar||secEnd);
  if(fillBar)curFill=genFill(fillBeats()*sub);prevFill=fillBar;
+ if($('bon').checked)bassAuto();
  const prog=parseProg(),bpc=+$('bpc').value;
  if(bpc<1){ // half a bar per chord: two chords in every bar, the change lands on the middle beat
   const L=prog.length,a=(2*barN)%L,n=steps();halfAt=Math.round(beats/2)*sub;chordNow=prog[a];chordB=prog[(a+1)%L];chordC=prog[(a+2)%L];chordNext=chordB;
@@ -775,7 +784,7 @@ function blUI(e){let h='';
  $('blm').innerHTML=h||'&nbsp;';
  $('chord').innerHTML=e.ch&&$('bon').checked?esc(e.ch.label)+(e.ch.rn?' <small>'+esc(e.ch.rn)+'</small>':'')+(e.nx?' <small>→ '+esc(e.nx.label)+'</small>':''):''}
 function chordPreview(){if(playing)return;if(!$('bon').checked){$('chord').innerHTML='';return}const pr=parseProg();$('chord').innerHTML='<small>'+pr.map(c=>esc(c.label)).join(' – ')+(pr.every(c=>c.rn)?' · '+pr.map(c=>esc(c.rn)).join(' – '):'')+'<br>'+esc(modeLine())+'</small>'}
-async function start(){await init();playing=true;pos=0;barN=0;cin=+$('ci').value;muted=false;prevFill=false;fillBar=false;forceBar=-1;secName='';lastBassM=null;trMsg='';q=[];next=ctx.currentTime+0.08;timer=setInterval(sched,25);sched();anim();p.textContent='■ Stop';logStart()}
+async function start(){await init();playing=true;pos=0;barN=0;surStyle=null;surV=null;cin=+$('ci').value;muted=false;prevFill=false;fillBar=false;forceBar=-1;secName='';lastBassM=null;trMsg='';q=[];next=ctx.currentTime+0.08;timer=setInterval(sched,25);sched();anim();p.textContent='■ Stop';logStart()}
 function stop(){playing=false;clearInterval(timer);forceBar=-1;document.querySelectorAll('.now').forEach(c=>c.classList.remove('now'));[...$('dots').children].forEach(d=>d.classList.remove('on'));$('blm').innerHTML='Press ▶ Play or Space';p.textContent='▶ Play';chordPreview();logStop()}
 function fillNow(){if(!playing){start().then(()=>{forceBar=0});return}if(isCount){forceBar=0;return}const n=steps(),fl=fillBeats()*sub;
  if(pos<n-fl&&!muted){fillBar=true;curFill=genFill(fl);prevFill=true}else forceBar=barN+1}
