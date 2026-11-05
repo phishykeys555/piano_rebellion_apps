@@ -179,7 +179,7 @@ textarea{width:100%;box-sizing:border-box;height:54px;font-size:12px;font-family
 <label title="CHMA theory: always name the major parent key (the 1). The mode says which number you start on.">Parent key (the 1) <select id="key" data-s><option value="C">C</option><option value="C#">C♯ / D♭</option><option value="D">D</option><option value="D#">D♯ / E♭</option><option value="E">E</option><option value="F">F</option><option value="F#">F♯ / G♭</option><option value="G">G</option><option value="G#">G♯ / A♭</option><option value="A">A</option><option value="A#">A♯ / B♭</option><option value="B">B</option></select></label>
 <label title="The scale the bass line uses for passing notes and runs. Picking a modal chord progression sets this for you.">Mode <select id="md" data-s><option value="auto" selected>Auto (the chord you start on)</option><optgroup label="Modes: the number you start on"><option value="ionian">1 · Ionian (major)</option><option value="dorian">2 · Dorian</option><option value="phrygian">3 · Phrygian</option><option value="lydian">4 · Lydian</option><option value="mixolydian">5 · Mixolydian</option><option value="aeolian">6 · Aeolian (minor)</option><option value="locrian">7 · Locrian</option></optgroup><optgroup label="Other scales"><option value="harmonic">6 · Harmonic minor (raised 7)</option><option value="melodic">6 · Melodic minor (raised 6 and 7)</option><option value="phrdom">3 · Phrygian dominant (major III)</option><option value="majpent">Major pentatonic</option><option value="minpent">Minor pentatonic</option><option value="blues">Blues</option></optgroup></select></label>
 <label>Chords <select id="prog" data-s><option value="I V vi IV" selected>I – V – vi – IV (pop)</option><option value="vi IV I V">vi – IV – I – V (minor pop, on the 6)</option><option value="I vi IV V">I – vi – IV – V (50s)</option><option value="I IV V IV">I – IV – V – IV (rock)</option><option value="I IV vi V">I – IV – vi – V</option><option value="vi ii iii vi">vi – ii – iii – vi (on the 6)</option><option value="vi V IV III">vi – V – IV – III (Andalusian, major III)</option><option value="ii7 V7 Imaj7 Imaj7">ii – V – I (jazz)</option><option value="I7 I7 I7 I7 IV7 IV7 I7 I7 V7 IV7 I7 V7">12-Bar Blues</option><option value="I">One chord (vamp)</option><optgroup label="Modal (numbers from the parent key)"><option value="ii V" data-md="dorian">Dorian (2): ii – V (Oye Como Va)</option><option value="ii iii IV V" data-md="dorian">Dorian (2): ii – iii – IV – V</option><option value="ii I V ii" data-md="dorian">Dorian (2): ii – I – V – ii</option><option value="iii IV" data-md="phrygian">Phrygian (3): iii – IV (Spanish)</option><option value="iii IV V IV" data-md="phrygian">Phrygian (3): iii – IV – V – IV</option><option value="iii ii I IV" data-md="phrygian">Phrygian (3): iii – ii – I – IV</option><option value="IV V" data-md="lydian">Lydian (4): IV – V (dreamy)</option><option value="IV V iii IV" data-md="lydian">Lydian (4): IV – V – iii – IV</option><option value="IV V vi V" data-md="lydian">Lydian (4): IV – V – vi – V</option><option value="V IV I V" data-md="mixolydian">Mixolydian (5): V – IV – I – V</option><option value="V ii I V" data-md="mixolydian">Mixolydian (5): V – ii – I – V</option><option value="V IV V I" data-md="mixolydian">Mixolydian (5): V – IV – V – I</option><option value="vi IV V vi" data-md="aeolian">Aeolian (6): vi – IV – V – vi (epic)</option><option value="vi V IV V" data-md="aeolian">Aeolian (6): vi – V – IV – V</option><option value="vi ii V I" data-md="aeolian">Aeolian (6): vi – ii – V – I</option><option value="vii° I iii I" data-md="locrian">Locrian (7): vii° – I – iii – I</option><option value="vi ii III vi" data-md="harmonic">Harmonic minor (6): vi – ii – III – vi</option><option value="III IV ii IV" data-md="phrdom">Phrygian dominant (3): III – IV – ii – IV</option></optgroup><option value="custom">Custom…</option></select></label>
-<label class="adv">Bars per chord <select id="bpc" data-s><option>1</option><option>2</option></select></label>
+<label class="adv">Bars per chord <select id="bpc" data-s><option value="0.5">½</option><option selected>1</option><option>2</option></select></label>
 </div>
 <div class="row adv">
 <label id="cpl" style="display:none">Custom <input type="text" id="cprog" data-s value="I V vi IV" placeholder="e.g. Gm Dm F C  or  ii vi I V" style="width:210px"></label>
@@ -469,21 +469,49 @@ async function listDevs(){try{if(!navigator.mediaDevices||!navigator.mediaDevice
 let curFill=[],forceBar=-1;const KITROWS=new Set([49,51,46,42,44,38,37,39,99,36,35,50,47,43]);
 function fillBeats(){return Math.min(beats,1+Math.floor(+$('fa').value/100*beats*0.999))}
 function fatUI(){const a=+$('fa').value,b=fillBeats();$('fat').textContent=(a<25?'Light':a<50?'Medium':a<75?'Big':'Huge')+' · '+b+' beat'+(b>1?'s':'')}
-function genFill(len){const A=+$('fa').value/100,sty=$('fs').value,n=steps(),ev=[];
- for(let k=0;k<len;k++){const gi=n-len+k,onBeat=gi%sub==0,p=k/len,hits=[];
-  let v=sty=='build'?0.3+0.7*(k+1)/len:0.55+0.45*(k+1)/len;
-  const prob=sty=='build'?1:onBeat||k==len-1?1:0.3+0.65*A;
-  if(Math.random()<prob){let vo;
-   if(sty=='snare'||sty=='build')vo=38;
-   else if(sty=='toms')vo=p<1/3?50:p<2/3?47:43;
-   else if(sty=='mixed')vo=p<.4?38:p<.6?50:p<.8?47:43;
-   else vo=[38,38,50,47,43,36][Math.floor(Math.random()*6)];
-   if(sty=='snare'&&!onBeat)v*=0.75;
-   hits.push({n:vo,v});
-   if((vo==43||sty=='random')&&onBeat&&A>0.5&&vo!=36)hits.push({n:36,v:v*0.85});
-   const dbl=sty=='build'?(p>=0.5&&A>0.3):(A>0.7&&Math.random()<(A-0.7)*2.5);
-   if(dbl&&sub!==3)hits.push({n:vo,v:v*0.8,o:0.5})}
-  ev.push(hits)}
+// Fills: hand-written phrases a drummer would actually play, by groove family, instead of random hits.
+// One string per beat: 4 slots = 16ths (straight grooves), 3 slots = triplets (swing, shuffle, 6/8).
+// S snare · s ghost snare · H M F high/mid/floor tom · K kick · B kick + floor tom · . rest. Low = space, high = busier.
+const FILLS={
+ rock:{1:{lo:['S.S.','..SS','S.SS'],hi:['SSSS','SSHM','HHMF','SSFF']},
+       2:{lo:['S... S.S.','..S. S.SS','S.S. H.M.','..SS ..FF'],hi:['SSSS HHMM','S.SS H.HF','SSHH MMFF','SSSS SSFF','B.SS B.FF']},
+       4:{lo:['S... ..S. S.S. H.M.','..S. ..S. S.S. SSSS','S.S. S.S. H.H. F.F.'],hi:['SSSS HHHH MMMM FFFF','S.SS H.HH M.MM F.FF','SSHM SSHM SSHM FFFF','SSSS SSSS HHMM FFBB']}},
+ funk:{1:{lo:['s.S.','..sS','.sSs'],hi:['sSsS','SsSH','sSHF']},
+       2:{lo:['s.S. .s.S','.sS. s.S.','s.sS ..S.'],hi:['SssS sSFF','s.SS sHFF','SsKs SsKS','sSsS HsFs']},
+       4:{lo:['S.s. .sS. s.S. .sSS','.s.S .s.S s.S. ..SS'],hi:['SsKs SsKs HsMs FF.F','sSsS sSsS HHMM FFFF','S.sS .sS. HsHM .MFF']}},
+ latin:{1:{lo:['H.M.','S..S'],hi:['HHMM','SHMF']},
+       2:{lo:['S..S ..S.','H..M ..F.'],hi:['S.SH .MF.','HHMM FF.F']},
+       4:{lo:['S..S ..S. ..S. S...','H.H. M.M. F.F. S.S.'],hi:['S.SH .HM. M.F. FFFF','S..S ..S. HHMM FF.F']}},
+ jazz:{1:{lo:['..S','S.S'],hi:['SsS','S.K','..S']},
+       2:{lo:['S.. ..S','..S ..K','S.s ..S'],hi:['S.S S.S','SsS H.F','..S S.F']},
+       4:{lo:['S.. ..S ... S.S','..S ..K ..S ...','... ..S ..K ..S'],hi:['S.S S.S H.H F.F','SsS SsS S.H H.F','..S ..K ..S S.S']}},
+ shuffle:{1:{lo:['S.S','..S'],hi:['SSS','HMF']},
+       2:{lo:['S.S H.F','S.. S.S'],hi:['SSS HMF','SSH HMF','SsS SSS']},
+       4:{lo:['S.S S.S H.H F.F','... S.S S.S SSS'],hi:['SSS SSS HHH FFF','SSS HHH MMM FFF','SsS SsS HHM MFF']}}};
+const FAM={funk:'funk',neosoul:'funk',boombap:'funk',afrobeat:'funk',dembow:'funk',trap808:'funk',
+ bossa:'latin',samba:'latin',tumbao:'latin',
+ jazz:'jazz',ride:'jazz',bebop:'jazz',uptempo:'jazz',bigband:'jazz',twofeel:'jazz',jballad:'jazz',jwaltz:'jazz',snapswing:'jazz',
+ shuffle:'shuffle',texas:'shuffle',halfshuf:'shuffle',slowblues:'shuffle',sixeight:'shuffle',onedrop:'shuffle'};
+let lastFill='';
+function fillPhrase(fam,beatsN,A,sty){const pick=b=>{const L=FILLS[fam][b];let arr=sty==='random'?L.lo.concat(L.hi):A<0.45?L.lo:L.hi;
+   const fresh=arr.filter(x=>!lastFill.includes(x));if(fresh.length)arr=fresh;return arr[Math.floor(Math.random()*arr.length)]};
+ let parts=[];if(FILLS[fam][beatsN])parts=[pick(beatsN)];else{let r=beatsN;while(r>0){const b=r>=4?4:r>=2?2:1;parts.push(pick(b));r-=b}}
+ const ph=parts.join(' ');lastFill=ph;return ph.split(' ')}
+function genFill(len){const A=+$('fa').value/100,sty=$('fs').value,n=steps(),ev=[];for(let k=0;k<len;k++)ev.push([]);
+ const bN=Math.max(1,Math.round(len/sub));
+ if(sty==='build'){ // pop/EDM build: snare 8ths, then 16ths, rising to the downbeat
+  for(let k=0;k<len;k++){const p=(k+1)/len,v=0.3+0.7*p;ev[k].push({n:38,v});if(sub!==3&&p>0.5)ev[k].push({n:38,v:v*0.85,o:0.5})}return ev}
+ const tri=sub===3,swing=(P[curName]&&P[curName].sw)||50;
+ let fam=FAM[curName]||'rock';if(tri&&fam!=='jazz')fam='shuffle';if(!tri&&(fam==='jazz'||fam==='shuffle'))fam='rock';
+ const beatsArr=fillPhrase(fam,bN,A,sty),R=tri?3:4,total=bN*R;
+ beatsArr.forEach((b,bi)=>[...b].forEach((ch,j)=>{if(ch==='.')return;
+   if(!tri&&swing>52&&j%2===1)return;              // swung 8th grooves: keep fills on the 8ths
+   const pos=(bi*R+j)*sub/R,k=Math.floor(pos),o=pos-k;if(k>=len)return;
+   const prog=(bi*R+j+1)/total,base=0.62+0.38*prog,lo=ch===ch.toLowerCase()&&ch!=='.';
+   const U=ch.toUpperCase();let voices=U==='S'?[38]:U==='H'?[50]:U==='M'?[47]:U==='F'?[43]:U==='K'?[36]:U==='B'?[43,36]:[];
+   if(sty==='snare')voices=voices.map(x=>x===36?36:38);
+   if(sty==='toms')voices=voices.map(x=>x===38?(prog<1/3?50:prog<2/3?47:43):x);
+   voices.forEach(vo=>ev[k].push({n:vo,v:base*(lo?0.42:1)*(vo===36?0.9:1),o:o||undefined}))}));
  return ev}
 // ===== storage =====
 const store=(()=>{for(const k of ['localStorage','sessionStorage']){try{const st=window[k],t='__dk';st.setItem(t,'1');st.removeItem(t);return st}catch(e){}}const mm={};return{getItem:k=>k in mm?mm[k]:null,setItem:(k,v)=>mm[k]=v,removeItem:k=>delete mm[k],mem:true}})();
@@ -664,7 +692,7 @@ async function init(){if(!ctx){ctx=new (window.AudioContext||window.webkitAudioC
  await ctx.resume();if(el&&$('mode').value==='compat')el.play().catch(()=>{});
  status('Audio '+ctx.state+' · '+sampleCount+'/'+Object.keys(SAMPLES).length+' samples loaded')}
 // ===== scheduler =====
-let pos=0,barN=0,cin=0,isCount=false,muted=false,fillBar=false,prevFill=false,crashNow=false,bassEv=[],chordNow=null,chordNext=null,secName='',barsAtBpm=0,lastBpm=0,trMsg='',flT=null;
+let halfAt=0,chordB=null,chordC=null,pos=0,barN=0,cin=0,isCount=false,muted=false,fillBar=false,prevFill=false,crashNow=false,bassEv=[],chordNow=null,chordNext=null,secName='',barsAtBpm=0,lastBpm=0,trMsg='',flT=null;
 function barStart(){isCount=cin>0;if(isCount)return;
  let secEnd=false;
  if($('arr').checked){const A=+$('ab').value,C=+$('cb').value,pb=barN%(A+C),sec=pb<A?'VERSE':'CHORUS',gname=$(sec==='VERSE'?'av':'ac').value;
@@ -675,14 +703,19 @@ function barStart(){isCount=cin>0;if(isCount)return;
  crashNow=prevFill&&$('fc').checked&&!muted;
  const fe=+$('fe').value;fillBar=!muted&&((fe>0&&(barN+1)%fe==0)||barN===forceBar||secEnd);
  if(fillBar)curFill=genFill(fillBeats()*sub);prevFill=fillBar;
- const prog=parseProg(),bpc=+$('bpc').value,ci=Math.floor(barN/bpc)%prog.length;chordNow=prog[ci];chordNext=prog[(ci+1)%prog.length];
- bassEv=$('bon').checked?genBass(chordNow,chordNext,barN%bpc==bpc-1,barN%(prog.length*bpc*2)):[];
+ const prog=parseProg(),bpc=+$('bpc').value;
+ if(bpc<1){ // half a bar per chord: two chords in every bar, the change lands on the middle beat
+  const L=prog.length,a=(2*barN)%L,n=steps();halfAt=Math.round(beats/2)*sub;chordNow=prog[a];chordB=prog[(a+1)%L];chordC=prog[(a+2)%L];chordNext=chordB;
+  if($('bon').checked){const seed=(2*barN)%(L*2),A=genBass(chordNow,chordB,false,seed),B=genBass(chordB,chordC,true,seed+1),clip=(e,end)=>({...e,d:Math.min(e.d,end-e.s)});
+   bassEv=A.filter(e=>e.s<halfAt).map(e=>clip(e,halfAt)).concat(B.filter(e=>e.s<n-halfAt).map(e=>clip({...e,s:e.s+halfAt},n)))}else bassEv=[]}
+ else{ halfAt=0;const ci=Math.floor(barN/bpc)%prog.length;chordNow=prog[ci];chordNext=prog[(ci+1)%prog.length];
+  bassEv=$('bon').checked?genBass(chordNow,chordNext,barN%bpc==bpc-1,barN%(prog.length*bpc*2)):[];}
  if(bpm===lastBpm)barsAtBpm++;else{lastBpm=bpm;barsAtBpm=1}if(barsAtBpm>=8&&!muted)logBest(bpm)}
 function sched(){while(next<ctx.currentTime+0.1){if(pos===0)barStart();
  const dt=60/bpm/sub,n=steps(),i=pos,t=next+((sub!==3&&i%2)?(swing-.5)*2*dt:0),H=+$('hu').value/100;
  const item={t,i,b:i%sub==0?i/sub:-1};
  if(isCount){if(i%sub==0)clickV(t,i==0);item.cnt=Math.floor(i/sub)+1;item.cb=cin}
- else{const fl=fillBeats()*sub,inFill=fillBar&&i>=n-fl;Object.assign(item,{f:inFill,mu:muted,sec:secName,ch:chordNow,nx:chordNext,tr:trMsg});
+ else{const fl=fillBeats()*sub,inFill=fillBar&&i>=n-fl;Object.assign(item,{f:inFill,mu:muted,sec:secName,ch:halfAt&&i>=halfAt?chordB:chordNow,nx:halfAt&&i>=halfAt?chordC:chordNext,tr:trMsg});
   if(!muted){const hj=()=>H?(Math.random()-.5)*0.02*H:0,hv=()=>H?1+(Math.random()-.5)*0.3*H:1,now=ctx.currentTime;
    ROWS.forEach(([k])=>{if(inFill&&KITROWS.has(k))return;const val=grid[k]&&grid[k][i];if(val){let kk=k;if(k==42&&$('cy').value==='ride')kk=51;const acc=(kk==42||kk==51)?(i%sub?0.65:1):1;if(kk==51&&bellAt(i))kk=53;hit(kk,Math.max(now,t+hj()),Math.min(1.3,val*acc*hv()))}});
    if(inFill)for(const e of (curFill[i-(n-fl)]||[]))hit(e.n,Math.max(now,t+(e.o||0)*dt+hj()),e.v*hv());
