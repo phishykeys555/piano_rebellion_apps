@@ -620,16 +620,20 @@ summary{cursor:pointer;padding:12px 16px;font-weight:600}
   // Onset (a fresh attack) arms the detector; the pitch is the median of the next few frames, so a ringing old note never answers the new question.
   let mic=null;
   const NOTE=["C","C♯","D","E♭","E","F","F♯","G","A♭","A","B♭","B"], mname=m=>NOTE[m%12]+(Math.floor(m/12)-1);
-  function acf(buf,sr){ let n=buf.length, rms=0; for(let i=0;i<n;i++) rms+=buf[i]*buf[i]; rms=Math.sqrt(rms/n); if(rms<0.008) return -1;
-    let r1=0,r2=n-1; for(let i=0;i<n/2;i++) if(Math.abs(buf[i])<0.2){r1=i;break} for(let i=1;i<n/2;i++) if(Math.abs(buf[n-i])<0.2){r2=n-i;break}
-    const b=buf.slice(r1,r2), N=b.length, maxLag=Math.min(N-1,Math.floor(sr/MINHZ)), c=new Float32Array(maxLag+2);
-    for(let l=0;l<=maxLag+1;l++){let v=0; for(let j=0;j<N-l;j++) v+=b[j]*b[j+l]; c[l]=v}
-    let d=0; while(d<maxLag&&c[d]>c[d+1]) d++; let mv=-1,mp=-1; for(let l=d;l<=maxLag;l++) if(c[l]>mv){mv=c[l];mp=l}
-    if(mp<1||mv<CLARITY*c[0]) return -1; const x1=c[mp-1],x2=c[mp],x3=c[mp+1],a=(x1+x3-2*x2)/2,bb=(x3-x1)/2; const T=a?mp-bb/(2*a):mp; return sr/T }
+  // YIN pitch detector (de Cheveigne & Kawahara 2002): cumulative-mean-normalised difference, absolute threshold, parabolic refinement.
+  // Far fewer octave slips than plain autocorrelation on piano, whose 2nd harmonic is often louder than the fundamental.
+  function acf(buf,sr){ const n=buf.length; let rms=0; for(let i=0;i<n;i++) rms+=buf[i]*buf[i]; rms=Math.sqrt(rms/n); if(rms<0.008) return -1;
+    const maxLag=Math.min(Math.floor(sr/MINHZ),Math.floor(n/2)), minLag=Math.max(2,Math.floor(sr/4400)), W=n-maxLag-1, d=new Float32Array(maxLag+2);
+    for(let t=1;t<=maxLag+1;t++){let v=0; for(let j=0;j<W;j++){const x=buf[j]-buf[j+t]; v+=x*x} d[t]=v}
+    const c=new Float32Array(maxLag+2); c[0]=1; let run=0; for(let t=1;t<=maxLag+1;t++){run+=d[t]; c[t]=run>0?d[t]*t/run:1}
+    const TH=CLARITY>=0.75?0.1:0.15; let T=-1;
+    for(let t=minLag;t<=maxLag;t++) if(c[t]<TH){ while(t+1<=maxLag&&c[t+1]<c[t]) t++; T=t; break }
+    if(T<0){ let mv=1,mp=-1; for(let t=minLag;t<=maxLag;t++) if(c[t]<mv){mv=c[t];mp=t} if(mp<0||mv>0.3) return -1; T=mp }
+    const x1=c[T-1],x2=c[T],x3=c[T+1],a=(x1+x3-2*x2)/2,b=(x3-x1)/2, Tf=a>0?T-b/(2*a):T; return sr/Tf }
   // Routed source -> gain (sensitivity) -> analyser -> muted output: Safari/iOS only process nodes that reach the destination.
   // Background-noise blocker: listens to the room for 1.5 s, sets the trigger line at 3x the room's level,
   // and only accepts a clear, steady pitch (speech and clatter don't have one).
-  let MINHZ=45;
+  let MINHZ=45, tuneOff=+store.get("tuneOff",0)||0;
   const micG=x=>0.25*Math.pow(48,(+x)/100);
   const THR=0.015; let thr=THR, CLARITY=0.5;
   function setThr(v){ thr=v; $("thr").style.left=Math.min(100,thr*600)+"%" }
@@ -662,10 +666,19 @@ summary{cursor:pointer;padding:12px 16px;font-weight:600}
   function micTick(){ const m=mic; m.an.getFloatTimeDomainData(m.buf); let r=0; for(let i=0;i<m.buf.length;i++) r+=m.buf[i]*m.buf[i]; r=Math.sqrt(r/m.buf.length);
     $("meterFill").style.width=Math.min(100,r*600)+"%"; const now=performance.now(), avg=m.hist.length?m.hist.reduce((a,b)=>a+b,0)/m.hist.length:0;
     m.hist.push(r); if(m.hist.length>6) m.hist.shift();
-    if(!m.armed&&now>m.cool&&r>thr&&r>avg*1.7){m.armed=true;m.armedAt=now;m.cand=[]}
-    if(m.armed){ const f=acf(m.buf,audio.sampleRate); if(f>MINHZ*0.9&&f<4400){const md=Math.round(69+12*Math.log2(f/440)); m.cand.push(md); $("heard").textContent=mname(md)}
-      if(m.cand.length>=4){ const srt=[...m.cand].sort((a,b)=>a-b), md=srt[Math.floor(srt.length/2)]; m.armed=false; m.cool=now+450; $("heard").textContent=mname(md); answerHeard(md) }
-      else if(now-m.armedAt>600){m.armed=false} } }
+    if(!m.armed&&now>m.cool&&r>thr&&r>avg*1.7){m.armed=true;m.armedAt=now;m.cand=[];m.res=[];m.raw=[]}
+    if(m.armed&&now-m.armedAt>=70){ const f=acf(m.buf,audio.sampleRate);
+      // tuneOff = how sharp/flat this piano sits (semitones), learned from every confirmed note, so a home piano that's a bit off still reads exactly
+      if(f>MINHZ*0.9&&f<4400){ const x=69+12*Math.log2(f/440)-tuneOff, md=Math.round(x); m.raw.push(x-md); if(Math.abs(x-md)<=0.45){ m.cand.push(md); m.res.push(x-md); $("heard").textContent=mname(md) } }
+      const cnt={}; let best=null, bc=0; for(const v of m.cand){cnt[v]=(cnt[v]||0)+1; if(cnt[v]>bc){bc=cnt[v];best=v}}
+      if(bc>=4&&bc>=0.7*m.cand.length){ const rs=m.res.filter((_,i)=>m.cand[i]===best).sort((a,b)=>a-b), med=rs[Math.floor(rs.length/2)]||0;
+        tuneOff=Math.max(-0.6,Math.min(0.6,tuneOff+0.5*med)); store.set("tuneOff",tuneOff);
+        m.armed=false; m.cool=now+450; $("heard").textContent=mname(best); answerHeard(best) }
+      else if(now-m.armedAt>900){ m.armed=false;
+        // a steady pitch that sits between two keys = the piano itself is off: re-centre on it and ask for the note again
+        const rr=[...m.raw].sort((a,b)=>a-b), md=rr[rr.length>>1];
+        if(rr.length>=4&&rr.filter(v=>Math.abs(v-md)<0.1).length>=0.75*rr.length&&Math.abs(md)>0.3){ tuneOff=Math.max(-0.6,Math.min(0.6,tuneOff+md)); store.set("tuneOff",tuneOff); $("heard").textContent="Tuning to your piano. Play it again." }
+        else if(m.cand.length||rr.length) $("heard").textContent="Didn't catch that. Play it again." } } }
   function answerHeard(md){ if(!q||locked||q.wait)return; const t=midiOf(q.notes[idx]); grade(md===t,{midi:md,label:mname(md)}) }
   $("micBtn").addEventListener("click",()=>micStart($("micSel").value||undefined));
   document.querySelectorAll("#seg button").forEach(b=>b.addEventListener("click",()=>{setRadio("mode",b.dataset.mode);store.set("mode",b.dataset.mode);layout();newQuestion(true)}));
