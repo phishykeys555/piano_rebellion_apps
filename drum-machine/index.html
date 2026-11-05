@@ -161,6 +161,32 @@ label{color:#b8b0a0;text-transform:uppercase;font-size:11px;letter-spacing:.08em
 <option value="sixeight">6/8</option>
 <option value="waltz">Waltz (3/4)</option>
 </optgroup>
+<optgroup label="Jam Band">
+<option value="jbcow">Cow Funk (Phish)</option>
+<option value="jbdead">Two-Beat Ride Groove (Grateful Dead)</option>
+<option value="jbshuf">Southern 12/8 Shuffle (Allman Brothers)</option>
+<option value="jbwhip">11/8 Intro (Whipping Post, 3+3+3+2)</option>
+</optgroup>
+<optgroup label="Modern Jazz">
+<option value="mjstraight">Straight-8th Modern Jazz (ECM ride + cross-stick)</option>
+<option value="mjbroken">Broken-Time Swing (ride + comping)</option>
+<option value="mjfunk">Jazz-Funk (Herbie Hancock, Headhunters)</option>
+<option value="mjafro">Afro-Cuban 6/8 (bell pattern)</option>
+</optgroup>
+<optgroup label="Prog / Odd Time">
+<option value="p54swing">5/4 Swing (Take Five, Brubeck)</option>
+<option value="p54rock">5/4 Rock (Mission: Impossible)</option>
+<option value="p74">7/4 Rock (Money, Pink Floyd)</option>
+<option value="p78">7/8 Prog (2+2+3; beat = 8th note)</option>
+<option value="p98">9/8 (Blue Rondo à la Turk, 2+2+2+3; beat = 8th note)</option>
+</optgroup>
+<optgroup label="Deep Funk">
+<option value="fjb">Funky Drummer (James Brown / Clyde Stubblefield)</option>
+<option value="fone">On the One (James Brown, Sex Machine feel)</option>
+<option value="ftop">Linear 16ths (Tower of Power, David Garibaldi)</option>
+<option value="fmeters">Second-Line Funk (The Meters, Cissy Strut)</option>
+<option value="fvulf">Modern Funk (Vulfpeck, Dean Town feel)</option>
+</optgroup>
 <optgroup label="Other">
 <option value="percjam">Percussion Only – Latin Jam</option>
 <option value="shakeronly">Percussion Only – Shaker + Tambourine</option>
@@ -170,7 +196,7 @@ label{color:#b8b0a0;text-transform:uppercase;font-size:11px;letter-spacing:.08em
 <option value="clear">Clear (build your own)</option>
 </optgroup>
 </select></label>
-<label class="adv">Beats <select id="b" data-s><option>2</option><option>3</option><option selected>4</option><option>5</option><option>6</option><option>7</option></select></label>
+<label class="adv">Beats <select id="b" data-s><option>2</option><option>3</option><option selected>4</option><option>5</option><option>6</option><option>7</option><option>8</option><option>9</option><option>10</option><option>11</option><option>12</option></select></label>
 <label class="adv">Notes <select id="sub" data-s><option value="2" selected>8ths</option><option value="3">Triplets</option><option value="4">16ths</option></select></label>
 <label title="Play the hi-hat part on the ride cymbal instead (great for choruses)">Cymbal <select id="cy" data-s><option value="hat" selected>Hi-hat</option><option value="ride">Ride</option></select></label>
 <label title="Hit the bell of the ride on accents (only when the ride is playing)">Ride bell <select id="rb" data-s><option value="off">Off</option><option value="beats" selected>On the beats (accents)</option><option value="one">Beat 1 only</option><option value="24">Beats 2 &amp; 4</option><option value="and">Off-beats (&amp;s)</option></select></label>
@@ -211,7 +237,7 @@ label{color:#b8b0a0;text-transform:uppercase;font-size:11px;letter-spacing:.08em
 <div class="row">
 <label title="CHMA theory: always name the major parent key (the 1). The mode says which number you start on.">Parent key (the 1) <select id="key" data-s><option value="C">C</option><option value="C#">C♯ / D♭</option><option value="D">D</option><option value="D#">D♯ / E♭</option><option value="E">E</option><option value="F">F</option><option value="F#">F♯ / G♭</option><option value="G">G</option><option value="G#">G♯ / A♭</option><option value="A">A</option><option value="A#">A♯ / B♭</option><option value="B">B</option></select></label>
 <label title="The scale the bass line uses for passing notes and runs. Picking a modal chord progression sets this for you.">Mode <select id="md" data-s><option value="auto" selected>Auto (the chord you start on)</option><optgroup label="Modes: the number you start on"><option value="ionian">1 · Ionian (major)</option><option value="dorian">2 · Dorian</option><option value="phrygian">3 · Phrygian</option><option value="lydian">4 · Lydian</option><option value="mixolydian">5 · Mixolydian</option><option value="aeolian">6 · Aeolian (minor)</option><option value="locrian">7 · Locrian</option></optgroup><optgroup label="Other scales"><option value="harmonic">6 · Harmonic minor (raised 7)</option><option value="melodic">6 · Melodic minor (raised 6 and 7)</option><option value="phrdom">3 · Phrygian dominant (major III)</option><option value="majpent">Major pentatonic</option><option value="minpent">Minor pentatonic</option><option value="blues">Blues</option></optgroup></select></label>
-<label>Chords <select id="prog" data-s><option value="I V vi IV" selected>I – V – vi – IV (pop)</option><option value="vi IV I V">vi – IV – I – V (minor pop, on the 6)</option><option value="I vi IV V">I – vi – IV – V (50s)</option><option value="I IV V IV">I – IV – V – IV (rock)</option><option value="I IV vi V">I – IV – vi – V</option><option value="vi ii iii vi">vi – ii – iii – vi (on the 6)</option><option value="vi V IV III">vi – V – IV – III (Andalusian, major III)</option><option value="ii7 V7 Imaj7 Imaj7">ii – V – I (jazz)</option><option value="I7 I7 I7 I7 IV7 IV7 I7 I7 V7 IV7 I7 V7">12-Bar Blues</option><option value="I">One chord (vamp)</option><optgroup label="Modal (numbers from the parent key)"><option value="ii V" data-md="dorian">Dorian (2): ii – V (Oye Como Va)</option><option value="ii iii IV V" data-md="dorian">Dorian (2): ii – iii – IV – V</option><option value="ii I V ii" data-md="dorian">Dorian (2): ii – I – V – ii</option><option value="iii IV" data-md="phrygian">Phrygian (3): iii – IV (Spanish)</option><option value="iii IV V IV" data-md="phrygian">Phrygian (3): iii – IV – V – IV</option><option value="iii ii I IV" data-md="phrygian">Phrygian (3): iii – ii – I – IV</option><option value="IV V" data-md="lydian">Lydian (4): IV – V (dreamy)</option><option value="IV V iii IV" data-md="lydian">Lydian (4): IV – V – iii – IV</option><option value="IV V vi V" data-md="lydian">Lydian (4): IV – V – vi – V</option><option value="V IV I V" data-md="mixolydian">Mixolydian (5): V – IV – I – V</option><option value="V ii I V" data-md="mixolydian">Mixolydian (5): V – ii – I – V</option><option value="V IV V I" data-md="mixolydian">Mixolydian (5): V – IV – V – I</option><option value="vi IV V vi" data-md="aeolian">Aeolian (6): vi – IV – V – vi (epic)</option><option value="vi V IV V" data-md="aeolian">Aeolian (6): vi – V – IV – V</option><option value="vi ii V I" data-md="aeolian">Aeolian (6): vi – ii – V – I</option><option value="vii° I iii I" data-md="locrian">Locrian (7): vii° – I – iii – I</option><option value="vi ii III vi" data-md="harmonic">Harmonic minor (6): vi – ii – III – vi</option><option value="III IV ii IV" data-md="phrdom">Phrygian dominant (3): III – IV – ii – IV</option></optgroup><option value="custom">Custom…</option></select></label>
+<label>Chords <select id="prog" data-s><option value="I V vi IV" selected>I – V – vi – IV (pop)</option><option value="vi IV I V">vi – IV – I – V (minor pop, on the 6)</option><option value="I vi IV V">I – vi – IV – V (50s)</option><option value="I IV V IV">I – IV – V – IV (rock)</option><option value="I IV vi V">I – IV – vi – V</option><option value="vi ii iii vi">vi – ii – iii – vi (on the 6)</option><option value="vi V IV III">vi – V – IV – III (Andalusian, major III)</option><option value="ii7 V7 Imaj7 Imaj7">ii – V – I (jazz)</option><option value="I7 I7 I7 I7 IV7 IV7 I7 I7 V7 IV7 I7 V7">12-Bar Blues</option><option value="I">One chord (vamp)</option><optgroup label="Modal (numbers from the parent key)"><option value="ii7 V7" data-md="dorian">Dorian (2): ii7 – V7 (Oye Como Va)</option><option value="ii iii IV V" data-md="dorian">Dorian (2): ii – iii – IV – V</option><option value="ii I V ii" data-md="dorian">Dorian (2): ii – I – V – ii</option><option value="iii IV" data-md="phrygian">Phrygian (3): iii – IV (Spanish)</option><option value="iii IV V IV" data-md="phrygian">Phrygian (3): iii – IV – V – IV</option><option value="iii IV iii ii" data-md="phrygian">Phrygian (3): iii – IV – iii – ii</option><option value="IV V" data-md="lydian">Lydian (4): IV – V (dreamy)</option><option value="IV V iii IV" data-md="lydian">Lydian (4): IV – V – iii – IV</option><option value="IVmaj7 V IVmaj7 V" data-md="lydian">Lydian (4): IVmaj7 – V (dreamy maj7 vamp)</option><option value="V IV I V" data-md="mixolydian">Mixolydian (5): V – IV – I – V (Sweet Child-style rock)</option><option value="V ii I V" data-md="mixolydian">Mixolydian (5): V – ii – I – V</option><option value="V IV I I" data-md="mixolydian">Mixolydian (5): V – IV – I – I (Sweet Home Alabama)</option><option value="vi IV V vi" data-md="aeolian">Aeolian (6): vi – IV – V – vi (epic)</option><option value="vi V IV V" data-md="aeolian">Aeolian (6): vi – V – IV – V</option><option value="vi iii IV V" data-md="aeolian">Aeolian (6): vi – iii – IV – V</option><option value="vii° I" data-md="locrian">Locrian (7): vii° – I (dark metal vamp)</option><option value="vi ii III vi" data-md="harmonic">Harmonic minor (6): vi – ii – III – vi</option><option value="III IV ii III" data-md="phrdom">Phrygian dominant (3): III – IV – ii – III</option></optgroup><option value="custom">Custom…</option></select></label>
 <label title="How fast the chords move. Double time = two chords in every bar. Half time = each chord lasts two bars.">Chord speed <select id="bpc" data-s><option value="0.5">Double time · 2 chords a bar</option><option value="1" selected>Normal · 1 bar each</option><option value="2">Half time · 2 bars each</option><option value="4">Slow · 4 bars each</option></select></label>
 </div>
 <div class="row adv">
@@ -381,6 +407,24 @@ const P={
  click8:{b:4,s:2,h:{36:[0,2,4,6],42:[0,1,2,3,4,5,6,7],56:[0]}},
  click16:{b:4,s:4,h:{36:[0,4,8,12],42:[0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15],56:[0]}},
  clear:{b:4,s:2,h:{}},
+ jbcow:{b:4,s:4,h:{42:[0,[1,0.35],[2,0.75],[3,0.35],4,[5,0.35],[6,0.75],[7,0.35],8,[9,0.35],[10,0.75],[11,0.35],12,[13,0.35],[14,0.75]],46:[[14,0.75]],38:[4,[7,0.35],[9,0.35],12,[15,0.35]],36:[0,3,10,13]}},
+ jbdead:{b:4,s:2,h:{51:[0,[1,0.75],2,[3,0.75],4,[5,0.75],6,[7,0.75]],38:[2,6],36:[0,4,[6,0.75]],44:[[2,0.75],[6,0.75]]}},
+ jbshuf:{b:4,s:3,h:{51:[0,[2,0.75],3,[5,0.75],6,[8,0.75],9,[11,0.75]],38:[3,9],36:[0,6,[9,0.75]],44:[[3,0.75],[9,0.75]]}},
+ jbwhip:{b:11,s:2,h:{42:[0,[2,0.75],[4,0.75],6,[8,0.75],[10,0.75],12,[14,0.75],[16,0.75],18,[20,0.75]],36:[0,12],38:[6,18],49:[0]}},
+ mjstraight:{b:4,s:2,h:{51:[0,[1,0.75],2,[3,0.75],4,[5,0.75],6,[7,0.75]],37:[[6,0.75]],36:[[0,0.35],[4,0.35]],44:[[2,0.75],[6,0.75]]}},
+ mjbroken:{b:4,s:3,h:{51:[0,[3,0.75],[5,0.75],6,[9,0.75],[11,0.75]],44:[[3,0.75],[9,0.75]],38:[[2,0.35],[7,0.35],[11,0.35]],36:[[0,0.35],[6,0.35],[8,0.75]]}},
+ mjfunk:{b:4,s:4,h:{42:[0,[1,0.35],2,[3,0.35],4,[5,0.35],6,[7,0.35],8,[9,0.35],10,[11,0.35],12,[13,0.35],14,[15,0.35]],38:[4,[6,0.35],[11,0.35],12,[15,0.35]],36:[0,3,6,10]}},
+ mjafro:{b:4,s:3,h:{53:[0,[2,0.75],[4,0.75],5,[7,0.75],[9,0.75],[11,0.75]],36:[0,6],44:[[3,0.75],[9,0.75]],37:[[6,0.75]]}},
+ p54swing:{b:5,s:3,h:{51:[0,[3,0.75],[5,0.75],6,[9,0.75],[11,0.75],12],44:[[3,0.75],[9,0.75]],36:[0,9],37:[[6,0.35]]}},
+ p54rock:{b:5,s:2,h:{42:[0,[1,0.75],2,[3,0.75],4,[5,0.75],6,[7,0.75],8,[9,0.75]],36:[0,3,6,8],38:[4,9]}},
+ p74:{b:7,s:2,h:{42:[0,[1,0.75],2,[3,0.75],4,[5,0.75],6,[7,0.75],8,[9,0.75],10,[11,0.75],12,[13,0.75]],36:[0,[6,0.75],8],38:[4,10]}},
+ p78:{b:7,s:2,h:{42:[0,[2,0.75],4,[6,0.75],8,[10,0.75],[12,0.75]],36:[0,8],38:[4,10]}},
+ p98:{b:9,s:2,h:{42:[0,[2,0.75],4,[6,0.75],8,[10,0.75],12,[14,0.75],[16,0.75]],36:[0,8],38:[4,12]}},
+ fjb:{b:4,s:4,h:{42:[0,[1,0.75],2,[3,0.75],4,[5,0.75],6,8,[9,0.75],10,[11,0.75],12,[13,0.75],14,[15,0.75]],46:[[7,0.75]],38:[4,[7,0.35],[9,0.35],[11,0.35],12,[15,0.35]],36:[0,2,10,13]}},
+ fone:{b:4,s:4,h:{42:[0,[1,0.35],[2,0.75],[3,0.35],4,[5,0.35],[6,0.75],[7,0.35],8,[9,0.35],[10,0.75],[11,0.35],12,[13,0.35],[14,0.75],[15,0.35]],38:[4,12],36:[0,6,8],54:[[4,0.75],[12,0.75]]}},
+ ftop:{b:4,s:4,h:{42:[[1,0.75],[3,0.75],[7,0.75],[9,0.75],[11,0.75],[15,0.75]],38:[4,[7,0.35],[10,0.35],12,[15,0.35]],36:[0,2,[6,0.75],8,[14,0.75]],46:[[14,0.75]]}},
+ fmeters:{b:4,s:4,h:{42:[0,[2,0.75],4,[6,0.75],8,[10,0.75],12,[14,0.75]],38:[[2,0.35],4,[6,0.35],[8,0.35],[10,0.35],12,[14,0.35]],36:[0,3,7,9]}},
+ fvulf:{b:4,s:4,h:{42:[[0,0.75],[2,0.75],[4,0.75],[6,0.75],[8,0.75],[10,0.75],[12,0.75],[14,0.75]],38:[4,12],36:[0,3,6,9,14],82:[[0,0.75],[1,0.35],[2,0.75],[3,0.35],[4,0.75],[5,0.35],[6,0.75],[7,0.35],[8,0.75],[9,0.35],[10,0.75],[11,0.35],[12,0.75],[13,0.35],[14,0.75],[15,0.35]]}},
  trap808:{b:4,s:4,h:{42:[0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15],38:[8],39:[[8,.6]],35:[0,7,10],36:[0]}},
  popsnap:{b:4,s:4,h:{42:[0,2,4,6,8,10,12,14],36:[0,6,8,[11,.6]],99:[4,12],82:[0,[1,.45],[2,.7],[3,.45],4,[5,.45],[6,.7],[7,.45],8,[9,.45],[10,.7],[11,.45],12,[13,.45],[14,.7],[15,.45]]}},
  snapswing:{b:4,s:3,h:{99:[3,9],51:[[0,.7],[3,.7],[5,.5],[6,.7],[9,.7],[11,.5]],36:[[0,.3],[6,.3]]}},
@@ -522,7 +566,7 @@ const FILLS={
  shuffle:{1:{lo:['S.S','..S'],hi:['SSS','HMF']},
        2:{lo:['S.S H.F','S.. S.S'],hi:['SSS HMF','SSH HMF','SsS SSS']},
        4:{lo:['S.S S.S H.H F.F','... S.S S.S SSS'],hi:['SSS SSS HHH FFF','SSS HHH MMM FFF','SsS SsS HHM MFF']}}};
-const FAM={funk:'funk',neosoul:'funk',boombap:'funk',afrobeat:'funk',dembow:'funk',trap808:'funk',
+const FAM={jbcow:'funk',mjfunk:'funk',fjb:'funk',fone:'funk',ftop:'funk',fmeters:'funk',fvulf:'funk',mjbroken:'jazz',p54swing:'jazz',funk:'funk',neosoul:'funk',boombap:'funk',afrobeat:'funk',dembow:'funk',trap808:'funk',
  bossa:'latin',samba:'latin',tumbao:'latin',
  jazz:'jazz',ride:'jazz',bebop:'jazz',uptempo:'jazz',bigband:'jazz',twofeel:'jazz',jballad:'jazz',jwaltz:'jazz',snapswing:'jazz',
  shuffle:'shuffle',texas:'shuffle',halfshuf:'shuffle',slowblues:'shuffle',sixeight:'shuffle',onedrop:'shuffle'};
@@ -662,7 +706,7 @@ const third=c=>(c.q==='maj'||c.q==='aug')?4:3,fifth=c=>c.q==='dim'?6:c.q==='aug'
 function scStep(m,dir){for(let k=1;k<=12;k++){const x=m+dir*k;if(bassScale.includes(mod12(x)))return x}return m+dir}
 function rng(a){return function(){a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296}}
 let bassSeed=Math.floor(Math.random()*1e6);
-const AUTO={jazz:'walk',twofeel:'walk',bebop:'walk',uptempo:'walk',bigband:'walk',jballad:'walk',jwaltz:'walk',snapswing:'walk',funk:'funk',neosoul:'funk',afrobeat:'funk',disco:'octave',pop:'octave',trap808:'trap',bossa:'bossa',samba:'bossa',tumbao:'bossa',onedrop:'reggae',ballad:'root',half:'root',slowblues:'rootfifth',shuffle:'rootfifth',texas:'rootfifth',train:'rootfifth',waltz:'rootfifth',sixeight:'rootfifth',punk:'roots8',motown:'roots8',swing8:'roots8',popshaker:'roots8',click:'root',click8:'root',click16:'root'};
+const AUTO={jbcow:'funk',jbdead:'rootfifth',jbshuf:'rootfifth',jbwhip:'kick',mjstraight:'modal',mjbroken:'walk',mjfunk:'funk',mjafro:'modal',p54swing:'walk',p54rock:'kick',p74:'kick',p78:'kick',p98:'kick',fjb:'funk',fone:'funk',ftop:'funk',fmeters:'funk',fvulf:'funk',jazz:'walk',twofeel:'walk',bebop:'walk',uptempo:'walk',bigband:'walk',jballad:'walk',jwaltz:'walk',snapswing:'walk',funk:'funk',neosoul:'funk',afrobeat:'funk',disco:'octave',pop:'octave',trap808:'trap',bossa:'bossa',samba:'bossa',tumbao:'bossa',onedrop:'reggae',ballad:'root',half:'root',slowblues:'rootfifth',shuffle:'rootfifth',texas:'rootfifth',train:'rootfifth',waltz:'rootfifth',sixeight:'rootfifth',punk:'roots8',motown:'roots8',swing8:'roots8',popshaker:'roots8',click:'root',click8:'root',click16:'root'};
 // "Change it up": a fresh bass line every N bars; Surprise also changes the feel (within styles that suit the groove) and how busy it is
 let surStyle=null,surV=null;
 const SUR_OK={kick:['kick','roots8','rootfifth','octave'],roots8:['roots8','kick','rootfifth','octave'],rootfifth:['rootfifth','kick','roots8'],octave:['octave','roots8','kick'],root:['root','rootfifth','kick'],funk:['funk','octave','kick']};
@@ -857,13 +901,14 @@ let saveT=null,savedDevInit='';
 const LOCAL=new Set(['mv','mode']);
 function getState(full){const c={};document.querySelectorAll('[data-s]').forEach(e=>{if(!full&&LOCAL.has(e.id))return;c[e.id]=e.type==='checkbox'?e.checked:e.value});
  const st={v:2,tm2:1,pk:1,av:1,bj:1,c,bpm,grid,rowVol,seed:bassSeed};if(full){st.dev=$('dev').value;st.view=document.body.classList.contains('simple')?'simple':'adv'}return st}
-const OLDPROG={'i VI III VII':'vi IV I V','i iv v i':'vi ii iii vi','i VII VI V':'vi V IV III','i IV':'ii V','i ii III IV':'ii iii IV V','i VII IV i':'ii I V ii','i II':'iii IV','i II III II':'iii IV V IV','i vii VI II':'iii ii I IV','I II':'IV V','I II vii I':'IV V iii IV','I II iii II':'IV V vi V','I VII IV I':'V IV I V','I v IV I':'V ii I V','I VII I IV':'V IV V I','i VI VII i':'vi IV V vi','i VII VI VII':'vi V IV V','i iv VII III':'vi ii V I','i° II iv II':'vii° I iii I','i iv V i':'vi ii III vi','I II vii II':'III IV ii IV'};
-function legacyKey(c){if(!c)return;const old=c.prog,md=c.md||'auto';let deg=MODEDEG[md];
+const OLDPROG={'i VI III VII':'vi IV I V','i iv v i':'vi ii iii vi','i VII VI V':'vi V IV III','i IV':'ii7 V7','i ii III IV':'ii iii IV V','i VII IV i':'ii I V ii','i II':'iii IV','i II III II':'iii IV V IV','i vii VI II':'iii IV iii ii','I II':'IV V','I II vii I':'IV V iii IV','I II iii II':'IVmaj7 V IVmaj7 V','I VII IV I':'V IV I V','I v IV I':'V ii I V','I VII I IV':'V IV I I','i VI VII i':'vi IV V vi','i VII VI VII':'vi V IV V','i iv VII III':'vi iii IV V','i° II iv II':'vii° I','i iv V i':'vi ii III vi','I II vii II':'III IV ii III'};
+const PROG2={'iii ii I IV':'iii IV iii ii','IV V vi V':'IVmaj7 V IVmaj7 V','V IV V I':'V IV I I','vi ii V I':'vi iii IV V','vii° I iii I':'vii° I','III IV ii IV':'III IV ii III','ii V':'ii7 V7'};
+function legacyKey(c){if(!c)return;if(PROG2[c.prog])c.prog=PROG2[c.prog];const old=c.prog,md=c.md||'auto';let deg=MODEDEG[md];
  if(deg==null&&md==='auto'&&old&&/^i[\s°]/.test(old+' '))deg=5;
  if(OLDPROG[old])c.prog=OLDPROG[old];
  if(deg&&c.key!=null){const i=NOTES.indexOf(c.key);if(i>=0)c.key=NOTES[mod12(i-MAJ[deg])]}}
 function setSel(e,val){if([...e.options].some(o=>o.value==val))e.value=val}
-function applyState(st){if(!st||!st.c)return false;restoring=true;const c=st.c;if(!st.av){if(c.hh==='ac')c.hh='studio';if(c.rv==='soft')c.rv='zil'}if(!st.bj){if(c.bt==='finger')c.bt='jbass';if(c.bt==='upright')c.bt='dbass'}if(!st.pk)legacyKey(c);
+function applyState(st){if(!st||!st.c)return false;restoring=true;const c=st.c;if(PROG2[c.prog])c.prog=PROG2[c.prog];if(!st.av){if(c.hh==='ac')c.hh='studio';if(c.rv==='soft')c.rv='zil'}if(!st.bj){if(c.bt==='finger')c.bt='jbass';if(c.bt==='upright')c.bt='dbass'}if(!st.pk)legacyKey(c);
  for(const id in c){const e=$(id);if(!e)continue;if(e.type==='checkbox')e.checked=!!c[id];else if(e.tagName==='SELECT')setSel(e,c[id]);else e.value=c[id]}
  preset(P[c.pre]?c.pre:'rock');$('pre').value=curName;
  const nb=+c.b||beats,ns=+c.sub||sub;if(nb!==beats||ns!==sub){beats=nb;sub=ns;$('b').value=beats;$('sub').value=sub;fill()}
@@ -880,7 +925,7 @@ function save(){if(restoring)return;clearTimeout(saveT);saveT=setTimeout(()=>{tr
 // key = the major PARENT key. Links without pk=1 are older: their key was the mode's own starting note and is converted.
 // Any control id works. Used only until the student changes something; ↺ Reset goes back to the link's settings.
 function applyParams(){const sp=new URLSearchParams(location.search);if(![...sp.keys()].length)return false;restoring=true;
- if(!sp.get('pk')){const c={key:sp.get('key'),md:sp.get('md'),prog:sp.get('prog')};legacyKey(c);if(c.key)sp.set('key',c.key);if(c.prog)sp.set('prog',c.prog)}
+ if(PROG2[sp.get('prog')])sp.set('prog',PROG2[sp.get('prog')]);if(!sp.get('pk')){const c={key:sp.get('key'),md:sp.get('md'),prog:sp.get('prog')};legacyKey(c);if(c.key)sp.set('key',c.key);if(c.prog)sp.set('prog',c.prog)}
  preset(sp.get('pre')&&P[sp.get('pre')]?sp.get('pre'):'rock');$('pre').value=curName;
  sp.forEach((val,k)=>{if(k==='pre'||k==='bpm'||k==='view'||k==='pk')return;const e=$(k);if(!e||!e.hasAttribute('data-s'))return;
   if(e.type==='checkbox')e.checked=val==='1'||val==='true';else if(e.tagName==='SELECT')setSel(e,val);else e.value=val});
