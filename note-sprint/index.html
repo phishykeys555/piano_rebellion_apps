@@ -244,7 +244,7 @@ summary{cursor:pointer;padding:12px 16px;font-weight:600}
       <button class="primary" id="startTimed">Start 60-second sprint</button>
     </div>
     <p class="tip">Keyboard: A–G to answer. In a key with sharps or flats, tap ♯ or ♭ first (or press = / −). Piano keys must be the exact key, right octave.</p>
-    <p class="tip" id="appVer">Version 2026-11-05.6 · fresh target each round · full keyboard · YIN mic</p>
+    <p class="tip" id="appVer">Version 2026-11-05.7 · fresh target each round · full keyboard · YIN mic</p>
 
     <div class="arcsplash" id="arcSplash" hidden><div class="boom"></div><div id="arcPcs"></div><div class="pre" id="arcSplashP"></div><b id="arcSplashT">ROUND 2</b><span id="arcSplashS"></span></div><div class="hitstamp" id="hitStamp">TARGET HIT!</div>
     <div class="results" id="results" hidden>
@@ -750,7 +750,9 @@ summary{cursor:pointer;padding:12px 16px;font-weight:600}
     const need=arc.needs[arc.round-1];
     if(st.points<need) return arcFinish(false,need-(arc.start||0),st.points-(arc.start||0));
     if(arc.round===5){ arc.bonus=true; arc.hit=false; arcBar(); return arcSplash("BONUS ROUND","Every point counts double for 30 seconds. Go.",2400,arcRound,"ROUND 5 CLEARED ✓") }
-    const cleared=arc.round; arc.round++; arc.start=st.points; arc.needs[arc.round-1]=st.points+arc.inc[arc.round-1]; arc.hit=false; arcBar(); arcSplash(`ROUND ${arc.round}`,`Target this round: ${half(arc.inc[arc.round-1])} points. Fresh count, extras don't carry.`,2400,arcRound,`ROUND ${cleared} CLEARED ✓`) }
+    const cleared=arc.round, got=st.points-(arc.start||0); arc.round++;
+    // adapt round to round: the next target is at least 10% more than what was just scored, so a strong round raises the bar right away
+    arc.inc[arc.round-1]=Math.max(arc.inc[arc.round-1],Math.round(got*1.1),arc.inc[arc.round-2]+1); arc.start=st.points; arc.needs[arc.round-1]=st.points+arc.inc[arc.round-1]; arc.hit=false; arcBar(); arcSplash(`ROUND ${arc.round}`,`Target this round: ${half(arc.inc[arc.round-1])} points. Fresh count, extras don't carry.`,2400,arcRound,`ROUND ${cleared} CLEARED ✓`) }
   function arcFinish(won,need,got){ const failedRound=won?0:arc.round; const reached=arc.bonus?"Bonus round":`Round ${arc.round}`, key="arcbest-"+level+"-"+readSettings().mode, best=Math.max(store.get(key,0),st.points), isNew=st.points>0&&st.points>=best;
     store.set(key,best); sprintOver=true; locked=true; arc=null; $("arcbar").hidden=true; $("arcMeter").hidden=true; $("watch").classList.remove("fire"); $("arcBtn").hidden=!$("chalOn").checked; $("startTimed").textContent="Start 60-second sprint";
     $("rTitle").textContent=won?"Challenge cleared!":"Challenge over"; $("againBtn").textContent="Play again";
