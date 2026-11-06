@@ -248,7 +248,7 @@ label{color:#b8b0a0;text-transform:uppercase;font-size:11px;letter-spacing:.08em
 <div class="row">
 <label><input type="checkbox" id="kon" data-s> Keys on</label>
 <label>Sound <select id="ksnd" data-s><option value="rhodes" selected>Rhodes electric piano (studio, multi-layer)</option></select></label>
-<label title="How the keys play the chords. Auto picks a feel that matches the groove.">Comping <select id="kcomp" data-s><option value="auto" selected>Auto (matches groove)</option><option value="sustain">Sustained (hold the chord)</option><option value="pop">Pop pushes (1, and of 2, 4)</option><option value="charleston">Jazz Charleston (1, and of 2)</option><option value="funk">Funk stabs (short 16ths)</option><option value="quarters">Quarter-note pulse</option><option value="ballad">Ballad (chord then broken)</option></select></label>
+<label title="How the keys play the chords. Auto picks a feel that matches the groove.">Comping <select id="kcomp" data-s><option value="auto" selected>Auto (matches groove)</option><option value="sustain">Sustained (hold the chord)</option><option value="pop">Pop (long and short, pushes)</option><option value="charleston">Jazz comping (Charleston, space, pushes)</option><option value="funk">Funk (16th stabs and holds)</option><option value="quarters">Quarter-note pulse (varied lengths)</option><option value="ballad">Ballad (chord then broken)</option></select></label>
 <label title="Pop / rock: three-note triads. Jazz: 3rd, 5th, 7th and 9th, no root (the bass has it).">Voicing <select id="kvoice" data-s><option value="auto" selected>Auto (jazz grooves get 7ths and 9ths)</option><option value="triad">Triads</option><option value="seventh">7th chords</option><option value="rootless">Jazz rootless (3-5-7-9)</option></select></label>
 <label>Volume <input type="range" id="kv" data-s min="0" max="100" value="60" style="width:100px"></label>
 </div>
@@ -615,6 +615,7 @@ let tonicNow=0,tonicName='C',parentName='C';
 const qualOf=(deg)=>{const t3=mod12(MAJ[(deg+2)%7]-MAJ[deg]),t5=mod12(MAJ[(deg+4)%7]-MAJ[deg]),t7=mod12(MAJ[(deg+6)%7]-MAJ[deg]);return{q:t3===4?'maj':t5===6?'dim':'min',s7:t7===11?'maj7':(t3===4?'7':t5===6?'m7b5':'m7')}};
 const rnText=(acc,deg,q,sv)=>{const up=q==='maj'||q==='aug',num=up?ROM[deg]:ROM[deg].toLowerCase();
  return acc+num+(q==='aug'?'+':'')+(q==='dim'?(sv==='m7'?'ø7':sv==='dim7'?'°7':'°'):(sv==='maj7'?(q==='min'?'(maj7)':'maj7'):sv?'7':''))};
+function jazzHarm(){const v=$('kvoice')?$('kvoice').value:'auto';return v==='seventh'||v==='rootless'||(v==='auto'&&/jazz|swing|bebop|basie|twofeel|uptempo|bigband|jwaltz|mjelvin|mjtony|mjbroken|mjstraight|nola|jballad|swing8|snapswing|bossa|mjlatin/.test(curName||''))}
 function parseProg(){const txt=$('prog').value==='custom'?$('cprog').value:$('prog').value;
  const toks=txt.replace(/[|,–—]+/g,' ').replace(/\s-\s/g,' ').trim().split(/\s+/).filter(Boolean);
  const kp=keyPc();let flat=['F','A#','D#','G#','C#'].includes($('key').value);
@@ -642,6 +643,9 @@ function parseProg(){const txt=$('prog').value==='custom'?$('cprog').value:$('pr
  if(md==='majpent'||md==='minpent'||md==='blues')tonicNow=res[0].pc;else tonicNow=mod12(kp+MAJ[MODEDEG[modeNow]||0]);
  tonicName=MODEDEG[modeNow]!=null?spell(tonicNow,MODEDEG[modeNow]):(res[0].name||(flat?FLAT:SHARP)[tonicNow]);
  bassScale=MODES[modeNow].map(x=>mod12(x+tonicNow));
+ // Jazz harmony: on jazz grooves (or when Keys plays 7ths / rootless) every diatonic chord is its 7th chord of the key:
+ // Imaj7 ii7 iii7 IVmaj7 V7 vi7 viiø7 (in C: Cmaj7 Dm7 Em7 Fmaj7 G7 Am7 Bø7). Bass and keys both use it.
+ if(jazzHarm())res.forEach(c=>{if(c.dia&&c.deg>=0&&!c.sev){const d=qualOf(c.deg);c.sev=d.s7==='m7b5'?'m7':d.s7;c.rn=rnText('',c.deg,c.q,c.sev)}});
  res.forEach(c=>c.label=(c.name||(flat?FLAT:SHARP)[c.pc])+(c.q==='min'?'m':c.q==='aug'?'+':'')+(c.q==='dim'?(c.sev==='m7'?'ø7':c.sev==='dim7'?'°7':'°'):(c.sev==='maj7'?(c.q==='min'?'(maj7)':'maj7'):c.sev?'7':'')));
  return res}
 function modeLine(){const d=MODEDEG[modeNow];if(d==null)return tonicName+' '+(MODEN[modeNow]||'');
@@ -901,21 +905,43 @@ function keysStyle(){const v=$('kcomp').value;if(v!=='auto')return v;const g=cur
  if(/waltz|sixeight/.test(g))return 'waltzk';if(/jballad|ballad|slowblues|half$/.test(g))return 'ballad';
  if(/^f|funk|disco|jb|neosoul|motown|gogo|minn|dilla|afro/.test(g))return 'funk';if(KJAZZ.test(g))return 'charleston';return 'pop'}
 function keysVoicing(ch){let v=$('kvoice').value;if(v==='auto')v=KJAZZ.test(curName||'')?'rootless':'triad';
- const cs=chordScale(ch),r=ch.pc,iv=v==='triad'?[0,cs[2],cs[4]]:v==='seventh'?[0,cs[2],cs[4],cs[6]]:[cs[2],cs[4],cs[6],cs[1]],pcs=iv.map(x=>mod12(r+x));
+ const cs=chordScale(ch),r=ch.pc,iv=v==='triad'?[0,cs[2],cs[4]]:v==='seventh'?[0,cs[2],cs[4],cs[6]]:[cs[2],cs[4],cs[6],cs[1]===1?cs[3]:cs[1]],pcs=iv.map(x=>mod12(r+x));
  // try each note on the bottom, stack the rest upward inside an octave, keep it in the middle of the keyboard, pick the one closest to the last chord
  let best=null,bd=1e9;for(let b=0;b<pcs.length;b++)for(let base=52;base<=66;base++){if(mod12(base)!==pcs[b])continue;const ms=[base];
   for(let k=1;k<pcs.length;k++){const pc=pcs[(b+k)%pcs.length];let m=ms[ms.length-1]+1;while(mod12(m)!==pc)m++;ms.push(m)}
   if(ms[ms.length-1]>79)continue;const avg=ms.reduce((a,c)=>a+c,0)/ms.length,d=Math.abs(avg-keysLast)+Math.abs(avg-64)*0.25;if(d<bd){bd=d;best=ms}}
  best=best||pcs.map(pc=>60+pc);keysLast=best.reduce((a,c)=>a+c,0)/best.length;return best}
-const KPAT={sustain:[[0,99,.62]],pop:[[0,1.5,.72],[1.5,1.5,.56],[3,1,.62]],charleston:[[0,.7,.7],[1.5,2.3,.6]],funk:[[0,.25,.82],[.75,.25,.58],[1.5,.25,.72],[2.5,.25,.78],[3.25,.25,.6]],
- quarters:[[0,.9,.68],[1,.9,.56],[2,.9,.62],[3,.9,.56]],ballad:[[0,99,.6]],waltzk:[[1,.9,.55],[2,.9,.52]]};
-function genKeys(){if(!$('kon').checked)return [];const n=steps(),st=keysStyle(),P=KPAT[st]||KPAT.pop,ev=[];
- const segs=halfAt?[[0,halfAt,chordNow],[halfAt,n,chordB]]:[[0,n,chordNow]];
- for(const [a,b,ch] of segs){if(!ch)continue;const ms=keysVoicing(ch);
-  const pat=halfAt&&(st==='sustain'||st==='ballad')?[[0,99,P[0][2]]]:P;
-  for(const [pb,pd,pv] of pat){const s=a+Math.round(pb*sub);if(s>=b)continue;const d=Math.max(1,Math.min(b-s,Math.round(pd*sub)));
-   if(st==='ballad'){ev.push({s,d,ms,v:pv});const arp=[ms[0],ms[1]||ms[0],ms[ms.length-1]+0,ms[1]||ms[0]];for(let k=1;k<4;k++){const s2=a+Math.round(k*(b-a)/4);if(s2<b)ev.push({s:s2,d:Math.max(1,Math.round((b-a)/4)),ms:[arp[k]+12],v:pv*0.7})}}
-   else ev.push({s,d,ms,v:pv})}}
+// Comping phrase library: [beat, length in beats, strength, 'p' = push (plays the NEXT chord early, the next bar's downbeat is tied)]
+// Mixes long holds, short stabs, rests and anticipations, the way a real player comps.
+const KLIB={
+ pop:[[[0,2,.72],[2.5,1.5,.6]],[[0,1,.7],[1.5,.35,.55],[2,2,.62]],[[0,.4,.7],[.5,.35,.5],[1.5,1,.6],[3,.35,.55],[3.5,.5,.62,'p']],[[0,3.5,.68],[3.5,.5,.6,'p']],
+  [[0,.5,.7],[1,.5,.55],[2,.5,.62],[2.75,1.25,.58]],[[1,1,.6],[2.5,1.5,.6]],[[0,1.5,.7],[1.5,.4,.58],[2.5,.4,.55],[3,1,.6]],[[0,.3,.72],[.75,1.25,.6],[2.5,.3,.6],[3,1,.58]]],
+ charleston:[[[0,.4,.68],[1.5,1.5,.58]],[[1.5,.35,.6],[3.5,.5,.6,'p']],[[0,2.5,.6]],[[.5,.3,.55],[2,.3,.6],[3.5,.6,.62,'p']],[[1,.3,.58],[2.5,1.2,.6]],
+  [[0,.35,.65],[2.5,.35,.6],[3.5,.5,.6,'p']],[[1.5,2,.6]],[[0,.6,.66],[1.5,.3,.55],[2.5,.3,.58]],[]],
+ funk:[[[0,.25,.82],[.75,.25,.58],[1.5,.25,.72],[2.5,.25,.78],[3.25,.25,.6]],[[0,.2,.8],[1.75,.2,.6],[2,.2,.72],[3.5,.3,.65]],
+  [[.5,.2,.7],[1.25,.2,.6],[2.5,.2,.75],[3,.5,.6],[3.75,.25,.6,'p']],[[0,1,.7],[2.5,.25,.65],[2.75,.25,.6],[3.5,.25,.7]],
+  [[0,.25,.78],[1,.25,.6],[1.75,.5,.66],[3,.25,.7],[3.5,.25,.6]],[[.75,.25,.66],[1.5,.25,.6],[2.25,.25,.7],[3.25,.5,.62]]],
+ sustain:[[[0,4,.62]],[[0,3,.62],[3,1,.5]],[[0,2,.6],[2,2,.55]],[[0,3.5,.6],[3.5,.5,.55,'p']]],
+ quarters:[[[0,.9,.68],[1,.9,.56],[2,.9,.62],[3,.9,.56]],[[0,.5,.68],[1,.5,.56],[2,.5,.62],[3,.5,.56]],[[0,1.8,.66],[2,.9,.6],[3,.9,.56]]],
+ ballad:[[[0,4,.6]],[[0,2,.6],[2,2,.52]],[[0,3,.6],[3,1,.5]]],
+ waltzk:[[[1,.9,.55],[2,.9,.52]],[[0,.5,.6],[1,.4,.5],[2,1,.52]],[[1,2,.55]]]};
+// half-bar cells (two chords in one bar): two beats each
+const KHALF=[[[0,1.5,.66]],[[0,.4,.7],[1,1,.6]],[[.5,1.5,.6]],[[0,.4,.68],[1.5,.5,.6]],[[0,2,.62]]];
+let keysPrev=-1,keysTied=false;
+function genKeys(){if(!$('kon').checked){keysTied=false;return []}const n=steps(),st=keysStyle(),ev=[],H=+$('hu').value/100,len=x=>x*(1+(Math.random()-.5)*0.2*H);
+ const pick=(arr)=>{let k,t=0;do{k=Math.floor(Math.random()*arr.length)}while(arr.length>1&&k===keysPrev&&t++<10);keysPrev=k;return arr[k]};
+ const segs=halfAt?[[0,halfAt,chordNow,chordB],[halfAt,n,chordB,chordC]]:[[0,n,chordNow,chordNext]];
+ const tiedIn=keysTied;keysTied=false;
+ for(const [a,b,ch,nx] of segs){if(!ch)continue;const ms=keysVoicing(ch);
+  let pat=halfAt?pick(KHALF):pick(KLIB[st]||KLIB.pop);
+  if(st==='ballad'&&!halfAt){const shape=Math.floor(Math.random()*4);ev.push({s:a,d:b-a,ms,v:.6}); // hold the chord, then one of: quarter arpeggio, 8th arpeggio, a restrike on 3, or just let it ring
+   const arp=[ms[0],ms[1]||ms[0],ms[ms.length-1],ms[1]||ms[0],ms[0]+12,ms[ms.length-1],ms[1]||ms[0],ms[0]];const cnt=shape===0?4:shape===1?8:0;
+   for(let k=1;k<cnt;k++){const s2=a+Math.round(k*(b-a)/cnt);if(s2<b)ev.push({s:s2,d:Math.max(1,Math.round((b-a)/cnt)),ms:[arp[k%arp.length]+12],v:.38+Math.random()*.08})}
+   if(shape===2){const s2=a+Math.round((b-a)/2);ev.push({s:s2,d:b-s2,ms,v:.48})}continue}
+  for(const [pb,pd,pv,fl] of pat){const s=a+Math.round(pb*sub);if(s>=b)continue;if(tiedIn&&s===0)continue; // the last bar pushed into this chord already
+   const d=Math.max(1,Math.min(b-s,Math.round(len(pd)*sub)));
+   if(fl==='p'&&nx&&b===n){const nms=keysVoicing(nx);ev.push({s,d:Math.max(d,Math.round(sub*1.5)),ms:nms,v:pv,push:1});keysTied=true}
+   else ev.push({s,d,ms,v:pv*(0.92+Math.random()*0.16)})}}
  return ev}
 function keysChord(t,ms,dur,vel){if(!keysBus)return;const a=+$('kv').value/100;if(a<=0)return;if(!libBuf[LIB.rhodes.dir]){loadLib('rhodes');return}
  ms.forEach((m,i)=>libNote('rhodes',t+i*0.007,m,dur,Math.min(1,vel*(i===ms.length-1?1.08:0.95)),a,keysBus))}
@@ -1014,7 +1040,7 @@ function sched(h){const H=typeof h==='number'?h:ctx.currentTime+0.1;while(next<H
    if(i===0&&crashNow&&!grid[49][0]){hit(49,next,0.95);if(!grid[36][0]&&!grid[35][0])hit(36,next,0.9)}
    else if(i===0&&$('crash').checked&&barN%4==0&&!grid[49][0])hit(49,next,0.9);
    for(const e of bassEv)if(e.s===i)bassNote(Math.max(now,t+hj()*0.5),e.m,e.d*dt,e.v*hv(),e.g);
-   for(const e of keysEv)if(e.s===i)keysChord(Math.max(now,t+hj()*0.6),e.ms,e.d*dt*0.97,e.v*hv())}}
+   for(const e of keysEv)if(e.s===i)keysChord(Math.max(now,t+hj()*0.6),e.ms,e.d*dt*(e.push?1:0.97),e.v*hv())}}
  q.push(item);next+=dt;pos++;if(pos>=n){pos=0;if(isCount)cin--;else{barN++;trMsg=''}}}}
 function anim(){if(!playing)return;while(q.length&&q[0].t<=ctx.currentTime){const e=q.shift();
   for(const k in cells)cells[k].forEach((c,j)=>c.classList.toggle('now',j==e.i&&!e.cnt));
@@ -1187,5 +1213,5 @@ document.addEventListener('keydown',e=>{const tg=e.target.tagName,ty=e.target.ty
 // ===== boot =====
 $('av').value='rock';$('ac').value='pop';psUI();restore();uiRefresh();logUI();restoring=false;listDevs();
 
-</script><script>(function(){const C=['#e8412c','#f28c28','#f6c33b','#efe6d2'];document.querySelectorAll('.sec>h4').forEach((h,i)=>h.style.setProperty('--band',C[i%4]))})();</script><p class="appver" style="text-align:center;font-size:11px;opacity:.6;margin:18px 0 10px;font-family:ui-monospace,Menlo,monospace">Modal Metronome · Version 2026-11-06.7</p>
+</script><script>(function(){const C=['#e8412c','#f28c28','#f6c33b','#efe6d2'];document.querySelectorAll('.sec>h4').forEach((h,i)=>h.style.setProperty('--band',C[i%4]))})();</script><p class="appver" style="text-align:center;font-size:11px;opacity:.6;margin:18px 0 10px;font-family:ui-monospace,Menlo,monospace">Modal Metronome · Version 2026-11-06.9</p>
 </body></html>
