@@ -614,7 +614,7 @@ const DEGMODE=['ionian','dorian','phrygian','lydian','mixolydian','aeolian','loc
 let tonicNow=0,tonicName='C',parentName='C';
 const qualOf=(deg)=>{const t3=mod12(MAJ[(deg+2)%7]-MAJ[deg]),t5=mod12(MAJ[(deg+4)%7]-MAJ[deg]),t7=mod12(MAJ[(deg+6)%7]-MAJ[deg]);return{q:t3===4?'maj':t5===6?'dim':'min',s7:t7===11?'maj7':(t3===4?'7':t5===6?'m7b5':'m7')}};
 const rnText=(acc,deg,q,sv)=>{const up=q==='maj'||q==='aug',num=up?ROM[deg]:ROM[deg].toLowerCase();
- return acc+num+(q==='aug'?'+':'')+(q==='dim'?(sv==='m7'?'ø7':sv==='dim7'?'°7':'°'):(sv==='maj7'?(q==='min'?'(maj7)':'maj7'):sv?'7':''))};
+ return acc+num+(q==='aug'?'+':'')+(q==='dim'?(sv==='m7'?'ø7':sv==='dim7'?'°7':'°'):(sv==='maj7'?(q==='min'?'(maj7)':'maj7'):sv==='add9'?'add9':sv==='6'?'6':sv?'7':''))};
 function jazzHarm(){const v=$('kvoice')?$('kvoice').value:'auto';return v==='seventh'||v==='rootless'||(v==='auto'&&/jazz|swing|bebop|basie|twofeel|uptempo|bigband|jwaltz|mjelvin|mjtony|mjbroken|mjstraight|nola|jballad|swing8|snapswing|bossa|mjlatin/.test(curName||''))}
 function parseProg(){const txt=$('prog').value==='custom'?$('cprog').value:$('prog').value;
  const toks=txt.replace(/[|,–—]+/g,' ').replace(/\s-\s/g,' ').trim().split(/\s+/).filter(Boolean);
@@ -645,8 +645,12 @@ function parseProg(){const txt=$('prog').value==='custom'?$('cprog').value:$('pr
  bassScale=MODES[modeNow].map(x=>mod12(x+tonicNow));
  // Jazz harmony: on jazz grooves (or when Keys plays 7ths / rootless) every diatonic chord is its 7th chord of the key:
  // Imaj7 ii7 iii7 IVmaj7 V7 vi7 viiø7 (in C: Cmaj7 Dm7 Em7 Fmaj7 G7 Am7 Bø7). Bass and keys both use it.
- if(jazzHarm())res.forEach(c=>{if(c.dia&&c.deg>=0&&!c.sev){const d=qualOf(c.deg);c.sev=d.s7==='m7b5'?'m7':d.s7;c.rn=rnText('',c.deg,c.q,c.sev)}});
- res.forEach(c=>c.label=(c.name||(flat?FLAT:SHARP)[c.pc])+(c.q==='min'?'m':c.q==='aug'?'+':'')+(c.q==='dim'?(c.sev==='m7'?'ø7':c.sev==='dim7'?'°7':'°'):(c.sev==='maj7'?(c.q==='min'?'(maj7)':'maj7'):c.sev?'7':'')));
+ // The V chord is only a dominant 7 when it does a dominant's job: resolving to I, or as the mode's own color (Dorian's IV7, Mixolydian's I7).
+ // Otherwise (Aeolian / pop loops, V going to IV or vi) it is add9: G B D A, no F. Chords typed with a 7 are left as written.
+ if(jazzHarm())res.forEach((c,k)=>{if(!(c.dia&&c.deg>=0&&!c.sev))return;const d=qualOf(c.deg);let sv=d.s7==='m7b5'?'m7':d.s7;
+  if(sv==='7'){const nx=res[(k+1)%res.length],resolves=nx&&nx.deg===0&&modeNow==='ionian',modal=modeNow==='dorian'||modeNow==='mixolydian';if(!resolves&&!modal)sv='add9'}
+  c.sev=sv;c.rn=rnText('',c.deg,c.q,c.sev)});
+ res.forEach(c=>c.label=(c.name||(flat?FLAT:SHARP)[c.pc])+(c.q==='min'?'m':c.q==='aug'?'+':'')+(c.q==='dim'?(c.sev==='m7'?'ø7':c.sev==='dim7'?'°7':'°'):(c.sev==='maj7'?(c.q==='min'?'(maj7)':'maj7'):c.sev==='add9'?'add9':c.sev==='6'?'6':c.sev?'7':'')));
  return res}
 function modeLine(){const d=MODEDEG[modeNow];if(d==null)return tonicName+' '+(MODEN[modeNow]||'');
  return tonicName+' '+MODEN[modeNow].replace(' (major)','').replace(' (minor)','')+(d===0?' · the 1 of '+parentName:' · on the '+NUMW[d]+' of '+parentName+' major')}
@@ -738,7 +742,7 @@ const TPL={
 const FAMS={funk:['jb1','jb2','met1','boo1','vul1'],jbfunk:['jb1','jb2','jb3'],tower:['top1','top2'],meters:['met1','met2'],bootsy:['boo1','boo2'],vulf:['vul1','vul2'],
  cowfunk:['cow1','cow2'],neosoul:['neo1','neo2'],afrobeat:['afr1','afr2'],jamerson:['jam1','jam2','jam3'],modalvamp:['mv1','mv2'],afro68:['a68a','a68b'],bossa:['bos'],baiao:['bai'],chacha:['cha']};
 function toneOf(c,ch,r,o){const cs=chordScale(ch);switch(c){case'R':return r;case'3':return r+third(ch);case'5':return r+fifth(ch);
- case'7':return r+(cs[6]===11&&ch.sev!=='maj7'?9:cs[6]);case'8':return r+12;case'6':return r+cs[5];case'9':return r+cs[1];case'4':return r+cs[3];
+ case'7':return ch.sev==='add9'?r+12:r+(cs[6]===11&&ch.sev!=='maj7'?9:cs[6]);case'8':return r+12;case'6':return r+cs[5];case'9':return r+cs[1];case'4':return r+cs[3];
  case'b3':return r+3;case'L5':return r+fifth(ch)-12>=LO?r+fifth(ch)-12:r+fifth(ch);case'A':return o.app();default:return r}}
 function tplBass(name,ch,nx,last,S,B,R,V,odd){const T=TPL[name],u=T.u,len=4*u,n=S*B,ev=[],r=bassRoot(ch.pc);
  const nr=bassRoot(nx.pc);let prevM=r;const o={app:()=>last?appNear(nr,prevM,R):appNear(r,prevM,R)};
@@ -906,7 +910,7 @@ function keysStyle(){const v=$('kcomp').value;if(v!=='auto')return v;const g=cur
  if(/waltz|sixeight/.test(g))return 'waltzk';if(/jballad|ballad|slowblues|half$/.test(g))return 'ballad';
  if(/^f|funk|disco|jb|neosoul|motown|gogo|minn|dilla|afro/.test(g))return 'funk';if(KJAZZ.test(g))return 'charleston';return 'pop'}
 function keysVoicing(ch){let v=$('kvoice').value;if(v==='auto')v=KJAZZ.test(curName||'')?'rootless':'triad';
- const cs=chordScale(ch),r=ch.pc,iv=v==='triad'?[0,cs[2],cs[4]]:v==='seventh'?[0,cs[2],cs[4],cs[6]]:[cs[2],cs[4],cs[6],cs[1]===1?cs[3]:cs[1]],pcs=iv.map(x=>mod12(r+x));
+ const cs=chordScale(ch),r=ch.pc,add=ch.sev==='add9'||ch.sev==='6',col=ch.sev==='6'?cs[5]:cs[1],iv=v==='triad'?[0,cs[2],cs[4]]:add?(v==='seventh'?[0,cs[2],cs[4],col]:[cs[2],cs[4],col]):v==='seventh'?[0,cs[2],cs[4],cs[6]]:[cs[2],cs[4],cs[6],cs[1]===1?cs[3]:cs[1]],pcs=iv.map(x=>mod12(r+x));
  // try each note on the bottom, stack the rest upward inside an octave, keep it in the middle of the keyboard, pick the one closest to the last chord
  let best=null,bd=1e9;for(let b=0;b<pcs.length;b++)for(let base=52;base<=66;base++){if(mod12(base)!==pcs[b])continue;const ms=[base];
   for(let k=1;k<pcs.length;k++){const pc=pcs[(b+k)%pcs.length];let m=ms[ms.length-1]+1;while(mod12(m)!==pc)m++;ms.push(m)}
@@ -991,7 +995,7 @@ let halfAt=0,chordB=null,chordC=null,pos=0,barN=0,cin=0,isCount=false,muted=fals
 // ===== Chord-tone guard: the bass never plays the wrong 3rd or the wrong 7th for the chord that is sounding =====
 // m7 / minor / half-diminished: no major 3rd, no major 7th (leading tone). Major / dominant: no minor 3rd. Dominant 7: no major 7th. maj7: no flat 7th.
 function badPcs(ch){const r=ch.pc,minor=ch.q==='min'||ch.q==='dim',b=new Set([mod12(r+(minor?4:3))]);
- if(minor&&ch.sev!=='maj7')b.add(mod12(r+11));else if(ch.sev==='7')b.add(mod12(r+11));else if(ch.sev==='maj7')b.add(mod12(r+10));return b}
+ if(minor&&ch.sev!=='maj7')b.add(mod12(r+11));else if(ch.sev==='7')b.add(mod12(r+11));else if(ch.sev==='maj7')b.add(mod12(r+10));else if(ch.sev==='add9'||ch.sev==='6'){b.add(mod12(r+10));b.add(mod12(r+11))}return b}
 function guardNote(m,ch,toward){const bad=badPcs(ch);if(!bad.has(mod12(m)))return m;const ok=chordPcs(ch).sc.filter(pc=>!bad.has(pc));
  let best=null,bd=99;for(let d=-2;d<=2;d++){const x=m+d;if(!d||!ok.includes(mod12(x))||x<LO-2||x>HI+2)continue;const sc=Math.abs(d)+(toward!=null?Math.abs(x-toward)*0.01:0);if(sc<bd){bd=sc;best=x}}
  if(best==null){best=m;for(let d=1;d<=6;d++){if(mod12(m-d-ch.pc)===0){best=m-d;break}if(mod12(m+d-ch.pc)===0){best=m+d;break}}}return best}
@@ -1220,5 +1224,5 @@ document.addEventListener('keydown',e=>{const tg=e.target.tagName,ty=e.target.ty
 // ===== boot =====
 $('av').value='rock';$('ac').value='pop';psUI();restore();uiRefresh();logUI();restoring=false;listDevs();
 
-</script><script>(function(){const C=['#e8412c','#f28c28','#f6c33b','#efe6d2'];document.querySelectorAll('.sec>h4').forEach((h,i)=>h.style.setProperty('--band',C[i%4]))})();</script><p class="appver" style="text-align:center;font-size:11px;opacity:.6;margin:18px 0 10px;font-family:ui-monospace,Menlo,monospace">Modal Metronome · Version 2026-11-06.11</p>
+</script><script>(function(){const C=['#e8412c','#f28c28','#f6c33b','#efe6d2'];document.querySelectorAll('.sec>h4').forEach((h,i)=>h.style.setProperty('--band',C[i%4]))})();</script><p class="appver" style="text-align:center;font-size:11px;opacity:.6;margin:18px 0 10px;font-family:ui-monospace,Menlo,monospace">Modal Metronome · Version 2026-11-06.12</p>
 </body></html>
