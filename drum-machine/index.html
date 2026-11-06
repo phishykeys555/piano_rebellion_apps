@@ -136,7 +136,7 @@ label{color:#b8b0a0;text-transform:uppercase;font-size:11px;letter-spacing:.08em
 </div>
 <div class="row adv">
 <label title="Delays the off-beat notes. 50% = straight, ~67% = triplet swing">Swing <input type="range" id="sw" data-s min="50" max="75" step="1" value="50" style="width:90px"><span id="swt" style="min-width:58px">Straight</span></label>
-<label title="Where the drummer sits on the beat. Auto = the real pocket for this groove: backbeat a hair behind, hats leading, ghost notes floating, jazz swing that straightens as the tempo climbs.">Pocket <select id="pkt" data-s><option value="auto" selected>Auto (real feel for this groove)</option><option value="back">Laid back (behind the beat)</option><option value="top">On top (pushing)</option><option value="machine">Machine (dead straight)</option></select></label><label title="Adds tiny random timing and volume differences on top of the pocket">Humanize <input type="range" id="hu" data-s min="0" max="100" value="30" style="width:90px"></label>
+<label title="Where the drummer sits on the beat. Auto = the real pocket for this groove: backbeat a hair behind, hats leading, ghost notes floating, jazz swing that straightens as the tempo climbs.">Pocket <select id="pkt" data-s><option value="auto" selected>Auto (real feel for this groove)</option><option value="back">Laid back (behind the beat)</option><option value="top">On top (pushing)</option><option value="machine">Machine (dead straight)</option></select></label><label title="Real drummers play ghost notes at different strengths: softest right after the backbeat, loudest leading into it.">Ghost notes <select id="gdyn" data-s><option value="real" selected>4 levels (real)</option><option value="flat">As written (flat)</option></select></label><label title="Soft snare drags and buzz rolls leading into the backbeat, built from real stick bounces.">Snare rolls <select id="groll" data-s><option value="off" selected>Off</option><option value="drag">Drags into 2 and 4</option><option value="buzz">Buzz roll into 4 (every 2 bars)</option><option value="mix">Subtle mix (drags + an occasional buzz)</option></select></label><label title="Adds tiny random timing and volume differences on top of the pocket">Humanize <input type="range" id="hu" data-s min="0" max="100" value="30" style="width:90px"></label>
 <label><input type="checkbox" id="crash" data-s> Crash every 4 bars</label>
 </div></div>
 
@@ -515,7 +515,8 @@ async function loadKit(k){if(!DKIT[k]||!ctx)return;if(kitBuf[k])return kitBuf[k]
  kitLoading[k]=(async()=>{const out={};await Promise.all(Object.values(DV).flatMap(v=>[1,2,3,4,5].map(async i=>{try{const ab=await (await fetch(new URL(DKIT[k]+v+'_'+i+'.mp3',location.href).href)).arrayBuffer();
   out[v+'_'+i]=await new Promise((res,rej)=>{const pr=ctx.decodeAudioData(ab,res,rej);if(pr&&pr.then)pr.then(res,rej)})}catch(e){}})));kitBuf[k]=out;return out})();return kitLoading[k]}
 function kitHit(k,n,t,a){const B=kitBuf[k];if(!B){loadKit(k);return null}const v=DV[n],vel=velOf(n,a),i=vel<.3?1:vel<.5?2:vel<.72?3:vel<.95?4:5,b=B[v+'_'+i];if(!b)return null;
- const src=ctx.createBufferSource(),gn=ctx.createGain();src.buffer=b;src.playbackRate.value=(0.995+Math.random()*0.01)*ARTRATE;gn.gain.value=DG[v]*(a/Math.max(vel,0.05))*(0.55+0.45*Math.min(1.2,vel));src.connect(gn);gn.connect(master);src.start(t);return gn}
+ const src=ctx.createBufferSource(),gn=ctx.createGain();src.buffer=b;src.playbackRate.value=(0.995+Math.random()*0.01)*ARTRATE;gn.gain.value=DG[v]*(a/Math.max(vel,0.05))*(0.55+0.45*Math.min(1.2,vel));
+ if(v==='snare'&&vel<0.5){const lp=ctx.createBiquadFilter();lp.type='lowpass';lp.Q.value=0.6;lp.frequency.value=3000+14000*vel;src.connect(lp);lp.connect(gn)}else src.connect(gn);gn.connect(master);src.start(t);return gn}
 const kitVoice=(k,n)=>(t,a)=>kitHit(k,n,t,a)||(n==36?smp('p_kick',t,a):n==38?smp('p_sn2',t,a):null);
 Object.assign(KICK,{bp:kitVoice('bp',36),rz:kitVoice('rz',36)});Object.assign(SNARE,{bp:kitVoice('bp',38),rz:kitVoice('rz',38)});
 TOMV.bp={50:kitVoice('bp',50),47:kitVoice('bp',47),43:kitVoice('bp',43)};TOMV.rz={50:kitVoice('rz',50),47:kitVoice('rz',47),43:kitVoice('rz',43)};
@@ -954,6 +955,15 @@ async function init(){if(!ctx){ctx=new (window.AudioContext||window.webkitAudioC
  status('Audio '+ctx.state+' · '+sampleCount+'/'+Object.keys(SAMPLES).length+' samples loaded')}
 // ===== scheduler =====
 let halfAt=0,chordB=null,chordC=null,pos=0,barN=0,cin=0,isCount=false,muted=false,fillBar=false,prevFill=false,crashNow=false,bassEv=[],chordNow=null,chordNext=null,secName='',barsAtBpm=0,lastBpm=0,trMsg='',flT=null;
+// ===== Chord-tone guard: the bass never plays the wrong 3rd or the wrong 7th for the chord that is sounding =====
+// m7 / minor / half-diminished: no major 3rd, no major 7th (leading tone). Major / dominant: no minor 3rd. Dominant 7: no major 7th. maj7: no flat 7th.
+function badPcs(ch){const r=ch.pc,minor=ch.q==='min'||ch.q==='dim',b=new Set([mod12(r+(minor?4:3))]);
+ if(minor&&ch.sev!=='maj7')b.add(mod12(r+11));else if(ch.sev==='7')b.add(mod12(r+11));else if(ch.sev==='maj7')b.add(mod12(r+10));return b}
+function guardNote(m,ch,toward){const bad=badPcs(ch);if(!bad.has(mod12(m)))return m;const ok=chordPcs(ch).sc.filter(pc=>!bad.has(pc));
+ let best=null,bd=99;for(let d=-2;d<=2;d++){const x=m+d;if(!d||!ok.includes(mod12(x))||x<LO-2||x>HI+2)continue;const sc=Math.abs(d)+(toward!=null?Math.abs(x-toward)*0.01:0);if(sc<bd){bd=sc;best=x}}
+ if(best==null){best=m;for(let d=1;d<=6;d++){if(mod12(m-d-ch.pc)===0){best=m-d;break}if(mod12(m+d-ch.pc)===0){best=m+d;break}}}return best}
+function guardBass(ev){if(!ev||!ev.length)return ev;const sorted=ev.map((e,k)=>({e,k})).sort((a,b)=>a.e.s-b.e.s);
+ sorted.forEach(({e},k)=>{if(e.m==null)return;const ch=halfAt&&e.s>=halfAt?chordB:chordNow;if(!ch)return;const nx=sorted[k+1]&&sorted[k+1].e.m;e.m=guardNote(e.m,ch,nx)});return ev}
 function barStart(){isCount=cin>0;if(isCount)return;pocketBar();
  let secEnd=false;
  if($('arr').checked){const A=+$('ab').value,C=+$('cb').value,pb=barN%(A+C),sec=pb<A?'VERSE':'CHORUS',gname=$(sec==='VERSE'?'av':'ac').value;
@@ -972,8 +982,24 @@ function barStart(){isCount=cin>0;if(isCount)return;pocketBar();
    bassEv=A.filter(e=>e.s<halfAt).map(e=>clip(e,halfAt)).concat(B.filter(e=>e.s<n-halfAt).map(e=>clip({...e,s:e.s+halfAt},n)))}else bassEv=[]}
  else{ halfAt=0;const ci=Math.floor(barN/bpc)%prog.length;chordNow=prog[ci];chordNext=prog[(ci+1)%prog.length];
   bassIB=barN%bpc;bassSpan=beats;bassEv=$('bon').checked?genBass(chordNow,chordNext,barN%bpc==bpc-1,barN%(prog.length*bpc*2)):[];}
- keysEv=genKeys();
+ bassEv=guardBass(bassEv);keysEv=genKeys();
  if(bpm===lastBpm)barsAtBpm++;else{lastBpm=bpm;barsAtBpm=1}if(barsAtBpm>=8&&!muted)logBest(bpm)}
+// ===== Ghost-note dynamics and real snare rolls =====
+// Four ghost levels, chosen by where the note sits: softest right after a backbeat, loudest leading into one.
+const GH=[0.12,0.2,0.3,0.42];
+const isBB=i=>beats>=2&&i%sub===0&&(i/sub)%2===1; // beats 2 and 4 (and 6 in longer bars)
+function ghostLevel(i,val){if($('gdyn').value==='flat')return val;const n=steps();let L;
+ if(isBB((i-1+n)%n)||isBB((i-2+n)%n)&&sub===4)L=0;else if(isBB((i+1)%n))L=3;else L=(i%sub===Math.floor(sub/2))?2:1;
+ if(+$('hu').value>0&&Math.random()<0.22)L=Math.max(0,Math.min(3,L+(Math.random()<0.5?-1:1)));
+ return GH[L]*(0.94+Math.random()*0.12)}
+// One stroke = the stick hit plus its natural bounces (each softer, closer together), slightly loose in time like real hands.
+function strokeBounces(t,v,nb){let tt=t,gap=0.019+Math.random()*0.004,vv=v;for(let b=0;b<=nb;b++){hit(38,tt+(Math.random()-.5)*0.003,Math.max(0.05,vv));tt+=gap;gap*=0.86;vv*=0.52+Math.random()*0.1}}
+function drag(tBB){const g=Math.min(0.034,60/bpm/8);strokeBounces(tBB-2*g-0.004,0.13+Math.random()*0.03,0);strokeBounces(tBB-g-0.002,0.18+Math.random()*0.03,0)}
+function buzz(tBB){const len=Math.min(60/bpm/2,Math.max(0.12,60/bpm/4)),k=Math.max(4,Math.round(len/0.055));
+ for(let j=0;j<k;j++){const tt=tBB-len+j*(len/k)+(j%2?0.004:0),v=0.07+0.15*(j/(k-1));strokeBounces(tt,v,2+(Math.random()<0.4?1:0))}}
+function rollAt(i,t){const m=$('groll').value;if(m==='off'||!isBB(i))return;const lastBB=Math.floor(i/sub)===beats-1||(beats===4&&i/sub===3);
+ if(m==='drag'){if(Math.random()<0.5)drag(t)}else if(m==='buzz'){if(lastBB&&barN%2===1)buzz(t)}
+ else if(m==='mix'){const r=Math.random();if(lastBB&&barN%4===3&&r<0.7)buzz(t);else if(r<0.25)drag(t)}}
 function sched(h){const H=typeof h==='number'?h:ctx.currentTime+0.1;while(next<H){if(pos===0)barStart();
  const dt=60/bpm/sub,n=steps(),i=pos,t=next+((sub!==3&&i%2)?(swing-.5)*2*dt:0),H=+$('hu').value/100;
  const item={t,i,b:i%sub==0?i/sub:-1};
@@ -982,8 +1008,9 @@ function sched(h){const H=typeof h==='number'?h:ctx.currentTime+0.1;while(next<H
   if(!muted){const hj=()=>H?(Math.random()-.5)*0.02*H:0,hv=()=>H?1+(Math.random()-.5)*0.3*H:1,now=ctx.currentTime;
    const fIdx=i-(n-fl),fillOn=inFill&&fIdx>=fillFirst,fHere=fillOn&&curFill[fIdx]&&curFill[fIdx].length>0;
    if(fillOn&&i%sub===0&&!(grid[44]&&grid[44].some(v=>v>0)))hit(44,Math.max(now,t),0.42); // hi-hat foot keeps time under the fill
-   ROWS.forEach(([k])=>{if(fillOn&&KITROWS.has(k)&&k!==44&&!((k==36||k==35)&&!fHere))return;let val=grid[k]&&grid[k][i];if(!inFill&&k==38){if(pkMove.gAdd===i&&!val)val=0.3;if(pkMove.gDrop===i)val=0}if(val){let kk=k;if(k==42&&$('cy').value==='ride')kk=51;if(kk==42&&pkMove.lift===i&&!inFill)kk=46;if(kk==51&&bellAt(i))kk=53;const [po,pv]=pocketHit(kk,i,val),acc=pocketNow()===PK.machine&&(kk==42||kk==51)?(i%sub?0.65:1):1;hit(kk,Math.max(now,t+po+hj()),Math.min(1.3,val*acc*pv*hv()))}});
+   ROWS.forEach(([k])=>{if(fillOn&&KITROWS.has(k)&&k!==44&&!((k==36||k==35)&&!fHere))return;let val=grid[k]&&grid[k][i];if(!inFill&&k==38){if(pkMove.gAdd===i&&!val)val=0.3;if(pkMove.gDrop===i)val=0;if(val>0&&val<0.5)val=ghostLevel(i,val)}if(val){let kk=k;if(k==42&&$('cy').value==='ride')kk=51;if(kk==42&&pkMove.lift===i&&!inFill)kk=46;if(kk==51&&bellAt(i))kk=53;const [po,pv]=pocketHit(kk,i,val),acc=pocketNow()===PK.machine&&(kk==42||kk==51)?(i%sub?0.65:1):1;hit(kk,Math.max(now,t+po+hj()),Math.min(1.3,val*acc*pv*hv()))}});
    if(fillOn)for(const e of (curFill[fIdx]||[]))hit(e.n,Math.max(now,t+(e.o||0)*dt+hj()),e.v*hv());
+   {const j=i+sub;if(j<n&&!(fillBar&&j>=n-fl)&&grid[38]&&grid[38][j]>=0.5)rollAt(j,next+sub*dt)} // look one beat ahead so the roll starts before the backbeat
    if(i===0&&crashNow&&!grid[49][0]){hit(49,next,0.95);if(!grid[36][0]&&!grid[35][0])hit(36,next,0.9)}
    else if(i===0&&$('crash').checked&&barN%4==0&&!grid[49][0])hit(49,next,0.9);
    for(const e of bassEv)if(e.s===i)bassNote(Math.max(now,t+hj()*0.5),e.m,e.d*dt,e.v*hv(),e.g);
@@ -1145,5 +1172,5 @@ document.addEventListener('keydown',e=>{const tg=e.target.tagName,ty=e.target.ty
 // ===== boot =====
 $('av').value='rock';$('ac').value='pop';psUI();restore();uiRefresh();logUI();restoring=false;listDevs();
 
-</script><script>(function(){const C=['#e8412c','#f28c28','#f6c33b','#efe6d2'];document.querySelectorAll('.sec>h4').forEach((h,i)=>h.style.setProperty('--band',C[i%4]))})();</script><p class="appver" style="text-align:center;font-size:11px;opacity:.6;margin:18px 0 10px;font-family:ui-monospace,Menlo,monospace">Modal Metronome · Version 2026-11-06.4</p>
+</script><script>(function(){const C=['#e8412c','#f28c28','#f6c33b','#efe6d2'];document.querySelectorAll('.sec>h4').forEach((h,i)=>h.style.setProperty('--band',C[i%4]))})();</script><p class="appver" style="text-align:center;font-size:11px;opacity:.6;margin:18px 0 10px;font-family:ui-monospace,Menlo,monospace">Modal Metronome · Version 2026-11-06.6</p>
 </body></html>
