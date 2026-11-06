@@ -15,6 +15,6 @@ Every app shows its version at the bottom of the page: `Version YYYY-MM-DD.N` (d
 | Note Sprint | 2026-11-05.9 |
 | Key Finder | 2026-11-05.1 |
 | Rhythm Trainer | 2026-11-05.1 |
-| Modal Metronome | 2026-11-06.11 |
+| Modal Metronome | 2026-11-06.13 |
 | Major 7th Play-Along | 2026-11-05.1 |
 | Music Games (home) | 2026-11-05.2 |
