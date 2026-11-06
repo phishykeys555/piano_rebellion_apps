@@ -147,7 +147,7 @@ label{color:#b8b0a0;text-transform:uppercase;font-size:11px;letter-spacing:.08em
 <label><input type="checkbox" id="bigl" data-s> Big beat light</label>
 </div>
 <div class="row">
-<label><input type="checkbox" id="tr" data-s> Tempo trainer</label>
+<label title="Speeds you up only, a few BPM at a time, until you reach the goal. It never slows you down."><input type="checkbox" id="tr" data-s> Tempo trainer (speeds up only)</label>
 <label>Goal <input type="number" id="trg" data-s min="40" max="280" value="120"> BPM</label>
 <label>by <input type="number" id="tri" data-s min="1" max="20" value="4"> BPM</label>
 <label>every <select id="trb" data-s><option>2</option><option selected>4</option><option>8</option></select> bars</label>
@@ -956,7 +956,7 @@ function barStart(){isCount=cin>0;if(isCount)return;pocketBar();
  if($('arr').checked){const A=+$('ab').value,C=+$('cb').value,pb=barN%(A+C),sec=pb<A?'VERSE':'CHORUS',gname=$(sec==='VERSE'?'av':'ac').value;
   secName=sec;if(curName!==gname){preset(gname);$('pre').value=gname}secEnd=pb==A-1||pb==A+C-1}else secName='';
  if($('tr').checked&&barN>0&&barN%(+$('trb').value)==0){const goal=Math.max(40,Math.min(280,+$('trg').value||bpm)),inc=Math.max(1,+$('tri').value||1);
-  if(bpm!==goal){const om=medal(bpm),nb=bpm<goal?Math.min(goal,bpm+inc):Math.max(goal,bpm-inc);setBpm(nb);trMsg=nb===goal?'🎉 Goal reached: '+goal+' BPM':'Trainer → '+nb+' BPM';if(medal(nb)!==om&&nb>bpm-1)trMsg+=' · '+medal(nb)+' new medal!'}}
+  if(bpm<goal){const om=medal(bpm),nb=Math.min(goal,bpm+inc);setBpm(nb);trMsg=nb===goal?'🎉 Goal reached: '+goal+' BPM':'Trainer → '+nb+' BPM';if(medal(nb)!==om&&nb>bpm-1)trMsg+=' · '+medal(nb)+' new medal!'}}
  const dm=$('do').value;muted=dm==='1of4'?barN%4==3:dm==='2of8'?barN%8>=6:dm==='rand'?(barN>=2&&!muted&&Math.random()<0.25):false;
  crashNow=prevFill&&$('fc').checked&&!muted;
  const fe=+$('fe').value;fillBar=!muted&&((fe>0&&(barN+1)%fe==0)||barN===forceBar||secEnd);
@@ -1142,5 +1142,5 @@ document.addEventListener('keydown',e=>{const tg=e.target.tagName,ty=e.target.ty
 // ===== boot =====
 $('av').value='rock';$('ac').value='pop';psUI();restore();uiRefresh();logUI();restoring=false;listDevs();
 
-</script><script>(function(){const C=['#e8412c','#f28c28','#f6c33b','#efe6d2'];document.querySelectorAll('.sec>h4').forEach((h,i)=>h.style.setProperty('--band',C[i%4]))})();</script><p class="appver" style="text-align:center;font-size:11px;opacity:.6;margin:18px 0 10px;font-family:ui-monospace,Menlo,monospace">Modal Metronome · Version 2026-11-06.2</p>
+</script><script>(function(){const C=['#e8412c','#f28c28','#f6c33b','#efe6d2'];document.querySelectorAll('.sec>h4').forEach((h,i)=>h.style.setProperty('--band',C[i%4]))})();</script><p class="appver" style="text-align:center;font-size:11px;opacity:.6;margin:18px 0 10px;font-family:ui-monospace,Menlo,monospace">Modal Metronome · Version 2026-11-06.3</p>
 </body></html>
