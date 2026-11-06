@@ -1055,10 +1055,25 @@ async function exportMp3(){const mins=+$('xlen').value,secs=mins*60,SR=44100,xst
   const e=enc.flush();if(e.length)parts.push(new Uint8Array(e));
   const blob=new Blob(parts,{type:'audio/mpeg'}),url=URL.createObjectURL(blob),gname=($('pre').selectedOptions[0]||{}).textContent||curName;
   const fn=('Modal Metronome - '+gname.replace(/\s*\(.*\)/,'')+' - '+bpm+' BPM - '+mins+' min').replace(/[^\w\- ]+/g,'').replace(/\s+/g,' ').trim()+'.mp3';
-  const a=document.createElement('a');a.href=url;a.download=fn;document.body.appendChild(a);a.click();a.remove();
-  xst.innerHTML='Done: '+(blob.size/1048576).toFixed(1)+' MB · <a href="'+url+'" download="'+fn+'">save again</a>';
+  // Saving needs a fresh tap (browsers block saves that start after a long render), so offer a Save button
+  lastExport={blob,fn,url};
+  xst.innerHTML='Ready: '+(blob.size/1048576).toFixed(1)+' MB · <button type="button" id="xsave" class="btn" style="font-weight:800">⬇ Save MP3…</button>';
+  $('xsave').addEventListener('click',saveExport);
  }catch(err){xst.textContent='Export failed: '+(err&&err.message||err);console.error(err);if(ctx instanceof OfflineAudioContext)location.reload()}
  finally{btn.disabled=false}}
+let lastExport=null;
+// Save the rendered MP3: a "Save as" box that opens in Downloads where the browser supports it (Chrome, Edge);
+// the share sheet on iPad / iPhone (pick "Save to Files"); otherwise a normal download into the Downloads folder.
+async function saveExport(){const X=lastExport,xst=$('xst');if(!X)return;
+ try{
+  if(window.showSaveFilePicker){const h=await window.showSaveFilePicker({suggestedName:X.fn,startIn:'downloads',types:[{description:'MP3 audio',accept:{'audio/mpeg':['.mp3']}}]});
+   const w=await h.createWritable();await w.write(X.blob);await w.close();xst.innerHTML='Saved: '+X.fn+' · <button type="button" id="xsave" class="btn">Save another copy…</button>';$('xsave').addEventListener('click',saveExport);return}
+  const file=new File([X.blob],X.fn,{type:'audio/mpeg'});
+  if(/iPad|iPhone|iPod/.test(navigator.userAgent)||(navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1)){if(navigator.canShare&&navigator.canShare({files:[file]})){await navigator.share({files:[file],title:X.fn});xst.textContent='Shared: pick "Save to Files" to keep it.';return}}
+  const a=document.createElement('a');a.href=X.url;a.download=X.fn;document.body.appendChild(a);a.click();a.remove();
+  xst.innerHTML='Saved to your Downloads folder: '+X.fn+' · <button type="button" id="xsave" class="btn">Save again</button>';$('xsave').addEventListener('click',saveExport)
+ }catch(err){if(err&&err.name==='AbortError'){xst.innerHTML='Not saved. <button type="button" id="xsave" class="btn">⬇ Save MP3…</button>';$('xsave').addEventListener('click',saveExport);return}
+  const a=document.createElement('a');a.href=X.url;a.download=X.fn;document.body.appendChild(a);a.click();a.remove();xst.textContent='Saved to Downloads: '+X.fn}}
 async function start(){await init();playing=true;pos=0;barN=0;surStyle=null;surV=null;cin=+$('ci').value;muted=false;prevFill=false;fillBar=false;forceBar=-1;secName='';lastBassM=null;bassPrevM=null;bassPlan=null;bassRun=0;bassLastCk='';trMsg='';q=[];next=ctx.currentTime+0.08;timer=setInterval(sched,25);sched();anim();p.textContent='■ Stop';logStart()}
 function stop(){playing=false;clearInterval(timer);forceBar=-1;document.querySelectorAll('.now').forEach(c=>c.classList.remove('now'));[...$('dots').children].forEach(d=>d.classList.remove('on'));$('blm').innerHTML='Press ▶ Play or Space';p.textContent='▶ Play';chordPreview();logStop()}
 function fillNow(){if(!playing){start().then(()=>{forceBar=0});return}if(isCount){forceBar=0;return}const n=steps(),fl=fillBeats()*sub;
@@ -1172,5 +1187,5 @@ document.addEventListener('keydown',e=>{const tg=e.target.tagName,ty=e.target.ty
 // ===== boot =====
 $('av').value='rock';$('ac').value='pop';psUI();restore();uiRefresh();logUI();restoring=false;listDevs();
 
-</script><script>(function(){const C=['#e8412c','#f28c28','#f6c33b','#efe6d2'];document.querySelectorAll('.sec>h4').forEach((h,i)=>h.style.setProperty('--band',C[i%4]))})();</script><p class="appver" style="text-align:center;font-size:11px;opacity:.6;margin:18px 0 10px;font-family:ui-monospace,Menlo,monospace">Modal Metronome · Version 2026-11-06.6</p>
+</script><script>(function(){const C=['#e8412c','#f28c28','#f6c33b','#efe6d2'];document.querySelectorAll('.sec>h4').forEach((h,i)=>h.style.setProperty('--band',C[i%4]))})();</script><p class="appver" style="text-align:center;font-size:11px;opacity:.6;margin:18px 0 10px;font-family:ui-monospace,Menlo,monospace">Modal Metronome · Version 2026-11-06.7</p>
 </body></html>
