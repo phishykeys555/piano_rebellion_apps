@@ -181,6 +181,17 @@ label{color:#b8b0a0;text-transform:uppercase;font-size:11px;letter-spacing:.08em
 <button id="bnew">🎲 New bass line</button>
 </div></div>
 
+<div class="sec"><h4>Keys</h4>
+<div class="row">
+<label><input type="checkbox" id="kon" data-s> Keys on</label>
+<label>Sound <select id="ksnd" data-s><option value="piano" selected>Grand piano (Yamaha C5, Salamander, 4 layers)</option><option value="rhodes">Rhodes electric piano (basic)</option><option value="pad">Synth pad (warm analog)</option><option value="padbright">Synth pad (bright, airy)</option></select></label>
+<label title="How the keys play the chords. Auto picks a feel that matches the groove.">Comping <select id="kcomp" data-s><option value="auto" selected>Auto (matches groove)</option><option value="sustain">Sustained (hold the chord)</option><option value="pop">Pop (long and short, pushes)</option><option value="charleston">Jazz comping (Charleston, space, pushes)</option><option value="funk">Funk (16th stabs and holds)</option><option value="quarters">Quarter-note pulse (varied lengths)</option><option value="ballad">Ballad (chord then broken)</option></select></label>
+<label title="Pop / rock: three-note triads. Jazz: 3rd, 5th, 7th and 9th, no root (the bass has it).">Voicing <select id="kvoice" data-s><option value="auto" selected>Auto (jazz grooves get 7ths and 9ths)</option><option value="triad">Triads</option><option value="seventh">7th chords</option><option value="rootless">Jazz rootless (3-5-7-9)</option></select></label>
+<label>Volume <input type="range" id="kv" data-s min="0" max="100" value="60" style="width:100px"></label>
+</div>
+<p class="adv" style="margin:6px 0 0;font-size:12px;opacity:.75">Keys follow the same parent key, mode and chord progression as the bass line. Voicings move to the closest notes, the way a real player keeps their hand in one spot.</p>
+</div>
+
 <div class="sec adv"><h4>Sound</h4>
 <div class="row">
 <label>Kit <select id="kit" data-s><option value="bpearl" selected>Black Pearl – studio rock/pop (5 layers)</option><option value="zep">Vintage Ludwig 26" – big room (Zeppelin)</option><option value="acoustic">Acoustic Studio (classic)</option><option value="pearl">Pearl Studio (recorded)</option><option value="linn">LinnDrum 80s (recorded)</option><option value="cr78">CR-78 Vintage (recorded)</option><option value="e808">Electronic – 808</option><option value="e909">Electronic – 909</option><option value="trap">Trap</option><option value="house">House / Dance</option><option value="hybrid">Hybrid (acoustic + 808 sub)</option><option value="lofi">Lo-Fi</option></select></label>
@@ -242,17 +253,6 @@ label{color:#b8b0a0;text-transform:uppercase;font-size:11px;letter-spacing:.08em
 <label style="margin-bottom:4px"><input type="checkbox" id="showall" data-s> Show all drums (otherwise only drums used in this groove)</label>
 <div class="grid" id="g"></div>
 <div class="hint">Tap a square to add a hit, again for a soft (ghost) hit, again to remove. On a phone, swipe the pattern sideways to see every beat. Click a drum name to hear it. Keys: Space play/stop · ←/→ ±1 BPM · ↑/↓ ±5 BPM · F fill · T tap.</div>
-</div>
-
-<div class="sec"><h4>Keys</h4>
-<div class="row">
-<label><input type="checkbox" id="kon" data-s> Keys on</label>
-<label>Sound <select id="ksnd" data-s><option value="piano" selected>Grand piano (Yamaha C5, Salamander, 4 layers)</option><option value="rhodes">Rhodes electric piano (basic)</option></select></label>
-<label title="How the keys play the chords. Auto picks a feel that matches the groove.">Comping <select id="kcomp" data-s><option value="auto" selected>Auto (matches groove)</option><option value="sustain">Sustained (hold the chord)</option><option value="pop">Pop (long and short, pushes)</option><option value="charleston">Jazz comping (Charleston, space, pushes)</option><option value="funk">Funk (16th stabs and holds)</option><option value="quarters">Quarter-note pulse (varied lengths)</option><option value="ballad">Ballad (chord then broken)</option></select></label>
-<label title="Pop / rock: three-note triads. Jazz: 3rd, 5th, 7th and 9th, no root (the bass has it).">Voicing <select id="kvoice" data-s><option value="auto" selected>Auto (jazz grooves get 7ths and 9ths)</option><option value="triad">Triads</option><option value="seventh">7th chords</option><option value="rootless">Jazz rootless (3-5-7-9)</option></select></label>
-<label>Volume <input type="range" id="kv" data-s min="0" max="100" value="60" style="width:100px"></label>
-</div>
-<p class="adv" style="margin:6px 0 0;font-size:12px;opacity:.75">Keys follow the same parent key, mode and chord progression as the bass line. Voicings move to the closest notes, the way a real player keeps their hand in one spot.</p>
 </div>
 
 <div class="sec"><h4>Practice log</h4>
@@ -929,12 +929,12 @@ const KLIB={
 // half-bar cells (two chords in one bar): two beats each
 const KHALF=[[[0,1.5,.66]],[[0,.4,.7],[1,1,.6]],[[.5,1.5,.6]],[[0,.4,.68],[1.5,.5,.6]],[[0,2,.62]]];
 let keysPrev=-1,keysTied=false;
-function genKeys(){if(!$('kon').checked){keysTied=false;return []}const n=steps(),st=keysStyle(),ev=[],H=+$('hu').value/100,len=x=>x*(1+(Math.random()-.5)*0.2*H);
+function genKeys(){if(!$('kon').checked){keysTied=false;return []}const isPad=/^pad/.test($('ksnd').value),n=steps(),st=isPad?'sustain':keysStyle(),ev=[],H=+$('hu').value/100,len=x=>x*(1+(Math.random()-.5)*0.2*H);
  const pick=(arr)=>{let k,t=0;do{k=Math.floor(Math.random()*arr.length)}while(arr.length>1&&k===keysPrev&&t++<10);keysPrev=k;return arr[k]};
  const segs=halfAt?[[0,halfAt,chordNow,chordB],[halfAt,n,chordB,chordC]]:[[0,n,chordNow,chordNext]];
  const tiedIn=keysTied;keysTied=false;
  for(const [a,b,ch,nx] of segs){if(!ch)continue;const ms=keysVoicing(ch);
-  let pat=halfAt?pick(KHALF):pick(KLIB[st]||KLIB.pop);
+  let pat=halfAt?(isPad?[[0,2,.6]]:pick(KHALF)):pick(KLIB[st]||KLIB.pop);
   if(st==='ballad'&&!halfAt){const shape=Math.floor(Math.random()*4);ev.push({s:a,d:b-a,ms,v:.6}); // hold the chord, then one of: quarter arpeggio, 8th arpeggio, a restrike on 3, or just let it ring
    const arp=[ms[0],ms[1]||ms[0],ms[ms.length-1],ms[1]||ms[0],ms[0]+12,ms[ms.length-1],ms[1]||ms[0],ms[0]];const cnt=shape===0?4:shape===1?8:0;
    for(let k=1;k<cnt;k++){const s2=a+Math.round(k*(b-a)/cnt);if(s2<b)ev.push({s:s2,d:Math.max(1,Math.round((b-a)/cnt)),ms:[arp[k%arp.length]+12],v:.38+Math.random()*.08})}
@@ -944,7 +944,13 @@ function genKeys(){if(!$('kon').checked){keysTied=false;return []}const n=steps(
    if(fl==='p'&&nx&&b===n){const nms=keysVoicing(nx);ev.push({s,d:Math.max(d,Math.round(sub*1.5)),ms:nms,v:pv,push:1});keysTied=true}
    else ev.push({s,d,ms,v:pv*(0.92+Math.random()*0.16)})}}
  return ev}
-function keysChord(t,ms,dur,vel){if(!keysBus)return;const a=+$('kv').value/100;if(a<=0)return;const ks=LIB[$('ksnd').value]?$('ksnd').value:'piano';if(!libBuf[LIB[ks].dir]){loadLib(ks);return}
+// Synth pad: three detuned saws per note, slow filter swell, soft attack, long release, spread left/right
+function synthPad(t,ms,dur,vel,a,bright){const C=ctx,g=C.createGain(),f=C.createBiquadFilter(),att=0.35,rel=1.4,end=t+Math.max(0.3,dur),pk=0.11*a*(0.6+0.4*vel)/Math.sqrt(ms.length);
+ f.type='lowpass';f.Q.value=bright?0.9:0.6;const lo=bright?1400:500,hi=bright?6500:2200;f.frequency.setValueAtTime(lo,t);f.frequency.linearRampToValueAtTime(hi,t+att+0.6);f.frequency.setTargetAtTime(lo*1.3,end,rel*0.6);
+ g.gain.setValueAtTime(0.0001,t);g.gain.linearRampToValueAtTime(pk,t+att);g.gain.setValueAtTime(pk,end);g.gain.setTargetAtTime(0.0001,end,rel/3);f.connect(g);g.connect(keysBus);
+ ms.forEach((m,k)=>{const fr=440*Math.pow(2,(m-69)/12);[-7,0,7].forEach((ct,j)=>{const o=C.createOscillator(),pn=C.createStereoPanner?C.createStereoPanner():null;o.type=j===1&&!bright?'triangle':'sawtooth';o.frequency.value=fr;o.detune.value=ct+(Math.random()-.5)*3;
+  if(pn){pn.pan.value=(j-1)*0.55;o.connect(pn);pn.connect(f)}else o.connect(f);o.start(t);o.stop(end+rel*2)})})}
+function keysChord(t,ms,dur,vel){if(!keysBus)return;const a=+$('kv').value/100;if(a<=0)return;const kv=$('ksnd').value;if(kv==='pad'||kv==='padbright'){synthPad(t,ms,dur,vel,a,kv==='padbright');return}const ks=LIB[kv]?kv:'piano';if(!libBuf[LIB[ks].dir]){loadLib(ks);return}
  ms.forEach((m,i)=>libNote(ks,t+i*0.007,m,dur,Math.min(1,vel*(i===ms.length-1?1.08:0.95)),a,keysBus))}
 
 function bassNote(t,mi,dur,vel,glide){if(!ctx||!bassBus)return;let ty=$('bt').value;const a=vel*(+$('bv').value/100);if(a<=0)return;
@@ -973,7 +979,7 @@ function synthBass(ty,t,mi,dur,a,glide){const f=mtof(mi),end=t+Math.max(0.06,dur
 async function init(){if(!ctx){ctx=new (window.AudioContext||window.webkitAudioContext)({latencyHint:'playback'});ctx.resume().catch(()=>{});out=ctx.createGain();out.gain.value=volG($('mv').value);
  comp=ctx.createDynamicsCompressor();comp.threshold.value=-10;comp.ratio.value=3;const lim=ctx.createDynamicsCompressor();lim.threshold.value=-6;lim.knee.value=0;lim.ratio.value=20;lim.attack.value=0.001;lim.release.value=0.12;const trim=ctx.createGain();trim.gain.value=0.85;comp.connect(trim);trim.connect(lim);lim.connect(out);
  master=ctx.createGain();master.connect(comp);revSend=ctx.createGain();revSend.gain.value=$('room').value/100*0.5;master.connect(revSend);
- bassBus=ctx.createGain();bassBus.gain.value=0.9;bassBus.connect(buildStrip(comp));keysBus=ctx.createGain();keysBus.gain.value=0.8;keysBus.connect(comp);{const ks=ctx.createGain();ks.gain.value=0.7;keysBus.connect(ks);ks.connect(revSend)}if($('kon').checked)loadLib($('ksnd').value);if(LIB[$('bt').value])loadLib($('bt').value);['kk','sn','tm'].forEach(id=>{if(DKIT[$(id).value])loadKit($(id).value)});
+ bassBus=ctx.createGain();bassBus.gain.value=0.9;bassBus.connect(buildStrip(comp));keysBus=ctx.createGain();keysBus.gain.value=0.8;keysBus.connect(comp);{const ks=ctx.createGain();ks.gain.value=0.7;keysBus.connect(ks);ks.connect(revSend)}if($('kon').checked&&LIB[$('ksnd').value])loadLib($('ksnd').value);if(LIB[$('bt').value])loadLib($('bt').value);['kk','sn','tm'].forEach(id=>{if(DKIT[$(id).value])loadKit($(id).value)});
  route();listDevs();
  noise=ctx.createBuffer(1,ctx.sampleRate*2,ctx.sampleRate);{const d=noise.getChannelData(0);for(let i=0;i<d.length;i++)d[i]=Math.random()*2-1}
  let ok=0;await Promise.all(Object.entries(SAMPLES).map(async([k,u])=>{try{buf[k]=await decodeB64(u);ok++}catch(e){}}));sampleCount=ok;
@@ -1060,7 +1066,7 @@ function chordPreview(){if(playing)return;if(!$('bon').checked){$('chord').inner
 function loadScript(u){return new Promise((res,rej)=>{if(window.lamejs)return res();const sc=document.createElement('script');sc.src=u;sc.onload=res;sc.onerror=rej;document.head.appendChild(sc)})}
 async function exportMp3(){const mins=+$('xlen').value,secs=mins*60,SR=44100,xst=$('xst'),btn=$('xbtn');btn.disabled=true;
  try{xst.textContent='Loading sounds…';await init();if(playing)stop();
-  if(LIB[$('bt').value])await loadLib($('bt').value);if($('kon').checked)await loadLib($('ksnd').value);for(const id of ['kk','sn','tm'])if(DKIT[$(id).value])await loadKit($(id).value);
+  if(LIB[$('bt').value])await loadLib($('bt').value);if($('kon').checked&&LIB[$('ksnd').value])await loadLib($('ksnd').value);for(const id of ['kk','sn','tm'])if(DKIT[$(id).value])await loadKit($(id).value);
   await loadScript('https://cdnjs.cloudflare.com/ajax/libs/lamejs/1.2.1/lame.min.js');
   const keep={ctx,out,comp,master,revSend,bassBus,bassStrip,keysBus,conv,openHat},keepBpm=bpm;
   const oc=new OfflineAudioContext(2,SR*secs,SR);ctx=oc;
@@ -1186,7 +1192,7 @@ $('kit').onchange=e=>{const [k,sn,h,tm]=KITS[e.target.value];$('kk').value=k;$('
 $('room').oninput=e=>{if(revSend)revSend.gain.setTargetAtTime(e.target.value/100*0.5,ctx.currentTime,0.05)};
 ['kk','sn','hh','tm'].forEach(id=>$(id).addEventListener('change',async()=>{await init();const n=id=='kk'?36:id=='sn'?38:id=='hh'?42:47;hit(n,ctx.currentTime+0.02,1)}));
 const previewBass=async()=>{await init();if(LIB[$('bt').value])await loadLib($('bt').value);bassNote(ctx.currentTime+0.03,bassRoot(keyPc()),0.6,0.9)};
-$('bt').addEventListener('change',previewBass);$('btone').addEventListener('change',()=>{applyTone();previewBass()});$('kon').addEventListener('change',()=>{if($('kon').checked&&ctx)loadLib($('ksnd').value)});$('ksnd').addEventListener('change',()=>{if($('kon').checked&&ctx)loadLib($('ksnd').value)});
+$('bt').addEventListener('change',previewBass);$('btone').addEventListener('change',()=>{applyTone();previewBass()});$('kon').addEventListener('change',()=>{if($('kon').checked&&ctx&&LIB[$('ksnd').value])loadLib($('ksnd').value)});$('ksnd').addEventListener('change',()=>{if($('kon').checked&&ctx&&LIB[$('ksnd').value])loadLib($('ksnd').value)});
 $('md').addEventListener('change',async()=>{chordPreview();if($('bon').checked){await init();parseProg();const k=tonicNow,seq=MODES[modeNow].concat([12]);seq.forEach((x,i)=>bassNote(ctx.currentTime+0.05+i*0.17,bassRoot(k)+x,0.15,0.85))}});
 $('key').addEventListener('change',async()=>{chordPreview();await init();if($('bon').checked)previewBass();else hit(ELEC.includes($('kk').value)?36:35,ctx.currentTime+0.02,1)});
 $('bnew').onclick=async()=>{bassSeed=Math.floor(Math.random()*1e6);save();$('bnew').textContent='🎲 New line ✓';setTimeout(()=>$('bnew').textContent='🎲 New bass line',900)};
@@ -1214,5 +1220,5 @@ document.addEventListener('keydown',e=>{const tg=e.target.tagName,ty=e.target.ty
 // ===== boot =====
 $('av').value='rock';$('ac').value='pop';psUI();restore();uiRefresh();logUI();restoring=false;listDevs();
 
-</script><script>(function(){const C=['#e8412c','#f28c28','#f6c33b','#efe6d2'];document.querySelectorAll('.sec>h4').forEach((h,i)=>h.style.setProperty('--band',C[i%4]))})();</script><p class="appver" style="text-align:center;font-size:11px;opacity:.6;margin:18px 0 10px;font-family:ui-monospace,Menlo,monospace">Modal Metronome · Version 2026-11-06.10</p>
+</script><script>(function(){const C=['#e8412c','#f28c28','#f6c33b','#efe6d2'];document.querySelectorAll('.sec>h4').forEach((h,i)=>h.style.setProperty('--band',C[i%4]))})();</script><p class="appver" style="text-align:center;font-size:11px;opacity:.6;margin:18px 0 10px;font-family:ui-monospace,Menlo,monospace">Modal Metronome · Version 2026-11-06.11</p>
 </body></html>
