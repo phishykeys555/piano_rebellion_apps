@@ -232,7 +232,6 @@ summary{cursor:pointer;padding:12px 16px;font-weight:600}
       <div class="micctl" id="micCtl" hidden>
         <label for="micSel">Microphone</label><select id="micSel"></select>
         <label for="micGain">Sensitivity</label><input type="range" id="micGain" min="0" max="100" step="1" value="64">
-        <span>Noise</span><label style="display:flex;gap:8px;align-items:center;color:var(--ink)"><input type="checkbox" id="gateOn"> Block background noise</label>
         <span>Level</span><div class="meter" style="max-width:none"><i id="meterFill"></i><span class="thr" id="thr"></span></div>
       </div>
       <div class="micstat" id="micStat">Play the note on your piano. One note at a time, the right octave.</div>
@@ -245,7 +244,7 @@ summary{cursor:pointer;padding:12px 16px;font-weight:600}
       <button class="primary" id="startTimed">Start 60-second sprint</button>
     </div>
     <p class="tip">Keyboard: A–G to answer. In a key with sharps or flats, tap ♯ or ♭ first (or press = / −). Piano keys must be the exact key, right octave.</p>
-    <p class="tip" id="appVer">Version 2026-11-10.1 · fresh target each round · full keyboard · YIN mic</p>
+    <p class="tip" id="appVer">Version 2026-11-10.2 · fresh target each round · full keyboard · YIN mic</p>
 
     <div class="arcsplash" id="arcSplash" hidden><div class="boom"></div><div id="arcPcs"></div><div class="pre" id="arcSplashP"></div><b id="arcSplashT">ROUND 2</b><span id="arcSplashS"></span></div><div class="hitstamp" id="hitStamp">TARGET HIT!</div>
     <div class="results" id="results" hidden>
@@ -636,24 +635,18 @@ summary{cursor:pointer;padding:12px 16px;font-weight:600}
     const maxLag=Math.min(Math.floor(sr/MINHZ),Math.floor(n/2)), minLag=Math.max(2,Math.floor(sr/4400)), W=n-maxLag-1, d=new Float32Array(maxLag+2);
     for(let t=1;t<=maxLag+1;t++){let v=0; for(let j=0;j<W;j++){const x=buf[j]-buf[j+t]; v+=x*x} d[t]=v}
     const c=new Float32Array(maxLag+2); c[0]=1; let run=0; for(let t=1;t<=maxLag+1;t++){run+=d[t]; c[t]=run>0?d[t]*t/run:1}
-    const TH=CLARITY>=0.75?0.1:0.15; let T=-1;
+    const TH=0.1; let T=-1;
     for(let t=minLag;t<=maxLag;t++) if(c[t]<TH){ while(t+1<=maxLag&&c[t+1]<c[t]) t++; T=t; break }
     if(T<0){ let mv=1,mp=-1; for(let t=minLag;t<=maxLag;t++) if(c[t]<mv){mv=c[t];mp=t} if(mp<0||mv>0.3) return -1; T=mp }
+    lastAp=c[T];
     const x1=c[T-1],x2=c[T],x3=c[T+1],a=(x1+x3-2*x2)/2,b=(x3-x1)/2, Tf=a>0?T-b/(2*a):T; return sr/Tf }
   // Routed source -> gain (sensitivity) -> analyser -> muted output: Safari/iOS only process nodes that reach the destination.
-  // Background-noise blocker: listens to the room for 1.5 s, sets the trigger line at 3x the room's level,
-  // and only accepts a clear, steady pitch (speech and clatter don't have one).
+  // Talking never counts: a note must be clearly pitched (low aperiodicity, lastAp) and hold one steady pitch for 5+ frames
+  // (~200 ms) without sliding. Speech glides between pitches and is breathier; clatter has no pitch at all.
   let MINHZ=45, tuneOff=+store.get("tuneOff",0)||0;
   const micG=x=>0.25*Math.pow(48,(+x)/100);
-  const THR=0.015; let thr=THR, CLARITY=0.5;
+  const THR=0.015, AP=0.12; let thr=THR, lastAp=1;
   function setThr(v){ thr=v; $("thr").style.left=Math.min(100,thr*600)+"%" }
-  async function calibrate(){ if(!mic) return; $("micStat").textContent="Checking room noise. Stay quiet for 2 seconds…"; const vals=[];
-    const t0=performance.now(); await new Promise(res=>{const iv=setInterval(()=>{ if(!mic){clearInterval(iv);return res()} mic.an.getFloatTimeDomainData(mic.buf);
-      let r=0; for(let i=0;i<mic.buf.length;i++) r+=mic.buf[i]*mic.buf[i]; vals.push(Math.sqrt(r/mic.buf.length)); if(performance.now()-t0>1500){clearInterval(iv);res()} },40)});
-    vals.sort((a,b)=>a-b); const room=vals[Math.floor(vals.length*0.9)]||0; setThr(Math.min(0.06,Math.max(THR,room*3))); CLARITY=0.75;
-    $("micStat").textContent="Noise blocker on. Only notes above the line count." }
-  $("gateOn").addEventListener("change",e=>{ store.set("gate",e.target.checked); if(e.target.checked) calibrate(); else { setThr(THR); CLARITY=0.5; $("micStat").textContent="Noise blocker off." } });
-  $("gateOn").checked=!!store.get("gate",false);
   async function micStart(deviceId){ try{
     audio=audio||new (window.AudioContext||window.webkitAudioContext)(); await audio.resume();
     if(mic) micStop(true);
@@ -663,7 +656,7 @@ summary{cursor:pointer;padding:12px 16px;font-weight:600}
     g.gain.value=micG($("micGain").value); an.fftSize=4096; mute.gain.value=0; src.connect(g); g.connect(an); an.connect(mute); mute.connect(audio.destination);
     mic={stream,g,an,src,mute,buf:new Float32Array(an.fftSize),hist:[],armed:false,armedAt:0,cand:[],cool:0};
     mic.timer=setInterval(micTick,40); $("micBtn").textContent="Microphone on"; $("micBtn").disabled=true; $("micCtl").hidden=false;
-    setThr(THR); if($("gateOn").checked) setTimeout(calibrate,300);
+    setThr(THR);
     const devs=(await navigator.mediaDevices.enumerateDevices()).filter(d=>d.kind==="audioinput"), cur=stream.getAudioTracks()[0].getSettings().deviceId;
     $("micSel").innerHTML=devs.map((d,i)=>`<option value="${d.deviceId}">${(d.label||("Microphone "+(i+1))).replace(/[<>&]/g,"")}</option>`).join(""); if(cur) $("micSel").value=cur;
     $("micStat").textContent="Listening. Play any key: the Level bar should jump past the line. Too low? Raise Sensitivity.";
@@ -676,19 +669,20 @@ summary{cursor:pointer;padding:12px 16px;font-weight:600}
   function micTick(){ const m=mic; m.an.getFloatTimeDomainData(m.buf); let r=0; for(let i=0;i<m.buf.length;i++) r+=m.buf[i]*m.buf[i]; r=Math.sqrt(r/m.buf.length);
     $("meterFill").style.width=Math.min(100,r*600)+"%"; const now=performance.now(), avg=m.hist.length?m.hist.reduce((a,b)=>a+b,0)/m.hist.length:0;
     m.hist.push(r); if(m.hist.length>6) m.hist.shift();
-    if(!m.armed&&now>m.cool&&r>thr&&r>avg*1.7){m.armed=true;m.armedAt=now;m.cand=[];m.res=[];m.raw=[]}
+    if(!m.armed&&now>m.cool&&r>thr&&r>avg*1.7){m.armed=true;m.armedAt=now;m.cand=[];m.res=[];m.raw=[];m.rawX=[]}
     if(m.armed&&now-m.armedAt>=70){ const f=acf(m.buf,audio.sampleRate);
       // tuneOff = how sharp/flat this piano sits (semitones), learned from every confirmed note, so a home piano that's a bit off still reads exactly
-      if(f>MINHZ*0.9&&f<4400){ const x=69+12*Math.log2(f/440)-tuneOff, md=Math.round(x); m.raw.push(x-md); if(Math.abs(x-md)<=0.45){ m.cand.push(md); m.res.push(x-md); heardNote(md) } }
+      if(f>MINHZ*0.9&&f<4400&&lastAp<AP){ const x=69+12*Math.log2(f/440)-tuneOff, md=Math.round(x); m.raw.push(x-md); m.rawX=(m.rawX||[]); m.rawX.push(x); if(Math.abs(x-md)<=0.45){ m.cand.push(md); m.res.push(x-md) } }
       const cnt={}; let best=null, bc=0; for(const v of m.cand){cnt[v]=(cnt[v]||0)+1; if(cnt[v]>bc){bc=cnt[v];best=v}}
-      if(bc>=4&&bc>=0.7*m.cand.length){ const rs=m.res.filter((_,i)=>m.cand[i]===best).sort((a,b)=>a-b), med=rs[Math.floor(rs.length/2)]||0;
+      const bx=bc?m.res.filter((_,i)=>m.cand[i]===best):[], steady=bx.length>=5&&Math.max(...bx)-Math.min(...bx)<=0.22&&Math.abs(bx[bx.length-1]-bx[0])<=0.15;
+      if(bc>=5&&bc>=0.8*m.cand.length&&steady){ const rs=m.res.filter((_,i)=>m.cand[i]===best).sort((a,b)=>a-b), med=rs[Math.floor(rs.length/2)]||0;
         tuneOff=Math.max(-0.6,Math.min(0.6,tuneOff+0.5*med)); store.set("tuneOff",tuneOff);
         m.armed=false; m.cool=now+450; heardNote(best); answerHeard(best) }
       else if(now-m.armedAt>900){ m.armed=false;
         // a steady pitch that sits between two keys = the piano itself is off: re-centre on it and ask for the note again
-        const rr=[...m.raw].sort((a,b)=>a-b), md=rr[rr.length>>1];
-        if(rr.length>=4&&rr.filter(v=>Math.abs(v-md)<0.1).length>=0.75*rr.length&&Math.abs(md)>0.3){ tuneOff=Math.max(-0.6,Math.min(0.6,tuneOff+md)); store.set("tuneOff",tuneOff); heardMsg("Tuning to your piano. Play that key again.") }
-        else if(m.cand.length||rr.length) heardMsg("Didn't catch that one. Play the key again, a little firmer.") } } }
+        const rr=[...m.raw].sort((a,b)=>a-b), md=rr[rr.length>>1], rx=[...(m.rawX||[])].sort((a,b)=>a-b), mx=rx[rx.length>>1];
+        if(rx.length>=6&&rx.filter(v=>Math.abs(v-mx)<0.1).length>=0.8*rx.length&&Math.abs(md)>0.3){ tuneOff=Math.max(-0.6,Math.min(0.6,tuneOff+md)); store.set("tuneOff",tuneOff); heardMsg("Tuning to your piano. Play that key again.") }
+        else if(rx.length>=4&&rx.filter(v=>Math.abs(v-mx)<0.15).length>=0.7*rx.length) heardMsg("Didn't catch that one. Play the key again, a little firmer.") } } }
   function heardNote(md){ const h=$("heard"); h.classList.remove("msg"); h.textContent=mname(md) }
   function heardMsg(t){ const h=$("heard"); h.classList.add("msg"); h.textContent=t }
   function answerHeard(md){ if(!q||locked||q.wait)return; const t=midiOf(q.notes[idx]); grade(md===t,{midi:md,label:mname(md)}) }
