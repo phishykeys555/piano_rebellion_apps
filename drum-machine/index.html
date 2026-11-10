@@ -491,7 +491,9 @@ function genFill0(len){const A=+$('fa').value/100,sty=$('fs').value,n=steps(),ev
  return ev}
 // ===== storage =====
 const store=(()=>{for(const k of ['localStorage','sessionStorage']){try{const st=window[k],t='__dk';st.setItem(t,'1');st.removeItem(t);return st}catch(e){}}const mm={};return{getItem:k=>k in mm?mm[k]:null,setItem:(k,v)=>mm[k]=v,removeItem:k=>delete mm[k],mem:true}})();
-const SKEY='drumMachine:'+(()=>{let r='';try{const u=new URL(document.referrer);if(u.pathname.length>1)r=u.host+u.pathname}catch(e){}return r+'|'+location.host+location.pathname+location.search})();
+const SKEY='drumMachine:'+(()=>{let r='',srch=location.search;const sp=new URLSearchParams(srch),ref=sp.get('_r')!==null?sp.get('_r'):document.referrer;
+ if(sp.has('_v')){srch=srch.replace(/[?&]_(v|r)=[^&]*/g,'').replace(/^&/,'?')} // auto-update reload: same storage key as before it
+ try{const u=new URL(ref);if(u.pathname.length>1)r=u.host+u.pathname}catch(e){}return r+'|'+location.host+location.pathname+srch})();
 const esc=x=>String(x).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 // ===== extra voices (recorded samples) =====
 const PERC={82:'l_cabasa',54:'l_tamb',39:'l_clap',63:'l_congah',64:'l_congal',60:'c_bongoh',61:'c_bongol',73:'c_guiro'};
@@ -1276,5 +1278,10 @@ $('av').value='rock';$('ac').value='pop';psUI();restore();uiRefresh();logUI();re
 {const sp=new URLSearchParams(location.search),dm=sp.get('dm');if(dm){try{applyState(decodeCode(dm));uiRefresh();save()}catch(e){console.error(e)}
   if(sp.get('xp')){$('xlen').value=sp.get('xp');history.replaceState(null,'',location.pathname);$('xst').textContent='Your settings from Notion are loaded. Tap Export to build and save your MP3.';setTimeout(()=>{$('xbtn').scrollIntoView({block:'center'});$('xbtn').focus()},300)}}}
 
-</script><script>(function(){const C=['#e8412c','#f28c28','#f6c33b','#efe6d2'];document.querySelectorAll('.sec>h4').forEach((h,i)=>h.style.setProperty('--band',C[i%4]))})();</script><p class="appver" style="text-align:center;font-size:11px;opacity:.6;margin:18px 0 10px;font-family:ui-monospace,Menlo,monospace">Modal Metronome · Version 2026-11-10.3</p>
+</script><script>(function(){const C=['#e8412c','#f28c28','#f6c33b','#efe6d2'];document.querySelectorAll('.sec>h4').forEach((h,i)=>h.style.setProperty('--band',C[i%4]))})();</script><p class="appver" style="text-align:center;font-size:11px;opacity:.6;margin:18px 0 10px;font-family:ui-monospace,Menlo,monospace">Modal Metronome · Version 2026-11-10.4</p>
+<script>/* Auto-update: Safari and Notion keep old copies of this page. If the live site has a newer version, reload it once (settings in the link are kept). */
+(function(){const mine=(document.querySelector('.appver')||{}).textContent||'';const m=mine.match(/Version ([0-9.-]+)/);if(!m)return;
+ setTimeout(()=>{fetch(location.pathname+'?_v='+Date.now(),{cache:'no-store'}).then(r=>r.text()).then(t=>{const l=t.match(/Modal Metronome · Version ([0-9.-]+)/);
+  if(!l||l[1]===m[1])return;let k='mmUpd'+l[1];try{if(sessionStorage.getItem(k))return;sessionStorage.setItem(k,'1')}catch(e){}
+  if(typeof playing!=='undefined'&&playing)return;const base=location.href.split('#')[0].replace(/[?&]_(v|r)=[^&]*/g,'').replace(/\?&/,'?'),ref=new URLSearchParams(location.search).get('_r');location.replace(base+(base.includes('?')?'&':'?')+'_r='+encodeURIComponent(ref!==null?ref:document.referrer||'')+'&_v='+l[1])}).catch(()=>{})},1500)})();</script>
 </body></html>
