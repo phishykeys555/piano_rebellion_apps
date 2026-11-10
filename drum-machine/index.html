@@ -1054,7 +1054,14 @@ function buzz(tBB){const len=Math.min(60/bpm/2,Math.max(0.12,60/bpm/4)),k=Math.m
 function rollAt(i,t){const m=$('groll').value;if(m==='off'||!isBB(i))return;const lastBB=Math.floor(i/sub)===beats-1||(beats===4&&i/sub===3);
  if(m==='drag'){if(Math.random()<0.5)drag(t)}else if(m==='buzz'){if(lastBB&&barN%2===1)buzz(t)}
  else if(m==='mix'){const r=Math.random();if(lastBB&&barN%4===3&&r<0.7)buzz(t);else if(r<0.25)drag(t)}}
-function sched(h){const H=typeof h==='number'?h:ctx.currentTime+0.1;while(next<H){if(pos===0)barStart();
+// iPad/iPhone: when the page is hidden or another app takes the screen, the browser slows timers.
+// So: a worker clock (keeps ticking when main-thread timers are throttled), a lookahead that grows when ticks arrive late
+// or the page is hidden, and if we fell behind anyway we skip ahead cleanly instead of firing a burst of late notes.
+let lastTick=0,LA=0.35;
+function sched(h){if(typeof h!=='number'&&ctx){const nowT=performance.now(),gap=lastTick?(nowT-lastTick)/1000:0;lastTick=nowT;
+  LA=document.hidden?3:Math.min(2,Math.max(0.35,LA*0.98,gap*3));
+  if(next<ctx.currentTime-0.05){next=ctx.currentTime+0.05}}
+ const H=typeof h==='number'?h:ctx.currentTime+LA;while(next<H){if(pos===0)barStart();
  const dt=60/bpm/sub,n=steps(),i=pos,t=next+((sub!==3&&i%2)?(swing-.5)*2*dt:0),H=+$('hu').value/100;
  const item={t,i,b:i%sub==0?i/sub:-1};
  if(isCount){if(i%sub==0)clickV(t,i==0);item.cnt=Math.floor(i/sub)+1;item.cb=cin}
@@ -1132,8 +1139,13 @@ async function saveExport(){const X=lastExport,xst=$('xst');if(!X)return;
   xst.innerHTML='Saved to your Downloads folder: '+X.fn+' · <button type="button" id="xsave" class="btn">Save again</button>';$('xsave').addEventListener('click',saveExport)
  }catch(err){if(err&&err.name==='AbortError'){xst.innerHTML='Not saved. <button type="button" id="xsave" class="btn">⬇ Save MP3…</button>';$('xsave').addEventListener('click',saveExport);return}
   const a=document.createElement('a');a.href=X.url;a.download=X.fn;document.body.appendChild(a);a.click();a.remove();xst.textContent='Saved to Downloads: '+X.fn}}
-async function start(){await init();playing=true;pos=0;barN=0;surStyle=null;surV=null;cin=+$('ci').value;muted=false;prevFill=false;fillBar=false;forceBar=-1;secName='';lastBassM=null;bassPrevM=null;bassPlan=null;bassRun=0;bassLastCk='';trMsg='';q=[];next=ctx.currentTime+0.08;timer=setInterval(sched,25);sched();anim();p.textContent='■ Stop';logStart()}
-function stop(){playing=false;clearInterval(timer);forceBar=-1;document.querySelectorAll('.now').forEach(c=>c.classList.remove('now'));[...$('dots').children].forEach(d=>d.classList.remove('on'));$('blm').innerHTML='Press ▶ Play or Space';p.textContent='▶ Play';chordPreview();logStop()}
+let clockW=null;
+function startClock(){lastTick=0;LA=0.35;try{if(!clockW){const u=URL.createObjectURL(new Blob(["let t=null;onmessage=e=>{clearInterval(t);if(e.data>0)t=setInterval(()=>postMessage(0),e.data)}"],{type:'text/javascript'}));clockW=new Worker(u);clockW.onmessage=()=>{if(playing)sched()}}clockW.postMessage(25);return null}catch(e){return setInterval(sched,25)}}
+function stopClock(){if(clockW)clockW.postMessage(0);if(timer){clearInterval(timer);timer=null}}
+document.addEventListener('visibilitychange',()=>{if(!ctx||!playing)return;if(!document.hidden){if(ctx.state!=='running')ctx.resume().catch(()=>{})}sched()});
+window.addEventListener('focus',()=>{if(ctx&&playing&&ctx.state!=='running')ctx.resume().catch(()=>{})});
+async function start(){await init();playing=true;pos=0;barN=0;surStyle=null;surV=null;cin=+$('ci').value;muted=false;prevFill=false;fillBar=false;forceBar=-1;secName='';lastBassM=null;bassPrevM=null;bassPlan=null;bassRun=0;bassLastCk='';trMsg='';q=[];next=ctx.currentTime+0.08;timer=startClock();sched();anim();p.textContent='■ Stop';logStart()}
+function stop(){playing=false;stopClock();forceBar=-1;document.querySelectorAll('.now').forEach(c=>c.classList.remove('now'));[...$('dots').children].forEach(d=>d.classList.remove('on'));$('blm').innerHTML='Press ▶ Play or Space';p.textContent='▶ Play';chordPreview();logStop()}
 function fillNow(){if(!playing){start().then(()=>{forceBar=0});return}if(isCount){forceBar=0;return}const n=steps(),fl=fillBeats()*sub;
  if(pos<n-fl&&!muted){fillBar=true;curFill=genFill(fl);prevFill=true}else forceBar=barN+1}
 // ===== practice log =====
@@ -1245,5 +1257,5 @@ document.addEventListener('keydown',e=>{const tg=e.target.tagName,ty=e.target.ty
 // ===== boot =====
 $('av').value='rock';$('ac').value='pop';psUI();restore();uiRefresh();logUI();restoring=false;listDevs();
 
-</script><script>(function(){const C=['#e8412c','#f28c28','#f6c33b','#efe6d2'];document.querySelectorAll('.sec>h4').forEach((h,i)=>h.style.setProperty('--band',C[i%4]))})();</script><p class="appver" style="text-align:center;font-size:11px;opacity:.6;margin:18px 0 10px;font-family:ui-monospace,Menlo,monospace">Modal Metronome · Version 2026-11-06.17</p>
+</script><script>(function(){const C=['#e8412c','#f28c28','#f6c33b','#efe6d2'];document.querySelectorAll('.sec>h4').forEach((h,i)=>h.style.setProperty('--band',C[i%4]))})();</script><p class="appver" style="text-align:center;font-size:11px;opacity:.6;margin:18px 0 10px;font-family:ui-monospace,Menlo,monospace">Modal Metronome · Version 2026-11-10.2</p>
 </body></html>
