@@ -1059,11 +1059,11 @@ function rollAt(i,t){const m=$('groll').value;if(m==='off'||!isBB(i))return;cons
 // or the page is hidden, and if we fell behind anyway we skip ahead cleanly instead of firing a burst of late notes.
 let lastTick=0,LA=0.35;
 function sched(h){if(typeof h!=='number'&&ctx){const nowT=performance.now(),gap=lastTick?(nowT-lastTick)/1000:0;lastTick=nowT;
-  LA=document.hidden?3:Math.min(2,Math.max(0.35,LA*0.98,gap*3));
+  LA=document.hidden?60:Math.min(2,Math.max(0.35,LA*0.98,gap*3));
   if(next<ctx.currentTime-0.05){next=ctx.currentTime+0.05}}
- const H=typeof h==='number'?h:ctx.currentTime+LA;while(next<H){if(pos===0)barStart();
+ const H=typeof h==='number'?h:ctx.currentTime+LA;while(next<H){let snap=null;if(pos===0){if(cin<=0)snap={bar:barN,bpm,pf:prevFill,mu:muted};barStart()}
  const dt=60/bpm/sub,n=steps(),i=pos,t=next+((sub!==3&&i%2)?(swing-.5)*2*dt:0),H=+$('hu').value/100;
- const item={t,i,b:i%sub==0?i/sub:-1};
+ const item={t,i,b:i%sub==0?i/sub:-1};if(snap&&!isCount)item.st=snap;
  if(isCount){if(i%sub==0)clickV(t,i==0);item.cnt=Math.floor(i/sub)+1;item.cb=cin}
  else{const fl=fillBeats()*sub,inFill=fillBar&&i>=n-fl;Object.assign(item,{f:inFill,mu:muted,sec:secName,ch:halfAt&&i>=halfAt?chordB:chordNow,nx:halfAt&&i>=halfAt?chordC:chordNext,tr:trMsg});
   if(!muted){const hj=()=>H?(Math.random()-.5)*0.02*H:0,hv=()=>H?1+(Math.random()-.5)*0.3*H:1,now=ctx.currentTime;
@@ -1136,16 +1136,28 @@ async function saveExport(){const X=lastExport,xst=$('xst');if(!X)return;
   const file=new File([X.blob],X.fn,{type:'audio/mpeg'});
   if(/iPad|iPhone|iPod/.test(navigator.userAgent)||(navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1)){if(navigator.canShare&&navigator.canShare({files:[file]})){await navigator.share({files:[file],title:X.fn});xst.textContent='Shared: pick "Save to Files" to keep it.';return}}
   const a=document.createElement('a');a.href=X.url;a.download=X.fn;document.body.appendChild(a);a.click();a.remove();
-  xst.innerHTML='Saved to your Downloads folder: '+X.fn+' · <button type="button" id="xsave" class="btn">Save again</button>';$('xsave').addEventListener('click',saveExport)
+  xst.innerHTML='Download started: '+X.fn+' (check your Downloads) · <button type="button" id="xsave" class="btn">Save again</button>';$('xsave').addEventListener('click',saveExport)
  }catch(err){if(err&&err.name==='AbortError'){xst.innerHTML='Not saved. <button type="button" id="xsave" class="btn">⬇ Save MP3…</button>';$('xsave').addEventListener('click',saveExport);return}
-  const a=document.createElement('a');a.href=X.url;a.download=X.fn;document.body.appendChild(a);a.click();a.remove();xst.textContent='Saved to Downloads: '+X.fn}}
+  const a=document.createElement('a');a.href=X.url;a.download=X.fn;document.body.appendChild(a);a.click();a.remove();xst.innerHTML='Download started: '+X.fn+'. Not in Downloads? <a href="'+X.url+'" download="'+X.fn+'">Tap here</a>'}}
 let clockW=null;
 function startClock(){lastTick=0;LA=0.35;try{if(!clockW){const u=URL.createObjectURL(new Blob(["let t=null;onmessage=e=>{clearInterval(t);if(e.data>0)t=setInterval(()=>postMessage(0),e.data)}"],{type:'text/javascript'}));clockW=new Worker(u);clockW.onmessage=()=>{if(playing)sched()}}clockW.postMessage(25);return null}catch(e){return setInterval(sched,25)}}
 function stopClock(){if(clockW)clockW.postMessage(0);if(timer){clearInterval(timer);timer=null}}
-document.addEventListener('visibilitychange',()=>{if(!ctx||!playing)return;if(!document.hidden){if(ctx.state!=='running')ctx.resume().catch(()=>{})}sched()});
+// Background tab (reading music in another tab or app): Safari can pause timers for many seconds, so while hidden we
+// queue about a minute of music ahead. Coming back, we hand over at the next barline: the queued audio fades out on
+// the old buses right at the bar and the scheduler picks up from that bar on fresh buses, so new settings apply at once.
+function swapBuses(T){if(!ctx||!master)return;const now=ctx.currentTime,old=[master,bassBus,keysBus];T=Math.max(now+0.01,T);
+ old.forEach(g=>{const v=g.gain.value;g.gain.cancelScheduledValues(0);g.gain.setValueAtTime(v,Math.max(now,T-0.008));g.gain.linearRampToValueAtTime(0,T)});
+ master=ctx.createGain();master.connect(comp);master.connect(revSend);
+ bassBus=ctx.createGain();bassBus.gain.value=0.9;bassBus.connect(buildStrip(comp));
+ keysBus=ctx.createGain();keysBus.gain.value=0.8;keysBus.connect(comp);{const ks=ctx.createGain();ks.gain.value=0.7;keysBus.connect(ks);ks.connect(revSend)}
+ openHat=null;setTimeout(()=>old.forEach(g=>{try{g.disconnect()}catch(e){}}),(T-now)*1000+400)}
+function handover(){if(!ctx||!playing)return;const lim=ctx.currentTime+0.2;if(next<=lim+1)return;
+ const it=q.find(e=>e.t>lim&&e.st);if(!it)return;
+ swapBuses(it.t);q=q.filter(e=>e.t<it.t);next=it.t;pos=0;barN=it.st.bar;prevFill=it.st.pf;muted=it.st.mu;setBpm(it.st.bpm);LA=0.35;lastTick=0;sched()}
+document.addEventListener('visibilitychange',()=>{if(!ctx||!playing)return;if(!document.hidden){if(ctx.state!=='running')ctx.resume().catch(()=>{});handover()}sched()});
 window.addEventListener('focus',()=>{if(ctx&&playing&&ctx.state!=='running')ctx.resume().catch(()=>{})});
 async function start(){await init();playing=true;pos=0;barN=0;surStyle=null;surV=null;cin=+$('ci').value;muted=false;prevFill=false;fillBar=false;forceBar=-1;secName='';lastBassM=null;bassPrevM=null;bassPlan=null;bassRun=0;bassLastCk='';trMsg='';q=[];next=ctx.currentTime+0.08;timer=startClock();sched();anim();p.textContent='■ Stop';logStart()}
-function stop(){playing=false;stopClock();forceBar=-1;document.querySelectorAll('.now').forEach(c=>c.classList.remove('now'));[...$('dots').children].forEach(d=>d.classList.remove('on'));$('blm').innerHTML='Press ▶ Play or Space';p.textContent='▶ Play';chordPreview();logStop()}
+function stop(){playing=false;stopClock();if(ctx&&master)swapBuses(ctx.currentTime+0.01);q=[];forceBar=-1;document.querySelectorAll('.now').forEach(c=>c.classList.remove('now'));[...$('dots').children].forEach(d=>d.classList.remove('on'));$('blm').innerHTML='Press ▶ Play or Space';p.textContent='▶ Play';chordPreview();logStop()}
 function fillNow(){if(!playing){start().then(()=>{forceBar=0});return}if(isCount){forceBar=0;return}const n=steps(),fl=fillBeats()*sub;
  if(pos<n-fl&&!muted){fillBar=true;curFill=genFill(fl);prevFill=true}else forceBar=barN+1}
 // ===== practice log =====
@@ -1210,7 +1222,12 @@ function decodeCode(txt){const m2=txt.trim().replace(/\s+/g,'').match(/DM2\.([A-
  const rv={};ROWS.forEach(([k])=>rv[k]=o.r&&o.r[k]!=null?o.r[k]:1);return {pk:o.pk,c:o.c,bpm:o.bpm,grid:grd,rowVol:rv,seed:o.seed}}
 // ===== controls =====
 document.addEventListener('change',save);document.addEventListener('input',save);
-$('xbtn').onclick=exportMp3;
+const inFrame=(()=>{try{return window.self!==window.top}catch(e){return true}})();
+// Notion (and other embeds) block downloads inside the frame, so the export runs in a full-screen tab where Save works.
+$('xbtn').onclick=()=>{if(!inFrame)return exportMp3();
+ const u=location.origin+location.pathname+'?dm='+encodeURIComponent(encodeCode())+'&xp='+$('xlen').value;
+ const w=window.open(u,'_blank');
+ $('xst').innerHTML=w?'Opened full screen to export and save your MP3 (Notion blocks downloads inside the page).':'Notion blocks downloads here. <a href="'+u+'" target="_blank" rel="noopener">Open full screen to export</a>'};
 p.onclick=async()=>{if(playing){stop();return}p.disabled=true;p.textContent='Loading sounds…';try{await start()}catch(e){p.textContent='▶ Play';status('Audio could not start. Try again.');console.error(e)}finally{p.disabled=false}};
 s.oninput=e=>setBpm(+e.target.value);
 $('mv').oninput=e=>{$('mvt').textContent=e.target.value+'%';if(out)out.gain.setTargetAtTime(volG(e.target.value),ctx.currentTime,0.02)};
@@ -1256,6 +1273,8 @@ document.addEventListener('keydown',e=>{const tg=e.target.tagName,ty=e.target.ty
  else if(k==='KeyF')fillNow();else if(k==='KeyT')tap()});
 // ===== boot =====
 $('av').value='rock';$('ac').value='pop';psUI();restore();uiRefresh();logUI();restoring=false;listDevs();
+{const sp=new URLSearchParams(location.search),dm=sp.get('dm');if(dm){try{applyState(decodeCode(dm));uiRefresh();save()}catch(e){console.error(e)}
+  if(sp.get('xp')){$('xlen').value=sp.get('xp');history.replaceState(null,'',location.pathname);$('xst').textContent='Your settings from Notion are loaded. Tap Export to build and save your MP3.';setTimeout(()=>{$('xbtn').scrollIntoView({block:'center'});$('xbtn').focus()},300)}}}
 
-</script><script>(function(){const C=['#e8412c','#f28c28','#f6c33b','#efe6d2'];document.querySelectorAll('.sec>h4').forEach((h,i)=>h.style.setProperty('--band',C[i%4]))})();</script><p class="appver" style="text-align:center;font-size:11px;opacity:.6;margin:18px 0 10px;font-family:ui-monospace,Menlo,monospace">Modal Metronome · Version 2026-11-10.2</p>
+</script><script>(function(){const C=['#e8412c','#f28c28','#f6c33b','#efe6d2'];document.querySelectorAll('.sec>h4').forEach((h,i)=>h.style.setProperty('--band',C[i%4]))})();</script><p class="appver" style="text-align:center;font-size:11px;opacity:.6;margin:18px 0 10px;font-family:ui-monospace,Menlo,monospace">Modal Metronome · Version 2026-11-10.3</p>
 </body></html>
