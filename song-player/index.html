@@ -1,0 +1,92 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Song Player · Clarendon Hills Music Academy</title>
+<meta name="description" content="Play along with your song at any speed and in any key. Section loop and speed-up trainer.">
+<style>
+:root{--bg:#191919;--card:#232323;--line:#3a3a3a;--text:#f0efed;--mut:#a5a29c;--acc:#ff5a3c;--acc2:#ffb020;--ok:#4cc38a}
+@media (prefers-color-scheme:light){:root{--bg:#ffffff;--card:#f7f6f3;--line:#d9d7d2;--text:#2c2c2b;--mut:#6b6964;--acc:#d9411e;--acc2:#b77700;--ok:#1f8a57}}
+*{box-sizing:border-box}body{margin:0;padding:10px;background:var(--bg);color:var(--text);font:15px/1.45 system-ui,-apple-system,Segoe UI,sans-serif}
+main{max-width:680px;margin:0 auto}.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:12px 14px}
+h1{font-size:18px;margin:0;letter-spacing:.02em;text-transform:uppercase}.by{font-size:12px;color:var(--mut);margin:0 0 10px}.by a{color:inherit}
+button{font:600 14px system-ui;color:var(--text);background:transparent;border:1px solid var(--line);border-radius:9px;min-height:40px;cursor:pointer;touch-action:manipulation}
+button.on{border-color:var(--acc);background:color-mix(in srgb,var(--acc) 18%,transparent)}
+.transport{display:flex;align-items:center;gap:12px}
+#play{width:58px;height:58px;border-radius:50%;border:0;background:var(--acc);color:#fff;font-size:22px;flex:none}
+.time{flex:1;position:relative}.time input{width:100%;accent-color:var(--acc);height:30px}.time .lbl{display:flex;justify-content:space-between;font-size:12px;color:var(--mut)}
+#ab{position:absolute;top:11px;height:8px;background:color-mix(in srgb,var(--ok) 55%,transparent);border-radius:4px;pointer-events:none;display:none}
+.readout{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:10px 0 2px;text-align:center}
+.readout div{border:1px solid var(--line);border-radius:10px;padding:5px 4px}.readout b{display:block;font:700 22px ui-monospace,Menlo,monospace;color:var(--acc2);line-height:1.15}.readout span{font-size:11px;color:var(--mut)}
+.ctl{display:grid;grid-template-columns:58px 44px 1fr 44px;align-items:center;gap:6px;margin-top:4px}
+.ctl label{font-size:12px;font-weight:700;color:var(--mut);letter-spacing:.04em}.ctl input{width:100%;accent-color:var(--acc);height:34px}
+.chips{display:flex;gap:5px;flex-wrap:wrap;margin:6px 0 0 64px}.chips button{min-height:32px;padding:0 9px;font-size:12px}
+.row{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px;align-items:center}.row button{padding:0 10px}
+.chk{display:flex;align-items:center;gap:6px;font-size:13px;min-height:40px}.chk input{width:18px;height:18px;accent-color:var(--acc)}
+.hint{font-size:12px;color:var(--mut)}select{font:600 13px system-ui;color:var(--text);background:var(--card);border:1px solid var(--line);border-radius:8px;min-height:36px;padding:0 6px}
+.err{color:var(--acc);font-size:13px;margin-top:8px}
+@media (max-width:440px){.chips{margin-left:0}.ctl{grid-template-columns:52px 40px 1fr 40px}}
+</style></head><body><main><div class="card">
+<h1 id="title">Song Player</h1>
+<p class="by"><span id="sub">Play-along</span> · <a href="https://clarendonhillsmusicacademy.com" target="_blank" rel="noopener">Clarendon Hills Music Academy</a></p>
+<div class="transport"><button id="play" aria-label="Play">▶</button>
+<div class="time"><div id="ab"></div><input id="seek" type="range" min="0" max="1000" value="0" aria-label="Position"><div class="lbl"><span id="cur">0:00</span><span id="dur">0:00</span></div></div></div>
+<div class="readout"><div><b id="spdN">100%</b><span id="spdS">speed · original tempo</span></div><div><b id="keyN">0</b><span id="keyS">key · original key</span></div></div>
+<div class="ctl"><label for="speed">SPEED</label><button id="sdn" aria-label="Slower">−</button><input id="speed" type="range" min="40" max="130" step="1" value="100"><button id="sup" aria-label="Faster">+</button></div>
+<div class="chips" id="spdChips"></div>
+<div class="ctl"><label for="key">KEY</label><button id="kdn" aria-label="Key down a half step">♭</button><input id="key" type="range" min="-6" max="6" step="1" value="0"><button id="kup" aria-label="Key up a half step">♯</button></div>
+<div class="ctl"><label for="vol">VOLUME</label><button id="vdn" aria-label="Quieter">−</button><input id="vol" type="range" min="0" max="150" step="5" value="100"><button id="vup" aria-label="Louder">+</button></div>
+<div class="row"><button id="back">↺ 10 s</button><button id="fwd">10 s ↻</button><button id="setA">Set A</button><button id="setB">Set B</button><button id="clrAB">Clear A-B</button><label class="chk"><input type="checkbox" id="loop" checked> Loop</label></div>
+<div class="hint" id="abTxt" style="margin-top:4px">Loop a tough section: tap Set A at its start, Set B at its end.</div>
+<div class="row"><label class="chk"><input type="checkbox" id="ramp"> Speed up each loop by</label><select id="rampStep"><option value="2">2%</option><option value="5" selected>5%</option><option value="10">10%</option></select><span class="hint">until</span><select id="rampMax"><option value="100" selected>100%</option><option value="110">110%</option><option value="125">125%</option></select><button id="reset">Reset</button></div>
+<p class="err" id="err" hidden></p>
+</div></main>
+<audio id="a" preload="metadata" crossorigin="anonymous" playsinline></audio>
+<script>
+// Songs: ?s=<id>. Add a song = drop its MP3 in audio/ and add one line here.
+const SONGS={
+ 'i-love-you-im-sorry':{t:'I Love You, I’m Sorry',sub:'Custom track',f:'audio/i-love-you-im-sorry.mp3'}
+};
+const $=i=>document.getElementById(i),a=$('a'),id=new URLSearchParams(location.search).get('s')||Object.keys(SONGS)[0],S=SONGS[id];
+const IVN={0:'original key',1:'half step up',2:'whole step up',3:'minor 3rd up',4:'major 3rd up',5:'4th up',6:'tritone up','-1':'half step down','-2':'whole step down','-3':'minor 3rd down','-4':'major 3rd down','-5':'4th down','-6':'tritone down'};
+let ctx=null,gain=null,ps=null,A=null,B=null,wrapping=false;const KEY='songplayer:'+id;
+const LS={get(){try{return JSON.parse(localStorage.getItem(KEY)||'{}')}catch(e){return {}}},set(o){try{localStorage.setItem(KEY,JSON.stringify(o))}catch(e){}}};
+a.preservesPitch=true;a.mozPreservesPitch=true;a.webkitPreservesPitch=true;
+const fmt=s=>isFinite(s)?Math.floor(s/60)+':'+String(Math.floor(s%60)).padStart(2,'0'):'0:00';
+const rate=()=>+$('speed').value/100,semi=()=>+$('key').value,vol=()=>+$('vol').value/100;
+function save(){LS.set({s:$('speed').value,k:$('key').value,v:$('vol').value,l:$('loop').checked,A,B})}
+async function audio(){if(ctx)return;try{const AC=window.AudioContext||window.webkitAudioContext;ctx=new AC();const src=ctx.createMediaElementSource(a);gain=ctx.createGain();
+  try{await ctx.audioWorklet.addModule('ps-worklet.js');ps=new AudioWorkletNode(ctx,'pitch-shift',{outputChannelCount:[2]});src.connect(ps);ps.connect(gain)}catch(e){src.connect(gain);ps=null;$('keyS').textContent='key change not supported on this browser'}
+  gain.connect(ctx.destination);a.volume=1;apply()}catch(e){ctx=null}}
+function apply(){const r=rate();a.playbackRate=r;a.preservesPitch=true;a.webkitPreservesPitch=true;
+ if(gain)gain.gain.setTargetAtTime(vol(),ctx.currentTime,0.02);else a.volume=Math.min(1,vol());
+ if(ps)ps.parameters.get('pitch').setTargetAtTime(Math.pow(2,semi()/12),ctx.currentTime,0.01);
+ const k=semi();$('spdN').textContent=$('speed').value+'%';$('spdS').textContent=r===1?'speed · original tempo':'speed · '+(r<1?'slower':'faster')+' than the record';
+ $('keyN').textContent=(k>0?'+':'')+k;if(!(ctx&&!ps))$('keyS').textContent='key · '+IVN[k];
+ [...$('spdChips').children].forEach(b=>b.classList.toggle('on',+b.dataset.v===+$('speed').value));save()}
+[50,60,75,90,100].forEach(v=>{const b=document.createElement('button');b.textContent=v+'%';b.dataset.v=v;b.onclick=()=>{$('speed').value=v;apply()};$('spdChips').appendChild(b)});
+async function toggle(){await audio();if(ctx&&ctx.state==='suspended')ctx.resume();if(a.paused)a.play().catch(e=>{});else a.pause()}
+$('play').onclick=toggle;a.onplay=()=>{$('play').textContent='❚❚'};a.onpause=()=>{$('play').textContent='▶'};
+a.onloadedmetadata=()=>{$('dur').textContent=fmt(a.duration);showAB();apply()};
+a.onerror=()=>{$('err').hidden=false;$('err').textContent='The track didn’t load. Check your connection and reload the page.'};
+function onLoop(){if($('ramp').checked){const mx=+$('rampMax').value,nv=Math.min(mx,+$('speed').value+ +$('rampStep').value);$('speed').value=nv;apply()}}
+function tick(){if(a.duration){$('cur').textContent=fmt(a.currentTime);$('seek').value=Math.round(1000*a.currentTime/a.duration);
+  if(A!=null&&B!=null&&a.currentTime>=B&&!wrapping){if($('loop').checked){wrapping=true;a.currentTime=A;onLoop();setTimeout(()=>wrapping=false,200)}else a.pause()}}
+ requestAnimationFrame(tick)}requestAnimationFrame(tick);
+a.onended=()=>{if($('loop').checked){a.currentTime=A!=null?A:0;onLoop();a.play()}};
+$('seek').oninput=e=>{if(a.duration)a.currentTime=a.duration*e.target.value/1000};
+const nudge=(i,d)=>{const el=$(i);el.value=Math.max(+el.min,Math.min(+el.max,+el.value+d));apply()};
+['speed','key','vol'].forEach(i=>$(i).oninput=apply);
+$('sdn').onclick=()=>nudge('speed',-5);$('sup').onclick=()=>nudge('speed',5);$('kdn').onclick=()=>nudge('key',-1);$('kup').onclick=()=>nudge('key',1);$('vdn').onclick=()=>nudge('vol',-10);$('vup').onclick=()=>nudge('vol',10);
+$('back').onclick=()=>{a.currentTime=Math.max(0,a.currentTime-10)};$('fwd').onclick=()=>{a.currentTime=Math.min(a.duration||0,a.currentTime+10)};
+$('reset').onclick=()=>{$('speed').value=100;$('key').value=0;$('vol').value=100;$('ramp').checked=false;A=B=null;showAB();apply()};
+$('loop').onchange=save;
+function showAB(){const el=$('ab');if(A!=null&&a.duration){const b=B!=null?B:a.currentTime;el.style.display='block';el.style.left=(100*A/a.duration)+'%';el.style.width=Math.max(0.5,100*(b-A)/a.duration)+'%'}else el.style.display='none';
+ $('abTxt').textContent=A==null?'Loop a tough section: tap Set A at its start, Set B at its end.':B==null?'A = '+fmt(A)+'. Now tap Set B at the end of the section.':'Looping '+fmt(A)+' to '+fmt(B)+'.';save()}
+$('setA').onclick=()=>{A=a.currentTime;if(B!=null&&B<=A)B=null;showAB()};$('setB').onclick=()=>{if(A==null)A=0;if(a.currentTime>A+0.5)B=a.currentTime;showAB()};$('clrAB').onclick=()=>{A=B=null;showAB()};
+document.addEventListener('keydown',e=>{if(e.target.tagName==='SELECT')return;const k=e.key;if(k===' '){e.preventDefault();toggle()}else if(k==='ArrowLeft')a.currentTime=Math.max(0,a.currentTime-5);else if(k==='ArrowRight')a.currentTime+=5;
+ else if(k==='ArrowUp'){e.preventDefault();nudge('speed',1)}else if(k==='ArrowDown'){e.preventDefault();nudge('speed',-1)}else if(k==='[')nudge('key',-1);else if(k===']')nudge('key',1);else if(k==='a'||k==='A')$('setA').click();else if(k==='b'||k==='B')$('setB').click()});
+if(!S){$('title').textContent='Song not found';$('err').hidden=false;$('err').textContent='This link has no song. Ask your instructor for the right link.'}
+else{document.title=S.t+' · Song Player';$('title').textContent=S.t;$('sub').textContent=S.sub||'Play-along';
+ const sv=LS.get();if(sv.s)$('speed').value=sv.s;if(sv.k)$('key').value=sv.k;if(sv.v)$('vol').value=sv.v;if(sv.l===false)$('loop').checked=false;if(sv.A!=null){A=sv.A;B=sv.B}
+ a.src=S.f;a.load();apply()}
+</script><p class="appver" style="text-align:center;font-size:11px;opacity:.6;margin:12px 0 8px;font-family:ui-monospace,Menlo,monospace">Song Player · Version 2026-11-10.1</p>
+</body></html>
