@@ -244,7 +244,7 @@ summary{cursor:pointer;padding:12px 16px;font-weight:600}
       <button class="primary" id="startTimed">Start 60-second sprint</button>
     </div>
     <p class="tip">Keyboard: A–G to answer. In a key with sharps or flats, tap ♯ or ♭ first (or press = / −). Piano keys must be the exact key, right octave.</p>
-    <p class="tip" id="appVer">Version 2026-11-10.2 · fresh target each round · full keyboard · YIN mic</p>
+    <p class="tip" id="appVer">Version 2026-11-10.3 · fresh target each round · full keyboard · YIN mic</p>
 
     <div class="arcsplash" id="arcSplash" hidden><div class="boom"></div><div id="arcPcs"></div><div class="pre" id="arcSplashP"></div><b id="arcSplashT">ROUND 2</b><span id="arcSplashS"></span></div><div class="hitstamp" id="hitStamp">TARGET HIT!</div>
     <div class="results" id="results" hidden>
@@ -638,12 +638,16 @@ summary{cursor:pointer;padding:12px 16px;font-weight:600}
     const TH=0.1; let T=-1;
     for(let t=minLag;t<=maxLag;t++) if(c[t]<TH){ while(t+1<=maxLag&&c[t+1]<c[t]) t++; T=t; break }
     if(T<0){ let mv=1,mp=-1; for(let t=minLag;t<=maxLag;t++) if(c[t]<mv){mv=c[t];mp=t} if(mp<0||mv>0.3) return -1; T=mp }
+    // octave guard: a piano's 2nd harmonic can beat its fundamental (low notes); if the double period is clearly cleaner, it's the real note
+    if(2*T<=maxLag&&c[2*T]<c[T]*0.5){ let t2=2*T; while(t2+1<=maxLag&&c[t2+1]<c[t2]) t2++; T=t2 }
     lastAp=c[T];
     const x1=c[T-1],x2=c[T],x3=c[T+1],a=(x1+x3-2*x2)/2,b=(x3-x1)/2, Tf=a>0?T-b/(2*a):T; return sr/Tf }
   // Routed source -> gain (sensitivity) -> analyser -> muted output: Safari/iOS only process nodes that reach the destination.
   // Talking never counts: a note must be clearly pitched (low aperiodicity, lastAp) and hold one steady pitch for 5+ frames
   // (~200 ms) without sliding. Speech glides between pitches and is breathier; clatter has no pitch at all.
   let MINHZ=45, tuneOff=+store.get("tuneOff",0)||0;
+  // older versions could learn a bad tuning from talking: start every device fresh once
+  if(store.get("tuneV",0)!==2){ tuneOff=0; store.set("tuneOff",0); store.set("tuneV",2) }
   const micG=x=>0.25*Math.pow(48,(+x)/100);
   const THR=0.015, AP=0.12; let thr=THR, lastAp=1;
   function setThr(v){ thr=v; $("thr").style.left=Math.min(100,thr*600)+"%" }
@@ -667,17 +671,22 @@ summary{cursor:pointer;padding:12px 16px;font-weight:600}
   $("micGain").addEventListener("input",e=>{ if(mic) mic.g.gain.value=micG(e.target.value); store.set("gain2",e.target.value) });
   { const old=store.get("gain",null); $("micGain").value=store.get("gain2",old!=null?String(Math.round(100*Math.log(Math.max(0.25,+old)/0.25)/Math.log(48))):"64") }
   function micTick(){ const m=mic; m.an.getFloatTimeDomainData(m.buf); let r=0; for(let i=0;i<m.buf.length;i++) r+=m.buf[i]*m.buf[i]; r=Math.sqrt(r/m.buf.length);
+    // attack detector on the newest ~20 ms only, so a new key is caught even while the last one still rings
+    let rs=0; const L=m.buf.length, S=1024; for(let i=L-S;i<L;i++) rs+=m.buf[i]*m.buf[i]; rs=Math.sqrt(rs/S); const prevS=m.ps||0; m.ps=rs;
     $("meterFill").style.width=Math.min(100,r*600)+"%"; const now=performance.now(), avg=m.hist.length?m.hist.reduce((a,b)=>a+b,0)/m.hist.length:0;
     m.hist.push(r); if(m.hist.length>6) m.hist.shift();
-    if(!m.armed&&now>m.cool&&r>thr&&r>avg*1.7){m.armed=true;m.armedAt=now;m.cand=[];m.res=[];m.raw=[];m.rawX=[]}
+    if(!m.armed&&now>m.cool&&r>thr&&(r>avg*1.4||(prevS>0&&rs>prevS*1.6&&rs>thr))){m.armed=true;m.armedAt=now;m.cand=[];m.res=[];m.raw=[];m.rawX=[];m.env=[]}
+    if(m.armed) m.env.push(r);
     if(m.armed&&now-m.armedAt>=70){ const f=acf(m.buf,audio.sampleRate);
       // tuneOff = how sharp/flat this piano sits (semitones), learned from every confirmed note, so a home piano that's a bit off still reads exactly
       if(f>MINHZ*0.9&&f<4400&&lastAp<AP){ const x=69+12*Math.log2(f/440)-tuneOff, md=Math.round(x); m.raw.push(x-md); m.rawX=(m.rawX||[]); m.rawX.push(x); if(Math.abs(x-md)<=0.45){ m.cand.push(md); m.res.push(x-md) } }
       const cnt={}; let best=null, bc=0; for(const v of m.cand){cnt[v]=(cnt[v]||0)+1; if(cnt[v]>bc){bc=cnt[v];best=v}}
-      const bx=bc?m.res.filter((_,i)=>m.cand[i]===best):[], steady=bx.length>=5&&Math.max(...bx)-Math.min(...bx)<=0.22&&Math.abs(bx[bx.length-1]-bx[0])<=0.15;
-      if(bc>=5&&bc>=0.8*m.cand.length&&steady){ const rs=m.res.filter((_,i)=>m.cand[i]===best).sort((a,b)=>a-b), med=rs[Math.floor(rs.length/2)]||0;
+      const bx=bc?m.res.filter((_,i)=>m.cand[i]===best):[], steady=bx.length>=4&&Math.max(...bx)-Math.min(...bx)<=0.22&&Math.abs(bx[bx.length-1]-bx[0])<=0.15;
+      // a struck string only gets quieter after the attack; a voice swells and dips
+      const ev=m.env, pk=Math.max(...ev), pi=ev.indexOf(pk), dec=ev.slice(pi).every((v,i,a)=>i===0||v<=a[i-1]*1.12)&&ev[ev.length-1]<=pk*0.97;
+      if(bc>=4&&bc>=0.8*m.cand.length&&steady&&dec){ const rs=m.res.filter((_,i)=>m.cand[i]===best).sort((a,b)=>a-b), med=rs[Math.floor(rs.length/2)]||0;
         tuneOff=Math.max(-0.6,Math.min(0.6,tuneOff+0.5*med)); store.set("tuneOff",tuneOff);
-        m.armed=false; m.cool=now+450; heardNote(best); answerHeard(best) }
+        m.armed=false; m.cool=now+250; heardNote(best); answerHeard(best) }
       else if(now-m.armedAt>900){ m.armed=false;
         // a steady pitch that sits between two keys = the piano itself is off: re-centre on it and ask for the note again
         const rr=[...m.raw].sort((a,b)=>a-b), md=rr[rr.length>>1], rx=[...(m.rawX||[])].sort((a,b)=>a-b), mx=rx[rx.length>>1];
