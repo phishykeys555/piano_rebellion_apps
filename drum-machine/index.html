@@ -23,6 +23,13 @@ label{font-size:13px;color:var(--mut);display:flex;gap:6px;align-items:center}
 .sec{border-top:1px solid var(--bd);padding-top:8px;margin-top:6px}
 .sec>h4{margin:0 0 6px;font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--mut);font-weight:600}
 body.simple .adv{display:none!important}
+/* Inside Notion (embedded): Notion fixes the box height, so the transport stays pinned on top and the sections become tabs */
+body.emb .emh{position:sticky;top:0;z-index:20;background:var(--bg);padding:2px 0 6px;box-shadow:0 6px 8px -6px rgba(0,0,0,.45)}
+body.emb .bpm{font-size:30px}body.emb .beat{margin:4px 0;padding:6px 10px}body.emb #s{margin:4px 0}body.emb .row{margin-bottom:4px}
+body.emb .sec:not(.tabon){display:none!important}body.emb .sec>h4{display:none}body.emb .credit{display:none!important}body.emb .appver{margin:6px 0 4px!important}
+.tabs{display:none}body.emb .tabs{display:flex;gap:4px;flex-wrap:nowrap;overflow-x:auto;margin-top:6px;scrollbar-width:none}body.emb .tabs::-webkit-scrollbar{display:none}
+.tabs button{flex:0 0 auto;padding:5px 9px;font-size:12px;font-weight:700;letter-spacing:.04em;text-transform:uppercase}.tabs button.sel{background:var(--on);color:#fff;border-color:var(--on)}
+
 .beat{background:var(--pan);border:1px solid var(--bd);border-radius:10px;padding:10px 12px;margin:8px 0;display:flex;align-items:center;gap:14px;flex-wrap:wrap;transition:background .06s}
 .dots{display:flex;gap:8px}.dot{width:18px;height:18px;border-radius:50%;background:var(--cell);border:1px solid var(--bd)}
 .dot.on{background:var(--on);border-color:var(--on)}.dot.on.one{background:var(--acc);border-color:var(--acc)}
@@ -101,7 +108,12 @@ label{color:#b8b0a0;text-transform:uppercase;font-size:11px;letter-spacing:.08em
 .lab{color:var(--cream);text-transform:uppercase;font-size:11px;letter-spacing:.06em;font-weight:700}.hd{color:var(--mut)}
 .hint,.credit{color:var(--mut)}
 @media (max-width:620px){.wrap{border-radius:10px;margin:6px}.bpm{font-size:32px}.sec>h4{font-size:12px}}
-</style></head><body class="simple"><div class="wrap">
+</style><style>@media (max-width:620px){body.emb .emh .row{gap:4px!important;margin-bottom:4px!important}body.emb .emh .row>button{min-width:0!important;min-height:0!important;padding:8px 2px!important;font-size:13px!important;flex:1 1 13%!important}
+body.emb .emh .row>button.play{flex:1 1 30%!important}body.emb .emh .row>#tap,body.emb .emh .row>#fnow{flex:1 1 22%!important}body.emb .emh .vol{flex:1 1 46%!important;flex-direction:row!important;align-items:center!important;min-height:0!important}
+body.emb .bpm{font-size:26px}body.emb .beat{padding:5px 8px}body.emb .blm{font-size:12px}body.emb .seg button{padding:6px 9px;font-size:12px}
+body.emb .wrap>.emh>div:first-child{font-size:11px!important;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}body.emb .tabs button{padding:6px 8px!important;font-size:11px!important;min-height:0!important}}</style>
+
+</head><body class="simple"><div class="wrap">
 <div style="font-weight:700;font-size:15px;margin:0 0 8px">Modal Metronome <span style="font-weight:500;color:var(--mut)">· By <a href="https://clarendonhillsmusicacademy.com" target="_blank" rel="noopener" style="color:inherit;text-decoration:underline">Clarendon Hills Music Academy</a></span></div>
 <div class="top"><div class="bpm"><span id="v">80</span> <small>BPM</small> <span class="medal" id="m"></span></div>
 <div class="seg"><button id="vS" class="sel">Simple</button><button id="vA">Advanced</button></div></div>
@@ -1211,7 +1223,7 @@ function applyParams(){const sp=new URLSearchParams(location.search);if(![...sp.
  setBpm(+sp.get('bpm')||80);uiRefresh();draw();restoring=false;$('sv').textContent='✓ Song settings loaded';return true}
 function restore(){let st=null;try{st=JSON.parse(store.getItem(SKEY)||'null')}catch(e){}
  if(applyState(st))$('sv').textContent='✓ Restored your last settings';else if(!applyParams()){preset('rock');setBpm(80)}}
-function setView(vw,quiet){document.body.classList.toggle('simple',vw==='simple');$('vS').classList.toggle('sel',vw==='simple');$('vA').classList.toggle('sel',vw!=='simple');if(!quiet)save()}
+function setView(vw,quiet){document.body.classList.toggle('simple',vw==='simple');$('vS').classList.toggle('sel',vw==='simple');$('vA').classList.toggle('sel',vw!=='simple');if(window.embRefresh)embRefresh();if(!quiet)save()}
 const PKEY='drumMachine:presets';
 function presets(){try{return JSON.parse(store.getItem(PKEY)||'{}')||{}}catch(e){return {}}}
 function psUI(sel){const P2=presets(),e=$('ps');e.innerHTML='<option value="">— choose —</option>'+Object.keys(P2).sort().map(k=>'<option value="'+esc(k)+'">'+esc(k)+'</option>').join('');if(sel)e.value=sel}
@@ -1278,7 +1290,20 @@ $('av').value='rock';$('ac').value='pop';psUI();restore();uiRefresh();logUI();re
 {const sp=new URLSearchParams(location.search),dm=sp.get('dm');if(dm){try{applyState(decodeCode(dm));uiRefresh();save()}catch(e){console.error(e)}
   if(sp.get('xp')){$('xlen').value=sp.get('xp');history.replaceState(null,'',location.pathname);$('xst').textContent='Your settings from Notion are loaded. Tap Export to build and save your MP3.';setTimeout(()=>{$('xbtn').scrollIntoView({block:'center'});$('xbtn').focus()},300)}}}
 
-</script><script>(function(){const C=['#e8412c','#f28c28','#f6c33b','#efe6d2'];document.querySelectorAll('.sec>h4').forEach((h,i)=>h.style.setProperty('--band',C[i%4]))})();</script><p class="appver" style="text-align:center;font-size:11px;opacity:.6;margin:18px 0 10px;font-family:ui-monospace,Menlo,monospace">Modal Metronome · Version 2026-11-10.4</p>
+</script><script>(function(){const C=['#e8412c','#f28c28','#f6c33b','#efe6d2'];document.querySelectorAll('.sec>h4').forEach((h,i)=>h.style.setProperty('--band',C[i%4]))})();</script><p class="appver" style="text-align:center;font-size:11px;opacity:.6;margin:18px 0 10px;font-family:ui-monospace,Menlo,monospace">Modal Metronome · Version 2026-11-10.5</p>
+<script>/* Embedded in Notion: pin the transport, one tab per group of sections */
+(function(){let inF=true;try{inF=window.self!==window.top}catch(e){}if(!inF)return;
+ const w=document.querySelector('.wrap'),secs=[...w.querySelectorAll(':scope>.sec')];if(!secs.length)return;
+ document.body.classList.add('emb');const hd=document.createElement('div');hd.className='emh';while(w.firstChild&&w.firstChild!==secs[0])hd.appendChild(w.firstChild);w.insertBefore(hd,secs[0]);
+ const byName={};secs.forEach(x=>{const h=x.querySelector(':scope>h4');if(h)byName[h.firstChild.textContent.trim()]=x});
+ const ex=hd.querySelector('.row.exp');if(ex){const sx=document.createElement('div');sx.className='sec';sx.innerHTML='<h4>Export</h4>';sx.appendChild(ex);w.insertBefore(sx,secs[0]);secs.unshift(sx);byName.Export=sx}
+ const G=[['Groove',['Groove']],['Grid',['Pattern']],['Fills',['Fills']],['Chords',['Harmony']],['Bass',['Bass line']],['Keys',['Keys']],['Practice',['Practice','Practice log']],['Sound',['Sound']],['Mix',['Output']],['Song',['Song']],['Export',['Export']]];
+ const used=new Set(G.flatMap(g=>g[1]));secs.forEach(x=>{const h=x.querySelector(':scope>h4'),n=h&&h.firstChild.textContent.trim();if(n&&!used.has(n)){G.push([n,[n]]);used.add(n)}});
+ const bar=document.createElement('div');bar.className='tabs';hd.appendChild(bar);let cur='Groove';try{cur=localStorage.getItem('mmTab')||cur}catch(e){}
+ function show(name){cur=name;try{localStorage.setItem('mmTab',name)}catch(e){}secs.forEach(x=>x.classList.remove('tabon'));const g=G.find(g=>g[0]===name);(g?g[1]:[]).forEach(n=>byName[n]&&byName[n].classList.add('tabon'));[...bar.children].forEach(b=>b.classList.toggle('sel',b.dataset.t===name))}
+ window.embRefresh=function(){const simple=document.body.classList.contains('simple');bar.innerHTML='';const ok=G.filter(g=>g[1].some(n=>byName[n]&&!(simple&&byName[n].classList.contains('adv'))));
+  ok.forEach(g=>{const b=document.createElement('button');b.textContent=g[0];b.dataset.t=g[0];b.onclick=()=>show(g[0]);bar.appendChild(b)});show(ok.some(g=>g[0]===cur)?cur:ok[0][0])};
+ embRefresh()})();</script>
 <script>/* Auto-update: Safari and Notion keep old copies of this page. If the live site has a newer version, reload it once (settings in the link are kept). */
 (function(){const mine=(document.querySelector('.appver')||{}).textContent||'';const m=mine.match(/Version ([0-9.-]+)/);if(!m)return;
  setTimeout(()=>{fetch(location.pathname+'?_v='+Date.now(),{cache:'no-store'}).then(r=>r.text()).then(t=>{const l=t.match(/Modal Metronome · Version ([0-9.-]+)/);
