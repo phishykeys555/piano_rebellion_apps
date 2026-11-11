@@ -112,6 +112,16 @@ details{background:var(--c-panel2);border-color:var(--c-line)}
 .meter,.arcmeter{background:var(--c-lcd)}
 .micp select,.namefield input{background:var(--c-key);border-color:var(--c-key-b)}
 input[type=range]{accent-color:var(--c-act)}
+/* phones: all six tempos on one row, every control at least 40px tall */
+.tempo{display:grid;grid-template-columns:auto repeat(6,minmax(0,1fr))} .tempo button{min-height:40px;padding:6px 2px}
+.set label{min-height:40px} .set input[type=checkbox]{width:20px;height:20px;flex:none;accent-color:var(--c-act)}
+@media (max-width:440px){ .paper{margin:0 -8px} }
+/* the score sits on the LCD so its LED green reads in both themes; results buttons share the row evenly */
+.big{background:var(--c-lcd);border:1px solid var(--c-lcd-b);border-radius:14px;padding:12px 14px;display:flex;flex-wrap:wrap;align-items:baseline;column-gap:10px;row-gap:4px}
+.big small{white-space:nowrap;color:#9aa3b2;text-shadow:none}
+#results .row{gap:8px} #results .row button{flex:1 1 auto;min-height:44px}
+button:disabled{opacity:.45;cursor:default;box-shadow:none;transform:none}
+.micp select{min-height:40px} .seg button{min-height:42px} .micp input[type=range]{height:32px}
 </style>
 </head>
 <body>
@@ -214,7 +224,7 @@ input[type=range]{accent-color:var(--c-act)}
     {id:"7",name:"Syncopation 2",cells:{Q:2,EE:2,EQE:2,ETIE:3,ANT:2,C332:2}},
     {id:"8",name:"Syncopation 3",cells:{EE:2,SSSS:1,SES:3,DES:3,SDE:2,RSE:2,EQE:1}}];
   const TEMPOS=[60,72,84,96,108,120];
-  let level=store.get("level","1"), bpm=store.get("bpm",72), latency=store.get("lat",0), latMic=store.get("latMic",0), inMode=store.get("in","tap");
+  let level=store.get("level","1"), bpm=store.get("bpm",72), latency=store.get("lat",null), latMic=store.get("latMic",null), inMode=store.get("in","tap");
   let bar=null, taps=[], run=null, round=[], best=store.get("best",null), audio=null, mic=null;
 
   // ---------- rhythm generator ----------
@@ -255,16 +265,16 @@ input[type=range]{accent-color:var(--c-act)}
     ev.forEach((e,i)=>{
       const x=xOf(e.s), col=res&&!e.r&&!e.tie?(res.byNote.get(i)?.col||ink):hot(e)?HIT:ink;
       if(e.tie){ const px=xOf(ev[i-1].s); h+=`<path d="M${px+3} ${LY+8} Q ${(px+x)/2} ${LY+19} ${x-3} ${LY+8} Q ${(px+x)/2} ${LY+15} ${px+3} ${LY+8} z" fill="${ink}"/>` }
-      if(e.r){ // rests: quarter (zigzag glyph), eighth (glyph), half sits on the line, whole hangs from it
-        if(e.d===4) h+=`<text x="${x-6}" y="${LY+11}" font-family="Noto Music" font-size="${GAP*2.6}" fill="${ink}">𝄽</text>`;
-        else if(e.d===2) h+=`<text x="${x-5}" y="${LY+8}" font-family="Noto Music" font-size="${GAP*2.4}" fill="${ink}">𝄾</text>`;
-        else if(e.d===1) h+=`<text x="${x-6}" y="${LY+16}" font-family="Noto Music" font-size="${GAP*2.7}" fill="${ink}">𝄿</text>`; // 16th rest
+      if(e.r){ // rests sit where they would on the middle line of a 5-line staff: quarter centered on the line, eighth/16th hooks just above it with the stem crossing it; half sits on the line, whole hangs from it
+        if(e.d===4) h+=`<text x="${x-6}" y="${LY+18}" font-family="Noto Music" font-size="${GAP*2.6}" fill="${ink}">𝄽</text>`;
+        else if(e.d===2) h+=`<text x="${x-5}" y="${LY+18}" font-family="Noto Music" font-size="${GAP*2.4}" fill="${ink}">𝄾</text>`;
+        else if(e.d===1) h+=`<text x="${x-6}" y="${LY+25}" font-family="Noto Music" font-size="${GAP*2.7}" fill="${ink}">𝄿</text>`; // 16th rest
         else if(e.d===8) h+=`<rect x="${x-7}" y="${LY-6}" width="15" height="6" fill="${ink}"/>`;
         else if(e.d===16){ const cx=xOf(8)-8; h+=`<rect x="${cx-7}" y="${LY}" width="15" height="6" fill="${ink}"/>` } // whole-bar rest: hangs from the line, centered in the bar
       } else {
         const open=e.d>=8, dotted=e.d===6||e.d===12||e.d===3;
         h+=`<ellipse cx="${x}" cy="${LY}" rx="${open?7.9:7.5}" ry="${open?5.7:5.4}" transform="rotate(-20 ${x} ${LY})" fill="${open?"none":col}" stroke="${col}" stroke-width="${open?2.4:0}"/>`;
-        if(dotted) h+=`<circle cx="${x+13}" cy="${LY-4}" r="2.3" fill="${col}"/>`;
+        if(dotted) h+=`<circle cx="${x+13}" cy="${LY-5}" r="2.3" fill="${col}"/>`;
         if(e.d<16){ h+=`<line x1="${x+SX}" x2="${x+SX}" y1="${LY-1}" y2="${sTop}" stroke="${col}" stroke-width="1.8"/>`;
           if(e.d<4&&!beamed.has(i)){ // single flag(s)
             for(let f=0;f<(e.d===1?2:1);f++){const y0=sTop+f*8; h+=`<path d="M${x+SX} ${y0} c 3 8, 12 10, 9 22 c 0 -8, -5 -12, -9 -14 z" fill="${col}"/>`} } }
@@ -325,31 +335,43 @@ input[type=range]{accent-color:var(--c-act)}
     for(let b=0;b<8;b++){ if(mode==="hear"&&b<4) continue; click(t0+b*spb(),b%4===0,b>=4&&mode==="test"&&inMode!=="tap") }
     if(mode==="hear"||$("guide").checked) bar.notes.forEach(n=>(mode==="test"&&inMode==="clap"&&mic)?wood(start+n.s*u16(),n.d*u16()):hand(start+n.s*u16()));
     msg(null, mode==="hear"?"Listen…":"Count in: 1 · 2 · 3 · 4", mode==="hear"?"":"Start tapping on beat 1 of the next bar.");
-    run={mode,start,end,t0}; if(mode==="test") lastStart=start;
+    run={mode,start,end,t0}; if(mode==="test") lastStart=start; lockUI();
     const tick=()=>{ if(!run) return; const now=a.currentTime; let px=null, pos=null;
       if(now>=start&&now<=end){ pos=(now-start)/u16(); px=$("cursor").checked?xOf(pos):null; if(mode==="test"&&!run.go){ run.go=true; msg(null,"Go!",inMode==="clap"?"Clap or snap every note.":inMode==="note"?"Play your note for every note.":"Tap every note.") } }
       else if(now<start&&mode==="test"){ const left=Math.ceil((start-now)/spb()); $("msg").querySelector(".v").textContent=left<=4?"Count in: "+["","1","2","3","4"][5-left]:"Get ready"; }
       drawBar(null,px,pos);
-      if(now>end+0.35){ const m=run.mode; run=null; $("go").disabled=false; $("hear").disabled=!!sess; if(m==="test") grade(); else { drawBar(null); msg(null,"Your turn","Press Start, count in, then tap it.") } return }
+      if(now>end+0.35){ const m=run.mode; run=null; $("go").disabled=false; lockUI(); $("hear").disabled=!!sess; if(m==="test") grade(); else { drawBar(null); msg(null,"Your turn","Press Start, count in, then tap it.") } return }
       requestAnimationFrame(tick) };
     tick() }
 
   // Timing: you hear each click a little after it's scheduled (speaker/Bluetooth delay), and a screen tap registers a little late too.
   // Until you calibrate, take off the delay the device reports plus a typical touch (30 ms) or microphone (15 ms) lag. Calibrating replaces this with your own measured number.
   const autoLag=src=>{ const a=audio; const o=a?((a.outputLatency||0)+(a.baseLatency||0)):0; return Math.min(0.25,o+(src==="mic"?0.015:0.03)) };
-  function tapAt(tsec,src){ if(calHook){ calHook(tsec); return } if(!run||run.mode!=="test") return; const man=src==="mic"?latMic:latency; const t=tsec-(man?man/1000:autoLag(src)); if(t<run.start-0.3||t>run.end+0.2) return; taps.push(t);
+  function tapAt(tsec,src){ if(calHook){ calHook(tsec); return } if(!run||run.mode!=="test") return; const man=src==="mic"?latMic:latency; const t=tsec-(man!=null?man/1000:autoLag(src)); if(t<run.start-0.3||t>run.end+0.2) return; taps.push(t);
     $("pad").classList.add("hit"); setTimeout(()=>$("pad").classList.remove("hit"),90) }
   $("pad").addEventListener("pointerdown",e=>{ e.preventDefault(); if(audio) tapAt(audio.currentTime) });
-  document.addEventListener("keydown",e=>{ if(e.target.tagName==="INPUT") return; if(e.code==="Space"){ e.preventDefault(); if(audio&&run) tapAt(audio.currentTime); else if(!run) $("go").click() } });
+  document.addEventListener("keydown",e=>{ const tg=e.target.tagName; if(e.code!=="Space"||tg==="INPUT"||tg==="SELECT"||tg==="TEXTAREA"||tg==="SUMMARY"||tg==="A") return;
+    if(!run&&!calHook&&tg==="BUTTON"&&!["go","pad","again"].includes(e.target.id)) return; // Space still presses the focused button
+    e.preventDefault(); if(e.repeat) return; if(audio&&(run||calHook)) tapAt(audio.currentTime); else if(!run&&!$("go").disabled&&$("results").hidden) $("go").click() });
 
   // ---------- grading ----------
-  // Each note gets the nearest unused tap within 250 ms. Perfect ≤ 60 ms = 1, Good ≤ 120 ms = 0.75, Close ≤ 200 ms = 0.4.
+  // Each note gets one tap within 250 ms. Perfect ≤ 60 ms = 1, Good ≤ 120 ms = 0.75, Close ≤ 250 ms = 0.4.
   // Extra taps (rests, doubles) cost 0.25 each.
   function grade(){
     const st=lastStart, u=u16();
     const notes=bar.notes, used=new Set(), byNote=new Map(), resTaps=[], missed=[]; let pts=0, errs=[], perfect=0, okN=0;
-    notes.forEach(n=>{ const target=st+n.s*u; let bi=-1, bd=1e9;
-      taps.forEach((t,i)=>{ if(used.has(i)) return; const d=t-target; if(Math.abs(d)<Math.abs(bd)&&Math.abs(d)<=0.25){bd=d;bi=i} });
+    // Pair taps with notes in time order, choosing the pairing that scores best overall (so one missed or doubled
+    // note never shifts every later tap onto the wrong note, even with 16ths at fast tempos).
+    const T=notes.map(n=>st+n.s*u), order=taps.map((t,i)=>i).sort((a,b)=>taps[a]-taps[b]), N=T.length, M=order.length;
+    const val=d=>{ const a=Math.abs(d); return a>0.25?null:(a<=0.06?1:a<=0.12?0.75:0.4)*1e6-a*1e3 };
+    const dp=[...Array(N+1)].map(()=>new Float64Array(M+1)), how=[...Array(N+1)].map(()=>new Int8Array(M+1));
+    for(let i=0;i<=N;i++) for(let j=0;j<=M;j++){ if(!i&&!j) continue; let b=-1e18, h=0;
+      if(i&&dp[i-1][j]>b){ b=dp[i-1][j]; h=1 } // note missed
+      if(j&&dp[i][j-1]-0.25e6>b){ b=dp[i][j-1]-0.25e6; h=2 } // extra tap
+      if(i&&j){ const v=val(taps[order[j-1]]-T[i-1]); if(v!=null&&dp[i-1][j-1]+v>b){ b=dp[i-1][j-1]+v; h=3 } }
+      dp[i][j]=b; how[i][j]=h }
+    const pair=new Array(N).fill(-1); for(let i=N,j=M;i>0||j>0;){ const h=how[i][j]; if(h===3){ pair[i-1]=order[j-1]; i--; j-- } else if(h===1) i--; else j-- }
+    notes.forEach((n,ni)=>{ const target=T[ni], bi=pair[ni], bd=bi<0?0:taps[bi]-target;
       const idx=bar.ev.indexOf(n);
       if(bi<0){ missed.push(n.s); byNote.set(idx,{col:"#c2352b"}); return }
       used.add(bi); const ms=bd*1000, ad=Math.abs(ms); errs.push(ms);
@@ -361,7 +383,7 @@ input[type=range]{accent-color:var(--c-act)}
     // coaching: the biggest problem first, in counting language
     const avg=errs.length?errs.reduce((a,b)=>a+b,0)/errs.length:0;
     let v, c, cls;
-    if(score>=90){ v=`✓ Locked in · ${score}%`; cls="good"; c=perfect===notes.length?"Every note perfect.":"Tight. Keep the same feel at the next tempo." }
+    if(score>=90){ v=`✓ Locked in · ${score}%`; cls="good"; c=missed.length?`Tight, but you missed the note on "${CNT(missed[0])}".`:extras.length?`Tight, but ${extras.length===1?"one extra tap":extras.length+" extra taps"}. One tap per note, none on rests.`:perfect===notes.length?"Every note perfect.":"Tight. Keep the same feel at the next tempo." }
     else { v=`${score}%`; cls=score>=65?"ok":"bad";
       if(missed.length) c=`Missed the note on "${CNT(missed[0])}". Count it out loud and tap with the count.`;
       else if(extras.length){ const rs=bar.ev.find(e=>(e.r||e.tie)&&extras.some(t=>{const s=(t-st)/u;return s>=e.s-0.5&&s<e.s+e.d})); c=rs?(rs.tie?`Extra tap on "${CNT(rs.s)}": that note is tied, so hold it through the beat.`:`Extra tap in the rest on "${CNT(rs.s)}". Rests are silent: count them, don't tap them.`):"Extra taps. One tap per note." }
@@ -374,6 +396,8 @@ input[type=range]{accent-color:var(--c-act)}
   function msg(cls,v,c){ const el=$("msg"); el.className="msg"+(cls?" "+cls:""); el.querySelector(".v").textContent=v; el.querySelector(".c").textContent=c||"" }
   // ---------- modes: Single tries (default) · 60-second sprint · Challenge (same shape as Note Sprint) ----------
   // Points per rhythm: 1 for every perfect note (within 60 ms), ½ for a close one (within 120 ms), −½ for an extra tap.
+  // Level, tempo, mode and input are locked while a rhythm plays or a sprint/challenge runs (press Stop first), so a change can never re-grade the wrong bar.
+  function lockUI(){ const on=!!(run||sess||arc); document.querySelectorAll("#levels button,#tempo button,#modeSeg button,#inSeg button").forEach(b=>b.disabled=on) }
   let gmode="practice", sess=null, arc=null, arcRetryRound=0, arcIncSaved=null; const ARC_T=30;
   const half=x=>Number.isInteger(x)?String(x):(Math.floor(x)||"")+"½";
   function bestKey(){ return "best-"+gmode+"-"+level+"-"+bpm+"-"+inMode }
@@ -394,11 +418,11 @@ input[type=range]{accent-color:var(--c-act)}
     if(gmode==="practice"){ round.push(r); const hs=store.get(bestKey(),null); if(hs==null||r.score>hs) store.set(bestKey(),r.score); $("go").textContent="Next rhythm"; $("again").hidden=false; stats(); return }
     const S=sess; if(!S) return; S.points+=pts; S.bars.push(r); stats(); if(arc) arcBar();
     if(S.left>0&&!S.stopped) setTimeout(()=>{ if(sess===S&&S.left>0&&!S.stopped){ newBar(); play("test") } },500); else setTimeout(()=>sessionOver(),500) }
-  function startSession(secs){ sess={points:0,bars:[],left:secs,stopped:false}; $("results").hidden=true; $("again").hidden=true; $("hear").disabled=true; $("go").textContent="Stop"; stats();
+  function startSession(secs){ sess={points:0,bars:[],left:secs,stopped:false}; lockUI(); $("results").hidden=true; $("again").hidden=true; $("hear").disabled=true; $("go").textContent="Stop"; stats();
     sess.timer=setInterval(()=>{ const S=sess; if(!S) return; S.left--; stats(); $("clockPill").textContent=Math.max(0,S.left)+" s"; $("clockPill").classList.toggle("hot",S.left<=10); if(arc) arcBar(); if(S.left<=0){ clearInterval(S.timer); if(!run) sessionOver() } },1000);
     $("clockPill").textContent=secs+" s"; newBar(); play("test") }
-  function stopSession(silent){ if(!sess) return; clearInterval(sess.timer); sess.stopped=true; sess=null; arc=null; $("arcbar").hidden=true; $("arcMeter").hidden=true; $("arcSplash").hidden=true; $("hear").disabled=false; $("go").textContent="Start"; if(!silent) msg(null,"Stopped","Press Start to go again."); stats() }
-  function sessionOver(){ if(!sess) return; if(arc) return arcRoundEnd(); const S=sess; clearInterval(S.timer); sess=null; $("hear").disabled=false; $("go").textContent="Start"; $("arcbar").hidden=true;
+  function stopSession(silent){ if(!sess) return; clearInterval(sess.timer); sess.stopped=true; sess=null; arc=null; lockUI(); $("arcbar").hidden=true; $("arcMeter").hidden=true; $("arcSplash").hidden=true; $("hear").disabled=false; $("go").textContent="Start"; if(!silent) msg(null,"Stopped","Press Start to go again."); stats() }
+  function sessionOver(){ if(!sess) return; if(arc) return arcRoundEnd(); const S=sess; clearInterval(S.timer); sess=null; lockUI(); $("hear").disabled=false; $("go").textContent="Start"; $("arcbar").hidden=true;
     showResults("Time!",S,`${S.bars.length} rhythm${S.bars.length===1?"":"s"} in 60 seconds.`,"60-SECOND SPRINT") }
   function showResults(title,S,why,tag){ const bars=S.bars, all=bars.flatMap(r=>r.errs), mean=all.length?all.reduce((a,b)=>a+b,0)/all.length:0, key=bestKey(), prev=store.get(key,0)||0, best=Math.max(prev,S.points), isNew=S.points>0&&S.points>=best;
     store.set(key,best); $("rTitle").textContent=title; $("rWhy").textContent=why||"";
@@ -418,7 +442,7 @@ input[type=range]{accent-color:var(--c-act)}
     $("arcFill").style.width=Math.min(100,100*got/Math.max(1,inc))+"%"; const hit=S.points>=need; $("arcMeter").classList.toggle("hit",hit);
     if(hit&&!arc.hit){ arc.hit=true; const hs=$("hitStamp"); hs.classList.remove("go"); void hs.offsetWidth; hs.classList.add("go"); chime() } }
   function splash(pre,t,sub,ms,then){ $("spP").textContent=pre||""; $("spT").textContent=t; $("spS").textContent=sub; const sp=$("arcSplash"); sp.hidden=false; sp.classList.remove("go"); void sp.offsetWidth; sp.classList.add("go"); setTimeout(()=>{ sp.hidden=true; if(arc) then() },ms) }
-  function arcStart(){ if(sess) stopSession(true); sess={points:0,bars:[],left:ARC_T,stopped:true}; arc={round:1,warm:true,bonus:false,needs:[],start:0,hit:false}; $("results").hidden=true; $("go").textContent="Stop"; $("hear").disabled=true;
+  function arcStart(){ if(sess) stopSession(true); sess={points:0,bars:[],left:ARC_T,stopped:true}; arc={round:1,warm:true,bonus:false,needs:[],start:0,hit:false}; lockUI(); $("results").hidden=true; $("go").textContent="Stop"; $("hear").disabled=true;
     arcBar(); splash("CHALLENGE MODE","ROUND 1","Warm-up: score as many points as you can in 30 seconds. Your score sets your targets. One try per rhythm.",2800,arcRound) }
   function arcRound(){ const pts=sess.points; sess.left=ARC_T; sess.stopped=false; arc.hit=false; $("clockPill").textContent=ARC_T+" s"; arcBar();
     sess.timer=setInterval(()=>{ const S=sess; if(!S) return; S.left--; stats(); $("clockPill").textContent=Math.max(0,S.left)+" s"; $("clockPill").classList.toggle("hot",S.left<=10); arcBar(); if(S.left<=0){ clearInterval(S.timer); if(!run) arcRoundEnd() } },1000);
@@ -434,10 +458,10 @@ input[type=range]{accent-color:var(--c-act)}
       return splash("ROUND 5 CLEARED ✓","BONUS ROUND",`Target: ${half(bt)} points in 30 seconds.`,2600,arcRound) }
     const cleared=arc.round, got=S.points-arc.start; arc.round++; arc.inc[arc.round-1]=Math.max(arc.inc[arc.round-1],Math.round(got*1.1*2)/2,arc.inc[arc.round-2]+1); arc.start=S.points; arc.needs[arc.round-1]=S.points+arc.inc[arc.round-1];
     splash(`ROUND ${cleared} CLEARED ✓`,`ROUND ${arc.round}`,`Target this round: ${half(arc.inc[arc.round-1])} points.`,2400,arcRound) }
-  function arcFinish(won,need,got){ const S=sess, failed=won?0:arc.round, reached=arc.bonus?"Bonus round":`Round ${arc.round}`; arc=null; sess=null; $("arcbar").hidden=true; $("arcMeter").hidden=true; $("go").textContent="Start"; $("hear").disabled=false;
+  function arcFinish(won,need,got){ const S=sess, failed=won?0:arc.round, reached=arc.bonus?"Bonus round":`Round ${arc.round}`; arc=null; sess=null; lockUI(); $("arcbar").hidden=true; $("arcMeter").hidden=true; $("go").textContent="Start"; $("hear").disabled=false;
     arcRetryRound=failed; $("retryRound").hidden=won||failed<2; $("retryRound").textContent=`Retry round ${failed}`;
     showResults(won?"Challenge cleared!":"Challenge over",S,won?(got>=need?`All 5 rounds cleared and the bonus target hit (${half(got)} / ${half(need)}).`:`All 5 rounds cleared. Bonus target was ${half(need)}; you had ${half(got)}.`):`Round ${failed} target was ${half(need)}. You had ${half(got)}. Hit the target before the 30 seconds run out to unlock Round ${failed+1}.`,`CHALLENGE · ${reached.toUpperCase()}`) }
-  function arcRetry(){ const r=arcRetryRound; if(r<2||!arcIncSaved) return arcStart(); sess={points:0,bars:[],left:ARC_T,stopped:true}; arc={round:r,warm:false,bonus:false,inc:arcIncSaved.slice(),needs:[],start:0,hit:false}; arc.needs[r-1]=arc.inc[r-1];
+  function arcRetry(){ const r=arcRetryRound; if(r<2||!arcIncSaved) return arcStart(); sess={points:0,bars:[],left:ARC_T,stopped:true}; arc={round:r,warm:false,bonus:false,inc:arcIncSaved.slice(),needs:[],start:0,hit:false}; lockUI(); arc.needs[r-1]=arc.inc[r-1];
     $("results").hidden=true; $("go").textContent="Stop"; $("hear").disabled=true; splash("",`ROUND ${r}`,`Target this round: ${half(arc.inc[r-1])} points.`,2200,arcRound) }
   // ---------- controls ----------
   function newBar(){ bar=makeBar(); drawBar(null) }
@@ -448,7 +472,7 @@ input[type=range]{accent-color:var(--c-act)}
   $("close").addEventListener("click",()=>{ $("results").hidden=true; stats(); newBar(); msg(null,"Ready","Press Start.") });
   $("newRound").addEventListener("click",()=>{ $("results").hidden=true; if(gmode==="sprint") startSession(60); else if(gmode==="chal") arcStart(); else { round=[]; stats(); newBar() } });
   $("retryRound").addEventListener("click",()=>arcRetry());
-  $("counts").addEventListener("change",()=>drawBar(null));
+  ["counts","guide"].forEach(id=>{ $(id).checked=store.get(id,id==="counts"); $(id).addEventListener("change",e=>{ store.set(id,e.target.checked); drawBar(null) }) });
   ["cursor","lightup"].forEach(id=>{ $(id).checked=store.get(id,true)!==false; $(id).addEventListener("change",e=>store.set(id,e.target.checked)) }); try{store.set("who","")}catch(e){} // no names stored (privacy)
   LEVELS.forEach(L=>{ const b=document.createElement("button"); b.className="lvl"; b.innerHTML=`<b>L${L.id}</b><span>${L.name}</span>`;
     b.addEventListener("click",()=>{ if(sess||arc) stopSession(true); level=L.id; store.set("level",level); mark(); round=[]; stats(); newBar(); $("go").textContent="Start"; msg(null,"Level "+L.id+": "+L.name,"Press Hear it to listen first, or Start.") }); b.dataset.id=L.id; $("levels").appendChild(b) });
@@ -457,12 +481,12 @@ input[type=range]{accent-color:var(--c-act)}
 
   // ---------- calibration: tap (or clap) with 8 clicks; the median offset becomes the correction for that input ----------
   let calHook=null;
-  const calLabel=()=>{ const v=inMode!=="tap"?latMic:latency; $("calTxt").textContent=v?`${inMode==="clap"?"Clap":inMode==="note"?"Note":"Tap"} offset ${v} ms`:"" }; calLabel();
+  const calLabel=()=>{ const v=inMode!=="tap"?latMic:latency; $("calTxt").textContent=v!=null?`${inMode==="clap"?"Clap":inMode==="note"?"Note":"Tap"} offset ${v} ms`:"" }; calLabel();
   $("cal").addEventListener("click",async()=>{ if(run||calHook) return; const a=ctx(); await a.resume(); if(inMode!=="tap"&&!mic) await micStart($("micSel").value||undefined);
     const t0=a.currentTime+0.6, sp=0.6, hits=[]; for(let i=0;i<8;i++) click(t0+i*sp,i===0);
     $("calTxt").textContent=inMode==="clap"?"Clap with each click…":inMode==="note"?"Play your note with each click…":"Tap the pad with each click…";
-    calHook=t=>hits.push(t); const h=e=>{ e.preventDefault(); hits.push(a.currentTime) }; if(inMode==="tap") $("pad").addEventListener("pointerdown",h);
-    setTimeout(()=>{ calHook=null; $("pad").removeEventListener("pointerdown",h); const offs=[]; hits.forEach(t=>{ const k=Math.round((t-t0)/sp); if(k>=0&&k<8&&Math.abs(t-(t0+k*sp))<0.25) offs.push((t-(t0+k*sp))*1000) });
+    calHook=t=>hits.push(t);
+    setTimeout(()=>{ calHook=null; const offs=[]; hits.forEach(t=>{ const k=Math.round((t-t0)/sp); if(k>=0&&k<8&&Math.abs(t-(t0+k*sp))<0.25) offs.push((t-(t0+k*sp))*1000) });
       if(offs.length<5){ $("calTxt").textContent="Not enough hits. Try again."; return } offs.sort((x,y)=>x-y); const v=Math.round(offs[Math.floor(offs.length/2)]);
       if(inMode!=="tap"){ latMic=v; store.set("latMic",v) } else { latency=v; store.set("lat",v) } calLabel(); $("calTxt").textContent+=" (saved)" }, 600+8*sp*1000+500) });
 
@@ -472,22 +496,24 @@ input[type=range]{accent-color:var(--c-act)}
   const BASE_THR=0.03, FLAT_MIN=0.12; let thr=BASE_THR;
   // Clap/snap detector v2: runs inside the audio engine and checks every sample, so a 5 ms snap can never fall between two reads.
   // It listens only above ~2.8 kHz (4th-order high-pass): snaps and claps are loud there, the app's woodblock click (filtered below 2.6 kHz) is not.
-  // A hit = the fast envelope jumps past the threshold AND 4x above the room's background. Its time is the exact sample where that happens.
+  // A hit = the fast envelope jumps past the threshold AND 4x above the room's background AND 3x above its lowest point since the last hit
+  // (so the ringing tail or room echo of one clap can never count as a second clap). Its time is the exact sample where that happens.
   const DET_SRC=`class Onset extends AudioWorkletProcessor{constructor(){super();this.g=3;this.thr=0.05;this.port.onmessage=e=>Object.assign(this,e.data);
     const w=2*Math.PI*2800/sampleRate,c=Math.cos(w),s=Math.sin(w);this.bq=[0.5412,1.3066].map(Q=>{const al=s/(2*Q),a0=1+al;return{b0:(1+c)/2/a0,b1:-(1+c)/a0,b2:(1+c)/2/a0,a1:-2*c/a0,a2:(1-al)/a0,x1:0,x2:0,y1:0,y2:0}});
-    this.f=0;this.sl=0;this.hold=0;this.cap=null;this.lv=0;this.ln=0;this.rf=Math.exp(-1/(0.004*sampleRate));this.rs=Math.exp(-1/(0.3*sampleRate));this.warm=Math.round(0.3*sampleRate)}
+    this.f=0;this.sl=0;this.hold=0;this.mn=0;this.cap=null;this.lv=0;this.ln=0;this.rf=Math.exp(-1/(0.004*sampleRate));this.rs=Math.exp(-1/(0.3*sampleRate));this.warm=Math.round(0.3*sampleRate)}
    process(ins){const x=ins[0]&&ins[0][0];if(!x)return true;const g=this.g,thr=this.thr;
     for(let i=0;i<x.length;i++){let v=x[i];for(const b of this.bq){const y=b.b0*v+b.b1*b.x1+b.b2*b.x2-b.a1*b.y1-b.a2*b.y2;b.x2=b.x1;b.x1=v;b.y2=b.y1;b.y1=y;v=y}
      const a=(v<0?-v:v)*g;this.f=a>this.f?a:this.f*this.rf;if(this.f>this.lv)this.lv=this.f;
      if(this.warm>0){this.warm--;this.sl=this.sl*this.rs+this.f*(1-this.rs);continue}
      if(this.cap){if(this.f>this.cap.pk)this.cap.pk=this.f;if(this.cap.k<512)this.cap.buf[this.cap.k++]=v;if(--this.cap.n<=0&&this.cap.k>=512){this.port.postMessage({on:1,t:this.cap.t,pk:this.cap.pk,bg:this.cap.bg,buf:this.cap.buf},[this.cap.buf.buffer]);this.cap=null}}
-     if(this.hold>0){this.hold--;continue}
-     if(this.f>thr&&this.f>this.sl*4){this.cap={t:currentTime+i/sampleRate,pk:this.f,bg:this.sl,n:Math.round(0.012*sampleRate),buf:new Float32Array(512),k:0};this.hold=Math.round(0.07*sampleRate);continue}
+     if(this.hold>0){this.hold--;this.mn=this.f;continue}this.mn=this.f<this.mn?this.f:this.mn;
+     if(this.f>thr&&this.f>this.sl*4&&this.f>this.mn*3){this.cap={t:currentTime+i/sampleRate,pk:this.f,bg:this.sl,n:Math.round(0.012*sampleRate),buf:new Float32Array(512),k:0};this.hold=Math.round(0.07*sampleRate);continue}
      this.sl=this.sl*this.rs+this.f*(1-this.rs)}
     this.ln+=x.length;if(this.ln>=1536){this.port.postMessage({lv:this.lv});this.lv=0;this.ln=0}return true}}
   registerProcessor('rt-onset',Onset);`;
   let detURL=null; async function detNode(a){ if(!a.__det){ detURL=detURL||URL.createObjectURL(new Blob([DET_SRC],{type:"text/javascript"})); a.__det=a.audioWorklet.addModule(detURL) } await a.__det; return new AudioWorkletNode(a,"rt-onset",{numberOfInputs:1,numberOfOutputs:1,outputChannelCount:[1]}) }
   const DET_THR=0.025;
+  const ckLevel=()=>mic&&mic.ck?mic.ck():0;
   // How noise-like a hit is above 3 kHz (spectral flatness, 0 = a pure tone, 1 = white noise). Snaps and claps: 0.3-0.5. A click through a speaker: ~0.02.
   const HW=new Float32Array(512).map((_,i)=>0.5-0.5*Math.cos(2*Math.PI*i/511));
   function hitFlat(x,sr){ const N=512, re=new Float32Array(N), im=new Float32Array(N); for(let i=0;i<N;i++) re[i]=x[i]*HW[i];
@@ -525,35 +551,41 @@ input[type=range]{accent-color:var(--c-act)}
         const H=Math.round(P/2); let dh=0,eh=0; for(let j=0;j<W;j++){ const x=pbuf[j]-pbuf[j+H]; dh+=x*x; eh+=pbuf[j]*pbuf[j]+pbuf[j+H]*pbuf[j+H] }
         return best<0.2&&dh/eh>best*2.5 };
       src.connect(hp); hp.connect(g); g.connect(an); an.connect(mute); mute.connect(a.destination);
-      const buf=new Float32Array(an.fftSize); let last=0, prev=0, pend=null, ckR=0, ckN=0;
+      const buf=new Float32Array(an.fftSize), noteHist=[]; let last=0, prev=0, pend=null, ckR=0, ckN=0;
       let det=null; try{ det=await detNode(a); src.connect(det); det.connect(mute); det.port.postMessage({g:+$("micGain").value,thr:DET_THR}) }catch(e){ det=null }
       mic={s,g,mute,an,buf,timer:setInterval(()=>{ an.getFloatTimeDomainData(buf); let r=0, pk=0; for(let i=0;i<buf.length;i++){ r+=buf[i]*buf[i]; pk=Math.max(pk,Math.abs(buf[i])) } r=Math.sqrt(r/buf.length);
         if(!(det&&inMode!=="note")) $("meterFill").style.width=Math.min(100,r*300)+"%"; const now=a.currentTime;
         // judge a hit ~20 ms in, when the analyser window is full of the new sound
         if(!pend){ const h0=hb(); hbBase=hbBase?hbBase*0.9+h0*0.1:h0 }
-        if(pend) pend.r=Math.max(pend.r||0,r);
+        // One note mode: loudness from the unfiltered mic (a low piano note lives below the 500 Hz high-pass), and a short history of
+        // whether your note was already sounding, so a fresh note that lands right on a click still counts.
+        let rn=r; if(inMode==="note"){ an3.getFloatTimeDomainData(pbuf); let q=0; for(let i=pbuf.length-512;i<pbuf.length;i++) q+=pbuf[i]*pbuf[i]; rn=Math.sqrt(q/512);
+          noteHist.push([now,hasNote(+$("noteSel").value),rn]); while(noteHist.length&&noteHist[0][0]<now-0.4) noteHist.shift() }
+        if(pend) pend.r=Math.max(pend.r||0,rn);
         // The app learns how loud its own click is through this mic: during the count-in you aren't playing yet, so every hit there is the click.
         // Later, a hit that lands on a click has to be clearly louder than that to count.
         const ownClick=p=>{ const near=outT.some(o=>Math.abs(p.t-o)<0.06); if(!near||calHook) return false;
           if(run&&run.mode==="test"&&p.t<run.start-0.1){ ckR=ckN?Math.min(ckR,p.r):p.r; ckN++; return true }
           return ckR>0&&p.r<ckR*(det?2.2:1.6) };
-        mic.ownClick=ownClick;
+        mic.ownClick=ownClick; mic.ck=()=>ckR;
         if(pend&&inMode==="note"&&now-pend.at>=0.11){ const p=pend; pend=null; const m=pitch(), tg=+$("noteSel").value;
-          if(!ownClick(p)&&((m>0&&Math.abs(m-tg)<=0.6)||hasNote(tg))){ tapAt(p.t,"mic"); $("pad").classList.add("hit"); setTimeout(()=>$("pad").classList.remove("hit"),90) } }
+          const own=ownClick(p), was=noteHist.filter(h=>h[0]<=p.t-0.004).pop(), fresh=was&&(!was[1]||p.r>was[2]*4||p.r-was[2]>ckR*1.3)&&!(run&&p.t<run.start-0.1); // not sounding before, or a jump far bigger than a click could make
+          if((!own||fresh)&&((m>0&&Math.abs(m-tg)<=0.6)||hasNote(tg))){ tapAt(p.t,"mic"); $("pad").classList.add("hit"); setTimeout(()=>$("pad").classList.remove("hit"),90) } }
         if(pend&&inMode!=="note"&&det){ pend=null }
         if(pend&&inMode!=="note"&&now-pend.at>=0.02){ const fl=flat(), h=hb(), p=pend; pend=null;
           if(!ownClick(p)&&(fl>=FLAT_MIN||h>hbBase*10)){ tapAt(p.t,"mic"); $("pad").classList.add("hit"); setTimeout(()=>$("pad").classList.remove("hit"),90) } }
         /* a re-struck piano key over its own ring only jumps ~1.4x */ if(r>thr&&r>prev*(inMode==="note"?1.35:2)&&now-last>0.08){ let k=0; const lim=Math.max(thr*1.5,pk*0.3); while(k<buf.length&&Math.abs(buf[k])<lim) k++;
           const t=now-(buf.length-k)/a.sampleRate; last=now;
           // a pure tone (the app's own click or beep) is not a clap: decide once the sound has filled the window
-          pend={t,at:now,r} }
+          pend={t,at:now,r:rn} }
         prev=r*0.5+prev*0.5 },8)};
       if(det){ mic.det=det; det.port.onmessage=e=>{ const m=e.data; if(inMode==="note") return;
         if(m.lv!=null){ $("meterFill").style.width=Math.min(100,m.lv/DET_THR*15)+"%"; return }
         const p={t:m.t,r:m.pk}, fl=hitFlat(m.buf,a.sampleRate), near=outT.some(o=>Math.abs(p.t-o)<0.06);
         if(fl<0.03) return; // a pure tone (a piano note, a beep) is not a clap or snap
         if(near&&!calHook){ if(run&&run.mode==="test"&&p.t<run.start-0.1){ mic.ownClick(p); return } // count-in: learn the click
-          if(fl<0.06&&mic.ownClick(p)) return } // on a click: must sound like a snap, or be clearly louder than the click
+          if(mic.ownClick(p)&&(fl<0.06||p.r<ckLevel()*1.3)) return } // on a click: must sound like a snap AND be louder than the click, or be clearly louder (2.2x)
+          // (a quiet click through the mic can look "noisy" above 3 kHz because only the room's hiss is up there, so loudness decides)
         (window.__rtHits=window.__rtHits||[]).push(p.t); tapAt(p.t,"mic"); $("pad").classList.add("hit"); setTimeout(()=>$("pad").classList.remove("hit"),90) } }
       $("micBtn").textContent="Microphone on"; $("micBtn").disabled=true; $("micCtl").hidden=false; setThr(thr); if(det&&inMode!=="note") $("thr").style.left="15%";
       const devs=(await navigator.mediaDevices.enumerateDevices()).filter(d=>d.kind==="audioinput"), cur=s.getAudioTracks()[0].getSettings().deviceId;
