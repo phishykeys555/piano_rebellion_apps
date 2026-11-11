@@ -203,7 +203,7 @@ button:focus-visible,select:focus-visible,summary:focus-visible,input:focus-visi
       <label><input type="checkbox" id="ramp" checked> Speed up each Challenge round</label>
       <span class="stamp">On: each Challenge round is 8% faster. Off: every round stays at your tempo, with the same accuracy targets. A change applies from the next Start.</span>
       <div class="row"><button class="ghost" id="cal">Calibrate timing</button><span class="stamp" id="calTxt" role="status" aria-live="polite"></span></div>
-      <span class="stamp">Calibrate once per device, and again with Bluetooth headphones: tap (or clap, in Clap mode) along with 8 clicks. Tap and the microphone keep separate settings.</span>
+      <span class="stamp">Calibrate once per device, and again with Bluetooth headphones: tap (or clap, or play your note) along with 12 clicks. Tap, Clap and One note each keep their own setting.</span>
     </div>
   </details>
 </div>
@@ -236,14 +236,14 @@ button:focus-visible,select:focus-visible,summary:focus-visible,input:focus-visi
     {id:"8",name:"Syncopation 3",cells:{EE:2,SSSS:1,SES:3,DES:3,SDE:2,RSE:2,EQE:1}}];
   const FEAT={"2":["EE"],"3":["QR","HR","RE","ER"],"4":["DQE","DH"],"5":["SSSS","ESS","SSE"],"6":["EQE","RERE"],"7":["ETIE","ANT","C332","MID"],"8":["SES","SDE","RSE"]};
   const TEMPOS=[60,72,84,96,108,120];
-  let level=store.get("level","1"), bpm=store.get("bpm",72), latency=store.get("lat",null), latMic=store.get("latMic",null), inMode=store.get("in","tap");
+  let level=store.get("level","1"), bpm=store.get("bpm",72), latency=store.get("lat",null), latClap=store.get("latClap",store.get("latMic",null)), latNote=store.get("latNote",null), inMode=store.get("in","tap"); // each input keeps its own offset (an old shared mic offset carries over to Clap only)
   let bar=null, taps=[], run=null, round=[], best=store.get("best",null), audio=null, mic=null;
   // saved settings from older versions (or a broken save) can hold anything: keep only values this version understands
   const okLat=v=>typeof v==="number"&&isFinite(v)&&Math.abs(v)<=250?Math.round(v):null;
   level=String(level); if(!LEVELS.some(L=>L.id===level)) level="1";
   bpm=+bpm; if(!TEMPOS.includes(bpm)) bpm=72;
   if(!["tap","clap","note"].includes(inMode)) inMode="tap";
-  latency=okLat(latency); latMic=okLat(latMic);
+  latency=okLat(latency); latClap=okLat(latClap); latNote=okLat(latNote);
   const bestNum=k=>{ const v=store.get(k,null); return typeof v==="number"&&isFinite(v)&&v>=0?v:null };
 
   // ---------- rhythm generator ----------
@@ -389,9 +389,11 @@ button:focus-visible,select:focus-visible,summary:focus-visible,input:focus-visi
 
   // Timing: you hear each click a little after it's scheduled (speaker/Bluetooth delay), and a screen tap registers a little late too.
   // Until you calibrate, take off the delay the device reports plus a typical touch (30 ms) or microphone (15 ms) lag. Calibrating replaces this with your own measured number.
+  // (Measured on the bench: claps and piano notes are stamped within a few ms of their true attack, so the mic modes share the same small allowance.)
   const autoLag=src=>{ const a=audio; const o=a?((a.outputLatency||0)+(a.baseLatency||0)):0; return Math.min(0.25,o+(src==="mic"?0.015:0.03)) };
+  const manLag=src=>src!=="mic"?latency:inMode==="note"?latNote:latClap;
   const hitLog=[]; // test hook: every raw hit (tap or mic) as it arrives, before any correction
-  function tapAt(tsec,src){ hitLog.push({t:tsec,src:src||"tap",mode:inMode}); if(hitLog.length>400) hitLog.shift(); if(calHook){ calHook(tsec); return } if(!run||run.mode!=="test") return; const man=src==="mic"?latMic:latency; const t=tsec-(man!=null?man/1000:autoLag(src)); if(t<run.start-0.3||t>run.end+0.2) return; taps.push(t);
+  function tapAt(tsec,src){ hitLog.push({t:tsec,src:src||"tap",mode:inMode}); if(hitLog.length>400) hitLog.shift(); if(calHook){ calHook(tsec); return } if(!run||run.mode!=="test") return; const man=manLag(src); const t=tsec-(man!=null?man/1000:autoLag(src)); if(t<run.start-0.3||t>run.end+0.2) return; taps.push(t);
     $("pad").classList.add("hit"); setTimeout(()=>$("pad").classList.remove("hit"),90) }
   $("pad").addEventListener("pointerdown",e=>{ e.preventDefault(); if(audio) tapAt(audio.currentTime) });
   document.addEventListener("keydown",e=>{ const tg=e.target.tagName; if(e.code!=="Space"||tg==="INPUT"||tg==="SELECT"||tg==="TEXTAREA"||tg==="SUMMARY"||tg==="A") return;
@@ -550,17 +552,18 @@ button:focus-visible,select:focus-visible,summary:focus-visible,input:focus-visi
   TEMPOS.forEach(t=>{ const b=document.createElement("button"); b.textContent=t; b.dataset.t=t; b.addEventListener("click",()=>{ if(sess||arc) stopSession(true); bpm=t; store.set("bpm",bpm); mark(); stats() }); $("tempo").appendChild(b) });
   function mark(){ document.querySelectorAll(".lvl").forEach(b=>b.setAttribute("aria-pressed",String(b.dataset.id===level))); document.querySelectorAll("#tempo button").forEach(b=>b.setAttribute("aria-pressed",String(+b.dataset.t===bpm))) }
 
-  // ---------- calibration: tap (or clap) with 8 clicks; the median offset becomes the correction for that input ----------
+  // ---------- calibration: play along with 12 clicks; the first 2 are skipped, the median of the rest becomes that input's correction ----------
   let calHook=null;
-  const calLabel=()=>{ const v=inMode!=="tap"?latMic:latency; $("calTxt").textContent=v!=null?`${inMode==="clap"?"Clap":inMode==="note"?"Note":"Tap"} offset ${v} ms`:"" }; calLabel();
+  const calLabel=()=>{ const v=inMode==="note"?latNote:inMode==="clap"?latClap:latency; $("calTxt").textContent=v!=null?`${inMode==="clap"?"Clap":inMode==="note"?"Note":"Tap"} offset ${v} ms`:"" }; calLabel();
   $("cal").addEventListener("click",async()=>{ if(run||calHook||starting||sess||arc) return; const a=ctx(); await a.resume(); if(run||calHook||starting||sess||arc) return; if(inMode!=="tap"&&!mic&&!(await micStart($("micSel").value||undefined))){ $("calTxt").textContent="Turn on the microphone first (see the message above), or switch to Tap."; return }
     if(run||calHook||starting||sess||arc) return; // a try or a challenge started while the microphone was opening
-    const t0=a.currentTime+0.6, sp=0.6, hits=[]; for(let i=0;i<8;i++) click(t0+i*sp,i===0);
+    const NC=12, t0=a.currentTime+0.6, sp=0.6, hits=[]; for(let i=0;i<NC;i++) click(t0+i*sp,i===0);
     $("calTxt").textContent=inMode==="clap"?"Clap with each click…":inMode==="note"?"Play your note with each click…":"Tap the pad with each click…";
     const cm=inMode, hook=t=>hits.push(t); calHook=hook;
-    setTimeout(()=>{ if(calHook!==hook){ if(!calHook) $("calTxt").textContent="Calibration stopped. Try again."; return } calHook=null; if(!run&&$("msg").querySelector(".v").textContent==="Calibrating…") msg(null,"Ready","Press Start."); const offs=[]; hits.forEach(t=>{ const k=Math.round((t-t0)/sp); if(k>=0&&k<8&&Math.abs(t-(t0+k*sp))<0.25) offs.push((t-(t0+k*sp))*1000) });
-      if(offs.length<5){ $("calTxt").textContent="Not enough hits. Try again."; return } offs.sort((x,y)=>x-y); const v=Math.round(offs[Math.floor(offs.length/2)]);
-      if(cm!=="tap"){ latMic=v; store.set("latMic",v) } else { latency=v; store.set("lat",v) } calLabel(); $("calTxt").textContent+=" (saved)" }, 600+8*sp*1000+500) });
+    setTimeout(()=>{ if(calHook!==hook){ if(!calHook) $("calTxt").textContent="Calibration stopped. Try again."; return } calHook=null; if(!run&&$("msg").querySelector(".v").textContent==="Calibrating…") msg(null,"Ready","Press Start."); const offs=[], seen=new Set(); hits.forEach(t=>{ const k=Math.round((t-t0)/sp); if(k>=2&&k<NC&&!seen.has(k)&&Math.abs(t-(t0+k*sp))<0.25){ seen.add(k); offs.push((t-(t0+k*sp))*1000) } }); // one hit per click, the first two skipped
+      if(offs.length<7){ $("calTxt").textContent="Not enough hits. Try again."; return } offs.sort((x,y)=>x-y); const q=f=>offs[Math.min(offs.length-1,Math.round(f*(offs.length-1)))], v=Math.round((offs[(offs.length-1)>>1]+offs[offs.length>>1])/2);
+      if(q(0.75)-q(0.25)>40){ $("calTxt").textContent=`Too uneven (hits spread over ${Math.round(q(0.75)-q(0.25))} ms). Nothing saved: try again, steady with the clicks.`; return }
+      if(cm==="note"){ latNote=v; store.set("latNote",v) } else if(cm==="clap"){ latClap=v; store.set("latClap",v) } else { latency=v; store.set("lat",v) } $("calTxt").textContent=`${cm==="clap"?"Clap":cm==="note"?"Note":"Tap"} offset ${v} ms (saved)` }, 600+NC*sp*1000+500) });
 
   // ---------- microphone: clap or snap ----------
   // Echo cancellation keeps the app's own clicks out; a high-pass filter drops piano bass and room rumble so sharp claps and snaps stand out.
@@ -654,8 +657,8 @@ button:focus-visible,select:focus-visible,summary:focus-visible,input:focus-visi
         // One note mode onset: walk back on the last 43 ms of unfiltered sound (1.3 ms blocks) from where it first got loud to where it
         // left the level before it (silence or the previous note's ring). A soft or slow attack is no longer stamped late.
         const noteOnset=()=>{ const B=64, nb=pbuf.length/B, e=new Float32Array(nb); for(let j=0;j<nb;j++){ let m=0; for(let i=j*B;i<(j+1)*B;i++){ const v=Math.abs(pbuf[i]); if(v>m) m=v } e[j]=m }
-          const base=[...e.slice(0,6)].sort((x,y)=>x-y)[3], pkE=Math.max(...e), L=base+0.3*(pkE-base); let jc=6; while(jc<nb&&e[jc]<=L) jc++; if(jc>=nb) return null;
-          let j=jc; while(j>6&&e[j-1]>base*1.25+1e-4&&e[j-1]<e[j]*1.02) j--; // stops at the floor, or at the dip after a click's tail return now-(pbuf.length-j*B)/a.sampleRate };
+          const base=[...e.slice(0,6)].sort((x,y)=>x-y)[3], pkE=Math.max(...e), L=base+0.3*(pkE-base); if(base>0.5*pkE) return null; let jc=6; while(jc<nb&&e[jc]<=L) jc++; if(jc>=nb) return null;
+          let j=jc; while(j>6&&e[j-1]>base*1.25+1e-4&&e[j-1]<e[j]*1.02) j--; /* stops at the floor, or at the dip after a click's tail */ return j<=6?null:now-(pbuf.length-j*B)/a.sampleRate }; // walked back to the start of the window: no clear onset here
         // The app learns how loud its own click is through this mic: during the count-in you aren't playing yet, so every hit there is the click.
         // Later, a hit that lands on a click has to be clearly louder than that to count.
         const ownClick=p=>{ const near=outT.some(o=>Math.abs(p.t-o)<0.06); if(!near||calHook) return false;
@@ -671,9 +674,10 @@ button:focus-visible,select:focus-visible,summary:focus-visible,input:focus-visi
         /* a re-struck piano key over its own ring only jumps ~1.4x */ if(r>thr&&r>prev*(inMode==="note"?1.35:2)&&now-last>0.08){ let k=0; const lim=Math.max(thr*1.5,pk*0.3); while(k<buf.length&&Math.abs(buf[k])<lim) k++;
           let t=now-(buf.length-k)/a.sampleRate; last=now; if(inMode==="note"){ const o=noteOnset(); if(o!=null) t=o }
           // a pure tone (the app's own click or beep) is not a clap: decide once the sound has filled the window
-          pend={t,at:now,r:rn,r0:r} }
+          pend={t,at:now,r:rn,r0:rn,rmax:rn,ck:outT.some(o=>Math.abs(t-o)<0.06)} }
         // One note mode: your note starting just after a click (beat 1's click is the loudest) is a new, much louder sound: it takes over the hit's time
-        else if(inMode==="note"&&pend&&r>thr&&r>prev*1.35&&r>pend.r0*2&&now-pend.at>0.01){ const o=noteOnset(); if(o!=null&&o>pend.t+0.01){ pend.t=o; pend.at=now; pend.r0=r; pend.r=rn; last=now } }
+        else if(inMode==="note"&&pend&&r>thr&&rn>pend.rmax*(pend.ck?1.15:1.5)&&now-pend.at>0.01){ pend.rmax=rn; const o=noteOnset(); if(o!=null&&o>pend.t+0.01){ pend.t=o; pend.at=now; pend.r0=rn; pend.r=rn; last=now } }
+        if(pend&&inMode==="note") pend.rmax=Math.max(pend.rmax||0,rn);
         prev=r*0.5+prev*0.5 },8)};
       if(det){ mic.det=det; det.port.onmessage=e=>{ const m=e.data; if(inMode==="note") return;
         if(m.lv!=null){ $("meterFill").style.width=Math.min(100,m.lv/DET_THR*15)+"%"; return }

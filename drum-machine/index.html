@@ -22,7 +22,6 @@ label{font-size:13px;color:var(--mut);display:flex;gap:6px;align-items:center}
 .vol{margin-left:auto}.vol input{width:120px}
 .sec{border-top:1px solid var(--bd);padding-top:8px;margin-top:6px}
 .sec>h4{margin:0 0 6px;font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--mut);font-weight:600}
-body.simple .adv{display:none!important}
 .tn{border-bottom:1px dotted currentColor;cursor:help}
 #tip{position:fixed;z-index:200;max-width:300px;background:#141519;color:#f1f2f4;border:1px solid #3a3d44;border-radius:9px;padding:9px 11px;font:500 13px/1.45 -apple-system,Segoe UI,Helvetica,Arial,sans-serif;text-transform:none;letter-spacing:0;box-shadow:0 8px 24px rgba(0,0,0,.45);display:none;pointer-events:none}
 
@@ -118,11 +117,6 @@ body{background:var(--c-page);color:var(--c-ink);font-family:var(--f-body);-webk
 /* BPM readout = LCD panel, LED digits */
 .bpm{font-family:var(--f-num);font-weight:700;color:var(--c-led);text-shadow:var(--c-led-glow);background:var(--c-lcd);border:1px solid var(--c-lcd-b);border-radius:14px;box-shadow:inset 0 2px 8px rgba(0,0,0,.6);padding:8px 16px;letter-spacing:0}
 .bpm small{font-family:var(--f-num);color:color-mix(in srgb,var(--c-led) 65%,transparent);text-shadow:none;font-size:12px;letter-spacing:.18em}
-/* Simple / Advanced switch */
-.seg{border:1px solid var(--c-key-b);border-radius:var(--r-key);background:var(--c-key);box-shadow:0 3px 0 var(--c-key-sh);overflow:hidden}
-.seg button{background:transparent;color:var(--c-ink);border:0;box-shadow:none;border-radius:0;text-transform:none;font-size:13px;letter-spacing:0;font-weight:700}
-.seg button:active{transform:none}
-.seg button.sel{background:var(--c-sel);color:var(--c-sel-ink)}
 /* Beat strip = second LCD */
 .beat{background:var(--c-lcd);border:1px solid var(--c-lcd-b);border-radius:14px;box-shadow:inset 0 2px 8px rgba(0,0,0,.6);color:var(--c-led);font-family:var(--f-num)}
 .blm,.chord{color:var(--c-led);text-shadow:var(--c-led-glow)}.chord small,.blm small{color:color-mix(in srgb,var(--c-led) 62%,#888);text-shadow:none}
@@ -174,14 +168,29 @@ body.emb .emh .row>button.play{flex:1 1 30%!important}body.emb .emh .row>#tap,bo
 body.emb .bpm{font-size:26px}body.emb .beat{padding:5px 8px}body.emb .blm{font-size:12px}body.emb .seg button{padding:6px 9px;font-size:12px}
 body.emb .tabs button{padding:6px 8px!important;font-size:11px!important;min-height:0!important}}
 .row>label>input[type=checkbox]{flex:none}
+.vch{display:flex;flex-wrap:wrap;gap:6px 10px;align-items:center}.vch button{font-size:12px;padding:5px 10px;min-height:0}.vch.on #vchs{color:var(--c-act);font-weight:700}
+@media (max-width:620px){.vch button{min-height:44px;font-size:14px}}
 @media (max-width:620px){details.credit>summary{padding:13px 0;cursor:pointer}#showall{flex:none}label:has(>#showall){min-height:44px}}
-body.emb .tabs.more{-webkit-mask-image:linear-gradient(90deg,#000 82%,transparent);mask-image:linear-gradient(90deg,#000 82%,transparent)}</style>
+body.emb .tabs.more{-webkit-mask-image:linear-gradient(90deg,#000 82%,transparent);mask-image:linear-gradient(90deg,#000 82%,transparent)}
+/* Tabs everywhere (2026-11-11.10): full screen uses the same tabs as Notion. Transport on top, then the tab bar, then the open tab.
+   Phones and short screens pin only the tab bar; tall desktop screens pin the whole transport too. */
+body.tabbed .sec:not(.tabon){display:none!important}
+.tabs button:focus-visible{outline:2px solid var(--c-ink);outline-offset:-4px}
+body.tabbed:not(.emb) .tabsdock{position:sticky;top:0;z-index:19;background:var(--c-panel);margin:12px -16px 0;padding:8px 16px;box-shadow:0 8px 10px -8px rgba(0,0,0,.35)}
+body.tabbed:not(.emb) .tabs{display:flex;gap:6px;flex-wrap:wrap}
+body.tabbed:not(.emb) .tabs button{flex:0 0 auto;padding:8px 13px;font-size:12px}
+body.tabbed:not(.emb) .tabsdock+.sec{margin-top:10px}
+@media (min-width:621px) and (min-height:820px){body.tabbed:not(.emb) .emh{position:sticky;top:0;z-index:20;background:var(--c-panel);padding-top:4px}}
+@media (max-width:620px){body.tabbed:not(.emb) .tabsdock{margin:10px -14px 0;padding:6px 14px}
+ body.tabbed:not(.emb) .tabs{flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none;overscroll-behavior-x:contain}body.tabbed:not(.emb) .tabs::-webkit-scrollbar{display:none}
+ body.tabbed:not(.emb) .tabs button{padding:6px 12px;font-size:11px}
+ body.tabbed:not(.emb) .tabs.more{-webkit-mask-image:linear-gradient(90deg,#000 82%,transparent);mask-image:linear-gradient(90deg,#000 82%,transparent)}}</style>
 
-</head><body class="simple"><div class="wrap">
+</head><body><div class="wrap">
 <div data-chma-head></div>
 <h1 class="mmt">Modal <em>Metronome</em></h1>
 <div class="top"><div class="bpm"><span id="v">80</span> <small>BPM</small> <span class="medal" id="m"></span></div>
-<div class="seg"><button id="vS" class="sel">Simple</button><button id="vA">Advanced</button></div></div>
+</div>
 <div class="beat" id="beat"><div class="dots" id="dots" aria-hidden="true"></div><div class="blm" id="blm">Press ▶ Play or Space</div><div class="chord" id="chord"></div></div>
 <input id="s" type="range" aria-label="Tempo in BPM" min="40" max="280" step="1" value="80">
 <div class="row">
@@ -226,7 +235,8 @@ body.emb .tabs.more{-webkit-mask-image:linear-gradient(90deg,#000 82%,transparen
 <label title="Delays the off-beat notes. 50% = straight, ~67% = triplet swing">Swing <input type="range" id="sw" data-s min="50" max="75" step="1" value="50" style="width:90px"><span id="swt" style="min-width:58px">Straight</span></label>
 <label title="Where the drummer sits on the beat. Auto = the real pocket for this groove: backbeat a hair behind, hats leading, ghost notes floating, jazz swing that straightens as the tempo climbs.">Pocket <select id="pkt" data-s><option value="auto" selected>Auto (real feel for this groove)</option><option value="back">Laid back (behind the beat)</option><option value="top">On top (pushing)</option><option value="machine">Machine (dead straight)</option></select></label><label title="Real drummers play ghost notes at different strengths: softest right after the backbeat, loudest leading into it.">Ghost notes <select id="gdyn" data-s><option value="real" selected>4 levels (real)</option><option value="flat">As written (flat)</option></select></label><label title="Soft snare drags and buzz rolls leading into the backbeat, built from real stick bounces.">Snare rolls <select id="groll" data-s><option value="off" selected>Off</option><option value="drag">Drags into 2 and 4</option><option value="buzz">Buzz roll into 4 (every 2 bars)</option><option value="mix">Subtle mix (drags + an occasional buzz)</option></select></label><label title="Adds tiny random timing and volume differences on top of the pocket">Humanize <input type="range" id="hu" data-s min="0" max="100" value="30" style="width:90px"></label>
 <label><input type="checkbox" id="crash" data-s> Crash every 4 bars</label>
-</div></div>
+</div>
+<div class="hint vch"><span id="vchs">Want the groove to switch between a verse and a chorus?</span> <button type="button" id="vcgo">Verse / Chorus is in the Song tab</button></div></div>
 
 <div class="sec"><h4>Practice</h4>
 <div class="row">
@@ -1307,7 +1317,7 @@ function logUI(){const L=loadLog(),now=Date.now();let wk=0,streak=0;for(let k=0;
 let saveT=null,savedDevInit='';
 const LOCAL=new Set(['mv','mode']);
 function getState(full){const c={};document.querySelectorAll('[data-s]').forEach(e=>{if(!full&&LOCAL.has(e.id))return;c[e.id]=e.type==='checkbox'?e.checked:e.value});
- const st={v:2,tm2:1,pk:1,av:1,bj:1,kt:1,fl:1,vt:1,c,bpm,grid,rowVol,seed:bassSeed};if(full){st.dev=$('dev').value;st.view=document.body.classList.contains('simple')?'simple':'adv'}return st}
+ const st={v:2,tm2:1,pk:1,av:1,bj:1,kt:1,fl:1,vt:1,c,bpm,grid,rowVol,seed:bassSeed};if(full)st.dev=$('dev').value;return st}
 const OLDPROG={'i VI III VII':'vi IV I V','i iv v i':'vi ii iii vi','i VII VI V':'vi V IV III','i IV':'ii7 V7','i ii III IV':'ii iii IV V','i VII IV i':'ii I V ii','i II':'iii IV','i II III II':'iii IV V IV','i vii VI II':'iii IV iii ii','I II':'IV V','I II vii I':'IV V iii IV','I II iii II':'IVmaj7 V IVmaj7 V','I VII IV I':'V IV I V','I v IV I':'V ii I V','I VII I IV':'V IV I I','i VI VII i':'vi IV V vi','i VII VI VII':'vi V IV V','i iv VII III':'vi iii IV V','i° II iv II':'vii° I','i iv V i':'vi ii III vi','I II vii II':'III IV ii III'};
 const PROG2={'iii ii I IV':'iii IV iii ii','IV V vi V':'IVmaj7 V IVmaj7 V','V IV V I':'V IV I I','vi ii V I':'vi iii IV V','vii° I iii I':'vii° I','III IV ii IV':'III IV ii III','ii V':'ii7 V7'};
 function legacyKey(c){if(!c)return;if(PROG2[c.prog])c.prog=PROG2[c.prog];const old=c.prog,md=c.md||'auto';let deg=MODEDEG[md];
@@ -1324,9 +1334,9 @@ function applyState0(st){if(!st||!st.c)return false;restoring=true;const c=st.c;
  if(st.rowVol)for(const k in st.rowVol)if(k in rowVol&&isFinite(+st.rowVol[k]))rowVol[k]=Math.max(0,Math.min(2,+st.rowVol[k]));
  if(st.grid)ROWS.forEach(([k])=>{const r=st.grid[k];if(Array.isArray(r)&&r.length===steps())grid[k]=r.map(x=>{x=+x;return x>0?Math.min(1,x):0})});
  if(!st.tm2&&$('tm').value!=='linn')$('tm').value='pearl';
- if(st.seed)bassSeed=st.seed;if(st.dev!=null)savedDev=st.dev;if(st.view)setView(st.view,true);
+ if(st.seed)bassSeed=st.seed;if(st.dev!=null)savedDev=st.dev;
  setBpm(st.bpm||80);uiRefresh();draw();restoring=false;return true}
-function uiRefresh(){fatUI();swUI();$('mvt').textContent=$('mv').value+'%';$('cpl').style.display=$('prog').value==='custom'?'':'none';$('beat').classList.toggle('big',$('bigl').checked);
+function uiRefresh(){fatUI();swUI();if(window.mmVcUI)mmVcUI();$('mvt').textContent=$('mv').value+'%';$('cpl').style.display=$('prog').value==='custom'?'':'none';$('beat').classList.toggle('big',$('bigl').checked);
  if(out&&!xBusy)out.gain.setTargetAtTime(volG($('mv').value),ctx.currentTime,0.02);if(revSend&&!xBusy)revSend.gain.setTargetAtTime($('room').value/100*0.5,ctx.currentTime,0.05);chordPreview()}
 addEventListener('pagehide',()=>{if(saveT&&!restoring){clearTimeout(saveT);try{store.setItem(SKEY,JSON.stringify(getState(true)))}catch(e){}}});
 function save(){if(restoring)return;clearTimeout(saveT);saveT=setTimeout(()=>{try{store.setItem(SKEY,JSON.stringify(getState(true)));$('sv').textContent=store.mem?'Settings kept until reload':'✓ Settings saved'}catch(e){$('sv').textContent='Saving not available here'}},300)}
@@ -1338,14 +1348,13 @@ function applyParams(){const sp=new URLSearchParams(location.search);if(![...sp.
  preset(sp.get('pre')&&P[sp.get('pre')]?sp.get('pre'):'rock');$('pre').value=curName;
  sp.forEach((val,k)=>{if(k==='pre'||k==='bpm'||k==='view'||k==='pk')return;const e=$(k);if(!e||!e.hasAttribute('data-s'))return;
   if(e.type==='checkbox')e.checked=val==='1'||val==='true';else if(e.tagName==='SELECT')setSel(e,val);else e.value=val});
- if(sp.get('sw'))setSwing(+sp.get('sw'));if(sp.get('view'))setView(sp.get('view'),true);
+ if(sp.get('sw'))setSwing(+sp.get('sw'));
  setBpm(+sp.get('bpm')||80);uiRefresh();draw();restoring=false;$('sv').textContent='✓ Song settings loaded';return true}
 function restore(){let st=null;try{st=JSON.parse(store.getItem(SKEY)||'null')}catch(e){}
  // Saved settings from an old version (or a damaged copy) must never stop the page: fall back to the link, then to Basic Rock.
  try{if(st&&typeof st==='object'&&st.c&&typeof st.c==='object'&&applyState(st)){$('sv').textContent='✓ Restored your last settings';return}}catch(e){console.warn('Saved settings skipped',e)}
  try{if(applyParams())return}catch(e){console.warn('Link settings skipped',e)}
  restoring=true;try{$('pre').value='rock';preset('rock');setBpm(80);uiRefresh();draw()}catch(e){}restoring=false}
-function setView(vw,quiet){if(document.body.classList.contains('emb'))vw='adv';document.body.classList.toggle('simple',vw==='simple');$('vS').classList.toggle('sel',vw==='simple');$('vA').classList.toggle('sel',vw!=='simple');if(window.embRefresh)embRefresh();if(!quiet)save()}
 const PKEY='drumMachine:presets';
 function presets(){let o={};try{o=JSON.parse(store.getItem(PKEY)||'{}')}catch(e){}const P2={};if(o&&typeof o==='object'&&!Array.isArray(o))for(const k in o)if(o[k]&&typeof o[k]==='object'&&o[k].c&&typeof o[k].c==='object')P2[k]=o[k];return P2}
 function psUI(sel){const P2=presets(),e=$('ps');e.innerHTML='<option value="">— choose —</option>'+Object.keys(P2).sort().map(k=>'<option value="'+esc(k)+'">'+esc(k)+'</option>').join('');if(sel)e.value=sel}
@@ -1368,7 +1377,7 @@ p.onclick=async()=>{if(playing){stop();return}if(xBusy){start();return}p.disable
 s.oninput=e=>setBpm(+e.target.value);
 $('mv').oninput=e=>{$('mvt').textContent=e.target.value+'%';if(out&&!xBusy)out.gain.setTargetAtTime(volG(e.target.value),ctx.currentTime,0.02)};
 [['d5',-5],['d1',-1],['u1',1],['u5',5]].forEach(([id,n])=>$(id).onclick=()=>setBpm(bpm+n));
-$('pre').onchange=e=>{preset(e.target.value);pos=0};
+$('pre').onchange=e=>{if($('arr').checked){$('arr').checked=false;$('arr').dispatchEvent(new Event('change',{bubbles:true}));trMsg='Verse / Chorus off: playing your groove'}preset(e.target.value);pos=0};
 $('b').onchange=e=>{beats=+e.target.value;pos=0;fill()};
 // Time signature menu: sets the hidden Beats/Notes. x/4 keeps the groove's 8th or 16th grid; 6/8, 9/8 and 12/8 use triplet beats; the odd x/8 meters count 8th-note beats.
 const TSMAP={'2/4':[2],'3/4':[3],'4/4':[4],'5/4':[5],'6/4':[6],'7/4':[7],'5/8':[5,2],'6/8':[2,3],'7/8':[7,2],'9/8':[3,3],'9/8br':[9,2],'11/8':[11,2],'12/8':[4,3]};
@@ -1398,7 +1407,6 @@ $('dev').onfocus=listDevs;
 $('test').onclick=async()=>{await init();const t=ctx.currentTime+0.03;hit(36,t,1);hit(38,t+0.35,1);bassNote(t+0.7,bassRoot(keyPc()),0.5,0.9)};
 $('rset').onclick=()=>$('reset').click();
 $('reset').onclick=()=>{restoring=true;try{store.removeItem(SKEY)}catch(e){}location.reload()};
-$('vS').onclick=()=>setView('simple');$('vA').onclick=()=>setView('adv');
 $('fnow').onclick=fillNow;
 let taps=[];const tap=()=>{const n=performance.now();taps=taps.filter(t=>n-t<3000);taps.push(n);if(taps.length>1)setBpm(60000/((taps[taps.length-1]-taps[0])/(taps.length-1)))};$('tap').onclick=tap;
 $('logclr').onclick=()=>{logData={days:{},best:{},sessions:0};saveLog();logUI()};
@@ -1430,9 +1438,9 @@ document.addEventListener('keydown',e=>{const tg=e.target.tagName,ty=e.target.ty
 // ===== boot =====
 p.disabled=false;p.textContent='▶ Play';$('av').value='rock';$('ac').value='pop';psUI();restore();uiRefresh();logUI();restoring=false;listDevs();
 {const sp=new URLSearchParams(location.search),dm=sp.get('dm');if(dm){try{applyState(decodeCode(dm));uiRefresh();save()}catch(e){console.error(e)}
-  if(sp.get('xp')){setSel($('xlen'),sp.get('xp'));history.replaceState(null,'',location.pathname);$('xst').textContent='Your settings from Notion are loaded. Tap Export to build and save your MP3.';setTimeout(()=>{$('xbtn').scrollIntoView({block:'center'});$('xbtn').focus()},300)}}}
+  if(sp.get('xp')){setSel($('xlen'),sp.get('xp'));history.replaceState(null,'',location.pathname);$('xst').textContent='Your settings from Notion are loaded. Tap Export to build and save your MP3.';setTimeout(()=>{if(window.mmShowTab)mmShowTab('Export');$('xbtn').scrollIntoView({block:'center'});$('xbtn').focus()},300)}}}
 
-</script><script>(function(){const C=['#e8412c','#f28c28','#f6c33b','#efe6d2'];document.querySelectorAll('.sec>h4').forEach((h,i)=>h.style.setProperty('--band',C[i%4]))})();</script><p class="appver" style="text-align:center;font-size:11px;opacity:.6;margin:18px 0 10px;font-family:ui-monospace,Menlo,monospace">Modal Metronome · Version 2026-11-11.9</p>
+</script><script>(function(){const C=['#e8412c','#f28c28','#f6c33b','#efe6d2'];document.querySelectorAll('.sec>h4').forEach((h,i)=>h.style.setProperty('--band',C[i%4]))})();</script><p class="appver" style="text-align:center;font-size:11px;opacity:.6;margin:18px 0 10px;font-family:ui-monospace,Menlo,monospace">Modal Metronome · Version 2026-11-11.11</p>
 <script>/* Setting help: hover the name on a computer, tap it on a phone or iPad */
 (function(){const T={"mv": "Master volume for everything: drums, bass and keys. Saved on this device only, not in presets or links.", "xlen": "How long the MP3 will be. It records the groove, bass, chords, fills and tempo exactly as they are set now, so you can practice with it anywhere.", "ps": "Your saved setups. Pick one to load it. Type a name and tap Save to store everything you have set right now. Presets live on this device and never get erased by Reset.", "pre": "The drum pattern. Each groove is written the way real drummers play that style. Changing it also sets the time signature the groove is written in.", "ts": "Time signature: how many beats are in a bar and what kind. 4/4 = four quarter-note beats. 6/8, 9/8 (3+3+3) and 12/8 = beats split in three. In 5/8, 7/8, 9/8 (2+2+2+3) and 11/8 each beat is one 8th note, so the BPM counts 8ths.", "sdv": "Subdivide: the steady in-between notes that keep time. \"As written\" plays the groove's own hi-hat or ride part. Pick Quarter notes, 8ths, 16ths, Triplets or Off-beats to replace it with a steady pulse. Off = no subdivision at all, just the kick and snare.", "cy": "Subdivide with: the instrument that plays the subdivision. Hi-hat is tight and dry, ride is washy, ride bell cuts through, shaker and tambourine are soft and bright, cowbell, side stick, claves and woodblock are clicky and easy to hear.", "fb": "First beat: adds an extra sound on beat 1 of every bar so you always know where the bar starts. Great for odd meters like 7/8 and 9/8.", "sw": "Swing pushes every second note late. 50% = straight, even notes. About 67% = triplet swing, like jazz and blues shuffles.", "pkt": "Pocket: where the drummer sits on the beat. Auto uses the real feel of the groove: backbeat a hair behind, hats leading. Machine = perfectly on the grid.", "gdyn": "Ghost notes are the very soft snare taps between the backbeats. \"4 levels\" plays them softer or louder depending on where they fall, like a real drummer. Flat = all the same.", "groll": "Adds soft snare drags and buzz rolls leading into the backbeat, built from real stick bounces.", "hu": "Humanize adds tiny random changes in timing and volume so the drums don't sound like a machine. Zero = perfectly even.", "crash": "Plays a crash cymbal on beat 1 every 4 bars to mark the phrase.", "ci": "Count-in: clicks before the band starts so you can come in on time.", "do": "Drop-out: the drums and bass go silent for some bars while you keep playing. When they come back, you find out if you kept the time yourself.", "bigl": "Makes the beat light big and flashes the screen on every beat, so you can see the pulse from across the room.", "tr": "Tempo trainer: speeds the metronome up a little every few bars until it reaches your goal. It never slows down.", "trg": "The tempo the trainer stops at.", "tri": "How many BPM to add each time.", "trb": "How many bars to play before each speed-up.", "fe": "How often the drummer plays a fill (a short drum break) at the end of a phrase.", "fs": "The kind of fill: toms, snare, or a mix.", "fa": "How busy the fill is. Low = short and simple. High = full bar with doubles.", "fc": "Plays a crash on the beat right after every fill, like a drummer landing the fill.", "key": "The major parent key: the \"1\" of the scale. The studio names every mode from its parent major key.", "md": "The mode: which note of the parent key the music sits on. The bass and keys use it for passing notes and voicings.", "prog": "The chord progression the bass and keys play, written in Roman numerals from the parent key.", "bpc": "How long each chord lasts. Normal = one bar. Double time = two chords per bar. Half time = each chord lasts two bars.", "cprog": "Type your own chords, separated by spaces (for example: ii V I vi or Dm7 G7 Cmaj7).", "bon": "Turns the bass player on. The bass follows the chords and the groove.", "bt": "The bass sound: electric, upright, synth and more.", "btone": "Shapes the bass like a mixing engineer: EQ and compression on the bass channel.", "bs": "How the bass plays: root notes, walking lines, pedal tones and more, matched to the style.", "bauto": "Writes a fresh bass line every few bars so it never gets repetitive.", "bvar": "How often the bass adds passing notes, octave jumps and pickups.", "bv": "Bass volume, separate from the drums.", "kon": "Turns the keyboard player on. The keys play the chords in the progression.", "ksnd": "The keyboard sound: piano, electric piano, organ, pads.", "kcomp": "Comping = how the keys play the chords: held, pushed, stabs. Auto matches the groove.", "kvoice": "Voicing = which chord notes the keys play. Pop/rock uses triads. Jazz plays the 3rd, 5th, 7th and 9th and leaves the root to the bass.", "kv": "Keys volume, separate from the drums.", "kit": "Picks the whole drum kit at once. You can still change each drum below.", "kk": "The kick drum sound.", "sn": "The snare drum sound.", "rv": "The ride cymbal sound.", "hh": "The hi-hat sound.", "hfeel": "Tight = closed and choked. Loose = hats a little open and sloshy.", "sfeel": "Tight = damped, higher crack. Open = lower, fatter, more ring.", "kfeel": "Tight = short and punchy. Boomy = lower and longer.", "tm": "The tom sounds used in fills.", "pc": "The percussion sounds: shaker, tambourine, cowbell, congas and more.", "room": "How much room echo (reverb) is on the whole band.", "arr": "Song mode: switches between a verse groove and a chorus groove, so practice feels like a real song.", "av": "The groove for the verse.", "ac": "The groove for the chorus.", "ab": "How many bars the verse lasts.", "cb": "How many bars the chorus lasts.", "mode": "Direct is fastest. Pick Compatibility only if the sound crackles or won't play on your device.", "dev": "Which speaker or headphones the sound plays through.", "showall": "Shows every drum in the pattern grid, not just the drums this groove uses."};
  const tip=document.createElement('div');tip.id='tip';document.body.appendChild(tip);let cur=null;
@@ -1447,22 +1455,46 @@ p.disabled=false;p.textContent='▶ Play';$('av').value='rock';$('ac').value='po
   sp.addEventListener('mouseenter',()=>{if(matchMedia('(hover:hover)').matches)show(sp)});sp.addEventListener('mouseleave',()=>{if(matchMedia('(hover:hover)').matches)hide()});
   sp.addEventListener('click',ev=>{if(!isChk)ev.preventDefault();ev.stopPropagation();if(cur===sp)hide();else show(sp)})}
  document.addEventListener('click',hide);addEventListener('scroll',hide,true)})();</script>
-<script>/* Embedded in Notion: pin the transport, one tab per group of sections */
-(function(){let inF=true;try{inF=window.self!==window.top}catch(e){}if(!inF)return;
- const w=document.querySelector('.wrap'),secs=[...w.querySelectorAll(':scope>.sec')];if(!secs.length)return;
- document.body.classList.add('emb');document.body.classList.remove('simple');const hd=document.createElement('div');hd.className='emh';while(w.firstChild&&w.firstChild!==secs[0])hd.appendChild(w.firstChild);w.insertBefore(hd,secs[0]);
- const byName={};secs.forEach(x=>{const h=x.querySelector(':scope>h4');if(h)byName[h.firstChild.textContent.trim()]=x});
- const ex=hd.querySelector('.row.exp');if(ex){const sx=document.createElement('div');sx.className='sec';sx.innerHTML='<h4>Export</h4>';sx.appendChild(ex);w.insertBefore(sx,secs[0]);secs.unshift(sx);byName.Export=sx}
- const G=[['Groove',['Groove']],['Presets',['My presets']],['Grid',['Pattern']],['Fills',['Fills']],['Chords',['Harmony']],['Bass',['Bass line']],['Keys',['Keys']],['Practice',['Practice','Practice log']],['Drum sounds',['Drum sounds']],['Mix',['Output']],['Song',['Song']],['Export',['Export']]];
- const used=new Set(G.flatMap(g=>g[1]));secs.forEach(x=>{const h=x.querySelector(':scope>h4'),n=h&&h.firstChild.textContent.trim();if(n&&!used.has(n)){G.push([n,[n]]);used.add(n)}});
- const bar=document.createElement('div');bar.className='tabs';hd.appendChild(bar);let cur='Groove';try{cur=localStorage.getItem('mmTab')||cur}catch(e){}
- function show(name){cur=name;try{localStorage.setItem('mmTab',name)}catch(e){}secs.forEach(x=>x.classList.remove('tabon'));const g=G.find(g=>g[0]===name);(g?g[1]:[]).forEach(n=>byName[n]&&byName[n].classList.add('tabon'));[...bar.children].forEach(b=>b.classList.toggle('sel',b.dataset.t===name));
-  const sb=[...bar.children].find(b=>b.dataset.t===name);if(sb){const l=sb.offsetLeft-bar.offsetLeft,r=l+sb.offsetWidth;if(l<bar.scrollLeft)bar.scrollLeft=l-4;else if(r>bar.scrollLeft+bar.clientWidth)bar.scrollLeft=r-bar.clientWidth+4}moreUI()}
- function moreUI(){bar.classList.toggle('more',bar.scrollLeft+bar.clientWidth<bar.scrollWidth-4)}
- bar.addEventListener('scroll',moreUI,{passive:true});addEventListener('resize',moreUI)
- window.embRefresh=function(){const simple=document.body.classList.contains('simple');bar.innerHTML='';const ok=G.filter(g=>g[1].some(n=>byName[n]&&!(simple&&byName[n].classList.contains('adv'))));
-  ok.forEach(g=>{const b=document.createElement('button');b.textContent=g[0];b.dataset.t=g[0];b.onclick=()=>show(g[0]);bar.appendChild(b)});show(ok.some(g=>g[0]===cur)?cur:ok[0][0])};
- embRefresh()})();</script>
+<script>/* Tabs everywhere (2026-11-11.10): the transport on top, then one tab per group of sections, in Notion and full screen.
+   Embedded in Notion: the transport (and the tab bar) are pinned and compact, the section titles are hidden. */
+(function(){let inF=true;try{inF=window.self!==window.top}catch(e){}
+  const w=document.querySelector('.wrap'),secs=[...w.querySelectorAll(':scope>.sec')];if(!secs.length)return;
+  const B=document.body;B.classList.add('tabbed');B.classList.remove('simple');if(inF)B.classList.add('emb');
+  const hd=document.createElement('div');hd.className='emh';
+  if(inF){while(w.firstChild&&w.firstChild!==secs[0])hd.appendChild(w.firstChild);w.insertBefore(hd,secs[0])}
+  else{const tp=w.querySelector(':scope>.top')||secs[0];w.insertBefore(hd,tp);while(hd.nextSibling&&hd.nextSibling!==secs[0])hd.appendChild(hd.nextSibling)} // full screen: logo and title stay above the transport
+  const byName={};secs.forEach(x=>{const h=x.querySelector(':scope>h4');if(h)byName[h.firstChild.textContent.trim()]=x});
+  const ex=hd.querySelector('.row.exp');if(ex){const sx=document.createElement('div');sx.className='sec';sx.innerHTML='<h4>Export</h4>';sx.appendChild(ex);w.insertBefore(sx,secs[0]);secs.unshift(sx);byName.Export=sx}
+  const G=[['Groove',['Groove']],['Song',['Song']],['Presets',['My presets']],['Grid',['Pattern']],['Fills',['Fills']],['Chords',['Harmony']],['Bass',['Bass line']],['Keys',['Keys']],['Practice',['Practice','Practice log']],['Drum sounds',['Drum sounds']],['Mix',['Output']],['Export',['Export']]];
+  const used=new Set(G.flatMap(g=>g[1]));secs.forEach(x=>{const h=x.querySelector(':scope>h4'),n=h&&h.firstChild.textContent.trim();if(n&&!used.has(n)){G.push([n,[n]]);used.add(n)}});
+  const ok=G.filter(g=>g[1].some(n=>byName[n]));const slug=t=>t.toLowerCase().replace(/[^a-z0-9]+/g,'-');
+  const bar=document.createElement('div');bar.className='tabs';bar.setAttribute('role','tablist');bar.setAttribute('aria-label','Metronome settings');
+  let dock=null;if(inF)hd.appendChild(bar);else{dock=document.createElement('div');dock.className='tabsdock';dock.appendChild(bar);w.insertBefore(dock,secs[0])}
+  let cur='Groove';try{cur=localStorage.getItem('mmTab')||cur}catch(e){}
+  ok.forEach(g=>{const b=document.createElement('button');b.type='button';b.textContent=g[0];b.dataset.t=g[0];b.id='mmtab-'+slug(g[0]);b.setAttribute('role','tab');
+   const ids=g[1].filter(n=>byName[n]).map(n=>{const x=byName[n];if(!x.id)x.id='mmpanel-'+slug(n);x.setAttribute('role','tabpanel');x.setAttribute('aria-labelledby',b.id);return x.id});
+   b.setAttribute('aria-controls',ids.join(' '));b.onclick=()=>show(g[0],true);bar.appendChild(b)});
+  function show(name,user){if(!ok.some(g=>g[0]===name))name=ok[0][0];cur=name;try{localStorage.setItem('mmTab',name)}catch(e){}
+   secs.forEach(x=>x.classList.remove('tabon'));const g=ok.find(g=>g[0]===name);g[1].forEach(n=>byName[n]&&byName[n].classList.add('tabon'));
+   [...bar.children].forEach(b=>{const on=b.dataset.t===name;b.classList.toggle('sel',on);b.setAttribute('aria-selected',on?'true':'false');b.tabIndex=on?0:-1});
+   const sb=[...bar.children].find(b=>b.dataset.t===name);if(sb){const l=sb.offsetLeft-bar.offsetLeft,r=l+sb.offsetWidth;if(l<bar.scrollLeft)bar.scrollLeft=l-4;else if(r>bar.scrollLeft+bar.clientWidth)bar.scrollLeft=r-bar.clientWidth+4}moreUI();
+   // Full screen: if the page was scrolled down into the old tab, bring the new tab's first line up to just under the pinned bar.
+   if(user&&dock){const pnl=byName[g[1].find(n=>byName[n])],t=pnl.getBoundingClientRect().top,lim=dock.getBoundingClientRect().bottom;if(t<lim)scrollBy(0,t-lim-8)}}
+  function moreUI(){bar.classList.toggle('more',bar.scrollLeft+bar.clientWidth<bar.scrollWidth-4)}
+  bar.addEventListener('scroll',moreUI,{passive:true});addEventListener('resize',moreUI);
+  // Arrow keys move between tabs here (elsewhere ←/→ change the tempo).
+  bar.addEventListener('keydown',e=>{const t=[...bar.children],i=t.indexOf(document.activeElement);if(i<0)return;let k=-1;
+   if(e.key==='ArrowRight')k=(i+1)%t.length;else if(e.key==='ArrowLeft')k=(i-1+t.length)%t.length;else if(e.key==='Home')k=0;else if(e.key==='End')k=t.length-1;else return;
+   e.preventDefault();e.stopPropagation();t[k].focus();show(t[k].dataset.t,true)});
+  if(dock){// Pinned parts never hide what has focus: the tab bar sits under the pinned transport, and focus scrolls clear of both.
+   const pin=()=>{const h=getComputedStyle(hd).position==='sticky'?hd.offsetHeight:0;dock.style.top=h+'px';document.documentElement.style.scrollPaddingTop=(h+dock.offsetHeight+8)+'px';moreUI()};
+   addEventListener('resize',pin);if(window.ResizeObserver)new ResizeObserver(pin).observe(hd);pin()}
+  window.mmShowTab=n=>show(n,false);
+  // Verse / Chorus signpost in the Groove tab: says when it is on, and jumps to its switch in the Song tab.
+  const arr=document.getElementById('arr'),vg=document.getElementById('vcgo');
+  if(arr&&vg){const vu=()=>{const on=arr.checked;vg.parentNode.classList.toggle('on',on);document.getElementById('vchs').textContent=on?'Verse / Chorus is ON: the groove switches between your Verse and Chorus picks. Picking a groove here turns it off.':'Want the groove to switch between a verse and a chorus?'};
+   arr.addEventListener('change',vu);vg.onclick=()=>{show('Song',true);arr.focus({preventScroll:true});const r=arr.getBoundingClientRect();if(r.top<0||r.bottom>innerHeight)arr.scrollIntoView({block:'center'})};vu();window.mmVcUI=vu}
+  show(cur,false)})();</script>
 <script>/* Auto-update: Safari and Notion keep old copies of this page. If the live site has a newer version, reload it once (settings in the link are kept). */
 (function(){const mine=(document.querySelector('.appver')||{}).textContent||'';const m=mine.match(/Version ([0-9.-]+)/);if(!m)return;
  // The check downloads the whole page again (about 5 MB), so skip it on slow or data-saver connections and when offline.

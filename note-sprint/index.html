@@ -722,8 +722,9 @@ input[type=range],input[type=checkbox],input[type=radio]{accent-color:var(--c-ac
     for(let i=0;i<N>>1;i++){ fCs[i]=Math.cos(2*Math.PI*i/N); fSn[i]=Math.sin(2*Math.PI*i/N) } const B=Math.round(Math.log2(N)); for(let i=0;i<N;i++){ let r=0; for(let k=0;k<B;k++) r|=((i>>k)&1)<<(B-1-k); fRv[i]=r } }
   function fft(re,im,inv){ const N=fN, sg=inv?1:-1; for(let i=0;i<N;i++){ const j=fRv[i]; if(j>i){ let t=re[i]; re[i]=re[j]; re[j]=t; t=im[i]; im[i]=im[j]; im[j]=t } }
     for(let s=2;s<=N;s<<=1){ const h=s>>1, st=N/s; for(let i=0;i<N;i+=s) for(let k=0;k<h;k++){ const c=fCs[k*st], sn=sg*fSn[k*st], a=i+k, b=a+h, xr=re[b]*c-im[b]*sn, xi=re[b]*sn+im[b]*c; re[b]=re[a]-xr; im[b]=im[a]-xi; re[a]+=xr; im[a]+=xi } } }
-  function acf(buf,sr,gate){ const n=buf.length; let rms=0; for(let i=0;i<n;i++) rms+=buf[i]*buf[i]; rms=Math.sqrt(rms/n); if(rms<(gate||0.008)) return -1;
-    const maxLag=Math.min(Math.floor(sr/MINHZ),Math.floor(n/2)), minLag=Math.max(2,Math.floor(sr/4400)), W=n-maxLag-1;
+  // fLo..fHi = the pitch range this pass may answer with (lags outside it are never picked)
+  function acf(buf,sr,gate,fLo,fHi){ const n=buf.length; let rms=0; for(let i=0;i<n;i++) rms+=buf[i]*buf[i]; rms=Math.sqrt(rms/n); if(rms<(gate||0.008)) return -1;
+    const maxLag=Math.min(Math.floor(sr/(fLo||MINHZ)),Math.floor(n/2)), minLag=Math.max(2,Math.floor(sr/(fHi||4400))), W=n-maxLag-1;
     let N=1; while(N<2*n) N<<=1; if(fN!==N) fftInit(N);
     for(let i=0;i<N;i++){ fRe[i]=i<n?buf[i]:0; fIm[i]=i<W?buf[i]:0 }   // two real signals in one complex FFT: the frame, and its first W samples
     fft(fRe,fIm,false);
@@ -737,9 +738,20 @@ input[type=range],input[type=checkbox],input[type=radio]{accent-color:var(--c-ac
     for(let t=minLag;t<=maxLag;t++) if(c[t]<TH){ while(t+1<=maxLag&&c[t+1]<c[t]) t++; T=t; break }
     if(T<0){ let mv=1,mp=-1; for(let t=minLag;t<=maxLag;t++) if(c[t]<mv){mv=c[t];mp=t} if(mp<0||mv>0.3) return -1; T=mp }
     // octave guard: a piano's 2nd harmonic can beat its fundamental (low notes); if the double period is clearly cleaner, it's the real note
-    if(2*T<=maxLag&&c[2*T]<c[T]*0.5){ let t2=2*T; while(t2+1<=maxLag&&c[t2+1]<c[t2]) t2++; T=t2 }
+    if(2*T<=maxLag&&T>=sr/OCTG&&c[2*T]<c[T]*0.5){ let t2=2*T; while(t2+1<=maxLag&&c[t2+1]<c[t2]) t2++; T=t2 }
     lastAp=c[T];
     const x1=c[T-1],x2=c[T],x3=c[T+1],a=(x1+x3-2*x2)/2,b=(x3-x1)/2, Tf=a>0?T-b/(2*a):T; return sr/Tf }
+  // Real pianos defeat one plain pass at both ends. Bass strings are stiff, so their upper partials run sharp and blur the period: a low-passed copy
+  // keeps only the clean low partials. The top octaves are tiny periods under a big low "thunk" from the hammer and case: a sharpened copy
+  // (second difference, +12 dB per octave) lifts the note above the thunk. Each extra pass may only answer in its own register.
+  let lpB=null, hpB=null;
+  function pitch(buf,sr,gate){ let f=acf(buf,sr,gate); if(f>0&&lastAp<AP) return f;
+    const n=buf.length; if(!lpB||lpB.length!==n){ lpB=new Float32Array(n); hpB=new Float32Array(n) }
+    const k=1-Math.exp(-2*Math.PI*LPHZ/sr); let y1=0,y2=0,y3=0; for(let i=0;i<n;i++){ y1+=k*(buf[i]-y1); y2+=k*(y1-y2); y3+=k*(y2-y3); lpB[i]=y3 }
+    let best=-1, ap=1; const fl=acf(lpB,sr,gate*0.3,MINHZ,LPHZ*0.75); if(fl>0&&lastAp<AP){ best=fl; ap=lastAp }
+    hpB[0]=hpB[1]=0; for(let i=2;i<n;i++) hpB[i]=buf[i]-2*buf[i-1]+buf[i-2];
+    const fh=acf(hpB,sr,gate*0.05,HPHZ,4400); if(fh>0&&lastAp<Math.min(ap,AP)){ best=fh; ap=lastAp }
+    lastAp=ap; return best }
   // Routed source -> gain (sensitivity) -> analyser -> muted output: Safari/iOS only process nodes that reach the destination.
   // Talking never counts: a note must be clearly pitched (low aperiodicity, lastAp) and hold one steady pitch for 5+ frames
   // (~200 ms) without sliding. Speech glides between pitches and is breathier; clatter has no pitch at all.
@@ -747,7 +759,7 @@ input[type=range],input[type=checkbox],input[type=radio]{accent-color:var(--c-ac
   // older versions could learn a bad tuning from talking: start every device fresh once
   if(store.get("tuneV",0)!==2){ tuneOff=0; store.set("tuneOff",0); store.set("tuneV",2) }
   const micG=x=>0.25*Math.pow(48,(+x)/100);
-  const THR=0.015, AP=0.12, HOLDK=0.9, HOLDR=1.2; let thr=THR, lastAp=1;
+  const THR=0.015, AP=0.12, HOLDK=0.9, HOLDR=1.2, SHK=2.5, OCTG=1e9, LPHZ=700, HPHZ=900; let thr=THR, lastAp=1;
   function setThr(v){ thr=v; $("thr").style.left=Math.min(100,thr*600)+"%" }
   // Embedded pages (Notion and most sites) usually do not pass the microphone through to the app. Spot it before the tap where the browser can tell,
   // and always offer a one-tap way out: the same app in its own tab, opened in mic mode with this level and key.
@@ -811,9 +823,12 @@ input[type=range],input[type=checkbox],input[type=radio]{accent-color:var(--c-ac
     // swells back as its 2-3 strings beat (strongest in the upper treble) never climbs over its own earlier peak, so it never re-arms and never
     // answers the next question by itself.
     const hold=m.hold||0; m.hold=Math.max(rs,hold*HOLDK);
-    if(!m.armed&&now>m.cool&&Math.max(r,rs)>thr&&rs>1.8*Math.min(p1,p2)&&rs>HOLDR*hold){m.armed=true;m.armedAt=now;m.cand=[];m.res=[];m.raw=[];m.rawX=[];m.env=[]}
-    if(m.armed) m.env.push(r);
-    if(m.armed&&now-m.armedAt>=70){ const f=acf(m.buf,audio.sampleRate,gate);
+    if(!m.armed&&now>m.cool&&Math.max(r,rs)>thr&&rs>1.8*Math.min(p1,p2)&&rs>HOLDR*hold){m.armed=true;m.sharp=false;m.armedAt=now;m.cand=[];m.res=[];m.raw=[];m.rawX=[];m.env=[]}
+    if(m.armed){ m.env.push(r);
+      // a hammer hits: inside the frame the level leaps SHK x within ~10 ms. A voice (or a swelling string) ramps up over tens of ms.
+      if(!m.sharp){ const b=m.buf, H=256, nb=Math.floor(b.length/H)-1, a=new Float32Array(nb); let pk=0; for(let i=0;i<nb;i++){ let e=0; for(let j=i*H;j<i*H+2*H;j++) e+=b[j]*b[j]; a[i]=Math.sqrt(e); if(a[i]>pk) pk=a[i] }
+        for(let i=2;i<nb;i++) if(a[i]>=0.4*pk&&a[i]>SHK*a[i-2]){ m.sharp=true; break } } }
+    if(m.armed&&now-m.armedAt>=70){ const f=pitch(m.buf,audio.sampleRate,gate);
       // tuneOff = how sharp/flat this piano sits (semitones), learned from every confirmed note, so a home piano that's a bit off still reads exactly
       if(f>MINHZ*0.9&&f<4400&&lastAp<AP){ const x=69+12*Math.log2(f/440)-tuneOff, md=Math.round(x); m.raw.push(x-md); m.rawX=(m.rawX||[]); m.rawX.push(x); if(Math.abs(x-md)<=0.45){ m.cand.push(md); m.res.push(x-md) } }
       const cnt={}; let best=null, bc=0; for(const v of m.cand){cnt[v]=(cnt[v]||0)+1; if(cnt[v]>bc){bc=cnt[v];best=v}}
@@ -821,7 +836,7 @@ input[type=range],input[type=checkbox],input[type=radio]{accent-color:var(--c-ac
       // a struck string only fades after its peak; a voice swells and dips. Beating strings may lift the level a little between looks
       // (up to ~35%, seen on real upper-treble recordings, where the old 12% limit threw away good F5s) but never back above the peak.
       const ev=m.env, pk=Math.max(...ev), pi=ev.indexOf(pk), dec=ev.slice(pi).every((v,i,a)=>i===0||v<=a[i-1]*1.35)&&ev[ev.length-1]<=pk*0.97;
-      if(bc>=4&&bc>=0.8*m.cand.length&&steady&&dec){ const rs=m.res.filter((_,i)=>m.cand[i]===best).sort((a,b)=>a-b), med=rs[Math.floor(rs.length/2)]||0;
+      if(bc>=4&&bc>=0.8*m.cand.length&&steady&&dec&&m.sharp){ const rs=m.res.filter((_,i)=>m.cand[i]===best).sort((a,b)=>a-b), med=rs[Math.floor(rs.length/2)]||0;
         tuneOff=Math.max(-0.6,Math.min(0.6,tuneOff+0.5*med)); store.set("tuneOff",tuneOff);
         m.armed=false; m.cool=now+250; heardNote(best); answerHeard(best) }
       else if(now-m.armedAt>900){ m.armed=false;
