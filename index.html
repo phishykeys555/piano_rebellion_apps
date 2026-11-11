@@ -12,7 +12,7 @@ h1{font-family:var(--f-title);font-weight:700;font-size:32px;letter-spacing:-.01
 .sub{color:var(--c-mut);font-size:13px;margin:4px 0 16px}
 .apps{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:10px}
 .apps a{display:flex;align-items:center;gap:12px;text-decoration:none;color:var(--c-ink);background:var(--c-key);border:1px solid var(--c-key-b);border-radius:16px;box-shadow:0 3px 0 var(--c-key-sh);padding:13px 14px;transition:transform .05s,box-shadow .05s}
-.apps a:hover{border-color:var(--c-act)}
+@media (hover:hover){.apps a:hover{border-color:var(--c-act)}}
 .apps a:active{transform:translateY(2px);box-shadow:0 1px 0 var(--c-key-sh)}
 .apps a:focus-visible{outline:2px solid var(--c-sel);outline-offset:2px}
 .apps .txt{flex:1;min-width:0}
@@ -20,6 +20,9 @@ h1{font-family:var(--f-title);font-weight:700;font-size:32px;letter-spacing:-.01
 .apps span{display:block;color:var(--c-mut);font-size:13px;margin-top:2px}
 .apps i{flex:none;font:700 20px var(--f-num);font-style:normal;color:var(--c-act)}
 .appver{text-align:center;font:500 11px var(--f-num);color:var(--c-mut);opacity:.8;margin:18px 0 0}
+
+/* iPhone/iPad: no grey tap flash box over the rounded keys */
+button,a,label,summary,select,input{-webkit-tap-highlight-color:transparent}
 </style></head>
 <body><main>
 <div data-chma-head></div>
@@ -33,6 +36,6 @@ h1{font-family:var(--f-title);font-weight:700;font-size:32px;letter-spacing:-.01
 <li><a href="song-player/"><div class="txt"><b>Song Player</b><span>Slow any song down, change its key, loop a section. Load your own MP3.</span></div><i aria-hidden="true">›</i></a></li>
 <li><a href="hanon-player/"><div class="txt"><b>Hanon Speed Trainer</b><span>Hanon Exercises 1 and 2, 50 to 280 BPM, with level tempo goals.</span></div><i aria-hidden="true">›</i></a></li>
 </ul>
-<p class="appver">Music Games · Version 2026-11-11.4</p>
+<p class="appver">Music Games · Version 2026-11-11.5</p>
 </main>
 </body></html>

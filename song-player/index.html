@@ -72,6 +72,10 @@ select{font:600 13px var(--f-body);color:var(--c-ink);background:var(--c-key);bo
 .chips button{min-height:40px}select{min-height:40px}.nw{display:inline-flex;align-items:center;gap:6px;white-space:nowrap}
 #xbtn:disabled{opacity:.45;transform:none}
 button:focus-visible,.ghostbtn:focus-visible,select:focus-visible,input:focus-visible{outline:2px solid var(--c-sel);outline-offset:2px}
+
+/* iPhone/iPad: no grey tap flash box over the rounded keys */
+button,a,label,summary,select,input{-webkit-tap-highlight-color:transparent}
+@media (max-width:440px){.ctl{grid-template-columns:60px 40px 1fr 40px}}
 </style></head><body><main><div class="card">
 <div data-chma-head></div>
 <h1 id="title">Song Player</h1>
@@ -157,12 +161,14 @@ let wake=0;function start(){if(!ready)return;unlock();status('');clearTimeout(wa
 function stop(){if(!node)return;clearTimeout(wake);pos=now();node.schedule({active:false});playing=false;$('play').textContent='▶'}
 $('play').onclick=async()=>{if(!ready)return;if(playing)stop();else start()};
 function onLoop(){if($('ramp').checked){const mx=+$('rampMax').value,nv=Math.min(mx,+$('speed').value+ +$('rampStep').value);$('speed').value=nv;apply()}}
-function tick(){if(ready){const t=now();$('cur').textContent=fmt(t);$('seek').value=Math.round(1000*t/dur);
+let lastTxt='',lastVal=-1;function tick(){if(ready){const t=now(),tx=fmt(t),v=Math.round(1000*t/dur);if(tx!==lastTxt){$('cur').textContent=lastTxt=tx}if(v!==lastVal&&!scrub){$('seek').value=lastVal=v}
   if(playing){if(t+0.25<lastPos)onLoop(); // wrapped back to the loop start
    if(A!=null&&B!=null&&!$('loop').checked&&t>=B)stop();else if(t>=dur-0.15&&!$('loop').checked){stop();seek(0)}
    lastPos=t}}
  requestAnimationFrame(tick)}requestAnimationFrame(tick);
 $('seek').oninput=e=>{if(dur)seek(dur*e.target.value/1000)};
+// while a finger is on the position bar, playback doesn't fight the thumb
+let scrub=false;['pointerdown','touchstart'].forEach(ev=>$('seek').addEventListener(ev,()=>{scrub=true},{passive:true}));['pointerup','pointercancel','touchend','touchcancel','change'].forEach(ev=>$('seek').addEventListener(ev,()=>{scrub=false;lastVal=-1}));
 const nudge=(i,d)=>{const el=$(i);el.value=Math.max(+el.min,Math.min(+el.max,+el.value+d));apply()};
 ['speed','key','vol'].forEach(i=>$(i).oninput=apply);
 $('sdn').onclick=()=>nudge('speed',-5);$('sup').onclick=()=>nudge('speed',5);$('kdn').onclick=()=>nudge('key',-1);$('kup').onclick=()=>nudge('key',1);$('vdn').onclick=()=>nudge('vol',-10);$('vup').onclick=()=>nudge('vol',10);
@@ -240,5 +246,5 @@ $('xbtn').onclick=exportMp3;
 document.querySelector('.ghostbtn').addEventListener('click',()=>{try{unlock()}catch(e){}});
 document.querySelector('.ghostbtn').addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();e.stopPropagation();$('file').click()}});
 window.__sp={exp:exportMp3,ctx:()=>ctx,lastX:()=>lastX,level:()=>{if(!an)return 0;const b=new Float32Array(2048);an.getFloatTimeDomainData(b);let q=0;for(const v of b)q+=v*v;return Math.sqrt(q/2048)},solo:i=>{solo=i;sendGains()},state:()=>({ready,playing,pos:now(),dur,parts,gains:gains(),eng:engineGains()}),seek,start,stop};
-</script><p class="appver" style="text-align:center;font-size:11px;opacity:.6;margin:12px 0 8px;font-family:ui-monospace,Menlo,monospace">Song Player · Version 2026-11-11.6</p>
+</script><p class="appver" style="text-align:center;font-size:11px;opacity:.6;margin:12px 0 8px;font-family:ui-monospace,Menlo,monospace">Song Player · Version 2026-11-11.7</p>
 </body></html>

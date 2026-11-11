@@ -60,6 +60,9 @@ summary{line-height:1.5}
 select{min-height:40px}
 #keyN{white-space:nowrap}
 button:focus-visible,select:focus-visible,input:focus-visible,summary:focus-visible{outline:2px solid var(--c-sel);outline-offset:2px}
+
+/* iPhone/iPad: no grey tap flash box over the rounded keys */
+button,a,label,summary,select,input{-webkit-tap-highlight-color:transparent}
 </style></head><body><main><div class="card">
 <div data-chma-head></div>
 <h1>Major 7th Inversions · Circle of 5ths</h1>
@@ -125,10 +128,12 @@ async function toggle(){resume=false;unlock();if(!node||loadedT!==cur){$('play')
  if(playing)stop();else start()}
 $('play').onclick=toggle;
 function onLoop(){if($('ramp').checked){const mx=+$('rampMax').value,nv=Math.min(mx,+$('speed').value+ +$('rampStep').value);$('speed').value=nv;apply()}}
-function tick(){if(ready){const t=now();$('cur').textContent=fmt(t);$('seek').value=Math.round(1000*t/dur);
+let lastTxt='',lastVal=-1;function tick(){if(ready){const t=now(),tx=fmt(t),v=Math.round(1000*t/dur);if(tx!==lastTxt){$('cur').textContent=lastTxt=tx}if(v!==lastVal&&!scrub){$('seek').value=lastVal=v}
   if(playing){if(t+0.25<lastPos)onLoop();if(!$('loop').checked&&((A!=null&&B!=null&&t>=B)||t>=dur-0.15)){stop();if(t>=dur-0.15)seek(0)}lastPos=t}}
  requestAnimationFrame(tick)}requestAnimationFrame(tick);
 $('seek').oninput=e=>{if(dur)seek(dur*e.target.value/1000)};
+// while a finger is on the position bar, playback doesn't fight the thumb
+let scrub=false;['pointerdown','touchstart'].forEach(ev=>$('seek').addEventListener(ev,()=>{scrub=true},{passive:true}));['pointerup','pointercancel','touchend','touchcancel','change'].forEach(ev=>$('seek').addEventListener(ev,()=>{scrub=false;lastVal=-1}));
 const nudge=(id,d)=>{const el=$(id);el.value=Math.max(+el.min,Math.min(+el.max,+el.value+d));apply()};
 ['speed','key','vol'].forEach(id=>$(id).oninput=apply);
 $('sdn').onclick=()=>nudge('speed',-5);$('sup').onclick=()=>nudge('speed',5);$('kdn').onclick=()=>nudge('key',-1);$('kup').onclick=()=>nudge('key',1);$('vdn').onclick=()=>nudge('vol',-10);$('vup').onclick=()=>nudge('vol',10);
@@ -144,5 +149,5 @@ document.addEventListener('visibilitychange',()=>{if(!document.hidden&&playing&&
 const sv=LS.get();if(sv.s)$('speed').value=sv.s;if(sv.k)$('key').value=sv.k;if(sv.v)$('vol').value=sv.v;if(sv.l===false)$('loop').checked=false;
 pick(sv.t>=0&&sv.t<3?sv.t:0);
 window.__m7={state:()=>({ready,playing,pos:now(),dur,cur}),ctx:()=>ctx};
-</script><p class="appver" style="text-align:center;font-size:11px;opacity:.6;margin:18px 0 10px;font-family:ui-monospace,Menlo,monospace">Major 7th Play-Along · Version 2026-11-11.3</p>
+</script><p class="appver" style="text-align:center;font-size:11px;opacity:.6;margin:18px 0 10px;font-family:ui-monospace,Menlo,monospace">Major 7th Play-Along · Version 2026-11-11.4</p>
 </body></html>
