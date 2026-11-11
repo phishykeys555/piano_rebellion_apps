@@ -314,7 +314,7 @@ input[type=range],input[type=checkbox],input[type=radio]{accent-color:var(--c-ac
       <button class="primary" id="startTimed">Start 60-second sprint</button>
     </div>
     <p class="tip" id="kbTip">Keyboard: A–G to answer. In a key with sharps or flats, tap ♯ or ♭ first (or press = / −). Piano keys must be the exact key, right octave.</p>
-    <p class="tip" id="appVer"><span class="appver">Note Sprint · Version 2026-11-11.5</span></p>
+    <p class="tip" id="appVer"><span class="appver">Note Sprint · Version 2026-11-11.6</span></p>
 
     <div class="arcsplash" id="arcSplash" hidden><div class="boom"></div><div id="arcPcs"></div><div class="pre" id="arcSplashP"></div><b id="arcSplashT">ROUND 2</b><span id="arcSplashS"></span></div><div class="hitstamp" id="hitStamp">TARGET HIT!</div>
     <div class="results" id="results" hidden>
@@ -409,10 +409,10 @@ input[type=range],input[type=checkbox],input[type=radio]{accent-color:var(--c-ac
   const keyName=k=>(KEYS.find(x=>x[1]===k)||["C"])[0];
   let q=null, idx=0, acc="", locked=false, timer=null, timeLeft=0, sprintOver=false, audio=null, level=String(QS.get("level")||store.get("level","1"));
   if(!LEVELS.some(L=>L.id===level)) level=String(store.get("level","1")); if(!LEVELS.some(L=>L.id===level)) level="1";   // old or broken saved data never strands the app
-  let arc=null, lastMode="sprint", timeMax=60;   // challenge mode state
+  let arc=null, lastMode="sprint", timeMax=60, qTok=0;   // challenge mode state
 
   // ---------- settings ----------
-  function setRadio(name,val){const el=document.querySelector(`input[name=${name}][value="${val}"]`); if(el) el.checked=true}
+  function setRadio(name,val){const el=[...document.querySelectorAll(`input[name=${name}]`)].find(x=>x.value===val); if(el) el.checked=true}   // saved values are matched, never pasted into a selector
   function readSettings(){return{
     staffMode:document.querySelector('input[name=staffMode]:checked').value,
     b:{treble:[+$("tLo").value,+$("tHi").value],bass:[+$("bLo").value,+$("bHi").value]}, lm:$("lmSel").value, ls:$("lsSel").value,
@@ -420,7 +420,7 @@ input[type=range],input[type=checkbox],input[type=radio]{accent-color:var(--c-ac
     mode:document.querySelector('input[name=mode]:checked').value}}
   const okB=b=>!!b&&["treble","bass"].every(c=>Array.isArray(b[c])&&b[c].length===2&&b[c].every(v=>Number.isInteger(v)&&v>=PMIN&&v<=PMAX));
   const pick=(id,v)=>{ $(id).value=[...$(id).options].some(o=>o.value===v)?v:"all" };
-  function applySettings(s){ if(!s||typeof s!=="object") s={}; setRadio("staffMode",s.staffMode); setBounds(okB(s.b)?s.b:{treble:rb(s.range??1),bass:rb(s.range??1)}); pick("lmSel",s.lm); pick("lsSel",s.ls); lmUi();
+  function applySettings(s){ if(!s||typeof s!=="object") s={}; setRadio("staffMode",s.staffMode); const r=Number.isInteger(s.range)&&s.range>=0&&s.range<=6?s.range:1; setBounds(okB(s.b)?s.b:{treble:rb(r),bass:rb(r)}); pick("lmSel",s.lm); pick("lsSel",s.ls); lmUi();
     $("accOn").checked=!!s.acc;$("ivOn").checked=!!s.iv}
   // ---------- note range + landmarks ----------
   // p = staff steps above the bottom line; ledger line k below = -2k, above = 8+2k. Pickers run to 6 ledger lines each way.
@@ -462,7 +462,7 @@ input[type=range],input[type=checkbox],input[type=radio]{accent-color:var(--c-ac
   document.querySelectorAll('.settings input').forEach(el=>el.addEventListener("change",()=>{
     const s=readSettings(); store.set("sound",s.sound); store.set("mode",s.mode);
     if(el.id==="retryOn"){store.set("retry",el.checked); return}
-    if(el.id==="chalOn"){store.set("chal",el.checked); if(!el.checked&&arc) stopTimer(); $("arcBtn").hidden=!el.checked; return}
+    if(el.id==="chalOn"){store.set("chal",el.checked); $("arcBtn").hidden=!el.checked; if(!el.checked&&arc){ stopTimer(); newQuestion(true) } return}   // never left locked behind a stopped splash
     if(el.name!=="mode"&&el.id!=="soundOn") saveCustom()
     layout(); newQuestion(true)}));
 
@@ -542,7 +542,7 @@ input[type=range],input[type=checkbox],input[type=radio]{accent-color:var(--c-ac
     return{clef,p,letter,octave,acc:a,print:pr};
   }
   function newQuestion(fresh){
-    const s=readSettings(), prev=fresh?null:q; locked=false; idx=0; setAcc("");
+    const s=readSettings(), prev=fresh?null:q; qTok++; locked=!$("arcSplash").hidden; idx=0; setAcc("");   // a challenge splash keeps the new note locked until the round starts
     const ks=keySetting(), key=ks==="mix"?KEYS[Math.floor(Math.random()*KEYS.length)][1]:+ks;
     if(s.iv){ const clef=s.staffMode==="treble"||s.staffMode==="bass"?s.staffMode:(Math.random()<.5?"treble":"bass");
       const [lo,hi]=bounds(s,clef); let num, lp, t=0; const fit=ivSet.filter(k=>k-1<=hi-lo), pool=fit.length?fit:[Math.min(...ivSet)];
@@ -675,7 +675,7 @@ input[type=range],input[type=checkbox],input[type=radio]{accent-color:var(--c-ac
     if(ok) setPrompt("good",`✓ Right${retried?" on try 2 · +½":""} · ${IVN[q.num]}`,`${nm(lo)} up to ${nm(hi)}.`);
     else setPrompt("bad","✗ Not quite",`You said ${IVN[k]}. This is a${q.num===8?"n":""} ${IVN[q.num].toLowerCase()}: ${nm(lo)} up to ${nm(hi)}. Count every line and space, starting with the bottom note as 1. ${rule}`);
     draw(); play([midiOf(lo),midiOf(hi)]); render();
-    setTimeout(()=>{ if(!sprintOver&&$("arcSplash").hidden) newQuestion() }, ok?(arc?400:700):(arc?1500:3200)) }
+    const tk=qTok; setTimeout(()=>{ if(tk===qTok&&!sprintOver&&$("arcSplash").hidden) newQuestion() }, ok?(arc?400:700):(arc?1500:3200)) }
 
   // ---------- one retry per note ----------
   // after a first miss the student just answers again (worth ½); "Show me" gives up (0 points). Off in settings = one try only.
@@ -706,7 +706,7 @@ input[type=range],input[type=checkbox],input[type=radio]{accent-color:var(--c-ac
     else if(q.marks[idx]==="bad") setPrompt("bad","✗ Not quite",coachMsg(last,given));
     else setPrompt("bad",`✓ Bottom right · ${nm(last)}`,`Top note was ${nm(q.notes[0])}, ${where(q.notes[0])}.`);
     draw(); play(q.notes.map(midiOf)); render();
-    setTimeout(()=>{ if(!sprintOver&&$("arcSplash").hidden) newQuestion() }, allOk?(arc?400:700):(arc?1300:2600));   // never unlock a note behind a round splash (the clock is stopped there)
+    const tk=qTok; setTimeout(()=>{ if(tk===qTok&&!sprintOver&&$("arcSplash").hidden) newQuestion() }, allOk?(arc?400:700):(arc?1300:2600));   // qTok: a note the student already left (Start, Reset, new level) never gets skipped by a stale timer   // never unlock a note behind a round splash (the clock is stopped there)
   }
   function answerLetter(L){ if(!q||locked||q.wait)return; const n=q.notes[idx];
     grade(L===n.letter&&acc===n.acc,{letter:L,acc,label:L+(acc==="#"?"♯":acc==="b"?"♭":"")}) }
@@ -766,6 +766,7 @@ input[type=range],input[type=checkbox],input[type=radio]{accent-color:var(--c-ac
       catch(e){ if(deviceId&&e&&/Overconstrained|NotFound/.test(e.name)) stream=await navigator.mediaDevices.getUserMedia({audio:{echoCancellation:false,noiseSuppression:false,autoGainControl:false}}); else throw e }   // that mic was unplugged: use the default one
     clearTimeout(slow); if(my!==micTry||$("micPad").hidden){ stream.getTracks().forEach(t=>t.stop()); if(my===micTry) fail("Play the note on your piano. One note at a time, the right octave."); return }   // a newer tap or a mode change won
     await Promise.race([resumed,new Promise(r=>setTimeout(r,1500))]);
+    if(my!==micTry||$("micPad").hidden){ stream.getTracks().forEach(t=>t.stop()); if(my===micTry) fail("Play the note on your piano. One note at a time, the right octave."); return }   // mode changed while the audio woke up: never leave a hidden mic listening
     const src=audio.createMediaStreamSource(stream), g=audio.createGain(), an=audio.createAnalyser(), mute=audio.createGain();
     g.gain.value=micG($("micGain").value); an.fftSize=4096; mute.gain.value=0; src.connect(g); g.connect(an); an.connect(mute); mute.connect(audio.destination);
     mic={stream,g,an,src,mute,buf:new Float32Array(an.fftSize),hist:[],armed:false,armedAt:0,cand:[],cool:0};
@@ -931,7 +932,7 @@ input[type=range],input[type=checkbox],input[type=radio]{accent-color:var(--c-ac
     if(k.length===1&&LET.includes(k)&&readSettings().mode==="letters"){e.preventDefault();answerLetter(k)}
   });
 
-  selectLevel(level,true); if(level==="C"){const c=store.get("custom",null); if(c) applySettings(c)}
+  selectLevel(level,true); if(level==="C") applySettings(store.get("custom",null)||{});   // Custom with nothing saved (new tab, private mode, a full-screen link from an embed) starts from a normal range, never one stray note
   layout(); render(); newQuestion(true);
   window.__ns={note:()=>q&&!locked?q.notes[idx]:null};   // test hook
   if(document.fonts){ const redraw=()=>{ for(const k in GM) delete GM[k]; q&&draw() };
