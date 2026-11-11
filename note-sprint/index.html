@@ -4,6 +4,8 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>Note Sprint</title><meta name="description" content="60-second note-reading sprints. Tap the answer or play your real piano and the app listens."><meta property="og:type" content="website"><meta property="og:site_name" content="Clarendon Hills Music Academy"><meta property="og:title" content="Note Sprint · Clarendon Hills Music Academy"><meta property="og:description" content="60-second note-reading sprints. Tap the answer or play your real piano and the app listens."><meta property="og:url" content="https://phishykeys555.github.io/piano_rebellion_apps/note-sprint/"><meta property="og:image" content="https://phishykeys555.github.io/piano_rebellion_apps/share/note-sprint.png"><meta property="og:image:width" content="1200"><meta property="og:image:height" content="630"><meta property="og:image:alt" content="Note Sprint · Clarendon Hills Music Academy"><meta name="twitter:card" content="summary_large_image"><meta name="twitter:title" content="Note Sprint · Clarendon Hills Music Academy"><meta name="twitter:description" content="60-second note-reading sprints. Tap the answer or play your real piano and the app listens."><meta name="twitter:image" content="https://phishykeys555.github.io/piano_rebellion_apps/share/note-sprint.png">
+<link rel="stylesheet" href="../shared/chma.css">
+<script src="../shared/brand.js"></script>
 
 </head>
 <body>
@@ -179,12 +181,56 @@ summary{cursor:pointer;padding:12px 16px;font-weight:600}
 .namefield input{font:inherit;padding:8px 10px;border-radius:8px;border:1px solid var(--border);background:var(--panel);color:var(--ink);flex:1;min-width:0}
 @media (max-width:440px){ .settings{grid-template-columns:1fr} .letters button{font-size:18px;padding:12px 0} .stat b{font-size:17px} .levels{grid-template-columns:repeat(3,1fr)} .big{font-size:52px} }
 @media (prefers-reduced-motion:reduce){ *{transition:none!important} }
+/* ---- CHMA design system (Studio Gear dark / Pocket Synth light) ---- */
+:root:root:root{--bg:var(--c-page);--panel:var(--c-key);--ink:var(--c-ink);--muted:var(--c-mut);--accent:var(--c-sel);--accent-ink:var(--c-sel-ink);
+  --accent-soft:color-mix(in srgb,var(--c-sel) 16%,transparent);--good:var(--c-ok);--bad:var(--c-bad);--border:var(--c-key-b);
+  --display:var(--f-body);--body:var(--f-body);--mono:var(--f-num)}
+body{margin:0;background:var(--c-page);font-family:var(--f-body)}
+.wrap{background:var(--c-panel);border-radius:var(--r-card);box-shadow:var(--shadow-card);padding:0 16px 18px;overflow:hidden}
+.chma-headwrap{margin:0 -16px}
+h1{font-family:var(--f-title);font-weight:700;font-size:30px;letter-spacing:-.01em} h1 em{color:var(--c-act)}
+@media (max-width:440px){.card{padding:14px 12px}.stats{padding:10px}.stat span{letter-spacing:.05em}.ivans button{font-size:15px}}
+button{background:var(--c-key);border-color:var(--c-key-b);box-shadow:0 3px 0 var(--c-key-sh);transition:transform .05s,box-shadow .05s}
+button:active,.letters button:active{transform:translateY(2px);box-shadow:0 1px 0 var(--c-key-sh)}
+.lvl[aria-pressed="true"],.seg button[aria-pressed="true"],.chip[aria-pressed="true"]{background:var(--c-sel);border-color:var(--c-sel);color:var(--c-sel-ink)}
+.lvl[aria-pressed="true"] span{color:var(--c-sel-ink)}
+.lmchips button[aria-pressed="true"],.ivfocus button[aria-pressed="true"]{background:var(--c-sel);border-color:var(--c-sel);color:var(--c-sel-ink)}
+.primary{background:var(--c-act);border-color:var(--c-act);color:var(--c-act-ink);box-shadow:0 3px 0 var(--c-act-sh)}
+.primary:active{box-shadow:0 1px 0 var(--c-act-sh)}
+.card{background:var(--c-panel2);border-color:var(--c-line);border-radius:18px}
+.stats{background:var(--c-lcd);border:1px solid var(--c-lcd-b);border-radius:14px;box-shadow:inset 0 2px 8px rgba(0,0,0,.55);padding:10px 12px}
+.stat b{color:var(--c-led);text-shadow:var(--c-led-glow)} .stat span{color:#9aa3b2}
+.staffbox{border:1px solid var(--c-line)}
+.piano button,.piano button:active{box-shadow:none;transform:none}
+.piano .w{background:var(--key-w)} .piano .b{background:var(--key-b)}
+.piano .w.mc{color:var(--c-sel)}
+.watch .ring{stroke:var(--c-act)} .watch .ring-bg{stroke:var(--c-line)}
+.arcmeter,.timerbar,.meter{background:var(--c-lcd)}
+.arcmeter i,.timerbar i{background:var(--c-act)}
+.arcbar .pill{background:var(--c-lcd);border-color:var(--c-lcd-b);color:var(--c-led);text-shadow:var(--c-led-glow)}
+.arcbar .need.met{background:var(--c-ok);border-color:var(--c-ok);color:#fff;text-shadow:none}
+.arcbar .fire{color:#ff8a1f;border-color:#ff8a1f}
+details{background:var(--c-panel2);border-color:var(--c-line)}
+summary{font-family:var(--f-title)}
+.settings legend,.keyrow label{font-weight:700;letter-spacing:.16em;font-size:10.5px}
+.results{background:var(--c-panel2)}
+.results h2,.arcsplash b{font-family:var(--f-title);font-weight:700}
+.arcsplash{background:radial-gradient(circle at 50% 45%,color-mix(in srgb,var(--c-act) 28%,var(--c-panel2)) 0%,var(--c-panel2) 70%)}
+.arcsplash .boom{border-color:var(--c-act)}
+.rgrid div{background:var(--c-lcd)} .rgrid b{color:var(--c-led);text-shadow:var(--c-led-glow)} .rgrid span{color:#9aa3b2}
+.big{color:var(--c-led);text-shadow:var(--c-led-glow);background:var(--c-lcd);border:1px solid var(--c-lcd-b);border-radius:14px;box-shadow:inset 0 2px 8px rgba(0,0,0,.55);padding:14px 16px}
+.big small{color:#9aa3b2;text-shadow:none}
+.heard.msg{border-color:var(--c-line)}
+.micctl select,.keyrow select,.namefield input,.rng select,#lmSel,#lsSel{background:var(--c-key);border:1px solid var(--c-key-b);color:var(--c-ink)}
+.rng select option,#lmSel option,#lsSel option,.keyrow select option,.micctl select option{color:var(--c-ink);background:var(--c-panel)}
+input[type=range],input[type=checkbox],input[type=radio]{accent-color:var(--c-act)}
+.rotate{color:var(--c-act)}
 </style>
 
 <div class="wrap">
+  <div data-chma-head></div>
   <header>
     <h1>Note <em>Sprint</em></h1>
-    <p class="byline">By <a href="https://clarendonhillsmusicacademy.com/" target="_blank" rel="noopener" style="color:inherit;text-decoration:underline">Clarendon Hills Music Academy</a></p>
     <p class="sub">Name the note. Say it out loud as you tap.</p>
   </header>
 
@@ -244,7 +290,7 @@ summary{cursor:pointer;padding:12px 16px;font-weight:600}
       <button class="primary" id="startTimed">Start 60-second sprint</button>
     </div>
     <p class="tip">Keyboard: A–G to answer. In a key with sharps or flats, tap ♯ or ♭ first (or press = / −). Piano keys must be the exact key, right octave.</p>
-    <p class="tip" id="appVer">Version 2026-11-10.3 · fresh target each round · full keyboard · YIN mic</p>
+    <p class="tip" id="appVer"><span class="appver">Version 2026-11-11.1</span> · fresh target each round · full keyboard · YIN mic</p>
 
     <div class="arcsplash" id="arcSplash" hidden><div class="boom"></div><div id="arcPcs"></div><div class="pre" id="arcSplashP"></div><b id="arcSplashT">ROUND 2</b><span id="arcSplashS"></span></div><div class="hitstamp" id="hitStamp">TARGET HIT!</div>
     <div class="results" id="results" hidden>

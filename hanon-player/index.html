@@ -2,6 +2,8 @@
 <html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Hanon Speed Trainer · Clarendon Hills Music Academy</title>
 <meta name="description" content="Hanon Exercises 1 and 2 practice tracks, 50 to 280 BPM, with age-level tempo goals. Switch tempo without losing your place.">
+<link rel="stylesheet" href="../shared/chma.css">
+<script src="../shared/brand.js"></script>
 <style>
 :root{--bg:#191919;--card:#232323;--line:#3a3a3a;--text:#f0efed;--mut:#a5a29c;--acc:#ff5a3c;--acc2:#ffb020;--ok:#4cc38a;
  --l1:#4cc38a;--l2:#4a9eff;--l3:#b18cff;--l4:#ff9a3c;--l5:#ff5a6a}
@@ -35,9 +37,38 @@ button.on{border-color:var(--acc);background:color-mix(in srgb,var(--acc) 16%,tr
 .tip{font-size:13px;color:var(--mut);margin:0}
 .msg{font-size:13px;color:var(--acc2);min-height:18px;text-align:center}
 .appver{text-align:center;font-size:11px;opacity:.6;margin:18px 0 10px;font-family:ui-monospace,Menlo,monospace}
+/* ---- CHMA design system (Studio Gear dark / Pocket Synth light) ---- */
+:root:root:root{--bg:var(--c-page);--card:var(--c-panel2);--line:var(--c-key-b);--text:var(--c-ink);--mut:var(--c-mut);--acc:var(--c-act);--acc2:var(--c-warn);--ok:var(--c-ok)}
+body{background:var(--c-page);font-family:var(--f-body);-webkit-font-smoothing:antialiased;padding:14px 12px}
+main{background:var(--c-panel);border-radius:var(--r-card);box-shadow:var(--shadow-card);padding:0 16px 6px;overflow:hidden}
+.chma-headwrap{margin:0 -16px 12px}
+h1{font-family:var(--f-title);font-weight:700;font-size:23px;line-height:1.15;letter-spacing:-.01em;margin:0 0 14px}
+.card{background:var(--c-panel2);border:1px solid var(--c-line);border-radius:18px}
+button{font:600 14px var(--f-body);color:var(--c-ink);background:var(--c-key);border:1px solid var(--c-key-b);border-radius:var(--r-key);box-shadow:0 3px 0 var(--c-key-sh);transition:transform .05s,box-shadow .05s}
+button:active{transform:translateY(2px);box-shadow:0 1px 0 var(--c-key-sh)}
+button:disabled{opacity:.45;transform:none}
+button.on{background:var(--c-sel);border-color:var(--c-sel);color:var(--c-sel-ink)}
+button.on small{color:var(--c-sel-ink);opacity:.85}
+.lbl{font:700 10.5px var(--f-body);letter-spacing:.16em;text-transform:uppercase;color:var(--c-mut);margin:0 0 8px}
+.big{gap:12px;margin:6px 0 12px}
+.big button{font-size:26px;box-shadow:0 4px 0 var(--c-key-sh)}
+.bpm{background:var(--c-lcd);border:1px solid var(--c-lcd-b);border-radius:14px;box-shadow:inset 0 2px 8px rgba(0,0,0,.55);padding:8px 16px 6px;min-width:150px}
+.bpm b{font:700 44px var(--f-num);color:var(--c-led);text-shadow:var(--c-led-glow)}
+.bpm span{color:#9aa3b2;font-weight:700;font-size:10.5px;letter-spacing:.16em;margin-top:2px}
+.play{background:var(--c-act);border-color:var(--c-act);color:var(--c-act-ink);box-shadow:0 4px 0 var(--c-act-sh);font-family:var(--f-title);font-weight:700;font-size:20px;letter-spacing:.02em}
+.play:active{box-shadow:0 2px 0 var(--c-act-sh)}
+.bar .tr{background:var(--c-lcd);height:8px;top:10px;border-radius:4px}
+.bar .fill{top:10px;height:8px;border-radius:4px}
+.bar .knob{background:var(--c-key);border:2px solid var(--c-act);box-shadow:0 2px 0 var(--c-key-sh)}
+.times{font:500 12px var(--f-num)}
+.grid button{font-family:var(--f-num);font-weight:700;font-size:13px}
+.goal{color:var(--c-ink)}
+.goal button{padding:0 10px;font-size:13px}
+.tip{color:var(--c-mut)}
+.appver{color:var(--c-mut)}
 </style></head><body><main>
+<div data-chma-head></div>
 <h1 id="ttl">Hanon Speed Trainer</h1>
-<p class="by">By <a href="https://clarendonhillsmusicacademy.com/" target="_blank" rel="noopener">Clarendon Hills Music Academy</a></p>
 
 <div class="card">
  <div class="seg" id="exSeg"><button data-ex="1">Exercise 1</button><button data-ex="2">Exercise 2</button></div>
@@ -63,7 +94,7 @@ button.on{border-color:var(--acc);background:color-mix(in srgb,var(--acc) 16%,tr
  <p class="tip" style="margin-top:10px">Start at a tempo you can play clean. Switching tempo keeps your place in the exercise. Light touch = faster.</p>
 </div>
 
-<p class="appver">Hanon Speed Trainer · Version 2026-11-11.1</p>
+<p class="appver">Hanon Speed Trainer · Version 2026-11-11.2</p>
 </main>
 <script>
 const $=id=>document.getElementById(id);
