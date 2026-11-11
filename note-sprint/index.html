@@ -242,6 +242,11 @@ summary{font-family:var(--f-title)}
 .micctl select,.keyrow select,.namefield input,.rng select,#lmSel,#lsSel{background:var(--c-key);border:1px solid var(--c-key-b);color:var(--c-ink)}
 .rng select option,#lmSel option,#lsSel option,.keyrow select option,.micctl select option{color:var(--c-ink);background:var(--c-panel)}
 input[type=range],input[type=checkbox],input[type=radio]{accent-color:var(--c-act)}
+/* phones: interval answers in two even rows of three; settings pickers and chips at finger size */
+@media (max-width:440px){.ivans{grid-template-columns:repeat(3,minmax(0,1fr))}.ivans button{font-size:17px}}
+/* "Notes to drill" / "Show notes on": the picker drops under its label on a narrow card instead of running off the edge */
+.settings label.selrow{flex-wrap:wrap} #lmSel,#lsSel{flex:1 1 170px;min-width:0}
+@media (pointer:coarse){.rng select,#lmSel,#lsSel,.keyrow select{min-height:40px}.rngq button,.lmchips button,.ivfocus button{min-height:40px}}
 .rotate{color:var(--c-act)}
 </style>
 
@@ -308,8 +313,8 @@ input[type=range],input[type=checkbox],input[type=radio]{accent-color:var(--c-ac
       <button class="ghost" id="arcBtn" title="Challenge mode: one try per note, no second chances" hidden>Challenge mode</button>
       <button class="primary" id="startTimed">Start 60-second sprint</button>
     </div>
-    <p class="tip">Keyboard: A–G to answer. In a key with sharps or flats, tap ♯ or ♭ first (or press = / −). Piano keys must be the exact key, right octave.</p>
-    <p class="tip" id="appVer"><span class="appver">Note Sprint · Version 2026-11-11.4</span></p>
+    <p class="tip" id="kbTip">Keyboard: A–G to answer. In a key with sharps or flats, tap ♯ or ♭ first (or press = / −). Piano keys must be the exact key, right octave.</p>
+    <p class="tip" id="appVer"><span class="appver">Note Sprint · Version 2026-11-11.5</span></p>
 
     <div class="arcsplash" id="arcSplash" hidden><div class="boom"></div><div id="arcPcs"></div><div class="pre" id="arcSplashP"></div><b id="arcSplashT">ROUND 2</b><span id="arcSplashS"></span></div><div class="hitstamp" id="hitStamp">TARGET HIT!</div>
     <div class="results" id="results" hidden>
@@ -347,7 +352,7 @@ input[type=range],input[type=checkbox],input[type=radio]{accent-color:var(--c-ac
         <div class="rngq"><span>Ledger lines, both clefs:</span><button data-r="0">0</button><button data-r="1">1</button><button data-r="2">2</button><button data-r="3">3</button><button data-r="4">4</button><button data-r="5">5</button></div>
       </fieldset>
       <fieldset><legend>Landmark notes</legend>
-        <label>Notes to drill <select id="lmSel">
+        <label class="selrow">Notes to drill <select id="lmSel">
           <option value="all">Every note in my range</option>
           <option value="lm">Landmark notes only</option>
           <option value="step">Landmarks + one step away</option>
@@ -355,7 +360,7 @@ input[type=range],input[type=checkbox],input[type=radio]{accent-color:var(--c-ac
         <div class="lmchips" id="lmChips"></div>
       </fieldset>
       <fieldset><legend>Lines or spaces</legend>
-        <label>Show notes on <select id="lsSel">
+        <label class="selrow">Show notes on <select id="lsSel">
           <option value="all">Lines and spaces</option>
           <option value="lines">Lines only</option>
           <option value="spaces">Spaces only</option></select></label>
@@ -488,6 +493,8 @@ input[type=range],input[type=checkbox],input[type=radio]{accent-color:var(--c-ac
     document.querySelector(".wrap").classList.toggle("wide",s.mode==="piano");
     if(s.iv){ $("letterPad").hidden=true; $("pianoPad").hidden=true; $("micPad").hidden=true; micStop(); $("ivPad").hidden=false; $("seg").style.display="none"; document.querySelector(".wrap").classList.remove("wide") }
     else { $("ivPad").hidden=true; $("seg").style.display=""; if(s.mode==="piano") buildPiano(s) }
+    // the tip matches what is on screen: intervals answer with 3–8, piano and mic need the exact key
+    $("kbTip").textContent=s.iv?"Keyboard: press 3–8 to answer (8 = octave). Count every line and space, bottom note = 1.":s.mode==="letters"?"Keyboard: A–G to answer. In a key with sharps or flats, tap ♯ or ♭ first (or press = / −).":s.mode==="piano"?"Tap the exact key, right octave. Middle C is marked.":"Play the exact key on your piano, right octave.";
     const lowD=Math.min(...["treble","bass"].flatMap(c=>cands(s,c).map(p=>BASE[c]+p))), lowM=12*(Math.floor(lowD/7)+1)+PC[LET[lowD%7]]-1;
     MINHZ=Math.min(45,440*Math.pow(2,(lowM-69)/12)*0.95) }
   // keyboard covers exactly the register the staff can show, padded one key each side
@@ -668,7 +675,7 @@ input[type=range],input[type=checkbox],input[type=radio]{accent-color:var(--c-ac
     if(ok) setPrompt("good",`✓ Right${retried?" on try 2 · +½":""} · ${IVN[q.num]}`,`${nm(lo)} up to ${nm(hi)}.`);
     else setPrompt("bad","✗ Not quite",`You said ${IVN[k]}. This is a${q.num===8?"n":""} ${IVN[q.num].toLowerCase()}: ${nm(lo)} up to ${nm(hi)}. Count every line and space, starting with the bottom note as 1. ${rule}`);
     draw(); play([midiOf(lo),midiOf(hi)]); render();
-    setTimeout(()=>{ if(!sprintOver) newQuestion() }, ok?(arc?400:700):(arc?1500:3200)) }
+    setTimeout(()=>{ if(!sprintOver&&$("arcSplash").hidden) newQuestion() }, ok?(arc?400:700):(arc?1500:3200)) }
 
   // ---------- one retry per note ----------
   // after a first miss the student just answers again (worth ½); "Show me" gives up (0 points). Off in settings = one try only.
@@ -699,7 +706,7 @@ input[type=range],input[type=checkbox],input[type=radio]{accent-color:var(--c-ac
     else if(q.marks[idx]==="bad") setPrompt("bad","✗ Not quite",coachMsg(last,given));
     else setPrompt("bad",`✓ Bottom right · ${nm(last)}`,`Top note was ${nm(q.notes[0])}, ${where(q.notes[0])}.`);
     draw(); play(q.notes.map(midiOf)); render();
-    setTimeout(()=>{ if(!sprintOver) newQuestion() }, allOk?(arc?400:700):(arc?1300:2600));
+    setTimeout(()=>{ if(!sprintOver&&$("arcSplash").hidden) newQuestion() }, allOk?(arc?400:700):(arc?1300:2600));   // never unlock a note behind a round splash (the clock is stopped there)
   }
   function answerLetter(L){ if(!q||locked||q.wait)return; const n=q.notes[idx];
     grade(L===n.letter&&acc===n.acc,{letter:L,acc,label:L+(acc==="#"?"♯":acc==="b"?"♭":"")}) }
@@ -873,15 +880,15 @@ input[type=range],input[type=checkbox],input[type=radio]{accent-color:var(--c-ac
   function arcSplash(t,sub,ms,then,pre){ $("arcSplashT").textContent=t; $("arcSplashS").textContent=sub; $("arcSplashP").textContent=pre||""; const sp=$("arcSplash"); sp.hidden=false; locked=true; $("card")&&$("card").classList.remove("met");
     const pcs=$("arcPcs"); pcs.innerHTML=""; const cols=["var(--accent)","var(--good)","#ff8a1f","#ffd23f"]; for(let i=0;i<22;i++){const a=Math.random()*Math.PI*2,d=110+Math.random()*170,e=document.createElement("i");e.className="pc";e.style.cssText=`background:${cols[i%4]};--dx:${Math.cos(a)*d}px;--dy:${Math.sin(a)*d}px;--r:${Math.random()*720-360}deg`;pcs.appendChild(e)}
     sp.classList.remove("go"); void sp.offsetWidth; sp.classList.add("go"); whoosh();
-    setTimeout(()=>{ $("arcSplash").hidden=true; if(arc) then() },ms) }
-  let arcRetryRound=0, arcIncSaved=null;
+    const tok=++splashTok; setTimeout(()=>{ if(tok!==splashTok) return; $("arcSplash").hidden=true; if(arc) then() },ms) }   // a stopped or restarted challenge never wakes an old splash
+  let arcRetryRound=0, arcIncSaved=null, splashTok=0;
   function arcRetry(){ const r=arcRetryRound||1; if(r<2||!arcIncSaved) return arcStart(); resetScore(); lastMode="arcade"; sheet(false); arc={round:r,bonus:false,warm:false,inc:arcIncSaved.slice(),needs:[],start:0}; arc.needs[r-1]=arc.inc[r-1];
     $("arcbar").hidden=false; $("arcMeter").hidden=false; $("startTimed").textContent="Stop"; $("arcBtn").hidden=true; render();
     arcSplash(`ROUND ${r}`,`Target this round: ${half(arc.inc[r-1])} points.`,2000,arcRound) }
   function arcStart(){ resetScore(); lastMode="arcade"; sheet(false); arc={round:1,bonus:false,warm:true,needs:[]};
     $("arcbar").hidden=false; $("arcMeter").hidden=false; $("startTimed").textContent="Stop"; $("arcBtn").hidden=true;
     arcSplash("ROUND 1","Warm-up: score as many as you can in 30 seconds. Your score sets your targets. One try per note, no second chances. Last 10 seconds = 2x points.",2600,arcRound,"CHALLENGE MODE") }
-  function arcRound(){ timeMax=ARC_T; timeLeft=ARC_T; $("clockrow").hidden=false; showClock(); arcBar(); newQuestion(true);
+  function arcRound(){ clearInterval(timer); timeMax=ARC_T; timeLeft=ARC_T; $("clockrow").hidden=false; showClock(); arcBar(); newQuestion(true);
     timer=setInterval(()=>{ timeLeft--; showClock(); arcBar(); if(timeLeft<=0) arcRoundEnd() },1000) }
   function arcRoundEnd(){ clearInterval(timer); timer=null; locked=true;
     if(arc.bonus) return arcFinish(true,arc.bonusNeed-(arc.start||0),st.points-(arc.start||0));
@@ -911,7 +918,7 @@ input[type=range],input[type=checkbox],input[type=radio]{accent-color:var(--c-ac
     const L=LEVELS.find(x=>x.id===level); const d=new Date();
     $("rStamp").textContent=`CHALLENGE MODE · High score ${half(best)} · Level ${L.id==="C"?"Custom":L.id} · ${L.name} · Key ${keySetting()==="mix"?"Mix":keyName(+keySetting())} · ${d.toLocaleDateString(undefined,{weekday:"short",month:"short",day:"numeric"})} ${d.toLocaleTimeString([], {hour:"numeric",minute:"2-digit"})}`;
     showResults(); celebrate() }
-  function arcEnd(){ if(!arc) return; arc=null; $("arcbar").hidden=true; $("arcMeter").hidden=true; $("arcSplash").hidden=true; $("watch").classList.remove("fire"); $("arcBtn").hidden=!$("chalOn").checked }
+  function arcEnd(){ splashTok++; if(!arc) return; arc=null; $("arcbar").hidden=true; $("arcMeter").hidden=true; $("arcSplash").hidden=true; $("watch").classList.remove("fire"); $("arcBtn").hidden=!$("chalOn").checked }
   $("arcBtn").addEventListener("click",()=>{ if(timer) stopTimer(); arcStart() });
   $("closeResults").addEventListener("click",()=>{sheet(false); stopTimer(); newQuestion(true); try{ $("startTimed").focus({preventScroll:true}) }catch(e){} });
   try{store.set("name","")}catch(e){} // no names stored (privacy)
