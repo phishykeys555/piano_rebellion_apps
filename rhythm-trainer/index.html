@@ -151,6 +151,8 @@ details{border:1px solid var(--border);border-radius:12px;background:var(--panel
     <div class="set">
       <label><input type="checkbox" id="counts" checked> Show the counts under the notes</label>
       <label><input type="checkbox" id="guide"> Play the rhythm with me (easier)</label>
+      <label><input type="checkbox" id="cursor" checked> Show the moving cursor (turn off to read without it)</label>
+      <label><input type="checkbox" id="lightup" checked> Light up each note in blue when it should be hit</label>
       <div class="row"><button class="ghost" id="cal">Calibrate timing</button><span class="stamp" id="calTxt"></span></div>
       <span class="stamp">Calibrate once per device, and again with Bluetooth headphones: tap (or clap, in Clap mode) along with 8 clicks. Tap and Clap keep separate settings.</span>
     </div>
@@ -204,7 +206,7 @@ details{border:1px solid var(--border);border-radius:12px;background:var(--panel
   const GAP=14, X0=74, BW=264, W=360, LY=64, U=BW/16;
   const xOf=s=>X0+8+s*U;
   const CNT=s=>{const b=Math.floor(s/4)+1,p=s%4;return p===0?String(b):p===2?"&":p===1?"e":"a"};
-  function drawBar(res,playX){
+  function drawBar(res,playX,pos){ const HIT="#2457d6", hot=e=>pos!=null&&!e.r&&!e.tie&&$("lightup").checked&&pos>=e.s-0.12&&pos<e.s+Math.min(e.d,2);
     const ink="#16181d", line="#2a2d33"; let h="";
     h+=`<line x1="16" x2="${W-14}" y1="${LY}" y2="${LY}" stroke="${line}" stroke-width="1.5"/>`;
     h+=`<line x1="16" x2="16" y1="${LY-14}" y2="${LY+14}" stroke="${line}" stroke-width="1.5"/><line x1="${W-14}" x2="${W-14}" y1="${LY-14}" y2="${LY+14}" stroke="${line}" stroke-width="2"/>`;
@@ -218,7 +220,7 @@ details{border:1px solid var(--border);border-radius:12px;background:var(--panel
     if(g.length) groups.push(g);
     const beamed=new Set(); groups.forEach(gr=>{ if(gr.length>1) gr.forEach(e=>beamed.add(e.i)) });
     ev.forEach((e,i)=>{
-      const x=xOf(e.s), col=res&&!e.r&&!e.tie?(res.byNote.get(i)?.col||ink):ink;
+      const x=xOf(e.s), col=res&&!e.r&&!e.tie?(res.byNote.get(i)?.col||ink):hot(e)?HIT:ink;
       if(e.tie){ const px=xOf(ev[i-1].s); h+=`<path d="M${px+3} ${LY+8} Q ${(px+x)/2} ${LY+19} ${x-3} ${LY+8} Q ${(px+x)/2} ${LY+15} ${px+3} ${LY+8} z" fill="${ink}"/>` }
       if(e.r){ // rests: quarter (zigzag glyph), eighth (glyph), half sits on the line, whole hangs from it
         if(e.d===4) h+=`<text x="${x-6}" y="${LY+11}" font-family="Noto Music" font-size="${GAP*2.6}" fill="${ink}">𝄽</text>`;
@@ -233,10 +235,10 @@ details{border:1px solid var(--border);border-radius:12px;background:var(--panel
           if(e.d<4&&!beamed.has(i)){ // single flag(s)
             for(let f=0;f<(e.d===1?2:1);f++){const y0=sTop+f*8; h+=`<path d="M${x+7.6} ${y0} c 3 8, 12 10, 9 22 c 0 -8, -5 -12, -9 -14 z" fill="${col}"/>`} } }
       }
-      if($("counts").checked) h+=`<text x="${x}" y="${LY+32}" text-anchor="middle" font-family="JetBrains Mono" font-size="12" font-weight="700" fill="${e.r||e.tie?"#9aa0aa":"#5d6472"}">${e.r||e.tie?"("+CNT(e.s)+")":CNT(e.s)}</text>`;
+      if($("counts").checked) h+=`<text x="${x}" y="${LY+32}" text-anchor="middle" font-family="JetBrains Mono" font-size="12" font-weight="700" fill="${e.r||e.tie?"#9aa0aa":hot(e)?HIT:"#5d6472"}">${e.r||e.tie?"("+CNT(e.s)+")":CNT(e.s)}</text>`;
     });
     groups.forEach(gr=>{ if(gr.length<2) return; const x1=xOf(gr[0].s)+7.6, x2=xOf(gr[gr.length-1].s)+7.6;
-      h+=`<rect x="${x1-0.9}" y="${sTop}" width="${x2-x1+1.8}" height="5" fill="${ink}"/>`;
+      h+=`<rect x="${x1-0.9}" y="${sTop}" width="${x2-x1+1.8}" height="5" fill="${!res&&gr.some(hot)?HIT:ink}"/>`;
       // secondary beam over runs of 16ths
       for(let k=0;k<gr.length;k++){ if(gr[k].d!==1) continue; let j=k; while(j+1<gr.length&&gr[j+1].d===1) j++;
         if(j>k){ const a=xOf(gr[k].s)+7.6,b=xOf(gr[j].s)+7.6; h+=`<rect x="${a-0.9}" y="${sTop+8}" width="${b-a+1.8}" height="5" fill="${ink}"/>` }
@@ -290,10 +292,10 @@ details{border:1px solid var(--border);border-radius:12px;background:var(--panel
     if(mode==="hear"||$("guide").checked) bar.notes.forEach(n=>(mode==="test"&&inMode==="clap"&&mic)?wood(start+n.s*u16(),n.d*u16()):hand(start+n.s*u16()));
     msg(null, mode==="hear"?"Listen…":"Count in: 1 · 2 · 3 · 4", mode==="hear"?"":"Start tapping on beat 1 of the next bar.");
     run={mode,start,end,t0}; if(mode==="test") lastStart=start;
-    const tick=()=>{ if(!run) return; const now=a.currentTime; let px=null;
-      if(now>=start&&now<=end){ px=xOf((now-start)/u16()); if(mode==="test"&&!run.go){ run.go=true; msg(null,"Go!",inMode==="clap"?"Clap or snap every note.":inMode==="note"?"Play your note for every note.":"Tap every note.") } }
+    const tick=()=>{ if(!run) return; const now=a.currentTime; let px=null, pos=null;
+      if(now>=start&&now<=end){ pos=(now-start)/u16(); px=$("cursor").checked?xOf(pos):null; if(mode==="test"&&!run.go){ run.go=true; msg(null,"Go!",inMode==="clap"?"Clap or snap every note.":inMode==="note"?"Play your note for every note.":"Tap every note.") } }
       else if(now<start&&mode==="test"){ const left=Math.ceil((start-now)/spb()); $("msg").querySelector(".v").textContent=left<=4?"Count in: "+["","1","2","3","4"][5-left]:"Get ready"; }
-      drawBar(null,px);
+      drawBar(null,px,pos);
       if(now>end+0.35){ const m=run.mode; run=null; $("go").disabled=false; $("hear").disabled=!!sess; if(m==="test") grade(); else { drawBar(null); msg(null,"Your turn","Press Start, count in, then tap it.") } return }
       requestAnimationFrame(tick) };
     tick() }
@@ -412,7 +414,8 @@ details{border:1px solid var(--border);border-radius:12px;background:var(--panel
   $("close").addEventListener("click",()=>{ $("results").hidden=true; stats(); newBar(); msg(null,"Ready","Press Start.") });
   $("newRound").addEventListener("click",()=>{ $("results").hidden=true; if(gmode==="sprint") startSession(60); else if(gmode==="chal") arcStart(); else { round=[]; stats(); newBar() } });
   $("retryRound").addEventListener("click",()=>arcRetry());
-  $("counts").addEventListener("change",()=>drawBar(null)); try{store.set("who","")}catch(e){} // no names stored (privacy)
+  $("counts").addEventListener("change",()=>drawBar(null));
+  ["cursor","lightup"].forEach(id=>{ $(id).checked=store.get(id,true)!==false; $(id).addEventListener("change",e=>store.set(id,e.target.checked)) }); try{store.set("who","")}catch(e){} // no names stored (privacy)
   LEVELS.forEach(L=>{ const b=document.createElement("button"); b.className="lvl"; b.innerHTML=`<b>L${L.id}</b><span>${L.name}</span>`;
     b.addEventListener("click",()=>{ if(sess||arc) stopSession(true); level=L.id; store.set("level",level); mark(); round=[]; stats(); newBar(); $("go").textContent="Start"; msg(null,"Level "+L.id+": "+L.name,"Press Hear it to listen first, or Start.") }); b.dataset.id=L.id; $("levels").appendChild(b) });
   TEMPOS.forEach(t=>{ const b=document.createElement("button"); b.textContent=t; b.dataset.t=t; b.addEventListener("click",()=>{ if(sess||arc) stopSession(true); bpm=t; store.set("bpm",bpm); mark(); stats() }); $("tempo").appendChild(b) });
@@ -505,6 +508,6 @@ details{border:1px solid var(--border);border-radius:12px;background:var(--panel
   if(document.fonts) document.fonts.ready.then(()=>drawBar(null));
 })();
 </script>
-<p class="appver" style="text-align:center;font-size:11px;opacity:.6;margin:18px 0 10px;font-family:ui-monospace,Menlo,monospace">Rhythm Trainer · Version 2026-11-11.5</p>
+<p class="appver" style="text-align:center;font-size:11px;opacity:.6;margin:18px 0 10px;font-family:ui-monospace,Menlo,monospace">Rhythm Trainer · Version 2026-11-11.6</p>
 </body>
 </html>
