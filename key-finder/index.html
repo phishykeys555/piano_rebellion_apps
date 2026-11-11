@@ -318,7 +318,7 @@ button:focus-visible,summary:focus-visible,input:focus-visible{outline:3px solid
   function arcRetry(){ const r=arcRetryRound||1; if(r<2||!arcIncSaved) return arcStart(); stopChallenge(); resetScore(); sheet(false);
     arc={round:r,bonus:false,warm:false,inc:arcIncSaved.slice(),needs:[],start:0}; arc.needs[r-1]=arc.inc[r-1]; tLeft=ARC_T; arcUI(true); showClock(); render();
     arcSplash(`ROUND ${r}`,`Target this round: ${arc.inc[r-1]} points.`,2000,arcRound) }
-  function arcRound(){ clearInterval(timer); tLeft=ARC_T; showClock(); arcBar(); newQ();
+  function arcRound(){ clearInterval(timer); tLeft=ARC_T; const f=$("tFill"); f.style.transition="none"; showClock(); void f.offsetWidth; f.style.transition=""; arcBar(); newQ();   // a fresh round's clock bar snaps full, never slides back up
     timer=setInterval(()=>{ tLeft--; showClock(); arcBar(); if(tLeft<=0) arcRoundEnd() },1000) }
   function arcRoundEnd(){ clearInterval(timer); timer=null; clearTimeout(nextT); locked=true;   // a key answered in the last second never opens a new question under the splash
     if(arc.bonus) return arcFinish(true,arc.bonusNeed-arc.start,st.pts-arc.start);
