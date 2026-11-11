@@ -2,6 +2,8 @@
 <html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Song Player · Clarendon Hills Music Academy</title>
 <meta name="description" content="Play along with your song at any speed and in any key. Section loop and speed-up trainer.">
+<link rel="stylesheet" href="../shared/chma.css">
+<script src="../shared/brand.js"></script>
 <style>
 :root{--bg:#191919;--card:#232323;--line:#3a3a3a;--text:#f0efed;--mut:#a5a29c;--acc:#ff5a3c;--acc2:#ffb020;--ok:#4cc38a}
 @media (prefers-color-scheme:light){:root{--bg:#ffffff;--card:#f7f6f3;--line:#d9d7d2;--text:#2c2c2b;--mut:#6b6964;--acc:#d9411e;--acc2:#b77700;--ok:#1f8a57}}
@@ -29,9 +31,47 @@ button.on{border-color:var(--acc);background:color-mix(in srgb,var(--acc) 18%,tr
 .part button{min-height:34px;font-size:12px;padding:0}.part button.m.on{border-color:var(--mut);background:color-mix(in srgb,var(--mut) 30%,transparent)}.part.off b{opacity:.45}
 #play:disabled{opacity:.5}
 @media (max-width:440px){.chips{margin-left:0}.ctl{grid-template-columns:52px 40px 1fr 40px}}
+/* ---- CHMA design system (Studio Gear dark / Pocket Synth light) ---- */
+:root:root:root{--bg:var(--c-page);--card:var(--c-panel);--line:var(--c-key-b);--text:var(--c-ink);--mut:var(--c-mut);--acc:var(--c-act);--acc2:var(--c-led);--ok:var(--c-ok)}
+body{background:var(--c-page);font-family:var(--f-body);-webkit-font-smoothing:antialiased;padding:14px 12px}
+.card{background:var(--c-panel);border:0;border-radius:var(--r-card);box-shadow:var(--shadow-card);padding:0 16px 18px;overflow:hidden}
+.chma-headwrap{margin:0 -16px 12px}
+h1{font-family:var(--f-title);font-weight:700;font-size:28px;line-height:1.1;letter-spacing:-.01em;text-transform:none}
+.by{font-size:13px;color:var(--c-mut);margin:4px 0 14px}
+button,.ghostbtn{font:600 14px var(--f-body);color:var(--c-ink);background:var(--c-key);border:1px solid var(--c-key-b);border-radius:var(--r-key);box-shadow:0 3px 0 var(--c-key-sh);transition:transform .05s,box-shadow .05s}
+button:active,.ghostbtn:active{transform:translateY(2px);box-shadow:0 1px 0 var(--c-key-sh)}
+button.on{background:var(--c-sel);border-color:var(--c-sel);color:var(--c-sel-ink)}
+#play{background:var(--c-act);color:var(--c-act-ink);border:0;box-shadow:0 4px 0 var(--c-act-sh);font-size:22px}
+#play:active{transform:translateY(2px);box-shadow:0 2px 0 var(--c-act-sh)}
+#play:disabled{transform:none}
+.time .lbl{font:500 12px var(--f-num)}
+.readout{gap:10px;margin:14px 0 6px}
+.readout div{background:var(--c-lcd);border:1px solid var(--c-lcd-b);border-radius:14px;box-shadow:inset 0 2px 8px rgba(0,0,0,.55);padding:8px 4px 7px}
+.readout b{font:700 24px var(--f-num);color:var(--c-led);text-shadow:var(--c-led-glow)}
+.readout span{font-size:11px;color:#9aa3b2}
+.ctl{margin-top:6px}
+.ctl label,.sec{font:700 10.5px var(--f-body);letter-spacing:.14em;text-transform:uppercase;color:var(--c-mut)}
+.ctl button{font-size:18px;padding:0}
+.chips{gap:6px;margin-top:4px;margin-bottom:4px}
+.row{gap:8px;margin-top:12px}
+input[type=range],.chk input{accent-color:var(--c-act)}
+select{font:600 13px var(--f-body);color:var(--c-ink);background:var(--c-key);border:1px solid var(--c-key-b);border-radius:10px}
+.hint{color:var(--c-mut)}
+.err{color:var(--c-bad)}
+#mix{background:var(--c-panel2);border:1px solid var(--c-line);border-radius:16px;padding:12px 12px 10px;margin-top:16px}
+.sec{margin:0 0 8px;line-height:1.5}.sec .hint{display:block;font:400 12px var(--f-body);letter-spacing:0;text-transform:none;margin-top:1px}
+#mixChips{margin:0 0 6px}
+.part{grid-template-columns:112px 1fr 40px 40px;gap:8px;margin-top:6px}
+.part b{font-size:13px;font-weight:600}
+.part button{min-height:34px;font:700 12px var(--f-num)}
+.part button.m.on{background:var(--c-mut);border-color:var(--c-mut);color:var(--c-panel)}
+.appver{color:var(--c-mut)}
+@media (max-width:440px){.part{grid-template-columns:106px 1fr 38px 38px}}
+#mixChips button{min-height:34px;padding:0 11px;font-size:12.5px}
 </style></head><body><main><div class="card">
+<div data-chma-head></div>
 <h1 id="title">Song Player</h1>
-<p class="by"><span id="sub">Play-along</span> · <a href="https://clarendonhillsmusicacademy.com" target="_blank" rel="noopener">Clarendon Hills Music Academy</a></p>
+<p class="by"><span id="sub">Play-along</span></p>
 <div class="transport"><button id="play" aria-label="Play">▶</button>
 <div class="time"><div id="ab"></div><input id="seek" type="range" min="0" max="1000" value="0" aria-label="Position"><div class="lbl"><span id="cur">0:00</span><span id="dur">0:00</span></div></div></div>
 <div class="readout"><div><b id="spdN">100%</b><span id="spdS">speed · original tempo</span></div><div><b id="keyN">0</b><span id="keyS">key · original key</span></div></div>
@@ -137,5 +177,5 @@ $('file').onchange=async e=>{const f=e.target.files&&e.target.files[0];if(!f)ret
  if(playing)stop();pos=0;restore();$('title').textContent=name;$('sub').textContent='Your own track';document.title=name+' · Song Player';err('');$('fileTxt').textContent='Playing from this device: '+f.name;
  pending=null;try{await loadParts([{k:'mix',src:f}]);$('play').onclick=()=>{if(!ready)return;if(playing)stop();else start()};start()}catch(x){console.error(x);err('That file didn’t open. Try an MP3, M4A or WAV.');status('')}};
 window.__sp={level:()=>{if(!an)return 0;const b=new Float32Array(2048);an.getFloatTimeDomainData(b);let q=0;for(const v of b)q+=v*v;return Math.sqrt(q/2048)},solo:i=>{solo=i;sendGains()},state:()=>({ready,playing,pos:now(),dur,parts,gains:gains(),eng:engineGains()}),seek,start,stop};
-</script><p class="appver" style="text-align:center;font-size:11px;opacity:.6;margin:12px 0 8px;font-family:ui-monospace,Menlo,monospace">Song Player · Version 2026-11-11.3</p>
+</script><p class="appver" style="text-align:center;font-size:11px;opacity:.6;margin:12px 0 8px;font-family:ui-monospace,Menlo,monospace">Song Player · Version 2026-11-11.4</p>
 </body></html>

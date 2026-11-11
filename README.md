@@ -20,4 +20,4 @@ Every app shows its version at the bottom of the page: `Version YYYY-MM-DD.N` (d
 | Hanon Speed Trainer | 2026-11-11.2 |
 | Major 7th Play-Along | 2026-11-11.1 |
 | Song Player | 2026-11-11.4 |
-| Music Games (home) | 2026-11-11.2 |
+| Music Games (home) | 2026-11-11.3 |

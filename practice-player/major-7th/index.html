@@ -2,6 +2,8 @@
 <html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Major 7th Play-Along · Clarendon Hills Music Academy</title>
 <meta name="description" content="Major 7th inversions around the circle of 5ths: play-along tracks with speed, key, volume, A-B loop and a speed-up trainer.">
+<link rel="stylesheet" href="../../shared/chma.css">
+<script src="../../shared/brand.js"></script>
 <style>
 :root{--bg:#191919;--card:#232323;--line:#3a3a3a;--text:#f0efed;--mut:#a5a29c;--acc:#ff5a3c;--acc2:#ffb020;--ok:#4cc38a}
 @media (prefers-color-scheme:light){:root{--bg:#ffffff;--card:#f7f6f3;--line:#d9d7d2;--text:#2c2c2b;--mut:#6b6964;--acc:#d9411e;--acc2:#b77700;--ok:#1f8a57}}
@@ -25,9 +27,40 @@ button.on{border-color:var(--acc);background:color-mix(in srgb,var(--acc) 16%,tr
 details{margin-top:12px;border-top:1px solid var(--line);padding-top:8px}summary{cursor:pointer;font-weight:700;font-size:13px;color:var(--mut)}
 .steps{font-size:13px;color:var(--mut);margin:8px 0 0;padding-left:18px}.keys{font-size:12px;color:var(--mut);margin-top:6px}
 select{font:600 13px system-ui;color:var(--text);background:var(--card);border:1px solid var(--line);border-radius:8px;min-height:36px;padding:0 6px}
+/* ---- CHMA design system (Studio Gear dark / Pocket Synth light) ---- */
+:root:root:root{--bg:var(--c-page);--card:var(--c-panel);--line:var(--c-key-b);--text:var(--c-ink);--mut:var(--c-mut);--acc:var(--c-act);--acc2:var(--c-led);--ok:var(--c-ok)}
+body{background:var(--c-page);font-family:var(--f-body);-webkit-font-smoothing:antialiased;padding:14px 12px}
+.card{background:var(--c-panel);border:0;border-radius:var(--r-card);box-shadow:var(--shadow-card);padding:0 16px 18px;overflow:hidden}
+.chma-headwrap{margin:0 -16px 12px}
+h1{font-family:var(--f-title);font-weight:700;font-size:19px;line-height:1.2;letter-spacing:0}
+.by{font-size:13px;color:var(--c-mut);margin:4px 0 14px}
+button{font:600 14px var(--f-body);color:var(--c-ink);background:var(--c-key);border:1px solid var(--c-key-b);border-radius:var(--r-key);box-shadow:0 3px 0 var(--c-key-sh);transition:transform .05s,box-shadow .05s}
+button:active{transform:translateY(2px);box-shadow:0 1px 0 var(--c-key-sh)}
+button.on{background:var(--c-sel);border-color:var(--c-sel);color:var(--c-sel-ink)}
+button.on small{color:var(--c-sel-ink);opacity:.85}
+.tracks{gap:8px;margin-bottom:16px}.tracks button{font-family:var(--f-num);font-weight:700}.tracks small{font-family:var(--f-body)}
+#play{background:var(--c-act);color:var(--c-act-ink);border:0;box-shadow:0 4px 0 var(--c-act-sh);font-size:22px}
+#play:active{transform:translateY(2px);box-shadow:0 2px 0 var(--c-act-sh)}
+.time input{height:30px}#ab{top:11px;height:8px;border-radius:4px}
+.time .lbl{font:500 12px var(--f-num)}
+.readout{gap:8px;margin:14px 0 6px}
+.readout div{background:var(--c-lcd);border:1px solid var(--c-lcd-b);border-radius:14px;box-shadow:inset 0 2px 8px rgba(0,0,0,.55);padding:8px 4px 7px}
+.readout b{font:700 24px var(--f-num);color:var(--c-led);text-shadow:var(--c-led-glow)}
+.readout span{display:block;font-size:11px;line-height:1.3;color:#9aa3b2}
+.ctl{margin-top:6px}
+.ctl label,summary{font:700 10.5px var(--f-body);letter-spacing:.14em;text-transform:uppercase;color:var(--c-mut)}
+.ctl button{font-size:18px;padding:0}
+.row{gap:8px;margin-top:12px}
+input[type=range],.chk input{accent-color:var(--c-act)}
+select{font:600 13px var(--f-body);color:var(--c-ink);background:var(--c-key);border:1px solid var(--c-key-b);border-radius:10px}
+details{margin-top:16px;background:var(--c-panel2);border:1px solid var(--c-line);border-radius:16px;padding:12px}
+summary{line-height:1.5}
+.steps{color:var(--c-ink);margin-top:14px;line-height:1.5}.keys{color:var(--c-mut)}
+.appver{color:var(--c-mut)}
 </style></head><body><main><div class="card">
+<div data-chma-head></div>
 <h1>MAJOR 7TH INVERSIONS · CIRCLE OF 5THS</h1>
-<p class="by">Play-along tracks · <a href="https://clarendonhillsmusicacademy.com" target="_blank" rel="noopener">Clarendon Hills Music Academy</a></p>
+<p class="by">Play-along tracks</p>
 <div class="tracks" id="tracks"></div>
 <div class="transport"><button id="play" aria-label="Play">▶</button>
 <div class="time"><div id="ab"></div><input id="seek" type="range" min="0" max="1000" value="0" aria-label="Position"><div class="lbl"><span id="cur">0:00</span><span id="dur">0:00</span></div></div></div>
@@ -85,5 +118,5 @@ document.addEventListener('keydown',e=>{if(e.target.tagName==='SELECT')return;co
  else if(k==='ArrowUp'){e.preventDefault();nudge('speed',1)}else if(k==='ArrowDown'){e.preventDefault();nudge('speed',-1)}else if(k==='[')nudge('key',-1);else if(k===']')nudge('key',1);else if(k==='a'||k==='A')$('setA').click();else if(k==='b'||k==='B')$('setB').click()});
 const sv=LS.get();if(sv.s)$('speed').value=sv.s;if(sv.k)$('key').value=sv.k;if(sv.v)$('vol').value=sv.v;if(sv.l===false)$('loop').checked=false;
 pick(sv.t>=0&&sv.t<3?sv.t:0);
-</script><p class="appver" style="text-align:center;font-size:11px;opacity:.6;margin:18px 0 10px;font-family:ui-monospace,Menlo,monospace">Major 7th Play-Along · Version 2026-11-05.1</p>
+</script><p class="appver" style="text-align:center;font-size:11px;opacity:.6;margin:18px 0 10px;font-family:ui-monospace,Menlo,monospace">Major 7th Play-Along · Version 2026-11-11.1</p>
 </body></html>
