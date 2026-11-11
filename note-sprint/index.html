@@ -181,6 +181,12 @@ summary{cursor:pointer;padding:12px 16px;font-weight:600}
 .namefield input{font:inherit;padding:8px 10px;border-radius:8px;border:1px solid var(--border);background:var(--panel);color:var(--ink);flex:1;min-width:0}
 @media (max-width:440px){ .settings{grid-template-columns:1fr} .letters button{font-size:18px;padding:12px 0} .stat b{font-size:17px} .levels{grid-template-columns:repeat(3,1fr)} .big{font-size:52px} }
 @media (prefers-reduced-motion:reduce){ *{transition:none!important} }
+/* phones: no double-tap zoom or grey flash when a kid taps fast */
+button,summary,label,select{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
+button{-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
+/* action rows share the width instead of a ragged wrap; stat labels never run into each other on a 375 px phone */
+.row>button{flex:1 1 auto}
+@media (max-width:400px){.stat span{font-size:10px;letter-spacing:.02em!important}}
 /* ---- CHMA design system (Studio Gear dark / Pocket Synth light) ---- */
 :root:root:root{--bg:var(--c-page);--panel:var(--c-key);--ink:var(--c-ink);--muted:var(--c-mut);--accent:var(--c-sel);--accent-ink:var(--c-sel-ink);
   --accent-soft:color-mix(in srgb,var(--c-sel) 16%,transparent);--good:var(--c-ok);--bad:var(--c-bad);--border:var(--c-key-b);
@@ -290,7 +296,7 @@ input[type=range],input[type=checkbox],input[type=radio]{accent-color:var(--c-ac
       <button class="primary" id="startTimed">Start 60-second sprint</button>
     </div>
     <p class="tip">Keyboard: A–G to answer. In a key with sharps or flats, tap ♯ or ♭ first (or press = / −). Piano keys must be the exact key, right octave.</p>
-    <p class="tip" id="appVer"><span class="appver">Version 2026-11-11.2</span> · fresh target each round · full keyboard · YIN mic</p>
+    <p class="tip" id="appVer"><span class="appver">Version 2026-11-11.3</span> · fresh target each round · full keyboard · YIN mic</p>
 
     <div class="arcsplash" id="arcSplash" hidden><div class="boom"></div><div id="arcPcs"></div><div class="pre" id="arcSplashP"></div><b id="arcSplashT">ROUND 2</b><span id="arcSplashS"></span></div><div class="hitstamp" id="hitStamp">TARGET HIT!</div>
     <div class="results" id="results" hidden>
@@ -488,7 +494,7 @@ input[type=range],input[type=checkbox],input[type=radio]{accent-color:var(--c-ac
       if(mc) sc.scrollLeft=mc.offsetLeft-sc.clientWidth/2+mc.offsetWidth/2;
       $("rotateHint").hidden=!(sc.scrollWidth>sc.clientWidth+4 && window.matchMedia("(orientation:portrait)").matches)});
   }
-  window.addEventListener("resize",()=>{ if(readSettings().mode==="piano") buildPiano(readSettings()) });
+  let lastW=innerWidth; window.addEventListener("resize",()=>{ if(innerWidth===lastW) return; lastW=innerWidth; const s=readSettings(); if(s.mode==="piano"&&!s.iv) buildPiano(s) });
 
   // ---------- notes ----------
   function makeNote(clef,s,useAcc,avoid,key){
@@ -599,17 +605,19 @@ input[type=range],input[type=checkbox],input[type=radio]{accent-color:var(--c-ac
   }
 
   // ---------- sound: a short plucked piano-like tone ----------
+  function AC(){ if(!audio){ try{ if(navigator.audioSession&&!mic) navigator.audioSession.type="playback" }catch(e){} audio=new (window.AudioContext||window.webkitAudioContext)() }
+    if(audio.state!=="running") audio.resume().catch(()=>{}); return audio }
   function play(midis){ const S=readSettings(); if(!S.sound||S.mode==="mic")return; try{
-    audio=audio||new (window.AudioContext||window.webkitAudioContext)(); const t0=audio.currentTime;
+    AC(); const t0=audio.currentTime;
     midis.forEach(m=>{const f=440*Math.pow(2,(m-69)/12), out=audio.createGain(); out.connect(audio.destination);
       out.gain.setValueAtTime(0.0001,t0); out.gain.exponentialRampToValueAtTime(0.22,t0+0.008); out.gain.exponentialRampToValueAtTime(0.06,t0+0.35); out.gain.exponentialRampToValueAtTime(0.0001,t0+1.6);
       [[1,1],[2,.45],[3,.22],[4,.12],[5,.06]].forEach(([k,a])=>{const o=audio.createOscillator(),g=audio.createGain(); o.type="sine"; o.frequency.value=f*k*(1+0.0004*k*k); g.gain.value=a/(k>2?1.4:1);
         o.connect(g).connect(out); o.start(t0); o.stop(t0+1.7)})});
   }catch(e){} }
 
-  function tone(f,t,d,v,type){ try{ audio=audio||new (window.AudioContext||window.webkitAudioContext)(); const o=audio.createOscillator(),g=audio.createGain(); o.type=type||"sine"; o.frequency.value=f; g.gain.setValueAtTime(0.0001,t); g.gain.exponentialRampToValueAtTime(v,t+0.01); g.gain.exponentialRampToValueAtTime(0.0001,t+d); o.connect(g).connect(audio.destination); o.start(t); o.stop(t+d+0.05) }catch(e){} }
-  function chime(){ if(!readSettings().sound) return; try{ audio=audio||new (window.AudioContext||window.webkitAudioContext)(); const t=audio.currentTime; [72,76,79,84].forEach((m,i)=>tone(440*Math.pow(2,(m-69)/12),t+i*0.07,0.5,0.14,"triangle")) }catch(e){} }
-  function whoosh(){ if(!readSettings().sound) return; try{ audio=audio||new (window.AudioContext||window.webkitAudioContext)(); const t=audio.currentTime+0.15, len=0.7, sr=audio.sampleRate;
+  function tone(f,t,d,v,type){ try{ AC(); const o=audio.createOscillator(),g=audio.createGain(); o.type=type||"sine"; o.frequency.value=f; g.gain.setValueAtTime(0.0001,t); g.gain.exponentialRampToValueAtTime(v,t+0.01); g.gain.exponentialRampToValueAtTime(0.0001,t+d); o.connect(g).connect(audio.destination); o.start(t); o.stop(t+d+0.05) }catch(e){} }
+  function chime(){ if(!readSettings().sound) return; try{ AC(); const t=audio.currentTime; [72,76,79,84].forEach((m,i)=>tone(440*Math.pow(2,(m-69)/12),t+i*0.07,0.5,0.14,"triangle")) }catch(e){} }
+  function whoosh(){ if(!readSettings().sound) return; try{ AC(); const t=audio.currentTime+0.15, len=0.7, sr=audio.sampleRate;
     // filtered noise sweeping up then away: air, not a note
     const b=audio.createBuffer(1,Math.floor(sr*len),sr), d=b.getChannelData(0); for(let k=0;k<d.length;k++) d[k]=Math.random()*2-1;
     const src=audio.createBufferSource(), bp=audio.createBiquadFilter(), lp=audio.createBiquadFilter(), g=audio.createGain(); src.buffer=b;
@@ -701,6 +709,7 @@ input[type=range],input[type=checkbox],input[type=radio]{accent-color:var(--c-ac
   const THR=0.015, AP=0.12; let thr=THR, lastAp=1;
   function setThr(v){ thr=v; $("thr").style.left=Math.min(100,thr*600)+"%" }
   async function micStart(deviceId){ try{
+    try{ if(navigator.audioSession) navigator.audioSession.type="play-and-record" }catch(e){}
     audio=audio||new (window.AudioContext||window.webkitAudioContext)(); await audio.resume();
     if(mic) micStop(true);
     const c={echoCancellation:false,noiseSuppression:false,autoGainControl:false}; if(deviceId) c.deviceId={exact:deviceId};
@@ -708,13 +717,18 @@ input[type=range],input[type=checkbox],input[type=radio]{accent-color:var(--c-ac
     const src=audio.createMediaStreamSource(stream), g=audio.createGain(), an=audio.createAnalyser(), mute=audio.createGain();
     g.gain.value=micG($("micGain").value); an.fftSize=4096; mute.gain.value=0; src.connect(g); g.connect(an); an.connect(mute); mute.connect(audio.destination);
     mic={stream,g,an,src,mute,buf:new Float32Array(an.fftSize),hist:[],armed:false,armedAt:0,cand:[],cool:0};
+    stream.getAudioTracks().forEach(t=>t.addEventListener("ended",micLost));
     mic.timer=setInterval(micTick,40); $("micBtn").textContent="Microphone on"; $("micBtn").disabled=true; $("micCtl").hidden=false;
     setThr(THR);
     const devs=(await navigator.mediaDevices.enumerateDevices()).filter(d=>d.kind==="audioinput"), cur=stream.getAudioTracks()[0].getSettings().deviceId;
     $("micSel").innerHTML=devs.map((d,i)=>`<option value="${d.deviceId}">${(d.label||("Microphone "+(i+1))).replace(/[<>&]/g,"")}</option>`).join(""); if(cur) $("micSel").value=cur;
     $("micStat").textContent="Listening. Play any key: the Level bar should jump past the line. Too low? Raise Sensitivity.";
   }catch(e){ $("micStat").textContent=e&&e.name==="NotAllowedError"?"Microphone permission was blocked. Allow it in your browser's site settings, then tap the button again.":"No microphone found. Plug one in or pick another, then tap the button again." } }
-  function micStop(keepUi){ if(!mic)return; clearInterval(mic.timer); mic.stream.getTracks().forEach(t=>t.stop()); try{mic.mute.disconnect()}catch(e){} mic=null;
+  // iOS stops the microphone when the phone locks, a call comes in or the app is switched: reset the button so one tap brings it back
+  function micLost(){ if(!mic) return; micStop(); $("micStat").textContent="The microphone stopped (screen locked or another app took it). Tap the button to turn it back on." }
+  document.addEventListener("visibilitychange",()=>{ if(document.hidden) return; if(audio&&audio.state!=="running") audio.resume().catch(()=>{});
+    if(mic&&mic.stream.getAudioTracks().some(t=>t.readyState==="ended")) micLost() });
+  function micStop(keepUi){ if(!mic)return; clearInterval(mic.timer); mic.stream.getTracks().forEach(t=>t.stop()); try{mic.mute.disconnect()}catch(e){} mic=null; if(!keepUi) try{ if(navigator.audioSession) navigator.audioSession.type="playback" }catch(e){}
     if(!keepUi){ $("micBtn").textContent="Turn on the microphone"; $("micBtn").disabled=false; $("micCtl").hidden=true } }
   $("micSel").addEventListener("change",e=>micStart(e.target.value));
   $("micGain").addEventListener("input",e=>{ if(mic) mic.g.gain.value=micG(e.target.value); store.set("gain2",e.target.value) });
@@ -850,7 +864,7 @@ input[type=range],input[type=checkbox],input[type=radio]{accent-color:var(--c-ac
   try{store.set("name","")}catch(e){} // no names stored (privacy)
 
   document.addEventListener("keydown",e=>{
-    if(e.target.tagName==="INPUT"||e.target.tagName==="SELECT")return; const k=e.key.toUpperCase();
+    if(e.target.tagName==="INPUT"||e.target.tagName==="SELECT"||e.repeat||e.metaKey||e.ctrlKey||e.altKey)return; const k=e.key.toUpperCase();
     if(q&&!$("choice").hidden&&k==="S"){e.preventDefault();$("showBtn").click();return}
     if(readSettings().iv&&/^[3-8]$/.test(k)){e.preventDefault();answerIv(+k);return}
     if(k==="-"){setAcc("b");return} if(k==="="||k==="+"){setAcc("#");return}
