@@ -139,10 +139,11 @@ body.emb .wrap>.emh>div:first-child{font-size:11px!important;white-space:nowrap;
 <optgroup label="Blues / Shuffle"><option value="shuffle">Blues Shuffle (triplet swing)</option><option value="texas">Texas Shuffle (snare ghosts)</option><option value="halfshuf">Half-Time Shuffle (Purdie / Rosanna)</option><option value="slowblues">Slow Blues 12/8</option></optgroup>
 <optgroup label="Jam Band"><option value="jbcow">Cow Funk (Phish)</option><option value="jbdead">Two-Beat Ride Groove (Grateful Dead)</option><option value="jbshuf">Southern 12/8 Shuffle (Allman Brothers)</option><option value="jbwhip">11/8 Intro (Whipping Post, 3+3+3+2)</option></optgroup>
 <optgroup label="Prog / Odd Time"><option value="p54swing">5/4 Swing (Take Five, Brubeck)</option><option value="p54rock">5/4 Rock (Mission: Impossible)</option><option value="p74">7/4 Rock (Money, Pink Floyd)</option><option value="p78">7/8 Prog (2+2+3; beat = 8th note)</option><option value="p98">9/8 (Blue Rondo à la Turk, 2+2+2+3; beat = 8th note)</option></optgroup>
-<optgroup label="Other"><option value="percjam">Percussion Only – Latin Jam</option><option value="shakeronly">Percussion Only – Shaker + Tambourine</option><option value="click">Metronome – Kick every beat</option><option value="click8">Metronome – 8th note grid</option><option value="click16">Metronome – 16th note grid</option><option value="clear">Clear (build your own)</option></optgroup>
+<optgroup label="Other"><option value="percjam">Percussion Only – Latin Jam</option><option value="shakeronly">Percussion Only – Shaker + Tambourine</option><option value="bluerondo">Blue Rondo – 9/8 click, accents 12 12 12 123</option><option value="click">Metronome – Kick every beat</option><option value="click8">Metronome – 8th note grid</option><option value="click16">Metronome – 16th note grid</option><option value="clear">Clear (build your own)</option></optgroup>
 </select></label>
-<label class="adv">Beats <select id="b" data-s><option>2</option><option>3</option><option selected>4</option><option>5</option><option>6</option><option>7</option><option>8</option><option>9</option><option>10</option><option>11</option><option>12</option></select></label>
-<label class="adv">Notes <select id="sub" data-s><option value="2" selected>8ths</option><option value="3">Triplets</option><option value="4">16ths</option></select></label>
+<label title="Time signature. In the x/8 meters (5/8, 7/8, 9/8 2+2+2+3, 11/8) one beat = one 8th note, so BPM counts 8ths.">Time <select id="ts"><option value="2/4">2/4</option><option value="3/4">3/4</option><option value="4/4" selected>4/4</option><option value="5/4">5/4</option><option value="6/4">6/4</option><option value="7/4">7/4</option><option value="5/8">5/8 (3+2)</option><option value="6/8">6/8</option><option value="7/8">7/8 (2+2+3)</option><option value="9/8">9/8 (3+3+3)</option><option value="9/8br">9/8 (2+2+2+3, Blue Rondo)</option><option value="11/8">11/8</option><option value="12/8">12/8</option></select></label>
+<label class="adv" style="display:none">Beats <select id="b" data-s><option>2</option><option>3</option><option selected>4</option><option>5</option><option>6</option><option>7</option><option>8</option><option>9</option><option>10</option><option>11</option><option>12</option></select></label>
+<label class="adv" style="display:none">Notes <select id="sub" data-s><option value="2" selected>8ths</option><option value="3">Triplets</option><option value="4">16ths</option></select></label>
 <label title="Play the hi-hat part on the ride cymbal instead (great for choruses)">Cymbal <select id="cy" data-s><option value="hat" selected>Hi-hat</option><option value="ride">Ride</option></select></label>
 <label title="Hit the bell of the ride on accents (only when the ride is playing)">Ride bell <select id="rb" data-s><option value="off">Off</option><option value="beats" selected>On the beats (accents)</option><option value="one">Beat 1 only</option><option value="24">Beats 2 &amp; 4</option><option value="and">Off-beats (&amp;s)</option></select></label>
 </div>
@@ -291,6 +292,7 @@ const P={
  samba:{b:2,s:4,h:{42:[0,1,2,3,4,5,6,7],36:[0,3,4,7],37:[2,5]}},
  sixeight:{b:2,s:3,h:{42:[0,1,2,3,4,5],36:[0],38:[3]}},
  waltz:{b:3,s:2,h:{42:[0,2,4],36:[0],38:[2,4]}},
+ bluerondo:{b:9,s:2,h:{36:[0,[2,0.5],4,[6,0.5],8,[10,0.5],12,[14,0.5],[16,0.5]],56:[0,[4,0.6],[8,0.6],[12,0.6]]}},
  click:{b:4,s:2,h:{36:[0,2,4,6],56:[0]}},
  click8:{b:4,s:2,h:{36:[0,2,4,6],42:[0,1,2,3,4,5,6,7],56:[0]}},
  click16:{b:4,s:4,h:{36:[0,4,8,12],42:[0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15],56:[0]}},
@@ -609,7 +611,7 @@ function fill(){const n=steps(),len=cur.b*cur.s;grid={};ROWS.forEach(([k])=>grid
  draw()}
 function setSwing(x){swing=x/100;$('sw').value=x;swUI()}
 function swUI(){const x=+$('sw').value,tri=sub===3;$('sw').disabled=tri;$('swt').textContent=tri?'Triplet grid':x<=50?'Straight':(x>=66&&x<=67)?x+'% (triplet)':x+'%'}
-function preset(name){if(!P[name])name='rock';curName=name;cur=P[name];beats=cur.b;sub=cur.s;$('b').value=beats;$('sub').value=sub;setSwing(cur.sw||50);fill()}
+function preset(name){if(!P[name])name='rock';curName=name;cur=P[name];beats=cur.b;sub=cur.s;$('b').value=beats;$('sub').value=sub;setSwing(cur.sw||50);fill();if(window.tsUI)tsUI()}
 const SUBL={2:['','&'],3:['','&','a'],4:['','e','&','a']};
 function cls(val,i){return 'c'+(i%sub?'':' down')+(val>=1?' on':val>0?' ghost':'')}
 function visRows(){if($('showall').checked)return ROWS;const r=ROWS.filter(([n])=>grid[n]&&grid[n].some(x=>x>0));return r.length?r:ROWS}
@@ -1201,7 +1203,7 @@ function setSel(e,val){if([...e.options].some(o=>o.value==val))e.value=val}
 function applyState(st){if(!st||!st.c)return false;restoring=true;const c=st.c;if(c.bt==='growly')c.bt='jbass';if(c.bt==='slap')c.bt='gslap';if(c.bt==='upright')c.bt='gupright';if(PROG2[c.prog])c.prog=PROG2[c.prog];if(!st.av){if(c.hh==='ac')c.hh='studio';if(c.rv==='soft')c.rv='zil'}if(!st.fl&&(c.hu==null||+c.hu===0))c.hu='30';if(!st.vt&&c.mv!=null){const v=+c.mv;c.mv=String(v<=0?0:Math.max(1,Math.min(100,Math.round(100*(1+20*Math.log10(v/100)/45)))))}if(!st.bj){if(c.bt==='finger')c.bt='jbass';if(c.bt==='upright')c.bt='dbass'}if(!st.kt&&(c.kit==='acoustic'||!c.kit)){c.kit='bpearl';c.kk='bp';c.sn='bp';c.tm='bp'}if(!st.pk)legacyKey(c);
  for(const id in c){const e=$(id);if(!e)continue;if(e.type==='checkbox')e.checked=!!c[id];else if(e.tagName==='SELECT')setSel(e,c[id]);else e.value=c[id]}
  preset(P[c.pre]?c.pre:'rock');$('pre').value=curName;
- const nb=+c.b||beats,ns=+c.sub||sub;if(nb!==beats||ns!==sub){beats=nb;sub=ns;$('b').value=beats;$('sub').value=sub;fill()}
+ const nb=+c.b||beats,ns=+c.sub||sub;if(nb!==beats||ns!==sub){beats=nb;sub=ns;$('b').value=beats;$('sub').value=sub;fill()}if(window.tsUI)tsUI();
  if(c.sw)setSwing(+c.sw);
  if(st.rowVol)for(const k in st.rowVol)if(k in rowVol)rowVol[k]=+st.rowVol[k];
  if(st.grid)ROWS.forEach(([k])=>{const r=st.grid[k];if(Array.isArray(r)&&r.length===steps())grid[k]=r.map(Number)});
@@ -1248,6 +1250,12 @@ $('mv').oninput=e=>{$('mvt').textContent=e.target.value+'%';if(out)out.gain.setT
 [['d5',-5],['d1',-1],['u1',1],['u5',5]].forEach(([id,n])=>$(id).onclick=()=>setBpm(bpm+n));
 $('pre').onchange=e=>{preset(e.target.value);pos=0};
 $('b').onchange=e=>{beats=+e.target.value;pos=0;fill()};
+// Time signature menu: sets the hidden Beats/Notes. x/4 keeps the groove's 8th or 16th grid; 6/8, 9/8 and 12/8 use triplet beats; the odd x/8 meters count 8th-note beats.
+const TSMAP={'2/4':[2],'3/4':[3],'4/4':[4],'5/4':[5],'6/4':[6],'7/4':[7],'5/8':[5,2],'6/8':[2,3],'7/8':[7,2],'9/8':[3,3],'9/8br':[9,2],'11/8':[11,2],'12/8':[4,3]};
+const TS8={p78:'7/8',jbwhip:'11/8',p98:'9/8br',bluerondo:'9/8br'};
+window.tsUI=tsUI;function tsUI(){let v;if(sub===3)v={2:'6/8',3:'9/8',4:'12/8'}[beats];else v=TS8[curName]&&TSMAP[TS8[curName]][0]===beats?TS8[curName]:({9:'9/8br',11:'11/8'}[beats]||beats+'/4');
+ if(![...$('ts').options].some(o=>o.value===v)){const o=document.createElement('option');o.value=v;o.textContent=v;$('ts').appendChild(o)}$('ts').value=v}
+$('ts').onchange=e=>{const m=TSMAP[e.target.value];if(!m)return;beats=m[0];sub=m[1]||(sub===4?4:2);$('b').value=beats;$('sub').value=sub;pos=0;swUI();fill();save()};
 $('sub').onchange=e=>{sub=+e.target.value;pos=0;swUI();fill()};
 $('sw').oninput=e=>setSwing(+e.target.value);
 $('fa').addEventListener('input',fatUI);
@@ -1290,7 +1298,7 @@ $('av').value='rock';$('ac').value='pop';psUI();restore();uiRefresh();logUI();re
 {const sp=new URLSearchParams(location.search),dm=sp.get('dm');if(dm){try{applyState(decodeCode(dm));uiRefresh();save()}catch(e){console.error(e)}
   if(sp.get('xp')){$('xlen').value=sp.get('xp');history.replaceState(null,'',location.pathname);$('xst').textContent='Your settings from Notion are loaded. Tap Export to build and save your MP3.';setTimeout(()=>{$('xbtn').scrollIntoView({block:'center'});$('xbtn').focus()},300)}}}
 
-</script><script>(function(){const C=['#e8412c','#f28c28','#f6c33b','#efe6d2'];document.querySelectorAll('.sec>h4').forEach((h,i)=>h.style.setProperty('--band',C[i%4]))})();</script><p class="appver" style="text-align:center;font-size:11px;opacity:.6;margin:18px 0 10px;font-family:ui-monospace,Menlo,monospace">Modal Metronome · Version 2026-11-10.7</p>
+</script><script>(function(){const C=['#e8412c','#f28c28','#f6c33b','#efe6d2'];document.querySelectorAll('.sec>h4').forEach((h,i)=>h.style.setProperty('--band',C[i%4]))})();</script><p class="appver" style="text-align:center;font-size:11px;opacity:.6;margin:18px 0 10px;font-family:ui-monospace,Menlo,monospace">Modal Metronome · Version 2026-11-11.1</p>
 <script>/* Embedded in Notion: pin the transport, one tab per group of sections */
 (function(){let inF=true;try{inF=window.self!==window.top}catch(e){}if(!inF)return;
  const w=document.querySelector('.wrap'),secs=[...w.querySelectorAll(':scope>.sec')];if(!secs.length)return;
