@@ -106,7 +106,7 @@ const SONGS={
  'all-new-kicks':{t:'All New Kicks',sub:'Play-along track',f:'audio/all-new-kicks.mp3',parts:['drums','bass','piano'],rest:'other',boost:2}
 };
 const PN={vocals:'Vocals',drums:'Drums',bass:'Bass',piano:'Piano',guitar:'Guitar',other:'Everything else',mix:'Full record'};
-const $=i=>document.getElementById(i),qs=new URLSearchParams(location.search).get('s'),id=qs||'',S=SONGS[id];
+const $=i=>document.getElementById(i),qs=new URLSearchParams(location.search).get('s'),id=qs||'',S=Object.prototype.hasOwnProperty.call(SONGS,id)?SONGS[id]:null; // ?s=constructor etc. is not a song
 const IVN={0:'original key',1:'half step up',2:'whole step up',3:'minor 3rd up',4:'major 3rd up',5:'4th up',6:'tritone up','-1':'half step down','-2':'whole step down','-3':'minor 3rd down','-4':'major 3rd down','-5':'4th down','-6':'tritone down'};
 let an=null,src=[],restName='other',ctx=null,node=null,gain=null,A=null,B=null,dur=0,playing=false,pos=0,posAt=0,lastPos=0,parts=[],pg=[],solo=-1,muted=[],ready=false;let KEY='songplayer:'+id;
 // Saved settings: checked field by field (an old or broken save never breaks the page), kept in memory too (private mode blocks storage)
@@ -132,12 +132,16 @@ function unlock(){if(!ctx){const AC=window.AudioContext||window.webkitAudioConte
 // Phone locked, a call came in, or Siri spoke: iOS stops the audio clock. Pause at the right spot so the button never shows pause over silence.
 function onState(){if(ctx.state!=='running'&&playing&&ready){stop();status('Paused: the sound was interrupted (screen lock or a call). Tap ▶ to keep going.')}}
 let engP=null;async function engine(){if(node)return node;unlock();if(!engP)engP=Stretch(ctx);node=await engP;gain=ctx.createGain();gain.gain.value=vol();node.connect(gain);gain.connect(ctx.destination);an=ctx.createAnalyser();an.fftSize=2048;gain.connect(an);
- node.setUpdateInterval(0.04,t=>{pos=t;posAt=performance.now()});return node}
+ node.setUpdateInterval(0.04,t=>{if(performance.now()<jumpUntil)return;pos=t;posAt=performance.now()});return node}
+// A jump (play, pause, seek): the engine's position reports already on their way are from before it, so they are ignored until the engine
+// confirms the jump (or 0.4 s passes). A stale report used to stop playback at B right after ▶, and fake a loop wrap that sped up the trainer.
+let jumpUntil=0,jumpN=0;function jump(o){const n=++jumpN;jumpUntil=performance.now()+400;const r=node.schedule(o);if(r&&r.then)r.then(()=>{if(jumpN===n)jumpUntil=0},()=>{})}
+
 // parts are stored at half scale (6 dB headroom) so peaks above full scale never clip; boost = how much the files were turned down
 const toI16=(f,k)=>{const o=new Int16Array(f.length),m=16384*k;for(let i=0;i<f.length;i++){const v=Math.round(f[i]*m);o[i]=v>32767?32767:v<-32768?-32768:v}return o};
 let curList=null,curBoost=1;
 let loadGen=0;
-async function loadParts(list,boost=1){cancelX();const gen=++loadGen;curList=list;curBoost=boost;ready=false;$('play').disabled=true;$('xbtn').disabled=true;await engine();if(playing)stop();
+async function loadParts(list,boost=1){cancelX();if(lastX){URL.revokeObjectURL(lastX.url);lastX=null;$('xst').textContent='Saves exactly what you hear: speed, key and parts.'} /* a finished MP3 belongs to the last song */const gen=++loadGen;curList=list;curBoost=boost;ready=false;$('play').disabled=true;$('xbtn').disabled=true;await engine();if(playing)stop();
  await node.setStems([]); // free the last song before decoding the next one
  const n=list.length,many=n>1,msg=d=>status(many?'Loading the song… '+d+' of '+n+' parts':'Loading the song…');msg(0);
  const raw=list.map(p=>typeof p.src==='string'?fetch(p.src).then(r=>{if(!r.ok)throw new Error('HTTP '+r.status);return r.arrayBuffer()}):p.src.arrayBuffer());raw.forEach(q=>q.catch(()=>{}));
@@ -169,10 +173,10 @@ function apply(){const r=rate(),k=semi();
  $('speed').setAttribute('aria-valuetext',$('speed').value+' percent');$('key').setAttribute('aria-valuetext',IVN[k]);$('vol').setAttribute('aria-valuetext',$('vol').value+' percent');save()}
 [50,60,75,90,100].forEach(v=>{const b=document.createElement('button');b.textContent=v+'%';b.dataset.v=v;b.onclick=()=>{$('speed').value=v;apply()};$('spdChips').appendChild(b)});
 function now(){return playing?Math.min(dur,pos+Math.min(0.2,(performance.now()-posAt)/1000)*rate()):pos}
-function seek(t){t=Math.max(0,Math.min(dur-0.05,t));pos=t;posAt=performance.now();lastPos=t;if(node)node.schedule({input:t})}
-let wake=0;function start(){if(!ready)return;unlock();status('');clearTimeout(wake);wake=setTimeout(()=>{if(playing&&ctx.state!=='running'){stop();status('Tap ▶ to start the sound.')}},1500);if(pos>=dur-0.5)pos=A!=null?A:0;const [ls,le]=loopRange();if(A!=null&&B!=null&&$('loop').checked&&(pos<A||pos>=B))pos=A; // a section is set: start at A
- node.schedule({active:true,input:pos,rate:rate(),semitones:semi(),loopStart:ls,loopEnd:le});posAt=performance.now();lastPos=pos;playing=true;$('play').textContent='❚❚';$('play').setAttribute('aria-label','Pause')}
-function stop(){if(!node)return;clearTimeout(wake);pos=now();node.schedule({active:false});playing=false;$('play').textContent='▶';$('play').setAttribute('aria-label','Play')}
+function seek(t){t=Math.max(0,Math.min(dur-0.05,t));pos=t;posAt=performance.now();lastPos=t;if(node)jump({input:t})}
+let wake=0;function start(){if(!ready)return;unlock();status('');clearTimeout(wake);wake=setTimeout(()=>{if(playing&&ctx.state!=='running'){stop();status('Tap ▶ to start the sound.')}},1500);if(pos>=dur-0.5)pos=A!=null?A:0;const [ls,le]=loopRange();if(A!=null&&B!=null&&(pos>=B-0.1||$('loop').checked&&pos<A))pos=A; // a section is set: start at A (with Loop off it stops at B, so ▶ plays the section again)
+ jump({active:true,input:pos,rate:rate(),semitones:semi(),loopStart:ls,loopEnd:le});posAt=performance.now();lastPos=pos;playing=true;$('play').textContent='❚❚';$('play').setAttribute('aria-label','Pause')}
+function stop(){if(!node)return;clearTimeout(wake);pos=now();jump({active:false}); /* late reports from the running engine would move the paused spot back */playing=false;$('play').textContent='▶';$('play').setAttribute('aria-label','Play')}
 $('play').onclick=async()=>{if(!ready)return;if(playing)stop();else start()};
 function onLoop(){if($('ramp').checked){const mx=+$('rampMax').value,nv=Math.min(mx,+$('speed').value+ +$('rampStep').value);$('speed').value=nv;apply()}}
 let lastTxt='',lastVal=-1;function tick(){if(ready){const t=now(),tx=fmt(t),v=Math.round(1000*t/dur);if(tx!==lastTxt){$('cur').textContent=lastTxt=tx}if(v!==lastVal&&!scrub){$('seek').value=lastVal=v}
@@ -273,6 +277,6 @@ $('xbtn').onclick=()=>{if(!inFrame||own||xRun||!ready)return exportMp3();
  $('xst').innerHTML=w?'Opened full screen to make and save your MP3 (Notion blocks saving inside the page).':'Notion blocks saving here, so the export runs full screen.<br><a class="ghostbtn xfull" target="_blank" rel="noopener" id="xfull">↗ Open full screen to export</a>';const xf=$('xfull');if(xf)xf.href=u};
 document.querySelector('.ghostbtn').addEventListener('click',()=>{try{unlock()}catch(e){}});
 document.querySelector('.ghostbtn').addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();e.stopPropagation();$('file').click()}});
-window.__sp={exp:exportMp3,ctx:()=>ctx,lastX:()=>lastX,level:()=>{if(!an)return 0;const b=new Float32Array(2048);an.getFloatTimeDomainData(b);let q=0;for(const v of b)q+=v*v;return Math.sqrt(q/2048)},solo:i=>{solo=i;sendGains()},state:()=>({ready,playing,pos:now(),dur,parts,gains:gains(),eng:engineGains()}),seek,start,stop};
-</script><p class="appver" style="text-align:center;font-size:11px;opacity:.6;margin:12px 0 8px;font-family:ui-monospace,Menlo,monospace">Song Player · Version 2026-11-11.9</p>
+window.__sp={exp:exportMp3,ctx:()=>ctx,lastX:()=>lastX,level:()=>{if(!an)return 0;const b=new Float32Array(2048);an.getFloatTimeDomainData(b);let q=0;for(const v of b)q+=v*v;return Math.sqrt(q/2048)},solo:i=>{solo=i;sendGains()},state:()=>({ready,playing,pos:now(),dur,A,B,parts,gains:gains(),eng:engineGains()}),seek,start,stop};
+</script><p class="appver" style="text-align:center;font-size:11px;opacity:.6;margin:12px 0 8px;font-family:ui-monospace,Menlo,monospace">Song Player · Version 2026-11-11.10</p>
 </body></html>
