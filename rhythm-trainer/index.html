@@ -82,6 +82,7 @@ details{border:1px solid var(--border);border-radius:12px;background:var(--panel
 .arcsplash{position:absolute;inset:0;z-index:6;border-radius:14px;background:var(--panel);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;text-align:center;padding:20px}
 .arcsplash .pre{font-family:var(--mono);font-size:12px;letter-spacing:.12em;color:var(--good);font-weight:700}
 .arcsplash b{font-size:44px;font-weight:900;letter-spacing:.02em;color:var(--accent)} .arcsplash span{max-width:420px;font-size:15px}
+.arcsplash .sptap{font-size:12px;letter-spacing:.1em;text-transform:uppercase;opacity:.7}
 .arcsplash em{font-family:var(--mono);font-style:normal;font-size:26px;font-weight:800;letter-spacing:.04em;color:var(--ink);margin-top:-6px}
 .arcmeter s{position:absolute;top:0;bottom:0;width:3px;margin-left:-1px;background:var(--ink);opacity:.8;z-index:1}
 .arcsplash.go b{animation:pop .5s cubic-bezier(.2,1.6,.4,1)} @keyframes pop{from{transform:scale(.4);opacity:0}to{transform:scale(1);opacity:1}}
@@ -175,7 +176,7 @@ button:focus-visible,select:focus-visible,summary:focus-visible,input:focus-visi
     </div>
     <p class="tip">Tap the pad or the space bar, or switch to Clap or snap. Rests are silent: don't tap them. Clapping or playing with speakers? Headphones are best: the mic never hears the clicks at all.</p>
 
-    <div class="arcsplash" id="arcSplash" hidden><div class="pre" id="spP"></div><b id="spT"></b><em id="spB" hidden></em><span id="spS"></span></div><div class="hitstamp" id="hitStamp">ON TARGET!</div>
+    <div class="arcsplash" id="arcSplash" hidden><div class="pre" id="spP"></div><b id="spT"></b><em id="spB" hidden></em><span id="spS"></span><small class="sptap" id="spTap" hidden>Tap to start</small></div><div class="hitstamp" id="hitStamp">ON TARGET!</div>
     <div class="results" id="results" role="region" aria-label="Results" hidden>
       <h2 id="rTitle" tabindex="-1" style="outline:none">Time!</h2>
       <div class="big" id="rScore">0<small>%</small></div>
@@ -502,14 +503,17 @@ button:focus-visible,select:focus-visible,summary:focus-visible,input:focus-visi
   // Points still add up over the whole run. A bar still playing when the 30 seconds run out finishes and counts for that round.
   const arcRoundName=()=>arc.round===6?"BONUS ROUND":`ROUND ${arc.round}`;
   function arcBar(){ if(!arc||!sess) return; const S=sess, acc=avgAcc(S.bars.slice(arc.from)); $("arcbar").hidden=false; $("arcMeter").hidden=false;
-    if(arc.round===1){ $("arcRound").textContent=`ROUND 1 OF 5 · WARM-UP · ${arc.bpm} BPM`; $("arcNeed").textContent=`ACCURACY ${acc==null?"–":acc+"%"}`; $("arcNeed").classList.remove("met"); $("arcFill").style.width=(100*(ARC_T-S.left)/ARC_T)+"%"; $("arcTgt").hidden=true; $("arcMeter").classList.remove("hit"); return }
+    if(arc.round===1){ $("arcRound").textContent=`WARM-UP · ${arc.bpm} BPM`; $("arcNeed").textContent=`ACCURACY ${acc==null?"–":acc+"%"}`; $("arcNeed").classList.remove("met"); $("arcFill").style.width=(100*(ARC_T-S.left)/ARC_T)+"%"; $("arcTgt").hidden=true; $("arcMeter").classList.remove("hit"); return }
     const need=ARC_NEED[arc.round], hit=acc!=null&&acc>=need;
     $("arcRound").textContent=`${arc.round===6?"BONUS":`ROUND ${arc.round} OF 5`} · ${arc.bpm} BPM`; $("arcNeed").textContent=`${hit?"✓ ":""}${acc==null?"–":acc+"%"} / ${need}%`; $("arcNeed").classList.toggle("met",hit);
     $("arcFill").style.width=(acc||0)+"%"; $("arcTgt").hidden=false; $("arcTgt").style.left=need+"%"; $("arcMeter").classList.toggle("hit",hit);
     $("arcMeter").setAttribute("aria-label",`Accuracy this round ${acc==null?"not yet":acc+"%"}, target ${need}%`);
     if(hit&&!arc.hit){ arc.hit=true; const hs=$("hitStamp"); hs.classList.remove("go"); void hs.offsetWidth; hs.classList.add("go"); chime() } }
   let splashTok=0;
-  function splash(pre,t,tempo,sub,ms,then){ const tok=++splashTok; $("spP").textContent=pre||""; $("spT").textContent=t; $("spB").textContent=tempo||""; $("spB").hidden=!tempo; $("spS").textContent=sub; const sp=$("arcSplash"); sp.hidden=false; sp.classList.remove("go"); void sp.offsetWidth; sp.classList.add("go"); setTimeout(()=>{ if(tok!==splashTok) return; sp.hidden=true; if(arc) then() },ms) }
+  // Each round screen stays up long enough to read (at least 4.5 s, longer for longer text); after 0.9 s a tap on it starts the round early.
+  function splash(pre,t,tempo,sub,_ms,then){ const tok=++splashTok, ms=Math.max(4500,2500+sub.length*30); $("spP").textContent=pre||""; $("spT").textContent=t; $("spB").textContent=tempo||""; $("spB").hidden=!tempo; $("spS").textContent=sub; $("spTap").hidden=true; const sp=$("arcSplash"); sp.hidden=false; sp.classList.remove("go"); void sp.offsetWidth; sp.classList.add("go");
+    let done=false; const go=()=>{ if(done||tok!==splashTok) return; done=true; sp.onpointerdown=null; sp.hidden=true; $("spTap").hidden=true; if(arc) then() };
+    sp.onpointerdown=null; setTimeout(()=>{ if(tok!==splashTok||done) return; $("spTap").hidden=false; sp.onpointerdown=e=>{ e.preventDefault(); go() } },900); setTimeout(go,ms) }
   function arcStart(){ if(sess) stopSession(true); sess={points:0,bars:[],left:ARC_T,stopped:true}; arc={round:1,ramp:rampOn(),from:0,hit:false}; arc.bpm=arc.top=arcTempo(1,arc.ramp); lockUI(); $("clockPill").textContent=ARC_T+" s"; $("clockPill").classList.remove("hot"); $("results").hidden=true; $("go").textContent="Stop"; $("hear").disabled=true;
     arcBar(); splash(arc.ramp?"CHALLENGE MODE":"CHALLENGE MODE · STEADY TEMPO","ROUND 1",`${arc.bpm} BPM`,arc.ramp?"Warm-up: no target, just play. Then every round is 8% faster and needs more accuracy. One try per rhythm.":"Warm-up: no target, just play. Then every round needs more accuracy, all at this tempo. One try per rhythm.",2800,arcRound) }
   function arcRound(){ clearInterval(sess.timer); sess.left=ARC_T; sess.stopped=false; arc.hit=false; arc.from=sess.bars.length; $("clockPill").textContent=ARC_T+" s"; $("clockPill").classList.remove("hot"); arcBar();
@@ -612,7 +616,7 @@ button:focus-visible,select:focus-visible,summary:focus-visible,input:focus-visi
     try{ const a=ctx(); a.resume().catch(()=>{}); if(mic) micStop(); $("micBtn").disabled=true;
       micMsg("Waiting for the microphone. Tap Allow if your device asks."); const myTry=++micTries;
       setTimeout(()=>{ if(micBusy&&micTries===myTry) micMsg("Still waiting for the microphone. Look for an Allow box (sometimes at the top of the screen)."+(framed?" Nothing there?"+fullLink()+".":"")) },8000);
-      const c={echoCancellation:inMode==='note',noiseSuppression:false,autoGainControl:false}; if(deviceId) c.deviceId={exact:deviceId};
+      const c={echoCancellation:false,noiseSuppression:false,autoGainControl:false}; /* no echo cancellation: it squashes or ducks a sustained piano note (the app rejects its own clicks itself) */ if(deviceId) c.deviceId={exact:deviceId};
       aSess("play-and-record"); const wantNote=inMode==="note", s=await navigator.mediaDevices.getUserMedia({audio:c}); await a.resume();
       // switched to Tap (or between Clap and One note) while the device was asking: close this one instead of listening in the wrong mode
       if(inMode==="tap"||(inMode==="note")!==wantNote){ s.getTracks().forEach(t=>t.stop()); micBusy=false; $("micBtn").disabled=false; if(inMode==="tap"){ aSess("playback"); return false } return micStart(deviceId) }
