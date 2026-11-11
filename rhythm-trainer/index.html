@@ -122,6 +122,9 @@ input[type=range]{accent-color:var(--c-act)}
 #results .row{gap:8px} #results .row button{flex:1 1 auto;min-height:44px}
 button:disabled{opacity:.45;cursor:default;box-shadow:none;transform:none}
 .micp select{min-height:40px} .seg button{min-height:42px} .micp input[type=range]{height:32px}
+/* narrow phones (320 px): level names wrap inside their buttons instead of pushing the grid wider than the card */
+.levels{grid-template-columns:repeat(4,minmax(0,1fr))} .lvl{min-width:0} .lvl span{overflow-wrap:anywhere;hyphens:auto;-webkit-hyphens:auto}
+@media (max-width:360px){ .lvl span{font-size:10px} .lvl{padding:8px 2px} }
 </style>
 </head>
 <body>
@@ -206,23 +209,24 @@ button:disabled{opacity:.45;cursor:default;box-shadow:none;transform:none}
   const C={
     Q:[{d:4}], H:[{d:8}], W:[{d:16}], EE:[{d:2},{d:2}],
     QR:[{d:4,r:true}], RE:[{d:2,r:true},{d:2}], ER:[{d:2},{d:2,r:true}],
-    DQE:[{d:6},{d:2}], SSSS:[{d:1},{d:1},{d:1},{d:1}], ESS:[{d:2},{d:1},{d:1}], SSE:[{d:1},{d:1},{d:2}],
+    DQE:[{d:6},{d:2}], DH:[{d:12}], SSSS:[{d:1},{d:1},{d:1},{d:1}], ESS:[{d:2},{d:1},{d:1}], SSE:[{d:1},{d:1},{d:2}],
     // syncopation 1: off-beat eighths and the short-long-short "E Q E" inside a half bar
     EQE:[{d:2},{d:4},{d:2}], RERE:[{d:2,r:true},{d:2},{d:2,r:true},{d:2}],
     // syncopation 2: notes held across the beat, written as ties (beat stays visible)
-    ETIE:[{d:2},{d:2},{d:2,t:true},{d:2}], ANT:[{d:4},{d:2,r:true},{d:2},{d:4,t:true},{d:4}], C332:[{d:6},{d:2},{d:4,t:true},{d:4}],
+    ETIE:[{d:2},{d:2},{d:2,t:true},{d:2}], ANT:[{d:4},{d:2,r:true},{d:2},{d:4,t:true},{d:4}], C332:[{d:6},{d:2},{d:4,t:true},{d:4}], MID:[{d:4},{d:2},{d:2},{d:2,t:true},{d:2},{d:4}],
     // syncopation 3: sixteenth-level
     SES:[{d:1},{d:2},{d:1}], DES:[{d:3},{d:1}], SDE:[{d:1},{d:3}], RSE:[{d:1,r:true},{d:1},{d:2}]};
-  const SPAN={Q:1,H:2,W:4,EE:1,QR:1,RE:1,ER:1,DQE:2,SSSS:1,ESS:1,SSE:1,EQE:2,RERE:2,ETIE:2,ANT:4,C332:4,SES:1,DES:1,SDE:1,RSE:1};
+  const SPAN={Q:1,H:2,W:4,EE:1,QR:1,RE:1,ER:1,DQE:2,DH:3,SSSS:1,ESS:1,SSE:1,EQE:2,RERE:2,ETIE:2,ANT:4,C332:4,MID:4,SES:1,DES:1,SDE:1,RSE:1};
   const LEVELS=[
     {id:"1",name:"Quarters & halves",cells:{Q:5,H:2,W:1}},
     {id:"2",name:"Eighths",cells:{Q:4,H:1,EE:4}},
     {id:"3",name:"Rests",cells:{Q:3,EE:3,QR:2,RE:2,ER:1}},
-    {id:"4",name:"Dotted",cells:{Q:2,EE:3,QR:1,DQE:3,RE:1}},
+    {id:"4",name:"Dotted",cells:{Q:2,EE:3,QR:1,DQE:3,DH:1,RE:1}},
     {id:"5",name:"16ths",cells:{Q:2,EE:2,SSSS:2,ESS:2,SSE:2,DQE:1}},
     {id:"6",name:"Syncopation 1",cells:{Q:2,EE:2,EQE:4,RERE:2,RE:2}},
-    {id:"7",name:"Syncopation 2",cells:{Q:2,EE:2,EQE:2,ETIE:3,ANT:2,C332:2}},
+    {id:"7",name:"Syncopation 2",cells:{Q:2,EE:2,EQE:2,ETIE:3,ANT:1,C332:1,MID:1}},
     {id:"8",name:"Syncopation 3",cells:{EE:2,SSSS:1,SES:3,DES:3,SDE:2,RSE:2,EQE:1}}];
+  const FEAT={"2":["EE"],"3":["QR","HR","RE","ER"],"4":["DQE","DH"],"5":["SSSS","ESS","SSE"],"6":["EQE","RERE"],"7":["ETIE","ANT","C332","MID"],"8":["SES","SDE","RSE"]};
   const TEMPOS=[60,72,84,96,108,120];
   let level=store.get("level","1"), bpm=store.get("bpm",72), latency=store.get("lat",null), latMic=store.get("latMic",null), inMode=store.get("in","tap");
   let bar=null, taps=[], run=null, round=[], best=store.get("best",null), audio=null, mic=null;
@@ -236,13 +240,14 @@ button:disabled{opacity:.45;cursor:default;box-shadow:none;transform:none}
   function makeBar(){
     const L=LEVELS.find(x=>x.id===level); let beat=0, ev=[], t=0, guard=0;
     while(beat<4&&guard++<50){ const k=pick(L.cells), sp=SPAN[k];
-      if(beat+sp>4) continue; if(sp===2&&beat%2) continue; if(sp===4&&beat) continue;
+      if(beat+sp>4) continue; if(sp===2&&beat%2) continue; if(sp>=3&&beat) continue;
       for(const e of C[k]){ ev.push({s:t,d:e.d,r:!!e.r,tie:!!e.t,cell:k}); t+=e.d } beat+=sp }
     engrave(ev);
     const notes=ev.filter(e=>!e.r&&!e.tie);
     if(!notes.length) return makeBar();
     if(ev.length===1&&level!=="1") return makeBar();
-    if(+level>=6&&!ev.some(e=>["EQE","RERE","ETIE","ANT","C332","SES","DES","SDE","RSE"].includes(e.cell))) return makeBar();
+    // every bar shows the level's own rhythm (a "Dotted" bar always has a dot, a "Syncopation 2" bar always has a tie)
+    if(FEAT[level]&&!ev.some(e=>FEAT[level].includes(e.cell))) return makeBar();
     return {ev,notes} }
 
   // ---------- engraving (single-line rhythm staff, proportional spacing so notes sit over the timeline) ----------
@@ -280,6 +285,8 @@ button:disabled{opacity:.45;cursor:default;box-shadow:none;transform:none}
             for(let f=0;f<(e.d===1?2:1);f++){const y0=sTop+f*8; h+=`<path d="M${x+SX} ${y0} c 3 8, 12 10, 9 22 c 0 -8, -5 -12, -9 -14 z" fill="${col}"/>`} } }
       }
       if($("counts").checked) h+=`<text x="${x}" y="${LY+32}" text-anchor="middle" font-family="JetBrains Mono" font-size="${e.r||e.tie?10.5:12}" font-weight="700" letter-spacing="${e.r||e.tie?-0.6:0}" fill="${e.r||e.tie?"#9aa0aa":hot(e)?HIT:"#5d6472"}">${e.r||e.tie?"("+CNT(e.s)+")":CNT(e.s)}</text>`;
+      // beats inside a held note or a long rest are counted too, in brackets: a half note on 1 reads "1 (2)"
+      if($("counts").checked) for(let b=Math.floor(e.s/4)*4+4;b<e.s+e.d;b+=4) h+=`<text x="${xOf(b)}" y="${LY+32}" text-anchor="middle" font-family="JetBrains Mono" font-size="10.5" font-weight="700" letter-spacing="-0.6" fill="#9aa0aa">(${CNT(b)})</text>`;
     });
     groups.forEach(gr=>{ if(gr.length<2) return; const x1=xOf(gr[0].s)+SX, x2=xOf(gr[gr.length-1].s)+SX;
       h+=`<rect x="${x1-0.9}" y="${sTop}" width="${x2-x1+1.8}" height="5" fill="${!res&&gr.some(hot)?HIT:ink}"/>`;
@@ -301,7 +308,14 @@ button:disabled{opacity:.45;cursor:default;box-shadow:none;transform:none}
   }
 
   // ---------- sound ----------
-  function ctx(){ audio=audio||new (window.AudioContext||window.webkitAudioContext)(); return audio }
+  // iPhone/iPad: "playback" keeps the clicks audible with the ringer switch on silent; the mic switches it to play-and-record.
+  const aSess=t=>{ try{ if(navigator.audioSession) navigator.audioSession.type=t }catch(e){} };
+  function ctx(){ if(!audio){ aSess(mic?"play-and-record":"playback"); audio=new (window.AudioContext||window.webkitAudioContext)();
+      // a phone call, the lock screen or another app can pause the audio clock: stop the try cleanly instead of freezing mid-bar
+      audio.onstatechange=()=>{ if(audio.state!=="running"&&(run||sess||arc)) abortRun() } } return audio }
+  function abortRun(){ if(!run&&!sess&&!arc&&!calHook) return; calHook=null; run=null; if(sess||arc) stopSession(true); $("go").disabled=false; $("hear").disabled=false; $("arcSplash").hidden=true; lockUI(); drawBar(null);
+    msg(null,"Paused","The app was in the background, so this try stopped. Press Start to go again.") }
+  document.addEventListener("visibilitychange",()=>{ if(document.hidden) abortRun() }); window.addEventListener("pagehide",()=>abortRun());
   const outT=[]; // when the app itself makes a sound, so the mic can tell its own clicks from your claps
   // The click: a short, warm wooden "tock" (like a real metronome's woodblock), not a shrill beep.
   // Its pitch is kept well away from the note you're playing in One note mode.
@@ -354,6 +368,9 @@ button:disabled{opacity:.45;cursor:default;box-shadow:none;transform:none}
     if(!run&&!calHook&&tg==="BUTTON"&&!["go","pad","again"].includes(e.target.id)) return; // Space still presses the focused button
     e.preventDefault(); if(e.repeat) return; if(audio&&(run||calHook)) tapAt(audio.currentTime); else if(!run&&!$("go").disabled&&$("results").hidden) $("go").click() });
 
+  // Silent spots in the bar: rests, tied-over notes, and beats held inside a long note or rest. A tap nearer one of these than
+  // to the note is a reading mistake (tapping the rest, the tie or the held beat), not a "close" hit on the note.
+  function silentPts(ev){ const S=[]; ev.forEach(e=>{ if(e.r||e.tie) S.push(e.s); for(let b=Math.floor(e.s/4)*4+4;b<e.s+e.d;b+=4) S.push(b) }); return S.sort((a,b)=>a-b) }
   // ---------- grading ----------
   // Each note gets one tap within 250 ms. Perfect ≤ 60 ms = 1, Good ≤ 120 ms = 0.75, Close ≤ 250 ms = 0.4.
   // Extra taps (rests, doubles) cost 0.25 each.
@@ -363,12 +380,16 @@ button:disabled{opacity:.45;cursor:default;box-shadow:none;transform:none}
     // Pair taps with notes in time order, choosing the pairing that scores best overall (so one missed or doubled
     // note never shifts every later tap onto the wrong note, even with 16ths at fast tempos).
     const T=notes.map(n=>st+n.s*u), order=taps.map((t,i)=>i).sort((a,b)=>taps[a]-taps[b]), N=T.length, M=order.length;
-    const val=d=>{ const a=Math.abs(d); return a>0.25?null:(a<=0.06?1:a<=0.12?0.75:0.4)*1e6-a*1e3 };
+    // each note's window: 250 ms either way, but never past halfway to a silent spot next to it
+    const SP=silentPts(bar.ev), lim=notes.map(n=>{ const pv=SP.filter(x=>x<n.s).pop(), nx=SP.find(x=>x>n.s);
+      return [pv==null?0.25:Math.min(0.25,Math.max(0.06,(n.s-pv)*u/2-0.001)), nx==null?0.25:Math.min(0.25,Math.max(0.06,(nx-n.s)*u/2-0.001))] });
+    // pairing favours matching the most notes, then the best timing: a player who drags every 16th by 70 ms is late, not "one note behind"
+    const val=(d,i)=>{ const a=Math.abs(d); return a>lim[i][d<0?0:1]?null:1e7+(a<=0.06?1:a<=0.12?0.75:0.4)*1e6-a*1e3 };
     const dp=[...Array(N+1)].map(()=>new Float64Array(M+1)), how=[...Array(N+1)].map(()=>new Int8Array(M+1));
     for(let i=0;i<=N;i++) for(let j=0;j<=M;j++){ if(!i&&!j) continue; let b=-1e18, h=0;
       if(i&&dp[i-1][j]>b){ b=dp[i-1][j]; h=1 } // note missed
       if(j&&dp[i][j-1]-0.25e6>b){ b=dp[i][j-1]-0.25e6; h=2 } // extra tap
-      if(i&&j){ const v=val(taps[order[j-1]]-T[i-1]); if(v!=null&&dp[i-1][j-1]+v>b){ b=dp[i-1][j-1]+v; h=3 } }
+      if(i&&j){ const v=val(taps[order[j-1]]-T[i-1],i-1); if(v!=null&&dp[i-1][j-1]+v>b){ b=dp[i-1][j-1]+v; h=3 } }
       dp[i][j]=b; how[i][j]=h }
     const pair=new Array(N).fill(-1); for(let i=N,j=M;i>0||j>0;){ const h=how[i][j]; if(h===3){ pair[i-1]=order[j-1]; i--; j-- } else if(h===1) i--; else j-- }
     notes.forEach((n,ni)=>{ const target=T[ni], bi=pair[ni], bd=bi<0?0:taps[bi]-target;
@@ -382,11 +403,20 @@ button:disabled{opacity:.45;cursor:default;box-shadow:none;transform:none}
     const res={byNote,taps:resTaps,missed}; drawBar(res);
     // coaching: the biggest problem first, in counting language
     const avg=errs.length?errs.reduce((a,b)=>a+b,0)/errs.length:0;
+    // what an extra tap landed on: a rest, a tied note, a beat held inside a longer note, or nothing in particular
+    const ex=extras.map(t=>(t-st)/u), on=g=>{ const e=bar.ev.find(e=>g>=e.s&&g<e.s+e.d); return !e||g<0||g>15?null:e.r?"rest":e.tie&&g===e.s?"tie":g!==e.s?"held":null };
+    const exG=ex.map(x=>Math.round(x)), exK=exG.map(on), ki=exK.findIndex(k=>k), why=ki<0?null:
+      exK[ki]==="rest"?`Extra tap in the rest on "${CNT(exG[ki])}". Rests are silent: count them, don't tap them.`
+      :exK[ki]==="tie"?`Extra tap on "${CNT(exG[ki])}": that note is tied, so hold it through the beat.`
+      :`Extra tap on "${CNT(exG[ki])}": the note before it is still sounding. Hold it and count "${CNT(exG[ki])}" in your head.`;
+    // a missed note with a wrong tap right next to it is one reading mistake: say which count was tapped instead
+    const swap=missed.length?ex.map((x,k)=>({x,k})).filter(o=>Math.abs(o.x-missed[0])<=2&&exG[o.k]>=0&&exG[o.k]<=15&&exG[o.k]!==missed[0]).sort((a,b)=>Math.abs(a.x-missed[0])-Math.abs(b.x-missed[0]))[0]:null;
     let v, c, cls;
-    if(score>=90){ v=`✓ Locked in · ${score}%`; cls="good"; c=missed.length?`Tight, but you missed the note on "${CNT(missed[0])}".`:extras.length?`Tight, but ${extras.length===1?"one extra tap":extras.length+" extra taps"}. One tap per note, none on rests.`:perfect===notes.length?"Every note perfect.":"Tight. Keep the same feel at the next tempo." }
+    if(score>=90){ v=`✓ Locked in · ${score}%`; cls="good"; c=missed.length?`Tight, but you missed the note on "${CNT(missed[0])}".`:extras.length?(why?"Tight. "+why:`Tight, but ${extras.length===1?"one extra tap":extras.length+" extra taps"}. One tap per note.`):perfect===notes.length?"Every note perfect.":"Tight. Keep the same feel at the next tempo." }
     else { v=`${score}%`; cls=score>=65?"ok":"bad";
-      if(missed.length) c=`Missed the note on "${CNT(missed[0])}". Count it out loud and tap with the count.`;
-      else if(extras.length){ const rs=bar.ev.find(e=>(e.r||e.tie)&&extras.some(t=>{const s=(t-st)/u;return s>=e.s-0.5&&s<e.s+e.d})); c=rs?(rs.tie?`Extra tap on "${CNT(rs.s)}": that note is tied, so hold it through the beat.`:`Extra tap in the rest on "${CNT(rs.s)}". Rests are silent: count them, don't tap them.`):"Extra taps. One tap per note." }
+      if(swap) c=`You tapped "${CNT(exG[swap.k])}", but the note is on "${CNT(missed[0])}". Say the counts out loud and tap only the notes.`;
+      else if(missed.length) c=`Missed the note on "${CNT(missed[0])}". Count it out loud and tap with the count.`;
+      else if(extras.length) c=why||"Extra taps. One tap per note.";
       else if(avg<-45) c=`Rushing: about ${Math.round(-avg)} ms early on average. Wait for the beat.`;
       else if(avg>45) c=`Dragging: about ${Math.round(avg)} ms late on average. Lock onto the click.`;
       else { const worst=bar.notes[errs.map(Math.abs).indexOf(Math.max(...errs.map(Math.abs)))]; c=worst?`Close. Watch "${CNT(worst.s)}". Say the counts out loud while you tap.`:"Close. Say the counts out loud while you tap." } }
@@ -474,7 +504,7 @@ button:disabled{opacity:.45;cursor:default;box-shadow:none;transform:none}
   $("retryRound").addEventListener("click",()=>arcRetry());
   ["counts","guide"].forEach(id=>{ $(id).checked=store.get(id,id==="counts"); $(id).addEventListener("change",e=>{ store.set(id,e.target.checked); drawBar(null) }) });
   ["cursor","lightup"].forEach(id=>{ $(id).checked=store.get(id,true)!==false; $(id).addEventListener("change",e=>store.set(id,e.target.checked)) }); try{store.set("who","")}catch(e){} // no names stored (privacy)
-  LEVELS.forEach(L=>{ const b=document.createElement("button"); b.className="lvl"; b.innerHTML=`<b>L${L.id}</b><span>${L.name}</span>`;
+  LEVELS.forEach(L=>{ const b=document.createElement("button"); b.className="lvl"; b.innerHTML=`<b>L${L.id}</b><span>${L.name.replace("Syncopation","Synco&shy;pation")}</span>`;
     b.addEventListener("click",()=>{ if(sess||arc) stopSession(true); level=L.id; store.set("level",level); mark(); round=[]; stats(); newBar(); $("go").textContent="Start"; msg(null,"Level "+L.id+": "+L.name,"Press Hear it to listen first, or Start.") }); b.dataset.id=L.id; $("levels").appendChild(b) });
   TEMPOS.forEach(t=>{ const b=document.createElement("button"); b.textContent=t; b.dataset.t=t; b.addEventListener("click",()=>{ if(sess||arc) stopSession(true); bpm=t; store.set("bpm",bpm); mark(); stats() }); $("tempo").appendChild(b) });
   function mark(){ document.querySelectorAll(".lvl").forEach(b=>b.setAttribute("aria-pressed",String(b.dataset.id===level))); document.querySelectorAll("#tempo button").forEach(b=>b.setAttribute("aria-pressed",String(+b.dataset.t===bpm))) }
@@ -523,7 +553,7 @@ button:disabled{opacity:.45;cursor:default;box-shadow:none;transform:none}
   function setThr(v){ thr=v; $("thr").style.left=Math.min(100,thr*300)+"%" }
   async function micStart(deviceId){ try{ const a=ctx(); await a.resume(); if(mic) micStop();
       const c={echoCancellation:inMode==='note',noiseSuppression:false,autoGainControl:false}; if(deviceId) c.deviceId={exact:deviceId};
-      const s=await navigator.mediaDevices.getUserMedia({audio:c});
+      aSess("play-and-record"); const s=await navigator.mediaDevices.getUserMedia({audio:c});
       // The app's clicks are pure tones; a clap or snap is a burst of noise spread across every frequency.
       // A second analyser measures how "noisy" each hit is (spectral flatness): pure tones are rejected, claps pass.
       const src=a.createMediaStreamSource(s), hp=a.createBiquadFilter(), g=a.createGain(), an=a.createAnalyser(), mute=a.createGain(), an2=a.createAnalyser();
@@ -591,8 +621,8 @@ button:disabled{opacity:.45;cursor:default;box-shadow:none;transform:none}
       const devs=(await navigator.mediaDevices.enumerateDevices()).filter(d=>d.kind==="audioinput"), cur=s.getAudioTracks()[0].getSettings().deviceId;
       $("micSel").innerHTML=devs.map((d,i)=>`<option value="${d.deviceId}">${(d.label||("Microphone "+(i+1))).replace(/[<>&]/g,"")}</option>`).join(""); if(cur) $("micSel").value=cur;
       $("micStat").textContent="Listening. Clap or snap once: the bar should jump past the line. Too low? Raise Sensitivity.";
-    }catch(e){ $("micStat").textContent=e&&e.name==="NotAllowedError"?"Microphone permission was blocked. Allow it in your browser's site settings, then tap the button again.":"No microphone found. Plug one in or pick another, then tap the button again." } }
-  function micStop(){ if(!mic) return; clearInterval(mic.timer); mic.s.getTracks().forEach(t=>t.stop()); try{mic.mute.disconnect()}catch(e){} mic=null;
+    }catch(e){ aSess("playback"); $("micStat").textContent=e&&e.name==="NotAllowedError"?"Microphone permission was blocked. Allow it in your browser's site settings, then tap the button again.":"No microphone found. Plug one in or pick another, then tap the button again." } }
+  function micStop(){ if(!mic) return; aSess("playback"); clearInterval(mic.timer); mic.s.getTracks().forEach(t=>t.stop()); try{mic.mute.disconnect()}catch(e){} mic=null;
     $("micBtn").textContent="Turn on the microphone"; $("micBtn").disabled=false; $("micCtl").hidden=true }
   $("micBtn").addEventListener("click",()=>micStart($("micSel").value||undefined));
   $("micSel").addEventListener("change",e=>micStart(e.target.value));
@@ -608,6 +638,6 @@ button:disabled{opacity:.45;cursor:default;box-shadow:none;transform:none}
   if(document.fonts) document.fonts.ready.then(()=>drawBar(null));
 })();
 </script>
-<p class="appver" style="text-align:center;font-size:11px;opacity:.6;margin:18px 0 10px;font-family:ui-monospace,Menlo,monospace">Rhythm Trainer · Version 2026-11-11.10</p>
+<p class="appver" style="text-align:center;font-size:11px;opacity:.6;margin:18px 0 10px;font-family:ui-monospace,Menlo,monospace">Rhythm Trainer · Version 2026-11-11.11</p>
 </body>
 </html>
