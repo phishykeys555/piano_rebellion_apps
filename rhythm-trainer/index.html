@@ -46,7 +46,7 @@ svg{display:block;width:100%;height:auto}
 .msg.good .v{color:var(--good)} .msg.ok .v{color:var(--ok)} .msg.bad .v{color:var(--bad)}
 .pad{height:120px;border-radius:14px;border:2px solid var(--accent);background:var(--accent-soft);color:var(--accent);font-weight:800;font-size:22px;letter-spacing:.06em;
   touch-action:manipulation;user-select:none;-webkit-user-select:none}
-.seg{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+.seg{display:grid;grid-auto-flow:column;grid-auto-columns:1fr;gap:6px}
 .seg button{padding:9px 6px;font-weight:700;font-size:14px}
 .seg button[aria-pressed="true"]{background:var(--ink);color:var(--panel);border-color:var(--ink)}
 .micp{display:grid;grid-template-columns:auto 1fr;gap:8px 10px;align-items:center;font-size:12px;color:var(--muted)}
@@ -65,11 +65,25 @@ details{border:1px solid var(--border);border-radius:12px;background:var(--panel
 .results{position:absolute;inset:0;background:var(--panel);border-radius:14px;padding:22px;display:flex;flex-direction:column;gap:14px;z-index:5;overflow:auto}
 .results h2{margin:0;font-weight:800;font-size:22px}
 .big{font-family:var(--mono);font-weight:700;font-size:60px;line-height:1} .big small{font-size:18px;color:var(--muted);font-weight:500}
-.rgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.rgrid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
 .rgrid div{background:var(--accent-soft);border-radius:10px;padding:10px} .rgrid b{font-family:var(--mono);font-size:18px;display:block} .rgrid span{font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
 .stamp{font-size:12px;color:var(--muted)}
 .namefield input{font:inherit;padding:8px 10px;border-radius:8px;border:1px solid var(--border);background:var(--panel);color:var(--ink);width:100%}
 @media (max-width:440px){ .levels{grid-template-columns:repeat(4,1fr)} .stat b{font-size:17px} .big{font-size:48px} }
+.modes button{padding:9px 6px;font-weight:700;font-size:13px}
+.arcbar{display:flex;gap:6px;justify-content:center;flex-wrap:wrap}
+.pill{font-family:var(--mono);font-size:12px;font-weight:700;letter-spacing:.06em;padding:5px 10px;border-radius:999px;background:var(--accent-soft);color:var(--accent)}
+.pill.need.met{background:var(--good);color:#fff} .pill.clock{background:var(--ink);color:var(--panel)} .pill.clock.hot{background:var(--bad);color:#fff}
+.arcmeter{position:relative;height:16px;border-radius:8px;background:var(--border);overflow:hidden}
+.arcmeter i{position:absolute;left:0;top:0;bottom:0;width:0;background:var(--accent);transition:width .3s}
+.arcmeter.hit i{background:var(--good)} .arcmeter b{position:absolute;inset:0;display:none;align-items:center;justify-content:center;font-size:11px;letter-spacing:.1em;color:#fff}
+.arcmeter.hit b{display:flex}
+.arcsplash{position:absolute;inset:0;z-index:6;border-radius:14px;background:var(--panel);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;text-align:center;padding:20px}
+.arcsplash .pre{font-family:var(--mono);font-size:12px;letter-spacing:.12em;color:var(--good);font-weight:700}
+.arcsplash b{font-size:44px;font-weight:900;letter-spacing:.02em;color:var(--accent)} .arcsplash span{max-width:420px;font-size:15px}
+.arcsplash.go b{animation:pop .5s cubic-bezier(.2,1.6,.4,1)} @keyframes pop{from{transform:scale(.4);opacity:0}to{transform:scale(1);opacity:1}}
+.hitstamp{position:absolute;left:50%;top:38%;z-index:7;transform:translate(-50%,-50%) rotate(-8deg) scale(0);font-weight:900;font-size:34px;color:var(--good);border:4px solid var(--good);border-radius:12px;padding:6px 14px;background:var(--panel);pointer-events:none;opacity:0}
+.hitstamp.go{animation:stamp 1.1s ease-out} @keyframes stamp{0%{transform:translate(-50%,-50%) rotate(-8deg) scale(2.2);opacity:0}15%{transform:translate(-50%,-50%) rotate(-8deg) scale(1);opacity:1}75%{opacity:1}100%{opacity:0}}
 </style>
 </head>
 <body>
@@ -84,12 +98,15 @@ details{border:1px solid var(--border);border-radius:12px;background:var(--panel
   <div class="tempo" id="tempo" role="group" aria-label="Tempo"><span>Tempo</span></div>
 
   <section class="card" id="card">
+    <div class="seg modes" id="modeSeg" role="group" aria-label="Mode"><button data-m="practice">🎯 Single tries</button><button data-m="sprint">⏱ 60-second sprint</button><button data-m="chal">🏆 Challenge</button></div>
     <div class="stats">
-      <div class="stat"><b id="sRound">1/5</b><span>Rhythm</span></div>
-      <div class="stat"><b id="sScore">–</b><span>Last</span></div>
-      <div class="stat"><b id="sAvg">–</b><span>Round</span></div>
-      <div class="stat"><b id="sBest">–</b><span>Best</span></div>
+      <div class="stat"><b id="sRound">0</b><span id="lRound">Tries</span></div>
+      <div class="stat"><b id="sScore">–</b><span id="lScore">Last</span></div>
+      <div class="stat"><b id="sAvg">–</b><span id="lAvg">Average</span></div>
+      <div class="stat"><b id="sBest">–</b><span id="lBest">Best</span></div>
     </div>
+    <div class="arcbar" id="arcbar" hidden><span class="pill" id="arcRound">ROUND 1</span><span class="pill need" id="arcNeed"></span><span class="pill clock" id="clockPill">60 s</span></div>
+    <div class="arcmeter" id="arcMeter" hidden><i id="arcFill"></i><b id="arcHit">✓ TARGET HIT</b></div>
     <div class="paper"><svg id="bar" role="img" aria-label="Rhythm to tap"></svg></div>
     <div class="msg" id="msg"><div class="v">Press Start</div><div class="c">You'll hear one bar of clicks first. Start tapping on beat 1 of the next bar.</div></div>
     <div class="seg" id="inSeg" role="group" aria-label="How you answer"><button data-in="tap">👆 Tap</button><button data-in="clap">👏 Clap or snap</button><button data-in="note">🎹 One note</button></div>
@@ -109,21 +126,23 @@ details{border:1px solid var(--border);border-radius:12px;background:var(--panel
       <button class="ghost" id="again" hidden>↺ Try this one again</button>
       <button class="primary" id="go">Start</button>
     </div>
-    <p class="tip">Tap the pad or the space bar, or switch to Clap or snap. Rests are silent: don't tap them. Clapping with speakers? Headphones give the cleanest timing.</p>
+    <p class="tip">Tap the pad or the space bar, or switch to Clap or snap. Rests are silent: don't tap them. Clapping or playing with speakers? Headphones are best: the mic never hears the clicks at all.</p>
 
+    <div class="arcsplash" id="arcSplash" hidden><div class="pre" id="spP"></div><b id="spT"></b><span id="spS"></span></div><div class="hitstamp" id="hitStamp">TARGET HIT!</div>
     <div class="results" id="results" hidden>
-      <h2>Round complete</h2>
+      <h2 id="rTitle">Time!</h2>
       <div class="big" id="rScore">0<small>%</small></div>
+      <p class="tip" id="rWhy" style="text-align:left;margin:0"></p>
       <div class="rgrid">
+        <div><b id="rAcc">–</b><span>Accuracy</span></div>
         <div><b id="rPerfect">0</b><span>Perfect hits</span></div>
         <div><b id="rTiming">–</b><span>Average timing</span></div>
         <div><b id="rMissed">0</b><span>Missed / extra</span></div>
       </div>
-      <div class="namefield"><input id="who" placeholder="Your first name" autocomplete="off" aria-label="Name"></div>
       <div class="stamp" id="rStamp"></div>
       <p class="tip" style="text-align:left">Screenshot this screen and send it to your instructor.</p>
       <div class="stamp">Rhythm Trainer · By <a href="https://clarendonhillsmusicacademy.com/" target="_blank" rel="noopener" style="color:inherit;text-decoration:underline">Clarendon Hills Music Academy</a></div>
-      <div class="row" style="justify-content:space-between"><button class="ghost" id="close">Back</button><button class="primary" id="newRound">New round</button></div>
+      <div class="row" style="justify-content:space-between"><button class="ghost" id="close">Back</button><button class="ghost" id="retryRound" hidden>Retry round</button><button class="primary" id="newRound">Play again</button></div>
     </div>
   </section>
 
@@ -238,9 +257,17 @@ details{border:1px solid var(--border);border-radius:12px;background:var(--panel
   // ---------- sound ----------
   function ctx(){ audio=audio||new (window.AudioContext||window.webkitAudioContext)(); return audio }
   const outT=[]; // when the app itself makes a sound, so the mic can tell its own clicks from your claps
-  function click(t,accent){ if(inMode==="note") return tick(t,accent); outT.push(t); if(outT.length>64) outT.shift(); const a=ctx(), o=a.createOscillator(), g=a.createGain(); o.type="sine"; o.frequency.value=accent?1760:1175;
-    g.gain.setValueAtTime(0.0001,t); g.gain.exponentialRampToValueAtTime(accent?0.5:0.32,t+0.002); g.gain.exponentialRampToValueAtTime(0.0001,t+0.06); o.connect(g).connect(a.destination); o.start(t); o.stop(t+0.07) }
-  // In One note mode the clicks are short noise ticks with no pitch, so they can never be mistaken for your note
+  // The click: a short, warm wooden "tock" (like a real metronome's woodblock), not a shrill beep.
+  // Its pitch is kept well away from the note you're playing in One note mode.
+  function tockF(){ const base=[587,440,740,330]; if(inMode!=="note") return 587; const tg=+$("noteSel").value, far=f=>{ const m=69+12*Math.log2(f/440); return [0,5].every(k=>{ const d=Math.abs(((m+k-tg)%12+12)%12); return Math.min(d,12-d)>=2 })&&Math.abs(m-tg)>=4 };
+    return base.find(far)||330 }
+  function click(t,accent,soft){ outT.push(t); if(outT.length>64) outT.shift(); const a=ctx(), f=tockF()*(accent?1.335:1), out=a.createBiquadFilter(); out.type="lowpass"; out.frequency.value=2600; out.connect(a.destination);
+    const o=a.createOscillator(), g=a.createGain(), o2=a.createOscillator(), g2=a.createGain(); o.type="sine"; o2.type="sine";
+    o.frequency.setValueAtTime(f*1.35,t); o.frequency.exponentialRampToValueAtTime(f,t+0.012); o2.frequency.setValueAtTime(f*2.76,t);
+    g.gain.setValueAtTime(0.0001,t); g.gain.exponentialRampToValueAtTime((accent?0.55:0.38)*(soft?0.35:1),t+0.0015); g.gain.exponentialRampToValueAtTime(0.0001,t+0.09);
+    g2.gain.setValueAtTime(0.0001,t); g2.gain.exponentialRampToValueAtTime((accent?0.16:0.11)*(soft?0.35:1),t+0.001); g2.gain.exponentialRampToValueAtTime(0.0001,t+0.035);
+    o.connect(g).connect(out); o2.connect(g2).connect(out); o.start(t); o2.start(t); o.stop(t+0.1); o2.stop(t+0.05) }
+  // (unused) pitchless tick
   function tick(t,accent){ outT.push(t); const a=ctx(), L=Math.floor(a.sampleRate*0.03), nb=a.createBuffer(1,L,a.sampleRate), d=nb.getChannelData(0);
     for(let i=0;i<L;i++) d[i]=(Math.random()*2-1)*Math.exp(-i/a.sampleRate/0.004);
     const s=a.createBufferSource(), hp=a.createBiquadFilter(), g=a.createGain(); s.buffer=nb; hp.type="highpass"; hp.frequency.value=5000; g.gain.value=accent?1:0.6; s.connect(hp).connect(g).connect(a.destination); s.start(t) }
@@ -256,9 +283,10 @@ details{border:1px solid var(--border);border-radius:12px;background:var(--panel
   const spb=()=>60/bpm, u16=()=>spb()/4;
   async function play(mode){ // mode: "test" | "hear"
     if(run) return; const a=ctx(); await a.resume(); if(inMode!=="tap"&&mode==="test"&&!mic) await micStart($("micSel").value||undefined);
-    taps=[]; $("results").hidden=true; $("again").hidden=true; $("go").disabled=true; $("hear").disabled=true;
+    taps=[]; $("results").hidden=true; $("again").hidden=true; $("go").disabled=!sess; $("hear").disabled=true;
     const t0=a.currentTime+0.15, start=t0+4*spb(), end=start+16*u16();
-    for(let b=0;b<8;b++){ if(mode==="hear"&&b<4) continue; click(t0+b*spb(),b%4===0) }
+    // while you play into the mic, the clicks in your bar are softer so the mic hears you, not them
+    for(let b=0;b<8;b++){ if(mode==="hear"&&b<4) continue; click(t0+b*spb(),b%4===0,b>=4&&mode==="test"&&inMode!=="tap") }
     if(mode==="hear"||$("guide").checked) bar.notes.forEach(n=>(mode==="test"&&inMode==="clap"&&mic)?wood(start+n.s*u16(),n.d*u16()):hand(start+n.s*u16()));
     msg(null, mode==="hear"?"Listen…":"Count in: 1 · 2 · 3 · 4", mode==="hear"?"":"Start tapping on beat 1 of the next bar.");
     run={mode,start,end,t0}; if(mode==="test") lastStart=start;
@@ -266,7 +294,7 @@ details{border:1px solid var(--border);border-radius:12px;background:var(--panel
       if(now>=start&&now<=end){ px=xOf((now-start)/u16()); if(mode==="test"&&!run.go){ run.go=true; msg(null,"Go!",inMode==="clap"?"Clap or snap every note.":inMode==="note"?"Play your note for every note.":"Tap every note.") } }
       else if(now<start&&mode==="test"){ const left=Math.ceil((start-now)/spb()); $("msg").querySelector(".v").textContent=left<=4?"Count in: "+["","1","2","3","4"][5-left]:"Get ready"; }
       drawBar(null,px);
-      if(now>end+0.35){ const m=run.mode; run=null; $("go").disabled=false; $("hear").disabled=false; if(m==="test") grade(); else { drawBar(null); msg(null,"Your turn","Press Start, count in, then tap it.") } return }
+      if(now>end+0.35){ const m=run.mode; run=null; $("go").disabled=false; $("hear").disabled=!!sess; if(m==="test") grade(); else { drawBar(null); msg(null,"Your turn","Press Start, count in, then tap it.") } return }
       requestAnimationFrame(tick) };
     tick() }
 
@@ -283,13 +311,13 @@ details{border:1px solid var(--border);border-radius:12px;background:var(--panel
   // Extra taps (rests, doubles) cost 0.25 each.
   function grade(){
     const st=lastStart, u=u16();
-    const notes=bar.notes, used=new Set(), byNote=new Map(), resTaps=[], missed=[]; let pts=0, errs=[], perfect=0;
+    const notes=bar.notes, used=new Set(), byNote=new Map(), resTaps=[], missed=[]; let pts=0, errs=[], perfect=0, okN=0;
     notes.forEach(n=>{ const target=st+n.s*u; let bi=-1, bd=1e9;
       taps.forEach((t,i)=>{ if(used.has(i)) return; const d=t-target; if(Math.abs(d)<Math.abs(bd)&&Math.abs(d)<=0.25){bd=d;bi=i} });
       const idx=bar.ev.indexOf(n);
       if(bi<0){ missed.push(n.s); byNote.set(idx,{col:"#c2352b"}); return }
       used.add(bi); const ms=bd*1000, ad=Math.abs(ms); errs.push(ms);
-      let sc, col; if(ad<=60){sc=1;col="#1f8a4c";perfect++} else if(ad<=120){sc=.75;col="#c98a06"} else {sc=.4;col="#e0702c"}
+      let sc, col; if(ad<=60){sc=1;col="#1f8a4c";perfect++} else if(ad<=120){sc=.75;col="#c98a06";okN++} else {sc=.4;col="#e0702c"}
       pts+=sc; byNote.set(idx,{col}); resTaps.push({s16:(taps[bi]-st)/u,col}) });
     const extras=taps.filter((t,i)=>!used.has(i)); extras.forEach(t=>resTaps.push({s16:Math.max(-0.5,Math.min(16.3,(t-st)/u)),col:"#7a808b",extra:true}));
     const score=Math.max(0,Math.round(100*(pts-0.25*extras.length)/notes.length));
@@ -305,34 +333,89 @@ details{border:1px solid var(--border);border-radius:12px;background:var(--panel
       else if(avg>45) c=`Dragging: about ${Math.round(avg)} ms late on average. Lock onto the click.`;
       else { const worst=bar.notes[errs.map(Math.abs).indexOf(Math.max(...errs.map(Math.abs)))]; c=worst?`Close. Watch "${CNT(worst.s)}". Say the counts out loud while you tap.`:"Close. Say the counts out loud while you tap." } }
     msg(cls,v,c);
-    round.push({score,perfect,notes:notes.length,errs,missed:missed.length,extras:extras.length});
-    if(round.length>=5) setTimeout(showResults,1400); else { $("go").textContent="Next rhythm"; $("again").hidden=false }
-    stats() }
+    afterGrade({score,perfect,ok:okN,notes:notes.length,errs,missed:missed.length,extras:extras.length}) }
   let lastStart=0;
   function msg(cls,v,c){ const el=$("msg"); el.className="msg"+(cls?" "+cls:""); el.querySelector(".v").textContent=v; el.querySelector(".c").textContent=c||"" }
-  function stats(){ $("sRound").textContent=`${Math.min(round.length+1,5)}/5`; const l=round[round.length-1];
-    $("sScore").textContent=l?l.score+"%":"–"; $("sAvg").textContent=round.length?Math.round(round.reduce((a,b)=>a+b.score,0)/round.length)+"%":"–"; $("sBest").textContent=best!=null?best+"%":"–" }
-  function showResults(){ const avg=Math.round(round.reduce((a,b)=>a+b.score,0)/round.length), all=round.flatMap(r=>r.errs);
-    const mean=all.length?all.reduce((a,b)=>a+b,0)/all.length:0; best=Math.max(best||0,avg); store.set("best",best);
-    $("rScore").innerHTML=`${avg}<small>%</small>`; $("rPerfect").textContent=`${round.reduce((a,b)=>a+b.perfect,0)}/${round.reduce((a,b)=>a+b.notes,0)}`;
-    $("rTiming").textContent=Math.abs(mean)<15?"On time":Math.round(Math.abs(mean))+" ms "+(mean<0?"early":"late");
-    $("rMissed").textContent=`${round.reduce((a,b)=>a+b.missed,0)} / ${round.reduce((a,b)=>a+b.extras,0)}`;
-    const L=LEVELS.find(x=>x.id===level), d=new Date();
-    $("rStamp").textContent=`Level ${L.id} · ${L.name} · ${bpm} BPM · ${d.toLocaleDateString(undefined,{weekday:"short",month:"short",day:"numeric"})} ${d.toLocaleTimeString([],{hour:"numeric",minute:"2-digit"})}`;
+  // ---------- modes: Single tries (default) · 60-second sprint · Challenge (same shape as Note Sprint) ----------
+  // Points per rhythm: 1 for every perfect note (within 60 ms), ½ for a close one (within 120 ms), −½ for an extra tap.
+  let gmode="practice", sess=null, arc=null, arcRetryRound=0, arcIncSaved=null; const ARC_T=30;
+  const half=x=>Number.isInteger(x)?String(x):(Math.floor(x)||"")+"½";
+  function bestKey(){ return "best-"+gmode+"-"+level+"-"+bpm+"-"+inMode }
+  function stats(){ const S=sess, T=gmode==="practice";
+    $("lRound").textContent=T?"Tries":"Time"; $("lScore").textContent=T?"Last":"Points"; $("lAvg").textContent=T?"Average":"Accuracy"; $("lBest").textContent=T?"Best":"High score";
+    const hs=store.get(bestKey(),null);
+    if(T){ const l=round[round.length-1]; $("sRound").textContent=round.length; $("sScore").textContent=l?l.score+"%":"–";
+      $("sAvg").textContent=round.length?Math.round(round.reduce((a,b)=>a+b.score,0)/round.length)+"%":"–"; $("sBest").textContent=hs!=null?hs+"%":"–"; return }
+    $("sRound").textContent=S?Math.max(0,S.left)+" s":(gmode==="sprint"?"60 s":"30 s"); $("sScore").textContent=S?half(S.points):"–";
+    $("sAvg").textContent=S&&S.bars.length?Math.round(S.bars.reduce((a,b)=>a+b.score,0)/S.bars.length)+"%":"–"; $("sBest").textContent=hs!=null?half(hs):"–" }
+  function setMode(m){ if(sess) stopSession(true); gmode=m; document.querySelectorAll("#modeSeg button").forEach(b=>b.setAttribute("aria-pressed",String(b.dataset.m===m)));
+    round=[]; $("results").hidden=true; $("again").hidden=true; $("go").textContent="Start";
+    msg(null,m==="practice"?"Single tries":m==="sprint"?"60-second sprint":"Challenge mode",m==="practice"?"One rhythm at a time, with your timing after every try.":m==="sprint"?"As many rhythms as you can in 60 seconds. Every perfect note = 1 point.":"Round 1 is a warm-up that sets your targets. Beat each round's target in 30 seconds to unlock the next.");
+    stats() }
+  document.querySelectorAll("#modeSeg button").forEach(b=>b.addEventListener("click",()=>setMode(b.dataset.m)));
+  function chime(){ const a=ctx(),t=a.currentTime; [784,1047,1319].forEach((f,i)=>{ const o=a.createOscillator(),g=a.createGain(); o.type="triangle"; o.frequency.value=f; g.gain.setValueAtTime(0.0001,t+i*0.08); g.gain.exponentialRampToValueAtTime(0.25,t+i*0.08+0.01); g.gain.exponentialRampToValueAtTime(0.0001,t+i*0.08+0.35); o.connect(g).connect(a.destination); o.start(t+i*0.08); o.stop(t+i*0.08+0.4) }) }
+  function afterGrade(r){ const pts=Math.max(0,r.perfect+0.5*r.ok-0.5*r.extras);
+    if(gmode==="practice"){ round.push(r); const hs=store.get(bestKey(),null); if(hs==null||r.score>hs) store.set(bestKey(),r.score); $("go").textContent="Next rhythm"; $("again").hidden=false; stats(); return }
+    const S=sess; if(!S) return; S.points+=pts; S.bars.push(r); stats(); if(arc) arcBar();
+    if(S.left>0&&!S.stopped) setTimeout(()=>{ if(sess===S&&S.left>0&&!S.stopped){ newBar(); play("test") } },500); else setTimeout(()=>sessionOver(),500) }
+  function startSession(secs){ sess={points:0,bars:[],left:secs,stopped:false}; $("results").hidden=true; $("again").hidden=true; $("hear").disabled=true; $("go").textContent="Stop"; stats();
+    sess.timer=setInterval(()=>{ const S=sess; if(!S) return; S.left--; stats(); $("clockPill").textContent=Math.max(0,S.left)+" s"; $("clockPill").classList.toggle("hot",S.left<=10); if(arc) arcBar(); if(S.left<=0){ clearInterval(S.timer); if(!run) sessionOver() } },1000);
+    $("clockPill").textContent=secs+" s"; newBar(); play("test") }
+  function stopSession(silent){ if(!sess) return; clearInterval(sess.timer); sess.stopped=true; sess=null; arc=null; $("arcbar").hidden=true; $("arcMeter").hidden=true; $("arcSplash").hidden=true; $("hear").disabled=false; $("go").textContent="Start"; if(!silent) msg(null,"Stopped","Press Start to go again."); stats() }
+  function sessionOver(){ if(!sess) return; if(arc) return arcRoundEnd(); const S=sess; clearInterval(S.timer); sess=null; $("hear").disabled=false; $("go").textContent="Start"; $("arcbar").hidden=true;
+    showResults("Time!",S,`${S.bars.length} rhythm${S.bars.length===1?"":"s"} in 60 seconds.`,"60-SECOND SPRINT") }
+  function showResults(title,S,why,tag){ const bars=S.bars, all=bars.flatMap(r=>r.errs), mean=all.length?all.reduce((a,b)=>a+b,0)/all.length:0, key=bestKey(), prev=store.get(key,0)||0, best=Math.max(prev,S.points), isNew=S.points>0&&S.points>=best;
+    store.set(key,best); $("rTitle").textContent=title; $("rWhy").textContent=why||"";
+    $("rScore").innerHTML=`${half(S.points)} <small>points${isNew?" · new high score":""}</small>`;
+    $("rAcc").textContent=bars.length?Math.round(bars.reduce((a,b)=>a+b.score,0)/bars.length)+"%":"–";
+    $("rPerfect").textContent=`${bars.reduce((a,b)=>a+b.perfect,0)}/${bars.reduce((a,b)=>a+b.notes,0)}`;
+    $("rTiming").textContent=!all.length?"–":Math.abs(mean)<15?"On time":Math.round(Math.abs(mean))+" ms "+(mean<0?"early":"late");
+    $("rMissed").textContent=`${bars.reduce((a,b)=>a+b.missed,0)} / ${bars.reduce((a,b)=>a+b.extras,0)}`;
+    const L=LEVELS.find(x=>x.id===level), d=new Date(), how=inMode==="tap"?"Tap":inMode==="clap"?"Clap":"One note";
+    $("rStamp").textContent=`${tag} · High score ${half(best)} · Level ${L.id} · ${L.name} · ${bpm} BPM · ${how} · ${d.toLocaleDateString(undefined,{weekday:"short",month:"short",day:"numeric"})} ${d.toLocaleTimeString([],{hour:"numeric",minute:"2-digit"})}`;
     $("results").hidden=false; stats() }
-
+  // Challenge: warm-up round sets the targets; each round asks for more; one try per rhythm
+  function arcBar(){ if(!arc||!sess) return; const S=sess; $("arcbar").hidden=false; $("arcMeter").hidden=false;
+    if(arc.warm){ $("arcRound").textContent="ROUND 1 OF 5 · WARM-UP"; $("arcNeed").textContent=`SCORE ${half(S.points)}`; $("arcNeed").classList.remove("met"); $("arcFill").style.width=(100*(ARC_T-S.left)/ARC_T)+"%"; $("arcMeter").classList.remove("hit"); return }
+    const need=arc.bonus?arc.bonusNeed:arc.needs[arc.round-1], got=S.points-arc.start, inc=need-arc.start;
+    $("arcRound").textContent=arc.bonus?"BONUS ROUND":`ROUND ${arc.round} OF 5`; $("arcNeed").textContent=`${S.points>=need?"✓ ":""}${half(got)} / ${half(inc)}`; $("arcNeed").classList.toggle("met",S.points>=need);
+    $("arcFill").style.width=Math.min(100,100*got/Math.max(1,inc))+"%"; const hit=S.points>=need; $("arcMeter").classList.toggle("hit",hit);
+    if(hit&&!arc.hit){ arc.hit=true; const hs=$("hitStamp"); hs.classList.remove("go"); void hs.offsetWidth; hs.classList.add("go"); chime() } }
+  function splash(pre,t,sub,ms,then){ $("spP").textContent=pre||""; $("spT").textContent=t; $("spS").textContent=sub; const sp=$("arcSplash"); sp.hidden=false; sp.classList.remove("go"); void sp.offsetWidth; sp.classList.add("go"); setTimeout(()=>{ sp.hidden=true; if(arc) then() },ms) }
+  function arcStart(){ if(sess) stopSession(true); sess={points:0,bars:[],left:ARC_T,stopped:true}; arc={round:1,warm:true,bonus:false,needs:[],start:0,hit:false}; $("results").hidden=true; $("go").textContent="Stop"; $("hear").disabled=true;
+    arcBar(); splash("CHALLENGE MODE","ROUND 1","Warm-up: score as many points as you can in 30 seconds. Your score sets your targets. One try per rhythm.",2800,arcRound) }
+  function arcRound(){ const pts=sess.points; sess.left=ARC_T; sess.stopped=false; arc.hit=false; $("clockPill").textContent=ARC_T+" s"; arcBar();
+    sess.timer=setInterval(()=>{ const S=sess; if(!S) return; S.left--; stats(); $("clockPill").textContent=Math.max(0,S.left)+" s"; $("clockPill").classList.toggle("hot",S.left<=10); arcBar(); if(S.left<=0){ clearInterval(S.timer); if(!run) arcRoundEnd() } },1000);
+    newBar(); play("test") }
+  function arcRoundEnd(){ const S=sess; clearInterval(S.timer); S.stopped=true;
+    if(arc.bonus) return arcFinish(true,arc.bonusNeed-arc.start,S.points-arc.start);
+    if(arc.warm){ const B=Math.max(2,S.points), RAMP=[0,0,1,1.15,1.3,1.5], FLOOR=[0,0,2,3,4,5]; arc.inc=[S.points];
+      for(let r=2;r<=5;r++) arc.inc.push(Math.max(FLOOR[r],Math.round(B*RAMP[r]*2)/2,arc.inc[r-2]+(r>2?1:0)));
+      arc.warm=false; arcIncSaved=arc.inc.slice(); arc.round=2; arc.start=S.points; arc.needs[1]=S.points+arc.inc[1];
+      return splash(`WARM-UP DONE · YOUR BASELINE ${half(S.points)}`,"ROUND 2",`Target this round: ${half(arc.inc[1])} points.`,2600,arcRound) }
+    const need=arc.needs[arc.round-1]; if(S.points<need) return arcFinish(false,need-arc.start,S.points-arc.start);
+    if(arc.round===5){ const got=S.points-arc.start, bt=Math.max(arc.inc[4]+1,Math.round(got*1.1)); arc.bonus=true; arc.start=S.points; arc.bonusNeed=S.points+bt;
+      return splash("ROUND 5 CLEARED ✓","BONUS ROUND",`Target: ${half(bt)} points in 30 seconds.`,2600,arcRound) }
+    const cleared=arc.round, got=S.points-arc.start; arc.round++; arc.inc[arc.round-1]=Math.max(arc.inc[arc.round-1],Math.round(got*1.1*2)/2,arc.inc[arc.round-2]+1); arc.start=S.points; arc.needs[arc.round-1]=S.points+arc.inc[arc.round-1];
+    splash(`ROUND ${cleared} CLEARED ✓`,`ROUND ${arc.round}`,`Target this round: ${half(arc.inc[arc.round-1])} points.`,2400,arcRound) }
+  function arcFinish(won,need,got){ const S=sess, failed=won?0:arc.round, reached=arc.bonus?"Bonus round":`Round ${arc.round}`; arc=null; sess=null; $("arcbar").hidden=true; $("arcMeter").hidden=true; $("go").textContent="Start"; $("hear").disabled=false;
+    arcRetryRound=failed; $("retryRound").hidden=won||failed<2; $("retryRound").textContent=`Retry round ${failed}`;
+    showResults(won?"Challenge cleared!":"Challenge over",S,won?(got>=need?`All 5 rounds cleared and the bonus target hit (${half(got)} / ${half(need)}).`:`All 5 rounds cleared. Bonus target was ${half(need)}; you had ${half(got)}.`):`Round ${failed} target was ${half(need)}. You had ${half(got)}. Hit the target before the 30 seconds run out to unlock Round ${failed+1}.`,`CHALLENGE · ${reached.toUpperCase()}`) }
+  function arcRetry(){ const r=arcRetryRound; if(r<2||!arcIncSaved) return arcStart(); sess={points:0,bars:[],left:ARC_T,stopped:true}; arc={round:r,warm:false,bonus:false,inc:arcIncSaved.slice(),needs:[],start:0,hit:false}; arc.needs[r-1]=arc.inc[r-1];
+    $("results").hidden=true; $("go").textContent="Stop"; $("hear").disabled=true; splash("",`ROUND ${r}`,`Target this round: ${half(arc.inc[r-1])} points.`,2200,arcRound) }
   // ---------- controls ----------
   function newBar(){ bar=makeBar(); drawBar(null) }
-  $("go").addEventListener("click",async()=>{ if(round.length>=5){ round=[]; stats() } if($("go").textContent==="Next rhythm"||!bar) newBar(); $("go").textContent="Start"; $("again").hidden=true; await startTest() });
+  $("go").addEventListener("click",async()=>{ if(gmode!=="practice"){ if(sess||arc){ stopSession(); return } if(run) return; return gmode==="sprint"?startSession(60):arcStart() } if($("go").textContent==="Next rhythm"||!bar) newBar(); $("go").textContent="Start"; $("again").hidden=true; await startTest() });
   $("again").addEventListener("click",async()=>{ $("again").hidden=true; if(round.length) round.pop(); stats(); await startTest() });
   $("hear").addEventListener("click",()=>{ if(!bar) newBar(); play("hear") });
   async function startTest(){ await play("test") }
-  $("close").addEventListener("click",()=>{ $("results").hidden=true; round=[]; stats(); newBar() });
-  $("newRound").addEventListener("click",()=>{ $("results").hidden=true; round=[]; stats(); newBar(); $("go").textContent="Start"; msg(null,"New round","Press Start.") });
-  $("counts").addEventListener("change",()=>drawBar(null)); $("who").value=store.get("who",""); $("who").addEventListener("input",e=>store.set("who",e.target.value));
+  $("close").addEventListener("click",()=>{ $("results").hidden=true; stats(); newBar(); msg(null,"Ready","Press Start.") });
+  $("newRound").addEventListener("click",()=>{ $("results").hidden=true; if(gmode==="sprint") startSession(60); else if(gmode==="chal") arcStart(); else { round=[]; stats(); newBar() } });
+  $("retryRound").addEventListener("click",()=>arcRetry());
+  $("counts").addEventListener("change",()=>drawBar(null)); try{store.set("who","")}catch(e){} // no names stored (privacy)
   LEVELS.forEach(L=>{ const b=document.createElement("button"); b.className="lvl"; b.innerHTML=`<b>L${L.id}</b><span>${L.name}</span>`;
-    b.addEventListener("click",()=>{ level=L.id; store.set("level",level); mark(); round=[]; stats(); newBar(); $("go").textContent="Start"; msg(null,"Level "+L.id+": "+L.name,"Press Hear it to listen first, or Start.") }); b.dataset.id=L.id; $("levels").appendChild(b) });
-  TEMPOS.forEach(t=>{ const b=document.createElement("button"); b.textContent=t; b.dataset.t=t; b.addEventListener("click",()=>{ bpm=t; store.set("bpm",bpm); mark() }); $("tempo").appendChild(b) });
+    b.addEventListener("click",()=>{ if(sess||arc) stopSession(true); level=L.id; store.set("level",level); mark(); round=[]; stats(); newBar(); $("go").textContent="Start"; msg(null,"Level "+L.id+": "+L.name,"Press Hear it to listen first, or Start.") }); b.dataset.id=L.id; $("levels").appendChild(b) });
+  TEMPOS.forEach(t=>{ const b=document.createElement("button"); b.textContent=t; b.dataset.t=t; b.addEventListener("click",()=>{ if(sess||arc) stopSession(true); bpm=t; store.set("bpm",bpm); mark(); stats() }); $("tempo").appendChild(b) });
   function mark(){ document.querySelectorAll(".lvl").forEach(b=>b.setAttribute("aria-pressed",String(b.dataset.id===level))); document.querySelectorAll("#tempo button").forEach(b=>b.setAttribute("aria-pressed",String(+b.dataset.t===bpm))) }
 
   // ---------- calibration: tap (or clap) with 8 clicks; the median offset becomes the correction for that input ----------
@@ -373,20 +456,33 @@ details{border:1px solid var(--border);border-radius:12px;background:var(--panel
         let T=-1; for(let t=minL;t<=maxL;t++) if(c[t]<0.15){ while(t+1<=maxL&&c[t+1]<c[t]) t++; T=t; break }
         if(T<0) return -1; if(2*T<=maxL&&c[2*T]<c[T]*0.5) T=2*T; const x1=c[T-1],x2=c[T],x3=c[T+1],aa=(x1+x3-2*x2)/2,bb=(x3-x1)/2, Tf=aa>0?T-bb/(2*aa):T;
         return 69+12*Math.log2(sr/Tf/440) };
+      // Is this exact note sounding? Check the period of the chosen note directly (works even when another sound overlaps it)
+      const hasNote=tg=>{ an3.getFloatTimeDomainData(pbuf); const sr=a.sampleRate, P=sr/(440*Math.pow(2,(tg-69)/12)), n=pbuf.length, lo=Math.floor(P*0.985), hi=Math.ceil(P*1.015), W=n-hi-1; if(W<P*2) return false;
+        let e0=0; for(let j=0;j<W;j++) e0+=pbuf[j]*pbuf[j]; if(e0<=0) return false; let best=9;
+        for(let L=lo;L<=hi;L++){ let d=0,e1=0; for(let j=0;j<W;j++){ const x=pbuf[j]-pbuf[j+L]; d+=x*x; e1+=pbuf[j+L]*pbuf[j+L] } best=Math.min(best,d/(e0+e1)) }
+        // and not just an octave relative: the half period must not match as well
+        const H=Math.round(P/2); let dh=0,eh=0; for(let j=0;j<W;j++){ const x=pbuf[j]-pbuf[j+H]; dh+=x*x; eh+=pbuf[j]*pbuf[j]+pbuf[j+H]*pbuf[j+H] }
+        return best<0.2&&dh/eh>best*2.5 };
       src.connect(hp); hp.connect(g); g.connect(an); an.connect(mute); mute.connect(a.destination);
-      const buf=new Float32Array(an.fftSize); let last=0, prev=0, pend=null;
+      const buf=new Float32Array(an.fftSize); let last=0, prev=0, pend=null, ckR=0;
       mic={s,g,mute,an,buf,timer:setInterval(()=>{ an.getFloatTimeDomainData(buf); let r=0, pk=0; for(let i=0;i<buf.length;i++){ r+=buf[i]*buf[i]; pk=Math.max(pk,Math.abs(buf[i])) } r=Math.sqrt(r/buf.length);
         $("meterFill").style.width=Math.min(100,r*300)+"%"; const now=a.currentTime;
         // judge a hit ~20 ms in, when the analyser window is full of the new sound
         if(!pend){ const h0=hb(); hbBase=hbBase?hbBase*0.9+h0*0.1:h0 }
-        if(pend&&inMode==="note"&&now-pend.at>=0.045){ const p=pend; pend=null; const m=pitch(), tg=+$("noteSel").value;
-          if(m>0&&Math.abs(m-tg)<=0.6){ tapAt(p.t,"mic"); $("pad").classList.add("hit"); setTimeout(()=>$("pad").classList.remove("hit"),90) } }
+        if(pend) pend.r=Math.max(pend.r||0,r);
+        // The app learns how loud its own click is through this mic: during the count-in you aren't playing yet, so every hit there is the click.
+        // Later, a hit that lands on a click has to be clearly louder than that to count.
+        const ownClick=p=>{ const near=outT.some(o=>Math.abs(p.t-o)<0.06); if(!near||calHook) return false;
+          if(run&&run.mode==="test"&&p.t<run.start-0.1){ ckR=ckR?Math.max(ckR*0.8,p.r):p.r; return true }
+          return ckR>0&&p.r<ckR*1.6 };
+        if(pend&&inMode==="note"&&now-pend.at>=0.11){ const p=pend; pend=null; const m=pitch(), tg=+$("noteSel").value;
+          if(!ownClick(p)&&((m>0&&Math.abs(m-tg)<=0.6)||hasNote(tg))){ tapAt(p.t,"mic"); $("pad").classList.add("hit"); setTimeout(()=>$("pad").classList.remove("hit"),90) } }
         if(pend&&inMode!=="note"&&now-pend.at>=0.02){ const fl=flat(), h=hb(), p=pend; pend=null;
-          if(fl>=FLAT_MIN||h>hbBase*10){ tapAt(p.t,"mic"); $("pad").classList.add("hit"); setTimeout(()=>$("pad").classList.remove("hit"),90) } }
-        if(r>thr&&r>prev*2&&now-last>0.08){ let k=0; const lim=Math.max(thr*1.5,pk*0.3); while(k<buf.length&&Math.abs(buf[k])<lim) k++;
+          if(!ownClick(p)&&(fl>=FLAT_MIN||h>hbBase*10)){ tapAt(p.t,"mic"); $("pad").classList.add("hit"); setTimeout(()=>$("pad").classList.remove("hit"),90) } }
+        /* a re-struck piano key over its own ring only jumps ~1.4x */ if(r>thr&&r>prev*(inMode==="note"?1.35:2)&&now-last>0.08){ let k=0; const lim=Math.max(thr*1.5,pk*0.3); while(k<buf.length&&Math.abs(buf[k])<lim) k++;
           const t=now-(buf.length-k)/a.sampleRate; last=now;
           // a pure tone (the app's own click or beep) is not a clap: decide once the sound has filled the window
-          pend={t,at:now} }
+          pend={t,at:now,r} }
         prev=r*0.5+prev*0.5 },8)};
       $("micBtn").textContent="Microphone on"; $("micBtn").disabled=true; $("micCtl").hidden=false; setThr(thr);
       const devs=(await navigator.mediaDevices.enumerateDevices()).filter(d=>d.kind==="audioinput"), cur=s.getAudioTracks()[0].getSettings().deviceId;
@@ -405,10 +501,10 @@ details{border:1px solid var(--border);border-radius:12px;background:var(--panel
   setIn(inMode);
 
   window.__rt={bar:()=>bar,start:()=>lastStart,tap:t=>tapAt(t),now:()=>audio&&audio.currentTime,u:()=>u16(),setBar:b=>{bar=b;drawBar(null)}}; // test hook
-  mark(); stats(); newBar();
+  mark(); newBar(); setMode("practice");
   if(document.fonts) document.fonts.ready.then(()=>drawBar(null));
 })();
 </script>
-<p class="appver" style="text-align:center;font-size:11px;opacity:.6;margin:18px 0 10px;font-family:ui-monospace,Menlo,monospace">Rhythm Trainer · Version 2026-11-11.3</p>
+<p class="appver" style="text-align:center;font-size:11px;opacity:.6;margin:18px 0 10px;font-family:ui-monospace,Menlo,monospace">Rhythm Trainer · Version 2026-11-11.5</p>
 </body>
 </html>
