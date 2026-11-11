@@ -110,7 +110,7 @@ button{-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
 @media (max-width:400px){.pad{gap:6px}.stats span{font-size:10px;letter-spacing:.02em}}
 @media (max-width:360px){.stats{grid-template-columns:repeat(4,auto);justify-content:space-between;gap:6px}.stats span{font-size:9.5px;letter-spacing:0}.results{padding:18px 14px}.rgrid{grid-template-columns:repeat(3,minmax(0,1fr));gap:6px}.rgrid span{font-size:9.5px;letter-spacing:.02em}}
 button:focus-visible,summary:focus-visible,input:focus-visible{outline:3px solid var(--c-sel);outline-offset:2px}
-/* ---- Challenge mode: round pills, target meter, round splash, TARGET HIT stamp (same game as Note Sprint) ---- */
+/* ---- Challenge mode: round pills, target meter, round splash, TARGET HIT stamp (same rules as the other studio apps) ---- */
 .arcbar{display:flex;justify-content:center;gap:8px;align-items:center;font-family:var(--mono);font-weight:700;font-size:13px;letter-spacing:.04em;flex-wrap:wrap}
 .arcbar .pill{border:1px solid var(--c-lcd-b);border-radius:999px;padding:4px 10px;background:var(--c-lcd);color:var(--c-led);text-shadow:var(--c-led-glow)}
 .arcbar .need.met{background:var(--c-ok);border-color:var(--c-ok);color:#fff;text-shadow:none}
@@ -288,7 +288,7 @@ button:focus-visible,summary:focus-visible,input:focus-visible{outline:3px solid
   // results sheet over the card: the card underneath is inert so Tab and screen readers stay on the sheet
   function sheet(on){ $("results").hidden=!on; [...$("card").children].forEach(c=>{ if(c!==$("results")) c.inert=on }) }
 
-  // ---------- Challenge mode: arcade rounds (same game as Note Sprint) ----------
+  // ---------- Challenge mode: arcade rounds (same rules as the other studio apps) ----------
   // Round 1 is a 30-second warm-up whose score sets the targets. Rounds 2-5 each have their own fresh target (extra points never carry),
   // then a bonus round where every point counts double. One try per key. Last 10 s of a round = on fire, 2x points. Miss a target = game over.
   const ARC_T=30, ARC_FIRE=10;
