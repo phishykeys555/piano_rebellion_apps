@@ -10,7 +10,8 @@
 </head>
 <body>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Music&family=Archivo:wght@400;600;800&family=JetBrains+Mono:wght@500;700&display=swap">
+<!-- fonts load without blocking the page: a slow or blocked Google Fonts never leaves a blank screen; the staff redraws when Noto Music arrives -->
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Music&family=Archivo:wght@400;600;800&family=JetBrains+Mono:wght@500;700&display=swap" media="print" onload="this.media='all'">
 <style>
 /* Layout: one practice card (score strip, staff on engraving paper, answer pad), level picker above, settings drawer below, results sheet over the card when a sprint ends. */
 :root{
@@ -69,6 +70,13 @@ button:focus-visible,input:focus-visible{outline:3px solid var(--accent);outline
 .chip{font-family:var(--music);font-size:24px;padding:4px 16px;min-width:52px;min-height:44px}
 .chip[aria-pressed="true"]{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
 .pianoScroll{overflow-x:auto;-webkit-overflow-scrolling:touch;border-radius:8px;scrollbar-width:thin}
+@media (pointer:coarse){.pianoScroll{scrollbar-width:none}.pianoScroll::-webkit-scrollbar{display:none}}
+/* more keys off-screen: a fade and an arrow on that side (same as Key Finder) */
+.pianoWrap{position:relative}.pianoWrap::before,.pianoWrap::after{content:"";position:absolute;top:0;bottom:0;width:34px;z-index:4;pointer-events:none;opacity:0;transition:opacity .2s;display:flex;align-items:center;justify-content:center;font:700 20px var(--f-body,system-ui);color:#fff}
+.pianoWrap::before{left:0;content:"‹";border-radius:8px 0 0 8px;background:linear-gradient(90deg,rgba(0,0,0,.55),transparent)}
+.pianoWrap::after{right:0;content:"›";border-radius:0 8px 8px 0;background:linear-gradient(270deg,rgba(0,0,0,.55),transparent)}
+.pianoWrap.l::before,.pianoWrap.r::after{opacity:1}
+.swipe{margin:6px 0 0;text-align:center;font-size:12px;color:var(--muted)}
 .piano{position:relative;height:150px;display:flex;user-select:none;-webkit-user-select:none}
 .piano .w{flex:1;min-width:0;background:var(--key-w);border:1px solid #9aa0aa;border-radius:0 0 7px 7px;margin-right:-1px;padding:0;display:flex;align-items:flex-end;justify-content:center;padding-bottom:6px;font-family:var(--mono);font-size:10px;color:#8a909b}
 .piano .w.mc{color:var(--accent);font-weight:700;font-size:9px;line-height:1.1;text-align:center;white-space:normal}
@@ -83,7 +91,9 @@ button:focus-visible,input:focus-visible{outline:3px solid var(--accent);outline
 .meter .thr{position:absolute;top:-3px;bottom:-3px;width:2px;background:var(--ink);opacity:.6}
 .heard{font-family:var(--mono);font-weight:700;font-size:40px;min-height:48px}
 .heard.msg{font-family:var(--display);font-weight:600;font-size:17px;line-height:1.3;text-align:center;color:var(--muted);display:flex;align-items:center;justify-content:center;gap:8px;padding:10px 14px;margin:0 auto;max-width:420px;border:1px dashed var(--border);border-radius:12px}
-.micstat{font-size:13px;color:var(--muted);text-align:center}
+.micstat{font-size:13px;color:var(--muted);text-align:center;max-width:420px;line-height:1.4}
+.micstat a{color:var(--accent);font-weight:700}
+a.primary{display:inline-flex;align-items:center;justify-content:center;min-height:44px;border-radius:10px;border:1px solid;text-decoration:none;text-align:center}
 .meter{width:100%;max-width:320px;height:6px;border-radius:3px;background:var(--border);overflow:hidden}
 .meter i{display:block;height:100%;width:0;background:var(--good)}
 .rotate{font-size:13px;color:var(--accent);text-align:center;margin:6px 0 0;font-weight:600}
@@ -180,13 +190,15 @@ summary{cursor:pointer;padding:12px 16px;font-weight:600}
 .namefield{display:flex;gap:8px;align-items:center}
 .namefield input{font:inherit;padding:8px 10px;border-radius:8px;border:1px solid var(--border);background:var(--panel);color:var(--ink);flex:1;min-width:0}
 @media (max-width:440px){ .settings{grid-template-columns:1fr} .letters button{font-size:18px;padding:12px 0} .stat b{font-size:17px} .levels{grid-template-columns:repeat(3,1fr)} .big{font-size:52px} }
-@media (prefers-reduced-motion:reduce){ *{transition:none!important} }
+@media (prefers-reduced-motion:reduce){ *{transition:none!important} .watch.hot .num,.arcbar .fire,.arcmeter.flash{animation:none!important} }
 /* phones: no double-tap zoom or grey flash when a kid taps fast */
 button,summary,label,select{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
 button{-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
 /* action rows share the width instead of a ragged wrap; stat labels never run into each other on a 375 px phone */
 .row>button{flex:1 1 auto}
 @media (max-width:400px){.stat span{font-size:10px;letter-spacing:.02em!important}}
+@media (max-width:360px){.stats{grid-template-columns:repeat(4,auto);justify-content:space-between;gap:6px}.stat span{font-size:9.5px;letter-spacing:0!important}
+  .results{padding:18px 14px}.rgrid{grid-template-columns:repeat(3,minmax(0,1fr));gap:6px}.rgrid div{padding:8px}.rgrid span{font-size:9.5px;letter-spacing:.02em}.big{font-size:44px}.big small{font-size:15px}}
 /* ---- CHMA design system (Studio Gear dark / Pocket Synth light) ---- */
 :root:root:root{--bg:var(--c-page);--panel:var(--c-key);--ink:var(--c-ink);--muted:var(--c-mut);--accent:var(--c-sel);--accent-ink:var(--c-sel-ink);
   --accent-soft:color-mix(in srgb,var(--c-sel) 16%,transparent);--good:var(--c-ok);--bad:var(--c-bad);--border:var(--c-key-b);
@@ -280,15 +292,16 @@ input[type=range],input[type=checkbox],input[type=radio]{accent-color:var(--c-ac
     </div>
     <div id="micPad" class="micpad" hidden>
       <button class="primary" id="micBtn">Turn on the microphone</button>
+      <a class="primary" id="micOpen" href="./" target="_blank" rel="noopener" hidden>Open full screen</a>
       <div class="heard" id="heard" aria-live="polite">–</div>
       <div class="micctl" id="micCtl" hidden>
         <label for="micSel">Microphone</label><select id="micSel"></select>
         <label for="micGain">Sensitivity</label><input type="range" id="micGain" min="0" max="100" step="1" value="64">
         <span>Level</span><div class="meter" style="max-width:none"><i id="meterFill"></i><span class="thr" id="thr"></span></div>
       </div>
-      <div class="micstat" id="micStat">Play the note on your piano. One note at a time, the right octave.</div>
+      <div class="micstat" id="micStat" aria-live="polite">Play the note on your piano. One note at a time, the right octave.</div>
     </div>
-    <div id="pianoPad" hidden><div class="pianoScroll" id="pianoScroll"><div class="piano" id="piano"></div></div><p class="rotate" id="rotateHint" hidden>Turn your phone sideways to see the whole keyboard.</p></div>
+    <div id="pianoPad" hidden><div class="pianoWrap" id="pianoWrap"><div class="pianoScroll" id="pianoScroll"><div class="piano" id="piano"></div></div></div><p class="swipe" id="rotateHint" hidden>Swipe the keyboard to see more keys</p></div>
 
     <div class="row">
       <button class="ghost" id="resetBtn">Reset score</button>
@@ -296,11 +309,11 @@ input[type=range],input[type=checkbox],input[type=radio]{accent-color:var(--c-ac
       <button class="primary" id="startTimed">Start 60-second sprint</button>
     </div>
     <p class="tip">Keyboard: A–G to answer. In a key with sharps or flats, tap ♯ or ♭ first (or press = / −). Piano keys must be the exact key, right octave.</p>
-    <p class="tip" id="appVer"><span class="appver">Version 2026-11-11.3</span> · fresh target each round · full keyboard · YIN mic</p>
+    <p class="tip" id="appVer"><span class="appver">Note Sprint · Version 2026-11-11.4</span></p>
 
     <div class="arcsplash" id="arcSplash" hidden><div class="boom"></div><div id="arcPcs"></div><div class="pre" id="arcSplashP"></div><b id="arcSplashT">ROUND 2</b><span id="arcSplashS"></span></div><div class="hitstamp" id="hitStamp">TARGET HIT!</div>
     <div class="results" id="results" hidden>
-      <h2 id="rTitle">Sprint complete</h2>
+      <h2 id="rTitle" tabindex="-1">Sprint complete</h2>
       <div class="big" id="rScore">0 <small>correct</small></div>
       <div class="rgrid">
         <div><b id="rPct">0%</b><span>Accuracy</span></div>
@@ -384,10 +397,13 @@ input[type=range],input[type=checkbox],input[type=radio]{accent-color:var(--c-ac
   let st={correct:0,points:0,total:0,streak:0,best:0,misses:{}};
   KEYS.forEach(([n,k])=>{const o=document.createElement("option");o.value=k;o.textContent=n+(k===0?" (no sharps or flats)":k>0?` (${k}♯)`:` (${-k}♭)`);$("keySel").appendChild(o)});
   {const o=document.createElement("option");o.value="mix";o.textContent="Mix: new key every note";$("keySel").appendChild(o)}
-  $("keySel").value=String(store.get("key","0"));
+  // a link can pick the answer mode, level and key (?mode=mic&level=2&key=-1): used by "Open full screen" from an embed
+  const QS=(()=>{ try{ return new URLSearchParams(location.search) }catch(e){ return {get:()=>null} } })();
+  { const ok=v=>[...$("keySel").options].some(o=>o.value===String(v)), k=QS.get("key")!=null&&ok(QS.get("key"))?QS.get("key"):store.get("key","0"); $("keySel").value=ok(k)?String(k):"0" }
   $("keySel").addEventListener("change",()=>{store.set("key",$("keySel").value);resetScore();layout();newQuestion(true)});
   const keyName=k=>(KEYS.find(x=>x[1]===k)||["C"])[0];
-  let q=null, idx=0, acc="", locked=false, timer=null, timeLeft=0, sprintOver=false, audio=null, level=store.get("level","1");
+  let q=null, idx=0, acc="", locked=false, timer=null, timeLeft=0, sprintOver=false, audio=null, level=String(QS.get("level")||store.get("level","1"));
+  if(!LEVELS.some(L=>L.id===level)) level=String(store.get("level","1")); if(!LEVELS.some(L=>L.id===level)) level="1";   // old or broken saved data never strands the app
   let arc=null, lastMode="sprint", timeMax=60;   // challenge mode state
 
   // ---------- settings ----------
@@ -397,15 +413,17 @@ input[type=range],input[type=checkbox],input[type=radio]{accent-color:var(--c-ac
     b:{treble:[+$("tLo").value,+$("tHi").value],bass:[+$("bLo").value,+$("bHi").value]}, lm:$("lmSel").value, ls:$("lsSel").value,
     acc:$("accOn").checked, sound:$("soundOn").checked, iv:$("ivOn").checked,
     mode:document.querySelector('input[name=mode]:checked').value}}
-  function applySettings(s){setRadio("staffMode",s.staffMode); setBounds(s.b||{treble:rb(s.range??1),bass:rb(s.range??1)}); $("lmSel").value=s.lm||"all"; $("lsSel").value=s.ls||"all"; lmUi();
-    $("accOn").checked=s.acc;$("ivOn").checked=!!s.iv}
+  const okB=b=>!!b&&["treble","bass"].every(c=>Array.isArray(b[c])&&b[c].length===2&&b[c].every(v=>Number.isInteger(v)&&v>=PMIN&&v<=PMAX));
+  const pick=(id,v)=>{ $(id).value=[...$(id).options].some(o=>o.value===v)?v:"all" };
+  function applySettings(s){ if(!s||typeof s!=="object") s={}; setRadio("staffMode",s.staffMode); setBounds(okB(s.b)?s.b:{treble:rb(s.range??1),bass:rb(s.range??1)}); pick("lmSel",s.lm); pick("lsSel",s.ls); lmUi();
+    $("accOn").checked=!!s.acc;$("ivOn").checked=!!s.iv}
   // ---------- note range + landmarks ----------
   // p = staff steps above the bottom line; ledger line k below = -2k, above = 8+2k. Pickers run to 6 ledger lines each way.
   const rb=r=>[-1-2*r,9+2*r], PMIN=-13, PMAX=21;
   const LM=[{id:"lowC",name:"Low C",dia:14},{id:"bassC",name:"Bass C",dia:21},{id:"bassF",name:"Bass F",dia:24},{id:"midC",name:"Middle C",dia:28},
             {id:"trebG",name:"Treble G",dia:32},{id:"trebC",name:"Treble C",dia:35},{id:"highC",name:"High C",dia:42}];
   const LMCLEF={treble:["midC","trebG","trebC","highC"],bass:["lowC","bassC","bassF","midC"]};
-  let lmOn=store.get("lmon",LM.map(l=>l.id));
+  let lmOn=store.get("lmon",null); lmOn=Array.isArray(lmOn)?lmOn.filter(x=>LM.some(l=>l.id===x)):[]; if(!lmOn.length) lmOn=LM.map(l=>l.id);
   const pName=(clef,p)=>{const d=BASE[clef]+p; return LET[d%7]+Math.floor(d/7)};
   function pWhere(p){ if(p>=0&&p<=8) return "on the staff"; if(p===-1) return "just below"; if(p===9) return "just above";
     const k=p<0?Math.floor(-p/2):Math.floor((p-8)/2), even=p%2===0; return even?`${k} ledger${k>1?"s":""} ${p<0?"below":"above"}`:`${p<0?"under":"over"} ${k} ledger${k>1?"s":""}` }
@@ -432,7 +450,7 @@ input[type=range],input[type=checkbox],input[type=radio]{accent-color:var(--c-ac
     const near=LM.filter(l=>lmOn.includes(l.id)&&LMCLEF[n.clef].includes(l.id)).map(l=>({l,o:d-l.dia})).filter(x=>Math.abs(x.o)<=2).sort((a,b)=>Math.abs(a.o)-Math.abs(b.o))[0];
     if(!near) return ""; return ` ${Math.abs(near.o)===1?"One step":"A skip"} ${near.o>0?"above":"below"} ${near.l.name}.` }
   const custom=store.get("custom",null);
-  $("soundOn").checked=store.get("sound",true); $("retryOn").checked=store.get("retry",true); $("chalOn").checked=store.get("chal",false); $("arcBtn").hidden=!$("chalOn").checked; setRadio("mode",store.get("mode","letters"));
+  $("soundOn").checked=store.get("sound",true); $("retryOn").checked=store.get("retry",true); $("chalOn").checked=store.get("chal",false); $("arcBtn").hidden=!$("chalOn").checked; { const MODES=["letters","piano","mic"], qm=QS.get("mode"), m=MODES.includes(qm)?qm:store.get("mode","letters"); setRadio("mode",MODES.includes(m)?m:"letters"); if(MODES.includes(qm)) store.set("mode",qm) }
   function saveCustom(){ const s=readSettings(); store.set("custom",{staffMode:s.staffMode,acc:s.acc,iv:s.iv,b:s.b,lm:s.lm,ls:s.ls}); selectLevel("C",true) }
   ["tLo","tHi","bLo","bHi","lmSel","lsSel"].forEach(id=>$(id).addEventListener("change",()=>{ lmUi(); saveCustom(); layout(); newQuestion(true) }));
   document.querySelectorAll(".rngq button").forEach(b=>b.addEventListener("click",()=>{ const r=+b.dataset.r; setBounds({treble:rb(r),bass:rb(r)}); saveCustom(); layout(); newQuestion(true) }));
@@ -455,7 +473,7 @@ input[type=range],input[type=checkbox],input[type=radio]{accent-color:var(--c-ac
 
   // ---------- pads ----------
   const IVN={3:"3rd",4:"4th",5:"5th",6:"6th",7:"7th",8:"Octave"};
-  let ivSet=store.get("ivset",[3,4,5,6,7,8]);
+  let ivSet=store.get("ivset",null); ivSet=Array.isArray(ivSet)?ivSet.filter(k=>[3,4,5,6,7,8].includes(k)):[]; if(!ivSet.length) ivSet=[3,4,5,6,7,8];
   [3,4,5,6,7,8].forEach(k=>{const b=document.createElement("button");b.textContent=IVN[k];b.dataset.k=k;b.addEventListener("click",()=>answerIv(k));$("ivAns").appendChild(b);
     const c=document.createElement("button");c.textContent=k===8?"8ve":IVN[k]+"s";c.dataset.k=k;c.setAttribute("aria-pressed",String(ivSet.includes(k)));
     c.addEventListener("click",()=>{const on=ivSet.includes(k); if(on&&ivSet.length===1) return; ivSet=on?ivSet.filter(x=>x!==k):[...ivSet,k].sort(); c.setAttribute("aria-pressed",String(!on)); store.set("ivset",ivSet); newQuestion(true)});
@@ -466,7 +484,7 @@ input[type=range],input[type=checkbox],input[type=radio]{accent-color:var(--c-ac
   function keySetting(){return $("keySel").value}
   function layout(){const s=readSettings(), ks=keySetting();
     document.querySelectorAll("#seg button").forEach(b=>b.setAttribute("aria-pressed",String(b.dataset.mode===s.mode)));
-    $("accRow").hidden=!((s.acc||ks!=="0")&&s.mode==="letters"); $("letterPad").hidden=s.mode!=="letters"; $("pianoPad").hidden=s.mode!=="piano"; $("micPad").hidden=s.mode!=="mic"; if(s.mode!=="mic") micStop();
+    $("accRow").hidden=!((s.acc||ks!=="0")&&s.mode==="letters"); $("letterPad").hidden=s.mode!=="letters"; $("pianoPad").hidden=s.mode!=="piano"; $("micPad").hidden=s.mode!=="mic"; if(s.mode!=="mic") micStop(); else micIntro();
     document.querySelector(".wrap").classList.toggle("wide",s.mode==="piano");
     if(s.iv){ $("letterPad").hidden=true; $("pianoPad").hidden=true; $("micPad").hidden=true; micStop(); $("ivPad").hidden=false; $("seg").style.display="none"; document.querySelector(".wrap").classList.remove("wide") }
     else { $("ivPad").hidden=true; $("seg").style.display=""; if(s.mode==="piano") buildPiano(s) }
@@ -491,10 +509,20 @@ input[type=range],input[type=checkbox],input[type=radio]{accent-color:var(--c-ac
       if("CDFGA".includes(L)&&d<hi){const k=document.createElement("button"); k.className="b"; k.dataset.midi=m+1; k.style.width=(w*0.6)+"%"; k.style.left=((d-lo+1)*w-w*0.3)+"%";
         k.setAttribute("aria-label",L+"♯"+o+" / "+LET[(d+1)%7]+"♭"+Math.floor((d+1)/7)); k.addEventListener("click",()=>answerMidi(m+1,k)); el.appendChild(k)}}
     requestAnimationFrame(()=>{const sc=$("pianoScroll"), mc=el.querySelector(".mc");
-      if(mc) sc.scrollLeft=mc.offsetLeft-sc.clientWidth/2+mc.offsetWidth/2;
-      $("rotateHint").hidden=!(sc.scrollWidth>sc.clientWidth+4 && window.matchMedia("(orientation:portrait)").matches)});
+      if(mc) sc.scrollLeft=mc.offsetLeft-sc.clientWidth/2+mc.offsetWidth/2; edges()});
   }
-  let lastW=innerWidth; window.addEventListener("resize",()=>{ if(innerWidth===lastW) return; lastW=innerWidth; const s=readSettings(); if(s.mode==="piano"&&!s.iv) buildPiano(s) });
+  // keyboard wider than the screen: arrows on the side(s) with more keys, plus a swipe hint (portrait phones also get "turn sideways")
+  function edges(){ const sc=$("pianoScroll"), w=$("pianoWrap"), more=sc.scrollWidth>sc.clientWidth+2;
+    w.classList.toggle("l",more&&sc.scrollLeft>4); w.classList.toggle("r",more&&sc.scrollLeft<sc.scrollWidth-sc.clientWidth-4);
+    const h=$("rotateHint"), port=window.matchMedia("(orientation:portrait)").matches&&window.matchMedia("(pointer:coarse)").matches; h.hidden=!more;
+    h.textContent=port?"Swipe for more keys, or turn your phone sideways":matchMedia("(pointer:coarse)").matches?"Swipe the keyboard to see more keys":"Scroll the keyboard sideways to see more keys" }
+  // after a miss, the right key lights up: slide it into view if it is off-screen
+  function revealKey(m){ const c=$("piano").querySelector(`[data-midi="${m}"]`); if(!c) return; c.classList.add("show"); setTimeout(()=>c.classList.remove("show"),1800);
+    const sc=$("pianoScroll"), r=c.getBoundingClientRect(), v=sc.getBoundingClientRect(); if(r.left>=v.left-1&&r.right<=v.right+1) return;
+    const x=c.offsetLeft-sc.clientWidth/2+c.offsetWidth/2, still=window.matchMedia&&matchMedia("(prefers-reduced-motion: reduce)").matches;
+    try{ sc.scrollTo({left:x,behavior:still?"auto":"smooth"}) }catch(e){ sc.scrollLeft=x } }
+  $("pianoScroll").addEventListener("scroll",edges,{passive:true});
+  let lastW=innerWidth; window.addEventListener("resize",()=>{ edges(); if(innerWidth===lastW) return; lastW=innerWidth; const s=readSettings(); if(s.mode==="piano"&&!s.iv) buildPiano(s) });
 
   // ---------- notes ----------
   function makeNote(clef,s,useAcc,avoid,key){
@@ -658,7 +686,7 @@ input[type=range],input[type=checkbox],input[type=radio]{accent-color:var(--c-ac
     if(locked||q.wait)return; const n=q.notes[idx];
     if(!ok&&!q.tried[idx]){ const k=nm(n).replace(/\d/,""); st.misses[k]=(st.misses[k]||0)+1; st.streak=0;
       if(retryOK()){ q.tried[idx]=true; render(); offerChoice(hintMsg(n,given),()=>grade(false,given)); return } }
-    q.marks[idx]=ok?"good":"bad"; $("choice").hidden=true; q.again=null;
+    q.marks[idx]=ok?"good":"bad"; $("choice").hidden=true; q.again=null; if(!ok&&readSettings().mode==="piano") revealKey(midiOf(n));
     if(q.grand&&idx===0){ idx=1; setAcc(""); play([midiOf(n)]); draw();
       setPrompt(ok?"good":"bad", ok?(q.tried[0]?`✓ Right on try 2 · ${nm(n)}`:`✓ Right · ${nm(n)}`):"✗ Not quite", (ok?"":coachMsg(n,given)+" ")+"Now the bottom note (left hand)."); return }
     locked=true;
@@ -677,7 +705,6 @@ input[type=range],input[type=checkbox],input[type=radio]{accent-color:var(--c-ac
     grade(L===n.letter&&acc===n.acc,{letter:L,acc,label:L+(acc==="#"?"♯":acc==="b"?"♭":"")}) }
   function answerMidi(m,btn){ if(!q||locked||q.wait)return; const target=midiOf(q.notes[idx]), ok=m===target;
     btn.classList.add(ok?"hit":"miss"); setTimeout(()=>btn.classList.remove("hit","miss"),450);
-    if(!ok&&q.tried[idx]){const c=$("piano").querySelector(`[data-midi="${target}"]`); if(c){c.classList.add("show"); setTimeout(()=>c.classList.remove("show"),1800)}}
     grade(ok,{midi:m,label:mname(m)}) }
 
   // ---------- microphone: hear a real piano, no MIDI ----------
@@ -702,34 +729,59 @@ input[type=range],input[type=checkbox],input[type=radio]{accent-color:var(--c-ac
   // Routed source -> gain (sensitivity) -> analyser -> muted output: Safari/iOS only process nodes that reach the destination.
   // Talking never counts: a note must be clearly pitched (low aperiodicity, lastAp) and hold one steady pitch for 5+ frames
   // (~200 ms) without sliding. Speech glides between pitches and is breathier; clatter has no pitch at all.
-  let MINHZ=45, tuneOff=+store.get("tuneOff",0)||0;
+  let MINHZ=45, tuneOff=Math.max(-0.6,Math.min(0.6,+store.get("tuneOff",0)||0));
   // older versions could learn a bad tuning from talking: start every device fresh once
   if(store.get("tuneV",0)!==2){ tuneOff=0; store.set("tuneOff",0); store.set("tuneV",2) }
   const micG=x=>0.25*Math.pow(48,(+x)/100);
   const THR=0.015, AP=0.12; let thr=THR, lastAp=1;
   function setThr(v){ thr=v; $("thr").style.left=Math.min(100,thr*600)+"%" }
-  async function micStart(deviceId){ try{
+  // Embedded pages (Notion and most sites) usually do not pass the microphone through to the app. Spot it before the tap where the browser can tell,
+  // and always offer a one-tap way out: the same app in its own tab, opened in mic mode with this level and key.
+  const inFrame=(()=>{ try{ return window.self!==window.top }catch(e){ return true } })();
+  function micPolicyBlocked(){ try{ const p=document.permissionsPolicy||document.featurePolicy; return !!(p&&p.allowsFeature&&!p.allowsFeature("microphone")) }catch(e){ return false } }
+  function fullUrl(){ try{ const u=new URL(location.href); u.hash=""; u.searchParams.set("mode","mic"); u.searchParams.set("level",level); u.searchParams.set("key",keySetting()); return u.href }catch(e){ return location.href.split("#")[0] } }
+  function micHelp(text,open){ const st=$("micStat"); st.textContent=text; $("micOpen").hidden=!open; $("micBtn").hidden=!!open&&micPolicyBlocked(); $("heard").hidden=$("micBtn").hidden; if(open) $("micOpen").href=fullUrl() }
+  function micIntro(){ if(mic) return; if(inFrame&&micPolicyBlocked()) micHelp("This page sits inside another page (like Notion) that can't share the microphone. Open full screen, then tap Turn on the microphone.",true);
+    else{ $("micOpen").hidden=true; $("micBtn").hidden=false; $("heard").hidden=false; $("micStat").textContent="Play the note on your piano. One note at a time, the right octave." } }
+  let micBusy=false, micTry=0;
+  async function micStart(deviceId){ if(micBusy) return; micBusy=true; const my=++micTry; $("micBtn").disabled=true; $("micBtn").textContent="Waiting for the microphone…";
+    // no answer from the browser (a hidden or ignored permission prompt): never leave the button stuck
+    const slow=setTimeout(()=>{ if(micTry===my&&micBusy) fail("Still waiting for the microphone. Tap Allow if your device is asking."+(inFrame?" No question showed up? Open full screen:":" Then tap the button again."),inFrame) },9000);
+    const fail=(t,open)=>{ clearTimeout(slow); micBusy=false; $("micBtn").disabled=false; $("micBtn").textContent="Turn on the microphone"; try{ if(navigator.audioSession&&!mic) navigator.audioSession.type="playback" }catch(e){} micHelp(t,open) };
+    if(inFrame&&micPolicyBlocked()) return fail("This page sits inside another page (like Notion) that can't share the microphone. Open full screen, then tap Turn on the microphone.",true);
+    if(!window.isSecureContext||!navigator.mediaDevices||!navigator.mediaDevices.getUserMedia) return fail("This browser can't reach the microphone here. Open Note Sprint in Safari or Chrome."+(inFrame?" Or open it full screen:":""),inFrame);
+    try{
     try{ if(navigator.audioSession) navigator.audioSession.type="play-and-record" }catch(e){}
-    audio=audio||new (window.AudioContext||window.webkitAudioContext)(); await audio.resume();
+    audio=audio||new (window.AudioContext||window.webkitAudioContext)(); const resumed=audio.resume().catch(()=>{});   // inside the tap, before any await (iOS)
     if(mic) micStop(true);
     const c={echoCancellation:false,noiseSuppression:false,autoGainControl:false}; if(deviceId) c.deviceId={exact:deviceId};
-    const stream=await navigator.mediaDevices.getUserMedia({audio:c});
+    let stream; try{ stream=await navigator.mediaDevices.getUserMedia({audio:c}) }
+      catch(e){ if(deviceId&&e&&/Overconstrained|NotFound/.test(e.name)) stream=await navigator.mediaDevices.getUserMedia({audio:{echoCancellation:false,noiseSuppression:false,autoGainControl:false}}); else throw e }   // that mic was unplugged: use the default one
+    clearTimeout(slow); if(my!==micTry||$("micPad").hidden){ stream.getTracks().forEach(t=>t.stop()); if(my===micTry) fail("Play the note on your piano. One note at a time, the right octave."); return }   // a newer tap or a mode change won
+    await Promise.race([resumed,new Promise(r=>setTimeout(r,1500))]);
     const src=audio.createMediaStreamSource(stream), g=audio.createGain(), an=audio.createAnalyser(), mute=audio.createGain();
     g.gain.value=micG($("micGain").value); an.fftSize=4096; mute.gain.value=0; src.connect(g); g.connect(an); an.connect(mute); mute.connect(audio.destination);
     mic={stream,g,an,src,mute,buf:new Float32Array(an.fftSize),hist:[],armed:false,armedAt:0,cand:[],cool:0};
     stream.getAudioTracks().forEach(t=>t.addEventListener("ended",micLost));
-    mic.timer=setInterval(micTick,40); $("micBtn").textContent="Microphone on"; $("micBtn").disabled=true; $("micCtl").hidden=false;
+    mic.timer=setInterval(micTick,40); micBusy=false; $("micBtn").textContent="Microphone on"; $("micBtn").disabled=true; $("micBtn").hidden=false; $("micOpen").hidden=true; $("micCtl").hidden=false;
     setThr(THR);
-    const devs=(await navigator.mediaDevices.enumerateDevices()).filter(d=>d.kind==="audioinput"), cur=stream.getAudioTracks()[0].getSettings().deviceId;
-    $("micSel").innerHTML=devs.map((d,i)=>`<option value="${d.deviceId}">${(d.label||("Microphone "+(i+1))).replace(/[<>&]/g,"")}</option>`).join(""); if(cur) $("micSel").value=cur;
     $("micStat").textContent="Listening. Play any key: the Level bar should jump past the line. Too low? Raise Sensitivity.";
-  }catch(e){ $("micStat").textContent=e&&e.name==="NotAllowedError"?"Microphone permission was blocked. Allow it in your browser's site settings, then tap the button again.":"No microphone found. Plug one in or pick another, then tap the button again." } }
+    try{ const devs=(await navigator.mediaDevices.enumerateDevices()).filter(d=>d.kind==="audioinput"), cur=stream.getAudioTracks()[0].getSettings().deviceId;
+      $("micSel").innerHTML=devs.map((d,i)=>`<option value="${d.deviceId}">${(d.label||("Microphone "+(i+1))).replace(/[<>&"]/g,"")}</option>`).join(""); if(cur) $("micSel").value=cur }catch(e){}
+  }catch(e){ if(my!==micTry) return; const n=e&&e.name;
+    if(n==="NotAllowedError"||n==="SecurityError"||n==="PermissionDeniedError")
+      fail(inFrame?"The page this sits inside (like Notion) may be blocking the microphone. Open full screen and allow it there. Tapped Don't Allow before? Turn the microphone on in your browser's site settings (iPhone/iPad Safari: aA in the address bar, then Website Settings).":
+        "Note Sprint needs to hear your piano. Tap Allow when your device asks about the microphone. If you tapped Don't Allow, turn the microphone on for this site in your browser settings (iPhone/iPad Safari: tap aA in the address bar, then Website Settings, then Microphone), then tap the button again.",inFrame);
+    else if(n==="NotFoundError"||n==="OverconstrainedError"||n==="DevicesNotFoundError") fail("No microphone found. Plug one in or use a phone or tablet, then tap the button again.");
+    else if(n==="NotReadableError"||n==="TrackStartError"||n==="AbortError") fail("Another app is using the microphone. Close it (or end the call), then tap the button again.");
+    else fail("The microphone didn't start. Reload the page and tap the button again."+(inFrame?" Or open Note Sprint full screen:":""),inFrame) } }
   // iOS stops the microphone when the phone locks, a call comes in or the app is switched: reset the button so one tap brings it back
   function micLost(){ if(!mic) return; micStop(); $("micStat").textContent="The microphone stopped (screen locked or another app took it). Tap the button to turn it back on." }
   document.addEventListener("visibilitychange",()=>{ if(document.hidden) return; if(audio&&audio.state!=="running") audio.resume().catch(()=>{});
     if(mic&&mic.stream.getAudioTracks().some(t=>t.readyState==="ended")) micLost() });
   function micStop(keepUi){ if(!mic)return; clearInterval(mic.timer); mic.stream.getTracks().forEach(t=>t.stop()); try{mic.mute.disconnect()}catch(e){} mic=null; if(!keepUi) try{ if(navigator.audioSession) navigator.audioSession.type="playback" }catch(e){}
     if(!keepUi){ $("micBtn").textContent="Turn on the microphone"; $("micBtn").disabled=false; $("micCtl").hidden=true } }
+  $("micOpen").addEventListener("click",()=>{ $("micOpen").href=fullUrl() });
   $("micSel").addEventListener("change",e=>micStart(e.target.value));
   $("micGain").addEventListener("input",e=>{ if(mic) mic.g.gain.value=micG(e.target.value); store.set("gain2",e.target.value) });
   { const old=store.get("gain",null); $("micGain").value=store.get("gain2",old!=null?String(Math.round(100*Math.log(Math.max(0.25,+old)/0.25)/Math.log(48))):"64") }
@@ -768,7 +820,7 @@ input[type=range],input[type=checkbox],input[type=radio]{accent-color:var(--c-ac
 
   // ---------- sprint ----------
   function stopTimer(){ if(timer){clearInterval(timer);timer=null} sprintOver=false; arcEnd(); $("clockrow").hidden=true; $("startTimed").textContent="Start 60-second sprint" }
-  function startSprint(){ resetScore(); lastMode="sprint"; timeMax=60; $("results").hidden=true; timeLeft=60; $("clockrow").hidden=false; showClock(); $("timerfill").style.width="100%"; $("startTimed").textContent="Stop"; newQuestion(true);
+  function startSprint(){ resetScore(); lastMode="sprint"; timeMax=60; sheet(false); timeLeft=60; $("clockrow").hidden=false; showClock(); $("timerfill").style.width="100%"; $("startTimed").textContent="Stop"; newQuestion(true);
     timer=setInterval(()=>{ timeLeft--; showClock(); $("timerfill").style.width=(timeLeft/60*100)+"%"; if(timeLeft<=0) endSprint() },1000) }
   function showClock(){ const t=Math.max(0,timeLeft); $("clock").textContent=t;
     $("ring").style.strokeDashoffset=String(326.7*(1-t/timeMax)); $("watch").classList.toggle("hot",t<=10) }
@@ -786,7 +838,8 @@ input[type=range],input[type=checkbox],input[type=radio]{accent-color:var(--c-ac
       for(let i=P.length-1;i>=0;i--) if(P[i].life<=0) P.splice(i,1);
       if(el<2600||P.length) requestAnimationFrame(frame); else c.remove() })(t0);
     try{ chime() }catch(e){} }
-  function showResults(){ const r=$("card").getBoundingClientRect(); if(r.top<0||r.top>innerHeight*0.4) try{ $("card").scrollIntoView({block:"start"}) }catch(e){} $("results").scrollTop=0 }
+  function sheet(on){ $("results").hidden=!on; [...$("card").children].forEach(c=>{ if(c!==$("results")) c.inert=on }) }
+  function showResults(){ sheet(true); const r=$("card").getBoundingClientRect(); if(r.top<0||r.top>innerHeight*0.4) try{ $("card").scrollIntoView({block:"start"}) }catch(e){} $("results").scrollTop=0; try{ $("rTitle").focus({preventScroll:true}) }catch(e){} }
   function endSprint(){ clearInterval(timer); timer=null; sprintOver=true; locked=true; $("startTimed").textContent="Start 60-second sprint";
     $("rTitle").textContent="Sprint complete"; $("rWhy").textContent=""; $("retryRound").hidden=true; $("againBtn").textContent="Sprint again"; $("rScore").innerHTML=`${half(st.points)} <small>points in 60 s</small>`;
     $("rPct").textContent=(st.total?Math.min(100,Math.round(100*st.points/st.total)):0)+"%"; $("rTotal").textContent=st.total; $("rBest").textContent=st.best;
@@ -794,7 +847,7 @@ input[type=range],input[type=checkbox],input[type=radio]{accent-color:var(--c-ac
     $("rMiss").innerHTML=miss.length?miss.map(([k,v])=>`<span>${k} ×${v}</span>`).join(""):(st.total?"<span>None. Clean run.</span>":"<span>No answers this time.</span>");
     const L=LEVELS.find(x=>x.id===level); const d=new Date();
     $("rStamp").textContent=`Level ${L.id==="C"?"Custom":L.id} · ${L.name} · Key ${keySetting()==="mix"?"Mix":keyName(+keySetting())} · ${d.toLocaleDateString(undefined,{weekday:"short",month:"short",day:"numeric"})} ${d.toLocaleTimeString([], {hour:"numeric",minute:"2-digit"})}`;
-    $("results").hidden=false; showResults(); celebrate() }
+    showResults(); celebrate() }
   $("startTimed").addEventListener("click",()=>{ if(timer||arc){stopTimer();newQuestion(true)} else startSprint() });
   $("retryRound").addEventListener("click",()=>arcRetry());
   $("againBtn").addEventListener("click",()=>lastMode==="arcade"?arcStart():startSprint());
@@ -822,10 +875,10 @@ input[type=range],input[type=checkbox],input[type=radio]{accent-color:var(--c-ac
     sp.classList.remove("go"); void sp.offsetWidth; sp.classList.add("go"); whoosh();
     setTimeout(()=>{ $("arcSplash").hidden=true; if(arc) then() },ms) }
   let arcRetryRound=0, arcIncSaved=null;
-  function arcRetry(){ const r=arcRetryRound||1; if(r<2||!arcIncSaved) return arcStart(); resetScore(); lastMode="arcade"; $("results").hidden=true; arc={round:r,bonus:false,warm:false,inc:arcIncSaved.slice(),needs:[],start:0}; arc.needs[r-1]=arc.inc[r-1];
+  function arcRetry(){ const r=arcRetryRound||1; if(r<2||!arcIncSaved) return arcStart(); resetScore(); lastMode="arcade"; sheet(false); arc={round:r,bonus:false,warm:false,inc:arcIncSaved.slice(),needs:[],start:0}; arc.needs[r-1]=arc.inc[r-1];
     $("arcbar").hidden=false; $("arcMeter").hidden=false; $("startTimed").textContent="Stop"; $("arcBtn").hidden=true; render();
     arcSplash(`ROUND ${r}`,`Target this round: ${half(arc.inc[r-1])} points.`,2000,arcRound) }
-  function arcStart(){ resetScore(); lastMode="arcade"; $("results").hidden=true; arc={round:1,bonus:false,warm:true,needs:[]};
+  function arcStart(){ resetScore(); lastMode="arcade"; sheet(false); arc={round:1,bonus:false,warm:true,needs:[]};
     $("arcbar").hidden=false; $("arcMeter").hidden=false; $("startTimed").textContent="Stop"; $("arcBtn").hidden=true;
     arcSplash("ROUND 1","Warm-up: score as many as you can in 30 seconds. Your score sets your targets. One try per note, no second chances. Last 10 seconds = 2x points.",2600,arcRound,"CHALLENGE MODE") }
   function arcRound(){ timeMax=ARC_T; timeLeft=ARC_T; $("clockrow").hidden=false; showClock(); arcBar(); newQuestion(true);
@@ -846,7 +899,7 @@ input[type=range],input[type=checkbox],input[type=radio]{accent-color:var(--c-ac
     const cleared=arc.round, got=st.points-(arc.start||0); arc.round++;
     // adapt round to round: the next target is at least 10% more than what was just scored, so a strong round raises the bar right away
     arc.inc[arc.round-1]=Math.max(arc.inc[arc.round-1],Math.round(got*1.1),arc.inc[arc.round-2]+1); arc.start=st.points; arc.needs[arc.round-1]=st.points+arc.inc[arc.round-1]; arc.hit=false; arcBar(); arcSplash(`ROUND ${arc.round}`,`Target this round: ${half(arc.inc[arc.round-1])} points. Fresh count, extras don't carry.`,2400,arcRound,`ROUND ${cleared} CLEARED ✓`) }
-  function arcFinish(won,need,got){ const failedRound=won?0:arc.round; const reached=arc.bonus?"Bonus round":`Round ${arc.round}`, key="arcbest-"+level+"-"+readSettings().mode, best=Math.max(store.get(key,0),st.points), isNew=st.points>0&&st.points>=best;
+  function arcFinish(won,need,got){ const failedRound=won?0:arc.round; const reached=arc.bonus?"Bonus round":`Round ${arc.round}`, key="arcbest-"+level+"-"+readSettings().mode, best=Math.max(+store.get(key,0)||0,st.points), isNew=st.points>0&&st.points>=best;
     store.set(key,best); sprintOver=true; locked=true; arc=null; $("arcbar").hidden=true; $("arcMeter").hidden=true; $("watch").classList.remove("fire"); $("arcBtn").hidden=!$("chalOn").checked; $("startTimed").textContent="Start 60-second sprint";
     $("rTitle").textContent=won?"Challenge cleared!":"Challenge over"; $("againBtn").textContent="Play again";
     $("rWhy").textContent=won?(got>=need?`All 5 rounds cleared and the bonus target hit (${half(got)} / ${half(need)}).`:`All 5 rounds cleared. Bonus target was ${half(need)}; you had ${half(got)}.`):`Round ${failedRound} target was ${half(need)}. You had ${half(got)}. Hit the target before the 30 seconds run out to unlock Round ${failedRound+1}.`;
@@ -857,10 +910,10 @@ input[type=range],input[type=checkbox],input[type=radio]{accent-color:var(--c-ac
     $("rMiss").innerHTML=miss.length?miss.map(([k,v])=>`<span>${k} ×${v}</span>`).join(""):(st.total?"<span>None. Clean run.</span>":"<span>No answers this time.</span>");
     const L=LEVELS.find(x=>x.id===level); const d=new Date();
     $("rStamp").textContent=`CHALLENGE MODE · High score ${half(best)} · Level ${L.id==="C"?"Custom":L.id} · ${L.name} · Key ${keySetting()==="mix"?"Mix":keyName(+keySetting())} · ${d.toLocaleDateString(undefined,{weekday:"short",month:"short",day:"numeric"})} ${d.toLocaleTimeString([], {hour:"numeric",minute:"2-digit"})}`;
-    $("results").hidden=false; showResults(); celebrate() }
+    showResults(); celebrate() }
   function arcEnd(){ if(!arc) return; arc=null; $("arcbar").hidden=true; $("arcMeter").hidden=true; $("arcSplash").hidden=true; $("watch").classList.remove("fire"); $("arcBtn").hidden=!$("chalOn").checked }
   $("arcBtn").addEventListener("click",()=>{ if(timer) stopTimer(); arcStart() });
-  $("closeResults").addEventListener("click",()=>{$("results").hidden=true; stopTimer(); newQuestion(true)});
+  $("closeResults").addEventListener("click",()=>{sheet(false); stopTimer(); newQuestion(true); try{ $("startTimed").focus({preventScroll:true}) }catch(e){} });
   try{store.set("name","")}catch(e){} // no names stored (privacy)
 
   document.addEventListener("keydown",e=>{
@@ -875,7 +928,8 @@ input[type=range],input[type=checkbox],input[type=radio]{accent-color:var(--c-ac
   layout(); render(); newQuestion(true);
   window.__ns={note:()=>q&&!locked?q.notes[idx]:null};   // test hook
   if(document.fonts){ const redraw=()=>{ for(const k in GM) delete GM[k]; q&&draw() };
-    document.fonts.load("100px 'Noto Music'","𝄞𝄢♯♭♮").then(redraw).catch(()=>{}); document.fonts.ready.then(redraw) }
+    document.fonts.load("100px 'Noto Music'","𝄞𝄢♯♭♮").then(redraw).catch(()=>{}); document.fonts.ready.then(redraw);
+    try{ document.fonts.addEventListener("loadingdone",redraw) }catch(e){} }
 })();
 </script>
 

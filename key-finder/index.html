@@ -3,7 +3,7 @@
 <title>Key Finder · Clarendon Hills Music Academy</title>
 <meta name="description" content="Key Finder: learn every key on the piano by sight. No sheet music, just the keyboard. Built by Clarendon Hills Music Academy.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;600;800&family=JetBrains+Mono:wght@500;700&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;600;800&family=JetBrains+Mono:wght@500;700&display=swap" media="print" onload="this.media='all'">
 <link rel="stylesheet" href="../shared/chma.css">
 <script src="../shared/brand.js"></script>
 <style>
@@ -42,7 +42,8 @@ h1{font-weight:800;font-size:30px;letter-spacing:-.02em;margin:0} h1 em{font-sty
 .prompt{text-align:center;font-size:20px;font-weight:600;min-height:56px;display:flex;align-items:center;justify-content:center;gap:10px}
 .prompt .big{font-family:var(--mono);font-size:40px;font-weight:700;color:var(--accent)}
 .fb{text-align:center;min-height:22px;font-size:14px;color:var(--muted)} .fb.good{color:var(--good)} .fb.bad{color:var(--bad)}
-.pianoScroll{overflow-x:auto;-webkit-overflow-scrolling:touch;border-radius:10px;scrollbar-width:none}.pianoScroll::-webkit-scrollbar{display:none}
+.pianoScroll{overflow-x:auto;-webkit-overflow-scrolling:touch;border-radius:10px;scrollbar-width:thin}
+@media (pointer:coarse){.pianoScroll{scrollbar-width:none}.pianoScroll::-webkit-scrollbar{display:none}}
 /* more keys off-screen: a fade and an arrow on that side */
 .pianoWrap{position:relative}.pianoWrap::before,.pianoWrap::after{content:"";position:absolute;top:0;bottom:0;width:34px;z-index:4;pointer-events:none;opacity:0;transition:opacity .2s;display:flex;align-items:center;justify-content:center;font:700 20px var(--f-body,system-ui);color:#fff}
 .pianoWrap::before{left:0;content:"‹";border-radius:10px 0 0 10px;background:linear-gradient(90deg,rgba(0,0,0,.55),transparent)}
@@ -107,6 +108,8 @@ button,summary,label{touch-action:manipulation;-webkit-tap-highlight-color:trans
 button{-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
 .actions .btn{flex:1 1 auto}
 @media (max-width:400px){.pad{gap:6px}.stats span{font-size:10px;letter-spacing:.02em}}
+@media (max-width:360px){.stats{grid-template-columns:repeat(4,auto);justify-content:space-between;gap:6px}.stats span{font-size:9.5px;letter-spacing:0}.results{padding:18px 14px}.rgrid{grid-template-columns:repeat(3,minmax(0,1fr));gap:6px}.rgrid span{font-size:9.5px;letter-spacing:.02em}}
+button:focus-visible,summary:focus-visible,input:focus-visible{outline:3px solid var(--c-sel);outline-offset:2px}
 </style></head>
 <body>
 <div class="wrap">
@@ -116,7 +119,7 @@ button{-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
     <p class="sub">No sheet music. Just the keys. Learn every key on the piano by sight.</p>
   </header>
 
-  <div class="row pick" id="levels"></div>
+  <div class="row pick" id="levels" role="group" aria-label="Level"></div>
 
   <div class="seg" id="seg" role="group" aria-label="Game type">
     <button data-mode="name">Name the key</button><button data-mode="find">Find the key</button>
@@ -127,16 +130,16 @@ button{-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
       <div><b id="sPts">0</b><span>Points</span></div><div><b id="sPct">–</b><span>Accuracy</span></div>
       <div><b id="sStreak">0</b><span>Streak</span></div><div><b id="sBest">0</b><span>Best</span></div>
     </div>
-    <div class="clock" id="clock" hidden><b id="tLeft">60</b><div class="bar"><i id="tFill"></i></div></div>
-    <div class="prompt" id="prompt"></div>
+    <div class="clock" id="clock" role="timer" aria-label="Seconds left" hidden><b id="tLeft">60</b><div class="bar"><i id="tFill"></i></div></div>
+    <div class="prompt" id="prompt" aria-live="polite"></div>
     <div class="pianoWrap" id="pianoWrap"><div class="pianoScroll" id="pianoScroll"><div class="piano" id="piano"></div></div></div><p class="swipe" id="swipe" hidden>Swipe the keyboard to see more keys</p>
-    <div class="fb" id="fb"></div>
+    <div class="fb" id="fb" aria-live="polite"></div>
     <div id="padWrap"><div class="pad" id="padW"></div><div class="pad blk" id="padB" style="margin-top:8px"></div></div>
     <div class="actions"><button class="btn" id="resetBtn">Reset score</button><button class="btn primary" id="sprintBtn">Start 60-second sprint</button></div>
     <p class="tip">Practice: take your time, try again if you miss. 60-second sprint: one try per key, no second chances.</p>
 
     <div class="results" id="results" hidden>
-      <h2 id="rTitle">Sprint complete</h2>
+      <h2 id="rTitle" tabindex="-1">Sprint complete</h2>
       <div class="score" id="rScore"></div>
       <div class="rgrid"><div><b id="rPct">0%</b><span>Accuracy</span></div><div><b id="rTotal">0</b><span>Keys</span></div><div><b id="rBest">0</b><span>Best streak</span></div></div>
       <div><b>Missed most</b><div class="miss" id="rMiss"></div></div>
@@ -151,7 +154,7 @@ button{-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
     <label><input type="checkbox" id="labelsOn"> Show letter names on every white key (easier)</label>
     <label><input type="checkbox" id="flatsOn"> Call black keys by their flat name (D♭) in Find the key</label>
   </details>
-  <p class="appver" id="appVer">Key Finder · Version 2026-11-11.3</p>
+  <p class="appver" id="appVer">Key Finder · Version 2026-11-11.4</p>
 </div>
 
 <script>
@@ -168,7 +171,8 @@ button{-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
     {id:"3",name:"Black keys",sub:"Sharps & flats",lo:48,hi:71,ask:m=>BLACK.includes(m%12)},
     {id:"4",name:"Every key",sub:"Two octaves",lo:48,hi:71,ask:()=>true},
     {id:"5",name:"Every key",sub:"Four octaves",lo:36,hi:83,ask:()=>true}];
-  let level=store.get("level","1"), mode=store.get("mode","name");
+  // old or broken saved data falls back to the defaults instead of a game that cannot be answered
+  let level=String(store.get("level","1")), mode=store.get("mode","name"); if(!LEVELS.some(x=>x.id===level)) level="1"; if(mode!=="name"&&mode!=="find") mode="name";
   let st, q=null, locked=false, timer=null, tLeft=60, sprint=false, lastM=null;
   const L=()=>LEVELS.find(x=>x.id===level)||LEVELS[0];
 
@@ -189,14 +193,17 @@ button{-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
       b.addEventListener("click",()=>keyTap(m,b)); el.appendChild(b);
       if(BLACK.includes((m+1)%12)&&m+1<=lv.hi){ const k=document.createElement("button"); k.className="b"; k.dataset.midi=m+1; k.style.width=(w*0.6)+"%"; k.style.left=((i+1)*w-w*0.3)+"%";
         k.setAttribute("aria-label",both((m+1)%12)); k.addEventListener("click",()=>keyTap(m+1,k)); el.appendChild(k) } });
+    // Name the key answers on the pad: the keys only make sound, so Tab skips them and goes straight to the pad
+    el.querySelectorAll("button").forEach(b=>{ b.tabIndex=mode==="find"?0:-1 });
     requestAnimationFrame(()=>{ const sc=$("pianoScroll"), mc=el.querySelector(".mc"); if(mc) sc.scrollLeft=mc.offsetLeft-sc.clientWidth/2+mc.offsetWidth/2; if(q&&mode==="name") centerKey(keyEl(q.m),true); edges() }) }
   function label(b,m){ b.textContent=m===60?"Middle C":$("labelsOn").checked?PCN[m%12]:m%12===0?"C"+(Math.floor(m/12)-1):"" }
   const keyEl=m=>$("piano").querySelector(`[data-midi="${m}"]`);
   // The keyboard scrolls sideways when it is wider than the screen: the glowing key is always brought to the middle
   function centerKey(k,instant){ const sc=$("pianoScroll"); if(!k||sc.scrollWidth<=sc.clientWidth+2) return; const x=k.offsetLeft-sc.clientWidth/2+k.offsetWidth/2;
-    try{ sc.scrollTo({left:x,behavior:instant?"auto":"smooth"}) }catch(e){ sc.scrollLeft=x } }
+    const still=window.matchMedia&&matchMedia("(prefers-reduced-motion: reduce)").matches; try{ sc.scrollTo({left:x,behavior:instant||still?"auto":"smooth"}) }catch(e){ sc.scrollLeft=x } }
   function edges(){ const sc=$("pianoScroll"), w=$("pianoWrap"), more=sc.scrollWidth>sc.clientWidth+2;
-    w.classList.toggle("l",more&&sc.scrollLeft>4); w.classList.toggle("r",more&&sc.scrollLeft<sc.scrollWidth-sc.clientWidth-4); $("swipe").hidden=!more }
+    w.classList.toggle("l",more&&sc.scrollLeft>4); w.classList.toggle("r",more&&sc.scrollLeft<sc.scrollWidth-sc.clientWidth-4); $("swipe").hidden=!more;
+    $("swipe").textContent=window.matchMedia&&matchMedia("(pointer:coarse)").matches?"Swipe the keyboard to see more keys":"Scroll the keyboard sideways to see more keys" }
   let lastW=innerWidth; $("pianoScroll").addEventListener("scroll",edges,{passive:true});
   window.addEventListener("resize",()=>{ edges(); if(innerWidth===lastW) return; lastW=innerWidth; if(q&&mode==="name") centerKey(keyEl(q.m),true) });
   function clearKeys(){ $("piano").querySelectorAll("button").forEach(b=>b.classList.remove("glow","hit","miss","show")); document.querySelectorAll(".pad button").forEach(b=>b.classList.remove("hit","miss")) }
@@ -228,15 +235,17 @@ button{-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
   // ---------- score + sprint ----------
   function resetScore(){ st={pts:0,correct:0,total:0,streak:0,best:0,miss:{}}; render() }
   function render(){ $("sPts").textContent=st.pts; $("sPct").textContent=st.total?Math.min(100,Math.round(100*st.correct/st.total))+"%":"–"; $("sStreak").textContent=st.streak; $("sBest").textContent=st.best }
-  function startSprint(){ resetScore(); sprint=true; tLeft=60; $("clock").hidden=false; $("tLeft").textContent=60; $("tFill").style.width="100%"; $("sprintBtn").textContent="Stop"; $("results").hidden=true; newQ();
+  function startSprint(){ resetScore(); sprint=true; tLeft=60; $("clock").hidden=false; $("tLeft").textContent=60; $("tFill").style.width="100%"; $("sprintBtn").textContent="Stop"; sheet(false); newQ();
     timer=setInterval(()=>{ tLeft--; $("tLeft").textContent=tLeft; $("tFill").style.width=(100*tLeft/60)+"%"; if(tLeft<=0) endSprint() },1000) }
+  // results sheet over the card: the card underneath is inert so Tab and screen readers stay on the sheet
+  function sheet(on){ $("results").hidden=!on; [...$("card").children].forEach(c=>{ if(c!==$("results")) c.inert=on }) }
   function stopSprint(){ clearInterval(timer); timer=null; sprint=false; $("clock").hidden=true; $("sprintBtn").textContent="Start 60-second sprint" }
   function endSprint(){ stopSprint(); locked=true; const pct=st.total?Math.min(100,Math.round(100*st.correct/st.total)):0;
     $("rScore").innerHTML=`${st.pts} <small>keys in 60 s</small>`; $("rPct").textContent=pct+"%"; $("rTotal").textContent=st.total; $("rBest").textContent=st.best;
     const miss=Object.entries(st.miss).sort((a,b)=>b[1]-a[1]).slice(0,5); $("rMiss").innerHTML=miss.length?miss.map(([k,v])=>`<span>${k} ×${v}</span>`).join(""):"<span>None. Clean run.</span>";
     const d=new Date(), lv=L(), key="best-"+level+"-"+mode, hi=Math.max(store.get(key,0),st.pts); store.set(key,hi);
     $("rStamp").textContent=`Key Finder · Level ${lv.id} · ${lv.name} (${lv.sub}) · ${mode==="name"?"Name the key":"Find the key"} · High score ${hi} · ${d.toLocaleDateString(undefined,{weekday:"short",month:"short",day:"numeric"})} ${d.toLocaleTimeString([],{hour:"numeric",minute:"2-digit"})}`;
-    $("results").hidden=false; $("results").scrollTop=0; const r=$("card").getBoundingClientRect(); if(r.top<0||r.top>innerHeight*0.4) try{ $("card").scrollIntoView({block:"start"}) }catch(e){}
+    sheet(true); $("results").scrollTop=0; try{ $("rTitle").focus({preventScroll:true}) }catch(e){} const r=$("card").getBoundingClientRect(); if(r.top<0||r.top>innerHeight*0.4) try{ $("card").scrollIntoView({block:"start"}) }catch(e){}
     if(pct>=90&&st.total>=5) fireworks() }
 
   // ---------- fireworks for 90%+ (skipped for reduced motion) ----------
@@ -256,10 +265,10 @@ button{-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
     if(id==="labelsOn") $("piano").querySelectorAll(".w").forEach(b=>label(b,+b.dataset.midi)); if(id==="flatsOn"&&q&&mode==="find"&&!locked) findPrompt() }) });
   $("resetBtn").addEventListener("click",()=>{ stopSprint(); resetScore(); newQ() });
   $("sprintBtn").addEventListener("click",()=>{ if(timer){ stopSprint(); newQ() } else startSprint() });
-  $("againBtn").addEventListener("click",startSprint); $("closeBtn").addEventListener("click",()=>{ $("results").hidden=true; resetScore(); newQ() });
+  $("againBtn").addEventListener("click",startSprint); $("closeBtn").addEventListener("click",()=>{ sheet(false); resetScore(); newQ(); try{ $("sprintBtn").focus({preventScroll:true}) }catch(e){} });
   document.addEventListener("keydown",e=>{ if(mode!=="name"||e.target.tagName==="INPUT"||e.repeat||e.metaKey||e.ctrlKey||e.altKey) return; const k=e.key.toUpperCase(); const i=["C","D","E","F","G","A","B"].indexOf(k); if(i<0) return;
     let pc=[0,2,4,5,7,9,11][i]; if(e.shiftKey){ if(!BLACK.includes(pc+1)) return; pc++ } const btn=document.querySelector(`.pad button[data-pc="${pc}"]`); padTap(pc,btn) });
-  function setup(){ stopSprint(); $("results").hidden=true; document.querySelectorAll("#levels button").forEach(b=>b.setAttribute("aria-pressed",String(b.dataset.id===level)));
+  function setup(){ stopSprint(); sheet(false); document.querySelectorAll("#levels button").forEach(b=>b.setAttribute("aria-pressed",String(b.dataset.id===level)));
     document.querySelectorAll("#seg button").forEach(b=>b.setAttribute("aria-pressed",String(b.dataset.mode===mode))); buildPiano(); buildPad(); resetScore(); newQ() }
   setup();
 })();
