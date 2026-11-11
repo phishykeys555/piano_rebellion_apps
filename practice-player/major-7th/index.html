@@ -93,14 +93,15 @@ const KEYS=['C','D♭','D','E♭','E','F','F♯/G♭','G','A♭','A','B♭','B']
 const $=i=>document.getElementById(i);let cur=0,ctx=null,node=null,gain=null,A=null,B=null,dur=0,playing=false,pos=0,posAt=0,lastPos=0,ready=false,loadedT=-1,loading=null;
 // an old or broken save (or private mode) never stops the page: each value is checked before use
 const LS={get(){try{const o=JSON.parse(localStorage.getItem('m7player')||'{}');return o&&typeof o==='object'?o:{}}catch(e){return {}}},set(o){try{localStorage.setItem('m7player',JSON.stringify(o))}catch(e){}}};
-const fmt=s=>isFinite(s)?Math.floor(s/60)+':'+String(Math.floor(s%60)).padStart(2,'0'):'0:00';
+const fmt=s=>isFinite(s)?(s=Math.max(0,s),Math.floor(s/60)+':'+String(Math.floor(s%60)).padStart(2,'0')):'0:00';
 const rate=()=>+$('speed').value/100,semi=()=>+$('key').value,vol=()=>+$('vol').value/100;
 function save(){LS.set({t:cur,s:$('speed').value,k:$('key').value,v:$('vol').value,l:$('loop').checked})}
 try{if(navigator.audioSession)navigator.audioSession.type='playback'}catch(e){}
 function unlock(){if(!ctx){const AC=window.AudioContext||window.webkitAudioContext;ctx=new AC({latencyHint:'playback'});ctx.onstatechange=onState}if(ctx.state!=='running')ctx.resume().catch(()=>{})}
 // Phone locked, a call came in, or Siri spoke: iOS stops the audio clock. Pause at the right spot so the button never shows pause over silence.
 function onState(){if(ctx.state!=='running'&&playing&&ready){stop();$('keyS').textContent='paused: tap ▶ to keep going'}}
-let engP=null;async function engine(){if(node)return;unlock();if(!engP)engP=Stretch(ctx);const n=await engP;if(node)return;node=n;gain=ctx.createGain();gain.gain.value=vol();node.connect(gain);gain.connect(ctx.destination);node.setUpdateInterval(0.04,t=>{if(performance.now()<jumpUntil)return;pos=t;posAt=performance.now()})}
+let engP=null;async function engine(){if(node)return;unlock();if(!engP)engP=Stretch(ctx);const n=await engP;if(node)return;node=n;gain=ctx.createGain();gain.gain.value=vol();node.connect(gain);gain.connect(ctx.destination);// the engine's report can land a hair outside the track (a speed or key change reports without its output delay: -0.02 s right after a loop wrap)
+ node.setUpdateInterval(0.04,t=>{if(performance.now()<jumpUntil||!isFinite(t))return;pos=Math.max(0,Math.min(dur||0,t));posAt=performance.now()})}
 // A jump (play, pause, seek): the engine's position reports already on their way are from before it, so they are ignored until the engine
 // confirms the jump (or 0.4 s passes). A stale report used to stop playback at B right after ▶, and fake a loop wrap that sped up the trainer.
 let jumpUntil=0,jumpN=0;function jump(o){const n=++jumpN;jumpUntil=performance.now()+400;const r=node.schedule(o);if(r&&r.then)r.then(()=>{if(jumpN===n)jumpUntil=0},()=>{})}
@@ -157,5 +158,5 @@ document.addEventListener('visibilitychange',()=>{if(!document.hidden&&playing&&
 const sv=LS.get(),ok=(x,lo,hi)=>x!=null&&x!==''&&typeof x!=='boolean'&&!Array.isArray(x)&&isFinite(+x)&&+x>=lo&&+x<=hi;if(ok(sv.s,50,150))$('speed').value=sv.s;if(ok(sv.k,-6,6))$('key').value=sv.k;if(ok(sv.v,0,150))$('vol').value=sv.v;if(sv.l===false)$('loop').checked=false;
 pick(ok(sv.t,0,2)?Math.round(+sv.t):0);
 window.__m7={state:()=>({ready,playing,pos:now(),dur,cur}),ctx:()=>ctx};
-</script><p class="appver" style="text-align:center;font-size:11px;opacity:.6;margin:18px 0 10px;font-family:ui-monospace,Menlo,monospace">Major 7th Play-Along · Version 2026-11-11.7</p>
+</script><p class="appver" style="text-align:center;font-size:11px;opacity:.6;margin:18px 0 10px;font-family:ui-monospace,Menlo,monospace">Major 7th Play-Along · Version 2026-11-11.8</p>
 </body></html>
