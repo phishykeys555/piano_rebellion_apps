@@ -6,6 +6,7 @@
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;600;800&family=JetBrains+Mono:wght@500;700&display=swap" media="print" onload="this.media='all'">
 <link rel="stylesheet" href="../shared/chma.css">
 <script src="../shared/brand.js"></script>
+<script src="../shared/hype.js"></script>
 <style>
 /* One practice card: score strip, prompt, keyboard, answer pad. Results sheet over the card when a challenge ends. */
 :root{
@@ -191,11 +192,12 @@ button:focus-visible,summary:focus-visible,input:focus-visible{outline:3px solid
 
   <details><summary>Settings</summary>
     <label><input type="checkbox" id="soundOn" checked> Play the key's sound</label>
+    <label><input type="checkbox" id="hypeOn" checked> Music on round screens</label>
     <label><input type="checkbox" id="labelsOn"> Show letter names on every white key (easier)</label>
     <label><input type="checkbox" id="retryOn"> Second try on a miss (practice only)</label>
     <label><input type="checkbox" id="flatsOn"> Call black keys by their flat name (D♭) in Find the key</label>
   </details>
-  <p class="appver" id="appVer">Key Finder · Version 2026-11-11.10</p>
+  <p class="appver" id="appVer">Key Finder · Version 2026-11-11.11</p>
 </div>
 
 <script>
@@ -223,7 +225,10 @@ button:focus-visible,summary:focus-visible,input:focus-visible{outline:3px solid
   function tone(m){ if(!$("soundOn").checked) return; try{ AC();
     const f=440*Math.pow(2,(m-69)/12), t=ac.currentTime, g=ac.createGain(); g.gain.setValueAtTime(0.0001,t); g.gain.exponentialRampToValueAtTime(0.35,t+0.01); g.gain.exponentialRampToValueAtTime(0.0001,t+1.2); g.connect(ac.destination);
     [[1,1],[2,0.4],[3,0.15]].forEach(([h,a])=>{const o=ac.createOscillator(),og=ac.createGain(); o.type="sine"; o.frequency.value=f*h; og.gain.value=a; o.connect(og); og.connect(g); o.start(t); o.stop(t+1.25)}) }catch(e){} }
-  document.addEventListener("visibilitychange",()=>{ if(!document.hidden&&ac&&ac.state!=="running") ac.resume().catch(()=>{}) });
+  document.addEventListener("visibilitychange",()=>{ if(document.hidden) hypeStop(60); else if(ac&&ac.state!=="running") ac.resume().catch(()=>{}) });
+  // round-screen music (shared/hype.js): only with the key sound AND "Music on round screens" on; the page works without the file
+  function hypePlay(ms){ try{ if(window.chmaHype&&$("soundOn").checked&&$("hypeOn").checked) chmaHype.play(ms,{ctx:AC(),round:arc?arc.round:1,bonus:!!(arc&&arc.bonus),enabled:true}) }catch(e){} }
+  function hypeStop(f){ try{ window.chmaHype&&chmaHype.stop(f) }catch(e){} }
   function chime(){ if(!$("soundOn").checked) return; [72,76,79,84].forEach((m,i)=>setTimeout(()=>tone(m),i*90)) }
   // round splash: filtered noise sweeping up then away (air, not a note)
   function whoosh(){ if(!$("soundOn").checked) return; try{ AC(); const t=ac.currentTime+0.15, len=0.7, sr=ac.sampleRate;
@@ -312,8 +317,8 @@ button:focus-visible,summary:focus-visible,input:focus-visible{outline:3px solid
     m.classList.toggle("hit",hit) }
   function arcSplash(t,sub,ms,then,pre){ ms=Math.max(4500,2500+String(sub||"").length*30);   /* long enough to read (students said the round screens flashed by); tap to go sooner */ clearTimeout(nextT); $("arcSplashT").textContent=t; $("arcSplashS").textContent=sub; $("arcSplashP").textContent=pre||""; const sp=$("arcSplash"); sp.hidden=false; locked=true; $("card").classList.remove("met");
     const pcs=$("arcPcs"); pcs.innerHTML=""; const cols=["var(--accent)","var(--good)","#ff8a1f","#ffd23f"]; for(let i=0;i<22;i++){ const a=Math.random()*Math.PI*2,d=110+Math.random()*170,e=document.createElement("i"); e.className="pc"; e.style.cssText=`background:${cols[i%4]};--dx:${Math.cos(a)*d}px;--dy:${Math.sin(a)*d}px;--r:${Math.random()*720-360}deg`; pcs.appendChild(e) }
-    sp.classList.remove("go"); void sp.offsetWidth; sp.classList.add("go"); whoosh();
-    const tok=++splashTok, t0=performance.now(), go=()=>{ if(tok!==splashTok) return; splashTok++; sp.onclick=null; sp.hidden=true; if(arc) then() }; sp.onclick=()=>{ if(performance.now()-t0>900) go() }; let hint=sp.querySelector('.tapgo'); if(!hint){ hint=document.createElement('small'); hint.className='tapgo'; hint.style.cssText='display:block;margin-top:14px;opacity:.6;font-size:12px'; hint.textContent='Tap to start'; ($("arcSplashS").parentNode||sp).appendChild(hint) } setTimeout(go,ms) }   // a stopped or restarted challenge never wakes an old splash
+    sp.classList.remove("go"); void sp.offsetWidth; sp.classList.add("go"); whoosh(); hypePlay(ms);
+    const tok=++splashTok, t0=performance.now(), go=()=>{ if(tok!==splashTok) return; splashTok++; hypeStop(120); sp.onclick=null; sp.hidden=true; if(arc) then() }; sp.onclick=()=>{ if(performance.now()-t0>900) go() }; let hint=sp.querySelector('.tapgo'); if(!hint){ hint=document.createElement('small'); hint.className='tapgo'; hint.style.cssText='display:block;margin-top:14px;opacity:.6;font-size:12px'; hint.textContent='Tap to start'; ($("arcSplashS").parentNode||sp).appendChild(hint) } setTimeout(go,ms) }   // a stopped or restarted challenge never wakes an old splash
   function arcStart(){ stopChallenge(); resetScore(); sheet(false); arc={round:1,bonus:false,warm:true,needs:[],start:0}; tLeft=ARC_T; arcUI(true); showClock(); render();
     arcSplash("ROUND 1",`Warm-up: ${mode==="name"?"name":"find"} as many keys as you can in 30 seconds. Your score sets your targets. One try per key, no second chances. Last 10 seconds = 2x points.`,2600,arcRound,"CHALLENGE MODE") }
   function arcRound(){ clearInterval(timer); tLeft=ARC_T; const f=$("tFill"); f.style.transition="none"; showClock(); void f.offsetWidth; f.style.transition=""; arcBar(); newQ();   // a fresh round's clock bar snaps full, never slides back up
@@ -335,7 +340,7 @@ button:focus-visible,summary:focus-visible,input:focus-visible{outline:3px solid
     arcSplash(`ROUND ${arc.round}`,`Target this round: ${arc.inc[arc.round-1]} points. Fresh count, extras don't carry.`,2400,arcRound,`ROUND ${cleared} CLEARED ✓`) }
   function arcFinish(won,need,got){ const failedRound=won?0:arc.round, reached=arc.bonus?"Bonus round":`Round ${arc.round}`, key="arcbest-"+level+"-"+mode;
     const old=+store.get(key,0), prev=Number.isFinite(old)&&old>=0?Math.floor(old):0, best=Math.max(prev,st.pts), isNew=st.pts>0&&st.pts>prev; store.set(key,best);
-    splashTok++; clearInterval(timer); timer=null; clearTimeout(nextT); arc=null; arcUI(false); locked=true;
+    splashTok++; hypeStop(120); clearInterval(timer); timer=null; clearTimeout(nextT); arc=null; arcUI(false); locked=true;
     $("rTitle").textContent=won?"Challenge cleared!":"Challenge over";
     $("rWhy").textContent=won?(got>=need?`All 5 rounds cleared and the bonus target hit (${got} / ${need}).`:`All 5 rounds cleared. Bonus target was ${need}; you had ${got}.`):`Round ${failedRound} target was ${need}. You had ${got}. Hit the target before the 30 seconds run out to unlock Round ${failedRound+1}.`;
     
@@ -347,7 +352,7 @@ button:focus-visible,summary:focus-visible,input:focus-visible{outline:3px solid
     sheet(true); $("results").scrollTop=0; try{ $("rTitle").focus({preventScroll:true}) }catch(e){} const r=$("card").getBoundingClientRect(); if(r.top<0||r.top>innerHeight*0.4) try{ $("card").scrollIntoView({block:"start"}) }catch(e){}
     if(pct>=90&&st.total>=5) fireworks() }
   // stop a run: clock, pending next key and splash all cancelled; challenge points (2x on fire) never leak into the practice score
-  function stopChallenge(){ splashTok++; clearInterval(timer); timer=null; clearTimeout(nextT); $("arcSplash").hidden=true; const was=!!arc; arc=null; arcUI(false); if(was) resetScore() }
+  function stopChallenge(){ splashTok++; hypeStop(120); clearInterval(timer); timer=null; clearTimeout(nextT); $("arcSplash").hidden=true; const was=!!arc; arc=null; arcUI(false); if(was) resetScore() }
 
   // ---------- fireworks for 90%+ (skipped for reduced motion) ----------
   function fireworks(){ chime(); if(window.matchMedia&&matchMedia("(prefers-reduced-motion: reduce)").matches) return;
@@ -362,7 +367,8 @@ button:focus-visible,summary:focus-visible,input:focus-visible{outline:3px solid
   LEVELS.forEach(lv=>{ const b=document.createElement("button"); b.innerHTML=`<b>L${lv.id}</b>${lv.name}<span>${lv.sub}</span>`; b.dataset.id=lv.id; b.addEventListener("click",()=>{ level=lv.id; store.set("level",level); setup() }); $("levels").appendChild(b) });
   document.querySelectorAll("#seg button").forEach(b=>b.addEventListener("click",()=>{ mode=b.dataset.mode; store.set("mode",mode); setup() }));
   // settings never cost a score or stop a challenge: sound just saves, labels relabel the keys in place, flats re-spell the Find prompt
-  ["soundOn","labelsOn","flatsOn","retryOn"].forEach(id=>{ $(id).checked=store.get(id,$(id).checked); $(id).addEventListener("change",()=>{ store.set(id,$(id).checked);
+  ["soundOn","hypeOn","labelsOn","flatsOn","retryOn"].forEach(id=>{ $(id).checked=store.get(id,$(id).checked); $(id).addEventListener("change",()=>{ store.set(id,$(id).checked);
+    if((id==="soundOn"||id==="hypeOn")&&!$(id).checked) hypeStop(120);
     if(id==="labelsOn") $("piano").querySelectorAll(".w").forEach(b=>label(b,+b.dataset.midi)); if(id==="flatsOn"&&q&&mode==="find"&&!locked) findPrompt() }) });
   $("resetBtn").addEventListener("click",()=>{ stopChallenge(); resetScore(); newQ() });
   $("chalBtn").addEventListener("click",()=>{ if(arc){ stopChallenge(); newQ() } else arcStart() });   // Start Challenge doubles as Stop while a run is on (splash included)
