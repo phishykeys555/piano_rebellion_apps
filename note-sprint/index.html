@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>Note Sprint</title><meta name="description" content="60-second note-reading sprints. Tap the answer or play your real piano and the app listens."><meta property="og:type" content="website"><meta property="og:site_name" content="Clarendon Hills Music Academy"><meta property="og:title" content="Note Sprint · Clarendon Hills Music Academy"><meta property="og:description" content="60-second note-reading sprints. Tap the answer or play your real piano and the app listens."><meta property="og:url" content="https://phishykeys555.github.io/piano_rebellion_apps/note-sprint/"><meta property="og:image" content="https://phishykeys555.github.io/piano_rebellion_apps/share/note-sprint.png"><meta property="og:image:width" content="1200"><meta property="og:image:height" content="630"><meta property="og:image:alt" content="Note Sprint · Clarendon Hills Music Academy"><meta name="twitter:card" content="summary_large_image"><meta name="twitter:title" content="Note Sprint · Clarendon Hills Music Academy"><meta name="twitter:description" content="60-second note-reading sprints. Tap the answer or play your real piano and the app listens."><meta name="twitter:image" content="https://phishykeys555.github.io/piano_rebellion_apps/share/note-sprint.png">
+<title>Note Sprint</title><meta name="description" content="Note-reading challenge rounds: a 30-second warm-up sets your targets, then beat each round's target to unlock the next, all the way to a bonus round. Tap the answer or play your real piano and the app listens."><meta property="og:type" content="website"><meta property="og:site_name" content="Clarendon Hills Music Academy"><meta property="og:title" content="Note Sprint · Clarendon Hills Music Academy"><meta property="og:description" content="Note-reading challenge rounds: a 30-second warm-up sets your targets, then beat each round's target to unlock the next, all the way to a bonus round. Tap the answer or play your real piano and the app listens."><meta property="og:url" content="https://phishykeys555.github.io/piano_rebellion_apps/note-sprint/"><meta property="og:image" content="https://phishykeys555.github.io/piano_rebellion_apps/share/note-sprint.png"><meta property="og:image:width" content="1200"><meta property="og:image:height" content="630"><meta property="og:image:alt" content="Note Sprint · Clarendon Hills Music Academy"><meta name="twitter:card" content="summary_large_image"><meta name="twitter:title" content="Note Sprint · Clarendon Hills Music Academy"><meta name="twitter:description" content="Note-reading challenge rounds: a 30-second warm-up sets your targets, then beat each round's target to unlock the next, all the way to a bonus round. Tap the answer or play your real piano and the app listens."><meta name="twitter:image" content="https://phishykeys555.github.io/piano_rebellion_apps/share/note-sprint.png">
 <link rel="stylesheet" href="../shared/chma.css">
 <script src="../shared/brand.js"></script>
 
@@ -13,7 +13,7 @@
 <!-- fonts load without blocking the page: a slow or blocked Google Fonts never leaves a blank screen; the staff redraws when Noto Music arrives -->
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Music&family=Archivo:wght@400;600;800&family=JetBrains+Mono:wght@500;700&display=swap" media="print" onload="this.media='all'">
 <style>
-/* Layout: one practice card (score strip, staff on engraving paper, answer pad), level picker above, settings drawer below, results sheet over the card when a sprint ends. */
+/* Layout: one practice card (score strip, staff on engraving paper, answer pad), level picker above, settings drawer below, results sheet over the card when a challenge ends. */
 :root{
   --bg:#eef1f5; --panel:#ffffff; --paper:#fbfaf6; --ink:#16181d; --muted:#5d6472;
   --accent:#2457d6; --accent-ink:#ffffff; --accent-soft:#e3eafc; --good:#1f8a4c; --bad:#c2352b;
@@ -173,9 +173,6 @@ summary{cursor:pointer;padding:12px 16px;font-weight:600}
 @media (prefers-reduced-motion:reduce){.arcsplash.go *,.hitstamp.go{animation-duration:.01s!important;animation-delay:0s!important}}
 .arcsplash b{font-family:var(--display);font-weight:800;font-size:40px;line-height:1}
 .arcsplash span{font-size:15px;color:var(--muted)}
-.timerbar{height:10px;border-radius:3px;background:var(--border);overflow:hidden}
-.timerbar i{display:block;height:100%;background:var(--accent);width:100%;transition:width 1s linear}
-.timerbar.hot i{background:var(--bad)}
 .results{position:absolute;inset:0;background:var(--panel);border-radius:14px;padding:22px;display:flex;flex-direction:column;gap:14px;z-index:5;overflow:auto}
 .results h2{font-family:var(--display);font-weight:800;font-size:22px;margin:0}
 .big{font-family:var(--mono);font-weight:700;font-size:64px;line-height:1;letter-spacing:-.03em}
@@ -223,8 +220,8 @@ button:active,.letters button:active{transform:translateY(2px);box-shadow:0 1px 
 .piano .w{background:var(--key-w)} .piano .b{background:var(--key-b)}
 .piano .w.mc{color:var(--c-sel)}
 .watch .ring{stroke:var(--c-act)} .watch .ring-bg{stroke:var(--c-line)}
-.arcmeter,.timerbar,.meter{background:var(--c-lcd)}
-.arcmeter i,.timerbar i{background:var(--c-act)}
+.arcmeter,.meter{background:var(--c-lcd)}
+.arcmeter i{background:var(--c-act)}
 .arcbar .pill{background:var(--c-lcd);border-color:var(--c-lcd-b);color:var(--c-led);text-shadow:var(--c-led-glow)}
 .arcbar .need.met{background:var(--c-ok);border-color:var(--c-ok);color:#fff;text-shadow:none}
 .arcbar .fire{color:#ff8a1f;border-color:#ff8a1f}
@@ -276,8 +273,7 @@ input[type=range],input[type=checkbox],input[type=radio]{accent-color:var(--c-ac
       <svg viewBox="0 0 118 132"><rect class="crown" x="51" y="0" width="16" height="9" rx="2"/><rect class="crown" x="56" y="8" width="6" height="8"/><rect class="crown" x="94" y="16" width="10" height="6" rx="2" transform="rotate(45 99 19)"/>
         <circle class="ring-bg" cx="59" cy="73" r="52" fill="none" stroke-width="9"/>
         <circle class="ring" id="ring" cx="59" cy="73" r="52" fill="none" stroke-width="9" stroke-linecap="round" transform="rotate(-90 59 73)" stroke-dasharray="326.7" stroke-dashoffset="0"/></svg>
-      <div class="num" id="clock">60</div><div class="lab">SECONDS</div></div>
-      <div class="timerbar" id="timerbar" hidden><i id="timerfill"></i></div></div>
+      <div class="num" id="clock">30</div><div class="lab">SECONDS</div></div></div>
 
     <div class="staffbox" id="staffbox"><svg id="staff" role="img" aria-label="Note on a staff"></svg></div>
     <div class="prompt" id="prompt" aria-live="polite"></div>
@@ -310,15 +306,14 @@ input[type=range],input[type=checkbox],input[type=radio]{accent-color:var(--c-ac
 
     <div class="row">
       <button class="ghost" id="resetBtn">Reset score</button>
-      <button class="ghost" id="arcBtn" title="Challenge mode: one try per note, no second chances" hidden>Challenge mode</button>
-      <button class="primary" id="startTimed">Start 60-second sprint</button>
+      <button class="primary" id="chalBtn" title="Challenge mode: one try per note, no second chances">Start Challenge</button>
     </div>
     <p class="tip" id="kbTip">Keyboard: A–G to answer. In a key with sharps or flats, tap ♯ or ♭ first (or press = / −). Piano keys must be the exact key, right octave.</p>
-    <p class="tip" id="appVer"><span class="appver">Note Sprint · Version 2026-11-11.8</span></p>
+    <p class="tip" id="appVer"><span class="appver">Note Sprint · Version 2026-11-11.9</span></p>
 
     <div class="arcsplash" id="arcSplash" hidden><div class="boom"></div><div id="arcPcs"></div><div class="pre" id="arcSplashP"></div><b id="arcSplashT">ROUND 2</b><span id="arcSplashS"></span></div><div class="hitstamp" id="hitStamp">TARGET HIT!</div>
     <div class="results" id="results" hidden>
-      <h2 id="rTitle" tabindex="-1">Sprint complete</h2>
+      <h2 id="rTitle" tabindex="-1">Challenge over</h2>
       <div class="big" id="rScore">0 <small>correct</small></div>
       <div class="rgrid">
         <div><b id="rPct">0%</b><span>Accuracy</span></div>
@@ -329,7 +324,7 @@ input[type=range],input[type=checkbox],input[type=radio]{accent-color:var(--c-ac
       <div id="rWhy" style="font-weight:600"></div><div class="stamp" id="rStamp"></div>
       <p class="tip" style="text-align:left">Screenshot this screen and send it to your instructor.</p>
       <div class="stamp">Note Sprint · By <a href="https://clarendonhillsmusicacademy.com/" target="_blank" rel="noopener" style="color:inherit;text-decoration:underline">Clarendon Hills Music Academy</a></div>
-      <div class="row"><button class="ghost" id="closeResults">Back to practice</button><button class="ghost" id="retryRound" hidden>Retry round</button><button class="primary" id="againBtn">Sprint again</button></div>
+      <div class="row"><button class="ghost" id="closeResults">Back to practice</button><button class="ghost" id="retryRound" hidden>Retry round</button><button class="primary" id="againBtn">Play again</button></div>
     </div>
   </section>
 
@@ -370,7 +365,6 @@ input[type=range],input[type=checkbox],input[type=radio]{accent-color:var(--c-ac
         <label><input type="checkbox" id="soundOn" checked> Play the note after I answer</label>
         <label><input type="checkbox" id="ivOn"> Intervals (two notes at once)</label>
         <label><input type="checkbox" id="retryOn" checked> Second try on a miss (½ point)</label>
-        <label><input type="checkbox" id="chalOn"> Show Challenge mode (arcade rounds)</label>
       </fieldset>
       <fieldset><legend>Answer with</legend>
         <label><input type="radio" name="mode" id="mLetters" value="letters" checked> Letter buttons</label>
@@ -409,7 +403,7 @@ input[type=range],input[type=checkbox],input[type=radio]{accent-color:var(--c-ac
   const keyName=k=>(KEYS.find(x=>x[1]===k)||["C"])[0];
   let q=null, idx=0, acc="", locked=false, timer=null, timeLeft=0, sprintOver=false, audio=null, level=String(QS.get("level")||store.get("level","1"));
   if(!LEVELS.some(L=>L.id===level)) level=String(store.get("level","1")); if(!LEVELS.some(L=>L.id===level)) level="1";   // old or broken saved data never strands the app
-  let arc=null, lastMode="sprint", timeMax=60, qTok=0;   // challenge mode state
+  let arc=null, timeMax=30, qTok=0;   // challenge mode state
 
   // ---------- settings ----------
   function setRadio(name,val){const el=[...document.querySelectorAll(`input[name=${name}]`)].find(x=>x.value===val); if(el) el.checked=true}   // saved values are matched, never pasted into a selector
@@ -455,14 +449,13 @@ input[type=range],input[type=checkbox],input[type=radio]{accent-color:var(--c-ac
     const near=LM.filter(l=>lmOn.includes(l.id)&&LMCLEF[n.clef].includes(l.id)).map(l=>({l,o:d-l.dia})).filter(x=>Math.abs(x.o)<=2).sort((a,b)=>Math.abs(a.o)-Math.abs(b.o))[0];
     if(!near) return ""; return ` ${Math.abs(near.o)===1?"One step":"A skip"} ${near.o>0?"above":"below"} ${near.l.name}.` }
   const custom=store.get("custom",null);
-  $("soundOn").checked=store.get("sound",true); $("retryOn").checked=store.get("retry",true); $("chalOn").checked=store.get("chal",false); $("arcBtn").hidden=!$("chalOn").checked; { const MODES=["letters","piano","mic"], qm=QS.get("mode"), m=MODES.includes(qm)?qm:store.get("mode","letters"); setRadio("mode",MODES.includes(m)?m:"letters"); if(MODES.includes(qm)) store.set("mode",qm) }
+  $("soundOn").checked=store.get("sound",true); $("retryOn").checked=store.get("retry",true); { const MODES=["letters","piano","mic"], qm=QS.get("mode"), m=MODES.includes(qm)?qm:store.get("mode","letters"); setRadio("mode",MODES.includes(m)?m:"letters"); if(MODES.includes(qm)) store.set("mode",qm) }
   function saveCustom(){ const s=readSettings(); store.set("custom",{staffMode:s.staffMode,acc:s.acc,iv:s.iv,b:s.b,lm:s.lm,ls:s.ls}); selectLevel("C",true) }
   ["tLo","tHi","bLo","bHi","lmSel","lsSel"].forEach(id=>$(id).addEventListener("change",()=>{ lmUi(); saveCustom(); layout(); newQuestion(true) }));
   document.querySelectorAll(".rngq button").forEach(b=>b.addEventListener("click",()=>{ const r=+b.dataset.r; setBounds({treble:rb(r),bass:rb(r)}); saveCustom(); layout(); newQuestion(true) }));
   document.querySelectorAll('.settings input').forEach(el=>el.addEventListener("change",()=>{
     const s=readSettings(); store.set("sound",s.sound); store.set("mode",s.mode);
     if(el.id==="retryOn"){store.set("retry",el.checked); return}
-    if(el.id==="chalOn"){store.set("chal",el.checked); $("arcBtn").hidden=!el.checked; if(!el.checked&&arc){ stopTimer(); newQuestion(true) } return}   // never left locked behind a stopped splash
     if(el.name!=="mode"&&el.id!=="soundOn") saveCustom()
     layout(); newQuestion(true)}));
 
@@ -826,10 +819,9 @@ input[type=range],input[type=checkbox],input[type=radio]{accent-color:var(--c-ac
   function resetScore(){ stopTimer(); st={correct:0,points:0,total:0,streak:0,best:0,misses:{}}; render() }
   $("resetBtn").addEventListener("click",()=>{resetScore();newQuestion(true)});
 
-  // ---------- sprint ----------
-  function stopTimer(){ if(timer){clearInterval(timer);timer=null} sprintOver=false; arcEnd(); $("clockrow").hidden=true; $("startTimed").textContent="Start 60-second sprint" }
-  function startSprint(){ resetScore(); lastMode="sprint"; timeMax=60; sheet(false); timeLeft=60; $("clockrow").hidden=false; showClock(); $("timerfill").style.width="100%"; $("startTimed").textContent="Stop"; newQuestion(true);
-    timer=setInterval(()=>{ timeLeft--; showClock(); $("timerfill").style.width=(timeLeft/60*100)+"%"; if(timeLeft<=0) endSprint() },1000) }
+  // ---------- round clock (Challenge mode is the only timed mode; free practice has no clock) ----------
+  const chalLabel=on=>{ $("chalBtn").textContent=on?"Stop":"Start Challenge" };
+  function stopTimer(){ if(timer){clearInterval(timer);timer=null} sprintOver=false; arcEnd(); $("clockrow").hidden=true; chalLabel(false) }
   function showClock(){ const t=Math.max(0,timeLeft); $("clock").textContent=t;
     $("ring").style.strokeDashoffset=String(326.7*(1-t/timeMax)); $("watch").classList.toggle("hot",t<=10) }
   // fireworks for 90%+ accuracy (skipped when the device asks for reduced motion)
@@ -848,17 +840,9 @@ input[type=range],input[type=checkbox],input[type=radio]{accent-color:var(--c-ac
     try{ chime() }catch(e){} }
   function sheet(on){ $("results").hidden=!on; [...$("card").children].forEach(c=>{ if(c!==$("results")) c.inert=on }) }
   function showResults(){ sheet(true); const r=$("card").getBoundingClientRect(); if(r.top<0||r.top>innerHeight*0.4) try{ $("card").scrollIntoView({block:"start"}) }catch(e){} $("results").scrollTop=0; try{ $("rTitle").focus({preventScroll:true}) }catch(e){} }
-  function endSprint(){ clearInterval(timer); timer=null; sprintOver=true; locked=true; $("startTimed").textContent="Start 60-second sprint";
-    $("rTitle").textContent="Sprint complete"; $("rWhy").textContent=""; $("retryRound").hidden=true; $("againBtn").textContent="Sprint again"; $("rScore").innerHTML=`${half(st.points)} <small>points in 60 s</small>`;
-    $("rPct").textContent=(st.total?Math.min(100,Math.round(100*st.points/st.total)):0)+"%"; $("rTotal").textContent=st.total; $("rBest").textContent=st.best;
-    const miss=Object.entries(st.misses).sort((a,b)=>b[1]-a[1]).slice(0,5);
-    $("rMiss").innerHTML=miss.length?miss.map(([k,v])=>`<span>${k} ×${v}</span>`).join(""):(st.total?"<span>None. Clean run.</span>":"<span>No answers this time.</span>");
-    const L=LEVELS.find(x=>x.id===level); const d=new Date();
-    $("rStamp").textContent=`Level ${L.id==="C"?"Custom":L.id} · ${L.name} · Key ${keySetting()==="mix"?"Mix":keyName(+keySetting())} · ${d.toLocaleDateString(undefined,{weekday:"short",month:"short",day:"numeric"})} ${d.toLocaleTimeString([], {hour:"numeric",minute:"2-digit"})}`;
-    showResults(); celebrate() }
-  $("startTimed").addEventListener("click",()=>{ if(timer||arc){stopTimer();newQuestion(true)} else startSprint() });
+  $("chalBtn").addEventListener("click",()=>{ if(timer||arc){stopTimer();newQuestion(true)} else arcStart() });   // one button: Start Challenge, Stop while a challenge runs
   $("retryRound").addEventListener("click",()=>arcRetry());
-  $("againBtn").addEventListener("click",()=>lastMode==="arcade"?arcStart():startSprint());
+  $("againBtn").addEventListener("click",()=>arcStart());
 
   // ---------- arcade: rounds like the arcade hoop game. Total score carries over, but each round has its own fresh target: extra points never count toward the next round ----------
   // Base running totals for L1 letters; scaled for harder levels and slower answer modes. Last 10 s of a round = on fire, 2x points.
@@ -883,11 +867,11 @@ input[type=range],input[type=checkbox],input[type=radio]{accent-color:var(--c-ac
     sp.classList.remove("go"); void sp.offsetWidth; sp.classList.add("go"); whoosh();
     const tok=++splashTok; setTimeout(()=>{ if(tok!==splashTok) return; $("arcSplash").hidden=true; if(arc) then() },ms) }   // a stopped or restarted challenge never wakes an old splash
   let arcRetryRound=0, arcIncSaved=null, splashTok=0;
-  function arcRetry(){ const r=arcRetryRound||1; if(r<2||!arcIncSaved) return arcStart(); resetScore(); lastMode="arcade"; sheet(false); arc={round:r,bonus:false,warm:false,inc:arcIncSaved.slice(),needs:[],start:0}; arc.needs[r-1]=arc.inc[r-1];
-    $("arcbar").hidden=false; $("arcMeter").hidden=false; $("startTimed").textContent="Stop"; $("arcBtn").hidden=true; render();
+  function arcRetry(){ const r=arcRetryRound||1; if(r<2||!arcIncSaved) return arcStart(); resetScore(); sheet(false); arc={round:r,bonus:false,warm:false,inc:arcIncSaved.slice(),needs:[],start:0}; arc.needs[r-1]=arc.inc[r-1];
+    $("arcbar").hidden=false; $("arcMeter").hidden=false; chalLabel(true); render();
     arcSplash(`ROUND ${r}`,`Target this round: ${half(arc.inc[r-1])} points.`,2000,arcRound) }
-  function arcStart(){ resetScore(); lastMode="arcade"; sheet(false); arc={round:1,bonus:false,warm:true,needs:[]};
-    $("arcbar").hidden=false; $("arcMeter").hidden=false; $("startTimed").textContent="Stop"; $("arcBtn").hidden=true;
+  function arcStart(){ resetScore(); sheet(false); arc={round:1,bonus:false,warm:true,needs:[]};
+    $("arcbar").hidden=false; $("arcMeter").hidden=false; chalLabel(true);
     arcSplash("ROUND 1","Warm-up: score as many as you can in 30 seconds. Your score sets your targets. One try per note, no second chances. Last 10 seconds = 2x points.",2600,arcRound,"CHALLENGE MODE") }
   function arcRound(){ clearInterval(timer); timeMax=ARC_T; timeLeft=ARC_T; $("clockrow").hidden=false; showClock(); arcBar(); newQuestion(true);
     timer=setInterval(()=>{ timeLeft--; showClock(); arcBar(); if(timeLeft<=0) arcRoundEnd() },1000) }
@@ -908,7 +892,7 @@ input[type=range],input[type=checkbox],input[type=radio]{accent-color:var(--c-ac
     // adapt round to round: the next target is at least 5% more than what was just scored, so a strong round raises the bar right away
     arc.inc[arc.round-1]=Math.max(arc.inc[arc.round-1],Math.round(got*1.05),arc.inc[arc.round-2]+1); arc.start=st.points; arc.needs[arc.round-1]=st.points+arc.inc[arc.round-1]; arc.hit=false; arcBar(); arcSplash(`ROUND ${arc.round}`,`Target this round: ${half(arc.inc[arc.round-1])} points. Fresh count, extras don't carry.`,2400,arcRound,`ROUND ${cleared} CLEARED ✓`) }
   function arcFinish(won,need,got){ const failedRound=won?0:arc.round; const reached=arc.bonus?"Bonus round":`Round ${arc.round}`, key="arcbest-"+level+"-"+readSettings().mode, best=Math.max(+store.get(key,0)||0,st.points), isNew=st.points>0&&st.points>=best;
-    store.set(key,best); sprintOver=true; locked=true; arc=null; $("arcbar").hidden=true; $("arcMeter").hidden=true; $("watch").classList.remove("fire"); $("arcBtn").hidden=!$("chalOn").checked; $("startTimed").textContent="Start 60-second sprint";
+    store.set(key,best); sprintOver=true; locked=true; arc=null; $("arcbar").hidden=true; $("arcMeter").hidden=true; $("watch").classList.remove("fire"); chalLabel(false);
     $("rTitle").textContent=won?"Challenge cleared!":"Challenge over"; $("againBtn").textContent="Play again";
     $("rWhy").textContent=won?(got>=need?`All 5 rounds cleared and the bonus target hit (${half(got)} / ${half(need)}).`:`All 5 rounds cleared. Bonus target was ${half(need)}; you had ${half(got)}.`):`Round ${failedRound} target was ${half(need)}. You had ${half(got)}. Hit the target before the 30 seconds run out to unlock Round ${failedRound+1}.`;
     arcRetryRound=won?0:failedRound; $("retryRound").hidden=won; $("retryRound").textContent=`Retry round ${failedRound}`;
@@ -919,9 +903,8 @@ input[type=range],input[type=checkbox],input[type=radio]{accent-color:var(--c-ac
     const L=LEVELS.find(x=>x.id===level); const d=new Date();
     $("rStamp").textContent=`CHALLENGE MODE · High score ${half(best)} · Level ${L.id==="C"?"Custom":L.id} · ${L.name} · Key ${keySetting()==="mix"?"Mix":keyName(+keySetting())} · ${d.toLocaleDateString(undefined,{weekday:"short",month:"short",day:"numeric"})} ${d.toLocaleTimeString([], {hour:"numeric",minute:"2-digit"})}`;
     showResults(); celebrate() }
-  function arcEnd(){ splashTok++; if(!arc) return; arc=null; st={correct:0,points:0,total:0,streak:0,best:0,misses:{}}; render();   /* challenge points (2x on fire) never leak into the practice score */ $("arcbar").hidden=true; $("arcMeter").hidden=true; $("arcSplash").hidden=true; $("watch").classList.remove("fire"); $("arcBtn").hidden=!$("chalOn").checked }
-  $("arcBtn").addEventListener("click",()=>{ if(timer) stopTimer(); arcStart() });
-  $("closeResults").addEventListener("click",()=>{sheet(false); stopTimer(); if(lastMode==="arcade") resetScore(); newQuestion(true); try{ $("startTimed").focus({preventScroll:true}) }catch(e){} });
+  function arcEnd(){ splashTok++; if(!arc) return; arc=null; st={correct:0,points:0,total:0,streak:0,best:0,misses:{}}; render();   /* challenge points (2x on fire) never leak into the practice score */ $("arcbar").hidden=true; $("arcMeter").hidden=true; $("arcSplash").hidden=true; $("watch").classList.remove("fire"); chalLabel(false) }
+  $("closeResults").addEventListener("click",()=>{sheet(false); resetScore(); newQuestion(true); try{ $("chalBtn").focus({preventScroll:true}) }catch(e){} });
   try{store.set("name","")}catch(e){} // no names stored (privacy)
 
   document.addEventListener("keydown",e=>{
