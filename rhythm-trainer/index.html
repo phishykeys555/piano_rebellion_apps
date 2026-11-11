@@ -325,9 +325,12 @@ button:focus-visible,select:focus-visible,summary:focus-visible,input:focus-visi
   function ctx(){ if(!audio){ aSess(mic?"play-and-record":"playback"); audio=new (window.AudioContext||window.webkitAudioContext)();
       // a phone call, the lock screen or another app can pause the audio clock: stop the try cleanly instead of freezing mid-bar
       audio.onstatechange=()=>{ if(audio.state!=="running"&&(run||sess||arc)) abortRun() } } return audio }
-  function abortRun(){ if(!run&&!sess&&!arc&&!calHook) return; calHook=null; run=null; if(sess||arc) stopSession(true); $("go").disabled=false; $("hear").disabled=false; $("arcSplash").hidden=true; lockUI(); drawBar(null);
+  function abortRun(){ if(!run&&!sess&&!arc&&!calHook) return; calHook=null; run=null; hush(); if(sess||arc) stopSession(true); $("go").disabled=false; $("hear").disabled=false; $("arcSplash").hidden=true; lockUI(); drawBar(null);
     msg(null,"Paused","The app was in the background, so this try stopped. Press Start to go again.") }
   document.addEventListener("visibilitychange",()=>{ if(document.hidden) abortRun() }); window.addEventListener("pagehide",()=>abortRun());
+  // every scheduled sound is kept until it ends, so Stop (or the app going to the background) silences the rest of the bar at once
+  const live=new Set(); const track=n=>{ live.add(n); n.onended=()=>live.delete(n); return n };
+  function hush(){ live.forEach(n=>{ try{ n.stop() }catch(e){} }); live.clear() }
   const outT=[]; // when the app itself makes a sound, so the mic can tell its own clicks from your claps
   // The click: a short, warm wooden "tock" (like a real metronome's woodblock), not a shrill beep.
   // Its pitch is kept well away from the note you're playing in One note mode.
@@ -338,7 +341,7 @@ button:focus-visible,select:focus-visible,summary:focus-visible,input:focus-visi
     o.frequency.setValueAtTime(f*1.35,t); o.frequency.exponentialRampToValueAtTime(f,t+0.012); o2.frequency.setValueAtTime(f*2.76,t);
     g.gain.setValueAtTime(0.0001,t); g.gain.exponentialRampToValueAtTime((accent?0.55:0.38)*(soft?0.35:1),t+0.0015); g.gain.exponentialRampToValueAtTime(0.0001,t+0.09);
     g2.gain.setValueAtTime(0.0001,t); g2.gain.exponentialRampToValueAtTime((accent?0.16:0.11)*(soft?0.35:1),t+0.001); g2.gain.exponentialRampToValueAtTime(0.0001,t+0.035);
-    o.connect(g).connect(out); o2.connect(g2).connect(out); o.start(t); o2.start(t); o.stop(t+0.1); o2.stop(t+0.05) }
+    o.connect(g).connect(out); o2.connect(g2).connect(out); track(o); track(o2); o.start(t); o2.start(t); o.stop(t+0.1); o2.stop(t+0.05) }
   // (unused) pitchless tick
   function tick(t,accent){ outT.push(t); const a=ctx(), L=Math.floor(a.sampleRate*0.03), nb=a.createBuffer(1,L,a.sampleRate), d=nb.getChannelData(0);
     for(let i=0;i<L;i++) d[i]=(Math.random()*2-1)*Math.exp(-i/a.sampleRate/0.004);
@@ -347,9 +350,9 @@ button:focus-visible,select:focus-visible,summary:focus-visible,input:focus-visi
   function hand(t){ outT.push(t); if(outT.length>64) outT.shift(); const a=ctx(), L=Math.floor(a.sampleRate*0.12), nb=a.createBuffer(1,L,a.sampleRate), d=nb.getChannelData(0);
     for(let i=0;i<L;i++){ const tt=i/a.sampleRate; let e=Math.exp(-(tt-0.02)/0.03)*(tt>=0.02); for(const o of [0,0.008,0.016]) if(tt>=o&&tt<o+0.006) e=Math.max(e,Math.exp(-(tt-o)/0.002)); d[i]=(Math.random()*2-1)*e }
     const s=a.createBufferSource(), bp=a.createBiquadFilter(), g=a.createGain(); s.buffer=nb; bp.type="bandpass"; bp.frequency.value=1200; bp.Q.value=0.9; g.gain.value=0.9;
-    s.connect(bp).connect(g).connect(a.destination); s.start(t) }
+    s.connect(bp).connect(g).connect(a.destination); track(s); s.start(t) }
   function wood(t,dur){ outT.push(t); if(outT.length>64) outT.shift(); const a=ctx(), o=a.createOscillator(), g=a.createGain(); o.type="triangle"; o.frequency.value=880;
-    g.gain.setValueAtTime(0.0001,t); g.gain.exponentialRampToValueAtTime(0.42,t+0.003); g.gain.exponentialRampToValueAtTime(0.0001,t+Math.min(0.25,dur)); o.connect(g).connect(a.destination); o.start(t); o.stop(t+0.3) }
+    g.gain.setValueAtTime(0.0001,t); g.gain.exponentialRampToValueAtTime(0.42,t+0.003); g.gain.exponentialRampToValueAtTime(0.0001,t+Math.min(0.25,dur)); o.connect(g).connect(a.destination); track(o); o.start(t); o.stop(t+0.3) }
 
   // ---------- run a bar: 1 count-in bar of clicks, then the rhythm bar ----------
   const spb=()=>60/bpm, u16=()=>spb()/4;
@@ -463,12 +466,12 @@ button:focus-visible,select:focus-visible,summary:focus-visible,input:focus-visi
   function startSession(secs){ sess={points:0,bars:[],left:secs,stopped:false}; lockUI(); $("results").hidden=true; $("again").hidden=true; $("hear").disabled=true; $("go").textContent="Stop"; stats();
     sess.timer=setInterval(()=>{ const S=sess; if(!S) return; S.left--; stats(); $("clockPill").textContent=Math.max(0,S.left)+" s"; $("clockPill").classList.toggle("hot",S.left<=10); if(arc) arcBar(); if(S.left<=0){ clearInterval(S.timer); if(!run) sessionOver() } },1000);
     $("clockPill").textContent=secs+" s"; newBar(); play("test") }
-  function stopSession(silent){ if(!sess) return; clearInterval(sess.timer); sess.stopped=true; sess=null; arc=null; lockUI(); $("arcbar").hidden=true; $("arcMeter").hidden=true; $("arcSplash").hidden=true; $("hear").disabled=false; $("go").textContent="Start"; if(!silent) msg(null,"Stopped","Press Start to go again."); stats() }
+  function stopSession(silent){ if(!sess) return; clearInterval(sess.timer); sess.stopped=true; sess=null; arc=null; splashTok++; if(run){ run=null; hush(); drawBar(null); $("go").disabled=false } lockUI(); $("arcbar").hidden=true; $("arcMeter").hidden=true; $("arcSplash").hidden=true; $("hear").disabled=false; $("go").textContent="Start"; if(!silent) msg(null,"Stopped","Press Start to go again."); stats() }
   function sessionOver(){ if(!sess) return; if(arc) return arcRoundEnd(); const S=sess; clearInterval(S.timer); sess=null; lockUI(); $("hear").disabled=false; $("go").textContent="Start"; $("arcbar").hidden=true;
     showResults("Time!",S,`${S.bars.length} rhythm${S.bars.length===1?"":"s"} in 60 seconds.`,"60-SECOND SPRINT") }
   function showResults(title,S,why,tag){ const bars=S.bars, all=bars.flatMap(r=>r.errs), mean=all.length?all.reduce((a,b)=>a+b,0)/all.length:0, key=bestKey(), prev=bestNum(key)||0, best=Math.max(prev,S.points), isNew=S.points>0&&S.points>=best;
     store.set(key,best); $("rTitle").textContent=title; $("rWhy").textContent=why||"";
-    $("rScore").innerHTML=`${half(S.points)} <small>points${isNew?" · new high score":""}</small>`;
+    $("rScore").innerHTML=`${half(S.points)} <small>points</small>${isNew?"<small>· new high score</small>":""}`; // two pieces: on a narrow phone "new high score" wraps to its own line instead of running off the card
     $("rAcc").textContent=bars.length?Math.round(bars.reduce((a,b)=>a+b.score,0)/bars.length)+"%":"–";
     $("rPerfect").textContent=`${bars.reduce((a,b)=>a+b.perfect,0)}/${bars.reduce((a,b)=>a+b.notes,0)}`;
     $("rTiming").textContent=!all.length?"–":Math.abs(mean)<15?"On time":Math.round(Math.abs(mean))+" ms "+(mean<0?"early":"late");
@@ -483,10 +486,11 @@ button:focus-visible,select:focus-visible,summary:focus-visible,input:focus-visi
     $("arcRound").textContent=arc.bonus?"BONUS ROUND":`ROUND ${arc.round} OF 5`; $("arcNeed").textContent=`${S.points>=need?"✓ ":""}${half(got)} / ${half(inc)}`; $("arcNeed").classList.toggle("met",S.points>=need);
     $("arcFill").style.width=Math.min(100,100*got/Math.max(1,inc))+"%"; const hit=S.points>=need; $("arcMeter").classList.toggle("hit",hit);
     if(hit&&!arc.hit){ arc.hit=true; const hs=$("hitStamp"); hs.classList.remove("go"); void hs.offsetWidth; hs.classList.add("go"); chime() } }
-  function splash(pre,t,sub,ms,then){ $("spP").textContent=pre||""; $("spT").textContent=t; $("spS").textContent=sub; const sp=$("arcSplash"); sp.hidden=false; sp.classList.remove("go"); void sp.offsetWidth; sp.classList.add("go"); setTimeout(()=>{ sp.hidden=true; if(arc) then() },ms) }
-  function arcStart(){ if(sess) stopSession(true); sess={points:0,bars:[],left:ARC_T,stopped:true}; arc={round:1,warm:true,bonus:false,needs:[],start:0,hit:false}; lockUI(); $("results").hidden=true; $("go").textContent="Stop"; $("hear").disabled=true;
+  let splashTok=0;
+  function splash(pre,t,sub,ms,then){ const tok=++splashTok; $("spP").textContent=pre||""; $("spT").textContent=t; $("spS").textContent=sub; const sp=$("arcSplash"); sp.hidden=false; sp.classList.remove("go"); void sp.offsetWidth; sp.classList.add("go"); setTimeout(()=>{ if(tok!==splashTok) return; sp.hidden=true; if(arc) then() },ms) }
+  function arcStart(){ if(sess) stopSession(true); sess={points:0,bars:[],left:ARC_T,stopped:true}; arc={round:1,warm:true,bonus:false,needs:[],start:0,hit:false}; lockUI(); $("clockPill").textContent=ARC_T+" s"; $("clockPill").classList.remove("hot"); $("results").hidden=true; $("go").textContent="Stop"; $("hear").disabled=true;
     arcBar(); splash("CHALLENGE MODE","ROUND 1","Warm-up: score as many points as you can in 30 seconds. Your score sets your targets. One try per rhythm.",2800,arcRound) }
-  function arcRound(){ const pts=sess.points; sess.left=ARC_T; sess.stopped=false; arc.hit=false; $("clockPill").textContent=ARC_T+" s"; arcBar();
+  function arcRound(){ clearInterval(sess.timer); sess.left=ARC_T; sess.stopped=false; arc.hit=false; $("clockPill").textContent=ARC_T+" s"; arcBar();
     sess.timer=setInterval(()=>{ const S=sess; if(!S) return; S.left--; stats(); $("clockPill").textContent=Math.max(0,S.left)+" s"; $("clockPill").classList.toggle("hot",S.left<=10); arcBar(); if(S.left<=0){ clearInterval(S.timer); if(!run) arcRoundEnd() } },1000);
     newBar(); play("test") }
   function arcRoundEnd(){ const S=sess; clearInterval(S.timer); S.stopped=true;
@@ -680,6 +684,6 @@ button:focus-visible,select:focus-visible,summary:focus-visible,input:focus-visi
   if(document.fonts) document.fonts.ready.then(()=>drawBar(null));
 })();
 </script>
-<p class="appver" style="text-align:center;font-size:11px;opacity:.6;margin:18px 0 10px;font-family:ui-monospace,Menlo,monospace">Rhythm Trainer · Version 2026-11-11.13</p>
+<p class="appver" style="text-align:center;font-size:11px;opacity:.6;margin:18px 0 10px;font-family:ui-monospace,Menlo,monospace">Rhythm Trainer · Version 2026-11-11.14</p>
 </body>
 </html>
