@@ -388,7 +388,8 @@ button:focus-visible,select:focus-visible,summary:focus-visible,input:focus-visi
   // Timing: you hear each click a little after it's scheduled (speaker/Bluetooth delay), and a screen tap registers a little late too.
   // Until you calibrate, take off the delay the device reports plus a typical touch (30 ms) or microphone (15 ms) lag. Calibrating replaces this with your own measured number.
   const autoLag=src=>{ const a=audio; const o=a?((a.outputLatency||0)+(a.baseLatency||0)):0; return Math.min(0.25,o+(src==="mic"?0.015:0.03)) };
-  function tapAt(tsec,src){ if(calHook){ calHook(tsec); return } if(!run||run.mode!=="test") return; const man=src==="mic"?latMic:latency; const t=tsec-(man!=null?man/1000:autoLag(src)); if(t<run.start-0.3||t>run.end+0.2) return; taps.push(t);
+  const hitLog=[]; // test hook: every raw hit (tap or mic) as it arrives, before any correction
+  function tapAt(tsec,src){ hitLog.push({t:tsec,src:src||"tap",mode:inMode}); if(hitLog.length>400) hitLog.shift(); if(calHook){ calHook(tsec); return } if(!run||run.mode!=="test") return; const man=src==="mic"?latMic:latency; const t=tsec-(man!=null?man/1000:autoLag(src)); if(t<run.start-0.3||t>run.end+0.2) return; taps.push(t);
     $("pad").classList.add("hit"); setTimeout(()=>$("pad").classList.remove("hit"),90) }
   $("pad").addEventListener("pointerdown",e=>{ e.preventDefault(); if(audio) tapAt(audio.currentTime) });
   document.addEventListener("keydown",e=>{ const tg=e.target.tagName; if(e.code!=="Space"||tg==="INPUT"||tg==="SELECT"||tg==="TEXTAREA"||tg==="SUMMARY"||tg==="A") return;
@@ -697,7 +698,7 @@ button:focus-visible,select:focus-visible,summary:focus-visible,input:focus-visi
   document.querySelectorAll("#inSeg button").forEach(b=>b.addEventListener("click",()=>setIn(b.dataset.in)));
   setIn(inMode);
 
-  window.__rt={make:(lv)=>{const k=level;level=lv;const b=makeBar();level=k;return b},bar:()=>bar,start:()=>lastStart,tap:t=>tapAt(t),now:()=>audio&&audio.currentTime,u:()=>u16(),setBar:b=>{bar=b;drawBar(null)},st:()=>({run:run?run.mode:null,rid:run?run.t0:null,sess:!!sess,arc:!!arc,starting,cal:!!calHook,mic:!!mic,micBusy,inMode,gmode,live:live.size,left:sess?sess.left:null,points:sess?sess.points:null})}; // test hook
+  window.__rt={make:(lv)=>{const k=level;level=lv;const b=makeBar();level=k;return b},bar:()=>bar,start:()=>lastStart,tap:t=>tapAt(t),now:()=>audio&&audio.currentTime,u:()=>u16(),setBar:b=>{bar=b;drawBar(null)},hits:()=>hitLog.slice(),setTempo:v=>{ if(!run&&!sess) bpm=+v },run:()=>run&&{start:run.start,end:run.end,u:run.u},st:()=>({run:run?run.mode:null,rid:run?run.t0:null,sess:!!sess,arc:!!arc,starting,cal:!!calHook,mic:!!mic,micBusy,inMode,gmode,live:live.size,left:sess?sess.left:null,points:sess?sess.points:null})}; // test hook
   mark(); newBar(); setMode("practice");
   if(document.fonts) document.fonts.ready.then(()=>{ if(!run) drawBar(curRes) });
 })();
