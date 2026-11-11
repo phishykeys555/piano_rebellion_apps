@@ -205,6 +205,7 @@ button{touch-action:manipulation;cursor:pointer}
 .privacy{margin:16px 0 0;text-align:center;font:italic 600 13px/1.4 var(--f-serif);color:var(--ink-soft)}
 .appver{margin:6px 0 0;text-align:center;font:600 11px/1 var(--f-mono);color:#8a7350;letter-spacing:.04em}
 :focus-visible{outline:3px solid #2f6bff;outline-offset:2px}
+.plate:has(select:focus-visible){outline:3px solid #2f6bff;outline-offset:2px}
 
 /* ---------- wide screens: two columns ---------- */
 @media (min-width:880px){
@@ -327,7 +328,7 @@ button{touch-action:manipulation;cursor:pointer}
     </div>
 
     <p class="privacy">Your sound stays on this device. Nothing is recorded or uploaded.</p>
-    <p class="appver">Strobe Tuner &middot; Version 2026-11-11.1</p>
+    <p class="appver">Strobe Tuner &middot; Version 2026-11-11.5</p>
   </main>
   <div class="cheek" aria-hidden="true"></div>
 </div>
@@ -357,7 +358,7 @@ const S = { tuning:TUNINGS[0], a4:440, tol:1, acc:'sharp', auto:true, sel:5,
   running:false, ctx:null, node:null, stream:null, src:null, sink:null, wake:null, moduleReady:false,
   target:null,           // {midi, f, name}
   cand:null, candN:0,
-  f0:null, lastP:0,
+  f0:null, lastP:0, lastRead:-1e9,
   stat:null,             // latest strobe message
   cents:null, centsSrc:'', lastStrobe:-1e9, lastSound:-1e9, ang:[0,0,0], bright:[0,0,0], lit:false };
 
@@ -418,7 +419,7 @@ sel.addEventListener('change', () => { S.tuning = TUNINGS.find(t => t.id === sel
 $('knob').addEventListener('click', () => { S.tuning = TUNINGS[(TUNINGS.indexOf(S.tuning) + 1) % TUNINGS.length]; save(); renderTuning(); });
 
 function setA4(v){ S.a4 = Math.max(430, Math.min(450, Math.round(v))); $('calOut').textContent = S.a4 + ' Hz'; save();
-  if (S.target) setTarget(S.target.midi); updateRef(); }
+  if (S.target) setTarget(S.target.midi); else sendTarget(0); updateRef(); }
 $('calDn').addEventListener('click', () => setA4(S.a4 - 1));
 $('calUp').addEventListener('click', () => setA4(S.a4 + 1));
 function setTol(v){ S.tol = v; document.querySelectorAll('#tol button').forEach(b => b.setAttribute('aria-pressed', String(+b.dataset.t === v))); save(); }
@@ -430,14 +431,27 @@ document.querySelectorAll('#acc button').forEach(b => b.addEventListener('click'
 /* ---------- target handling ---------- */
 function setTarget(m){
   S.target = { midi:m, f:freq(m), name:label(m, spellFor()) };
-  sendTarget(S.target.f); S.cents = null; S.centsSrc = ''; S.stat = null;
+  sendTarget(S.target.f); S.cents = null; S.centsSrc = ''; S.stat = null; S.lastRead = -1e9;
 }
-function sendTarget(f){ if (S.node) S.node.port.postMessage({ target:f }); }
-function resetReadout(){ S.cents = null; S.centsSrc = ''; S.stat = null; }
+function sendTarget(f){ if (S.node) S.node.port.postMessage({ target:f, strings:S.tuning.m.map(freq) }); }
+function resetReadout(){ S.cents = null; S.centsSrc = ''; S.stat = null; S.lastRead = -1e9; }
 
-function onPitch(f0){
-  S.f0 = f0; S.lastP = performance.now();
+// A new note needs a fresh pluck: steady hum, a fan or a TV never pick a string. Changing an
+// existing note also waits for a pluck (a fading string or a ringing neighbour can fool the pitch finder).
+const FRESH = 1.5;
+function onPitch(p){
+  let f0 = p.f0;
   const t = S.tuning;
+  // two strings ringing a 4th apart (B3 + E4) repeat at a lower common period (E2) that has no
+  // sound of its own at f0 / 2*f0. Then the string 2, 3 or 4 times higher that is clearly periodic
+  // by itself is the one being played.
+  if (t.m.length && p.sc && p.sc.length === t.m.length && p.low < 0.03) {
+    let bs = 0.55, k0 = 1;
+    t.m.forEach((m, j) => { const r = freq(m) / p.f0, k = Math.round(r);
+      if (k >= 2 && k <= 4 && Math.abs(1200 * Math.log2(r / k)) < 30 && p.sc[j] < bs) { bs = p.sc[j]; k0 = k; } });
+    f0 = p.f0 * k0;
+  }
+  S.f0 = f0; S.lastP = performance.now();
   if (!S.auto && t.m.length) return;           // manual string: target fixed
   let best;
   if (t.m.length) {                             // nearest string of the tuning
@@ -448,20 +462,30 @@ function onPitch(f0){
   }
   if (S.target && best === S.target.midi) { S.cand = null; S.candN = 0; return; }
   if (best === S.cand) S.candN++; else { S.cand = best; S.candN = 1; }
-  if (!S.target || S.candN >= 2) { setTarget(best); S.cand = null; renderStrings(); updateRef(); }
+  const plucked = p.since < FRESH;
+  if (plucked && S.candN >= 2) { setTarget(best); S.cand = null; S.candN = 0; renderStrings(); updateRef(); }
 }
+// a wrong note whose partials land on this string's fundamental or 2nd harmonic (octaves, 5ths below...)
+const PARTIAL_HIT = [-3102, -2786, -2400, -1902, -1586, -1200, -702, 1200];
+const partialHit = c => PARTIAL_HIT.some(h => Math.abs(c - h) < 60);
 
 function onStat(m){
   S.stat = m;
   if (m.present) S.lastSound = performance.now();
   if (!S.target || !m.present) return;
   let c = null, src = '';
-  const coarse = (S.f0 && performance.now() - S.lastP < 600) ? 1200 * Math.log2(S.f0 / S.target.f) : null;
   const now = performance.now();
-  if (m.df !== null && m.n >= 48 && (coarse === null || Math.abs(coarse) < 40)) { c = 1200 * Math.log2((S.target.f + m.df) / S.target.f); src = 'strobe'; S.lastStrobe = now; }
-  else if (S.centsSrc === 'strobe' && now - S.lastStrobe < 1200 && (coarse === null || Math.abs(coarse - S.cents) < 10)) return;  // re-measuring: hold the last strobe reading
-  else if (coarse !== null) { c = coarse; src = 'pitch'; }
+  let coarse = (S.f0 && now - S.lastP < 600) ? 1200 * Math.log2(S.f0 / S.target.f) : null;
+  // the pitch finder hears another string (one still ringing louder), but this string's own
+  // bands are clearly sounding too: ignore the rough pitch, the strobe knows better
+  if (coarse !== null && Math.abs(coarse) >= 40 && m.fr >= 0.06 && !partialHit(coarse)) coarse = null;
+  // strobe: only while this string's own bands carry the sound
+  const strobeOk = m.df !== null && m.n >= 48 && m.fr >= 0.02 && (coarse === null || Math.abs(coarse) < 40);
+  if (strobeOk) { c = 1200 * Math.log2((S.target.f + m.df) / S.target.f); src = 'strobe'; S.lastStrobe = now; }
+  else if (S.centsSrc === 'strobe' && now - S.lastStrobe < 1200 && (coarse === null || Math.abs(coarse - S.cents) < 10)) { S.lastRead = now; return; }  // re-measuring: hold the last strobe reading
+  else if (coarse !== null && m.since < 8 && !(S.auto && S.cand !== null)) { c = coarse; src = 'pitch'; }   // rough reading, only after a pluck (not while Auto is switching strings)
   if (c === null) return;
+  S.lastRead = now;
   if (S.cents === null || src !== S.centsSrc || Math.abs(c - S.cents) > 15) S.cents = c;
   else S.cents += (c - S.cents) * 0.2;
   S.centsSrc = src;
@@ -528,13 +552,13 @@ const fmtC = c => (c >= 0 ? '+' : '−') + Math.abs(c).toFixed(1);
 let lastTxt = 0;
 function readout(){
   const now = performance.now();
-  const m = S.stat, fresh = S.running && m && m.present && S.target && S.cents !== null;
+  const m = S.stat, fresh = S.running && m && m.present && S.target && S.cents !== null && now - S.lastRead < 400;
   const live = S.running && now - S.lastSound < 1500;
   // hysteresis: once lit, stay lit until 0.3 c past the window, so the lamp never flickers on the edge
   const inTune = !!(fresh && S.centsSrc === 'strobe' && Math.abs(S.cents) <= S.tol + (S.lit ? 0.3 : 1e-9));
   S.lit = inTune;
   $('jewel').classList.toggle('lit', inTune);
-  $('sig').classList.toggle('lit', !!(S.running && m && m.lvl > 0.0025));
+  $('sig').classList.toggle('lit', !!(S.running && m && m.lvl > m.thr));
   $('face').classList.toggle('on', S.running);
   $('meter').classList.toggle('off', !fresh);
   if (now - lastTxt < 70) return; lastTxt = now;
@@ -571,8 +595,11 @@ function getCtx(){
   if (!S.ctx) { const AC = window.AudioContext || window.webkitAudioContext; if (!AC) return null; S.ctx = new AC({ latencyHint:'interactive' }); }
   return S.ctx;
 }
+const micPolicyOff = () => { try { const pp = document.permissionsPolicy || document.featurePolicy; return !!(pp && pp.allowsFeature && !pp.allowsFeature('microphone')); } catch (e) { return false; } };
+const FRAMED_MSG = 'The microphone can’t turn on inside this page (Notion and other embeds keep it off).';
 async function start(){
   hideMsg();
+  if (isFramed && micPolicyOff()) { showMsg(FRAMED_MSG + openTab()); return; }
   if (!window.isSecureContext || !navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
     showMsg('This browser can’t reach the microphone here. Open the tuner in Safari or Chrome (the page must start with https).' + openTab()); return; }
   const ctx = getCtx();
@@ -589,15 +616,16 @@ async function start(){
     S.node = new AudioWorkletNode(ctx, 'strobe-tuner', { numberOfInputs:1, numberOfOutputs:1, outputChannelCount:[1], channelCount:1, channelCountMode:'explicit' });
     S.sink = ctx.createGain(); S.sink.gain.value = 0;
     S.src.connect(S.node); S.node.connect(S.sink); S.sink.connect(ctx.destination);
-    S.node.port.onmessage = e => { const m = e.data; if (m.type === 'p') onPitch(m.f0); else onStat(m); };
-    if (S.target) sendTarget(S.target.f);
+    S.node.port.onmessage = e => { const m = e.data; if (m.type === 'p') onPitch(m); else onStat(m); };
+    sendTarget(S.target ? S.target.f : 0);
     S.running = true; setPower(true);
     stream.getAudioTracks().forEach(t => t.addEventListener('ended', stop));
     keepAwake();
   } catch (err) {
     setPower(false); console.warn(err); S.lastErr = err && err.name;
     const n = err && err.name;
-    if (n === 'NotAllowedError' || n === 'SecurityError' || n === 'PermissionDeniedError')
+    if ((n === 'NotAllowedError' || n === 'SecurityError') && isFramed && micPolicyOff()) showMsg(FRAMED_MSG + openTab());
+    else if (n === 'NotAllowedError' || n === 'SecurityError' || n === 'PermissionDeniedError')
       showMsg('The tuner needs to hear your guitar. Tap <b>Allow</b> when your device asks about the microphone. If you tapped Don’t Allow, turn the microphone on for this site in your browser settings (iPhone/iPad Safari: tap <b>aA</b> in the address bar, then Website Settings, then Microphone), then tap Power again.' + openTab());
     else if (n === 'NotFoundError' || n === 'OverconstrainedError' || n === 'DevicesNotFoundError')
       showMsg('No microphone found. Plug one in or use a phone or tablet, then tap Power again.');
