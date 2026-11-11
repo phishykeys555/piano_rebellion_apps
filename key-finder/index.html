@@ -154,7 +154,7 @@ button:focus-visible,summary:focus-visible,input:focus-visible{outline:3px solid
     <label><input type="checkbox" id="labelsOn"> Show letter names on every white key (easier)</label>
     <label><input type="checkbox" id="flatsOn"> Call black keys by their flat name (D♭) in Find the key</label>
   </details>
-  <p class="appver" id="appVer">Key Finder · Version 2026-11-11.4</p>
+  <p class="appver" id="appVer">Key Finder · Version 2026-11-11.5</p>
 </div>
 
 <script>
@@ -173,7 +173,7 @@ button:focus-visible,summary:focus-visible,input:focus-visible{outline:3px solid
     {id:"5",name:"Every key",sub:"Four octaves",lo:36,hi:83,ask:()=>true}];
   // old or broken saved data falls back to the defaults instead of a game that cannot be answered
   let level=String(store.get("level","1")), mode=store.get("mode","name"); if(!LEVELS.some(x=>x.id===level)) level="1"; if(mode!=="name"&&mode!=="find") mode="name";
-  let st, q=null, locked=false, timer=null, tLeft=60, sprint=false, lastM=null;
+  let st, q=null, locked=false, timer=null, nextT=null, tLeft=60, sprint=false, lastM=null;
   const L=()=>LEVELS.find(x=>x.id===level)||LEVELS[0];
 
   // ---------- sound: short piano-like tone ----------
@@ -192,7 +192,7 @@ button:focus-visible,summary:focus-visible,input:focus-visible{outline:3px solid
       label(b,m);
       b.addEventListener("click",()=>keyTap(m,b)); el.appendChild(b);
       if(BLACK.includes((m+1)%12)&&m+1<=lv.hi){ const k=document.createElement("button"); k.className="b"; k.dataset.midi=m+1; k.style.width=(w*0.6)+"%"; k.style.left=((i+1)*w-w*0.3)+"%";
-        k.setAttribute("aria-label",both((m+1)%12)); k.addEventListener("click",()=>keyTap(m+1,k)); el.appendChild(k) } });
+        k.setAttribute("aria-label",`${PCN[(m+1)%12]}${Math.floor(m/12)-1} / ${FLAT[(m+1)%12]}${Math.floor((m+1)/12)-1}`); k.addEventListener("click",()=>keyTap(m+1,k)); el.appendChild(k) } });
     // Name the key answers on the pad: the keys only make sound, so Tab skips them and goes straight to the pad
     el.querySelectorAll("button").forEach(b=>{ b.tabIndex=mode==="find"?0:-1 });
     requestAnimationFrame(()=>{ const sc=$("pianoScroll"), mc=el.querySelector(".mc"); if(mc) sc.scrollLeft=mc.offsetLeft-sc.clientWidth/2+mc.offsetWidth/2; if(q&&mode==="name") centerKey(keyEl(q.m),true); edges() }) }
@@ -224,10 +224,10 @@ button:focus-visible,summary:focus-visible,input:focus-visible{outline:3px solid
   function findPrompt(){ const pc=q.m%12, nm=BLACK.includes(pc)?($("flatsOn").checked?FLAT[pc]:PCN[pc]):PCN[pc]; $("prompt").innerHTML=`Find <span class="big">${nm}</span>` }
   function grade(ok,btn,answerLabel){ if(!q||locked) return; const pc=q.m%12;
     if(ok){ if(!q.tried||!sprint){ if(!q.tried){ st.pts++; st.streak++; st.best=Math.max(st.best,st.streak) } } st.correct+=q.tried?0:1; if(!q.tried) st.total++;
-      btn&&btn.classList.add("hit"); keyEl(q.m).classList.remove("glow"); keyEl(q.m).classList.add("hit"); $("fb").textContent=q.tried?`There it is: ${both(pc)}.`:`Yes! ${both(pc)}.`; $("fb").className="fb good"; locked=true; render(); setTimeout(newQ,sprint?350:700); return }
+      btn&&btn.classList.add("hit"); keyEl(q.m).classList.remove("glow"); keyEl(q.m).classList.add("hit"); $("fb").textContent=q.tried?`There it is: ${both(pc)}.`:`Yes! ${both(pc)}.`; $("fb").className="fb good"; locked=true; render(); nextT=setTimeout(newQ,sprint?350:700); return }
     // wrong
     btn&&btn.classList.add("miss"); if(!q.tried){ st.total++; st.streak=0; st.miss[both(pc)]=(st.miss[both(pc)]||0)+1 } q.tried=true; render();
-    if(sprint){ keyEl(q.m).classList.remove("glow"); keyEl(q.m).classList.add("show"); $("fb").textContent=`That was ${answerLabel}. This one is ${both(pc)}.`; $("fb").className="fb bad"; locked=true; setTimeout(newQ,900) }
+    if(sprint){ keyEl(q.m).classList.remove("glow"); keyEl(q.m).classList.add("show"); $("fb").textContent=`That was ${answerLabel}. This one is ${both(pc)}.`; $("fb").className="fb bad"; locked=true; nextT=setTimeout(newQ,900) }
     else { $("fb").textContent=`Not ${answerLabel}. Try again.`; $("fb").className="fb bad"; setTimeout(()=>btn&&btn.classList.remove("miss"),500) } }
   function padTap(pc,btn){ if(mode!=="name"||!q||locked) return; grade(pc===q.m%12,btn,both(pc)) }
   function keyTap(m,btn){ tone(m); if(mode!=="find"||!q||locked) return; grade(m%12===q.m%12,btn,both(m%12)) }
@@ -239,7 +239,8 @@ button:focus-visible,summary:focus-visible,input:focus-visible{outline:3px solid
     timer=setInterval(()=>{ tLeft--; $("tLeft").textContent=tLeft; $("tFill").style.width=(100*tLeft/60)+"%"; if(tLeft<=0) endSprint() },1000) }
   // results sheet over the card: the card underneath is inert so Tab and screen readers stay on the sheet
   function sheet(on){ $("results").hidden=!on; [...$("card").children].forEach(c=>{ if(c!==$("results")) c.inert=on }) }
-  function stopSprint(){ clearInterval(timer); timer=null; sprint=false; $("clock").hidden=true; $("sprintBtn").textContent="Start 60-second sprint" }
+  function stopSprint(){ clearInterval(timer); timer=null; clearTimeout(nextT);   // a key answered in the last second never opens a new question under the results
+    sprint=false; $("clock").hidden=true; $("sprintBtn").textContent="Start 60-second sprint" }
   function endSprint(){ stopSprint(); locked=true; const pct=st.total?Math.min(100,Math.round(100*st.correct/st.total)):0;
     $("rScore").innerHTML=`${st.pts} <small>keys in 60 s</small>`; $("rPct").textContent=pct+"%"; $("rTotal").textContent=st.total; $("rBest").textContent=st.best;
     const miss=Object.entries(st.miss).sort((a,b)=>b[1]-a[1]).slice(0,5); $("rMiss").innerHTML=miss.length?miss.map(([k,v])=>`<span>${k} ×${v}</span>`).join(""):"<span>None. Clean run.</span>";
