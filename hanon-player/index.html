@@ -80,7 +80,7 @@ button,a,label,summary,select,input{-webkit-tap-highlight-color:transparent}
  <button class="play" id="play">Play</button>
  <div class="bar" id="bar" role="slider" tabindex="0" aria-label="Position in the track" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><div class="tr"></div><div class="fill" id="fill"></div><div class="knob" id="knob"></div></div>
  <div class="times"><span id="cur">0:00</span><span id="dur">0:00</span></div>
- <div class="msg" id="msg"></div>
+ <div class="msg" id="msg" role="status" aria-live="polite"></div>
  <div class="opts"><button id="loop">Loop: off</button><button id="restart">Start over</button></div>
 </div>
 
@@ -98,7 +98,7 @@ button,a,label,summary,select,input{-webkit-tap-highlight-color:transparent}
  <p class="tip" style="margin-top:10px">Start at a tempo you can play clean. Switching tempo keeps your place in the exercise. Light touch = faster.</p>
 </div>
 
-<p class="appver">Hanon Speed Trainer · Version 2026-11-11.4</p>
+<p class="appver">Hanon Speed Trainer · Version 2026-11-11.5</p>
 </main>
 <script>
 const $=id=>document.getElementById(id);
@@ -116,7 +116,7 @@ let level=+(q.get('level')||store.get('level',0));if(!(level>=0&&level<5))level=
 let hand=q.get('hand')||store.get('hand','rh');if(!HI.hasOwnProperty(hand))hand='rh';
 let bpm=+(q.get('bpm')||store.get('bpm'+ex,0))||GOALS[ex][level][0]-40;bpm=snap(bpm);
 let loop=false,playing=false;
-function snap(b){return Math.max(50,Math.min(280,Math.round(b/10)*10))}
+function snap(b){b=+b;if(!isFinite(b))b=100;return Math.max(50,Math.min(280,Math.round(b/10)*10))} // an old or broken save can't make the tempo NaN
 function src(e,b){return 'ex'+e+'/'+String(b).padStart(3,'0')+'.mp3'}
 const audio=new Audio();audio.preload='auto';
 const cache={};function warm(e,b){if(b<50||b>280)return;const k=e+'_'+b;if(cache[k])return;const a=new Audio();a.preload='auto';a.src=src(e,b);cache[k]=a}
@@ -131,6 +131,8 @@ audio.addEventListener('loadedmetadata',()=>{loadedBpm=bpm;const at=(heldBeats||
 function setBpm(b,keep=true){b=snap(b);if(b===bpm&&audio.src)return;bpm=b;load(keep)}
 function goalsHere(b){const out=[];GOALS[ex].forEach((g,li)=>g.forEach((t,hi)=>{if(t===b)out.push({li,hi})}));return out}
 function render(){
+ // the buttons are rebuilt below: keep keyboard focus on the same button
+ const fa=document.activeElement,fsel=fa&&fa.dataset?(fa.dataset.l!=null?'#levels [data-l="'+fa.dataset.l+'"]':fa.dataset.b!=null?'#grid [data-b="'+fa.dataset.b+'"]':fa.id==='goGoal'?'#goGoal':null):null;
  $('ttl').textContent='Hanon Exercise '+ex+' · Speed Trainer';document.title='Hanon Exercise '+ex+' · Clarendon Hills Music Academy';
  document.querySelectorAll('#exSeg button').forEach(b=>b.classList.toggle('on',+b.dataset.ex===ex));
  $('bpmV').textContent=bpm;$('down').disabled=bpm<=50;$('up').disabled=bpm>=280;
@@ -147,16 +149,18 @@ function render(){
  $('legend').innerHTML=LEVELS.map(L=>`<span><i style="background:var(${L.c})"></i>${L.n} goal</span>`).join('')+'<span>| = level stop point</span>';
  $('play').textContent=playing?'Pause':'Play';$('loop').textContent='Loop: '+(loop?'on':'off');$('loop').classList.toggle('on',loop);
  store.set('ex',ex);store.set('level',level);store.set('hand',hand);
+ document.querySelectorAll('#exSeg button,#hands button,#levels button,#grid button').forEach(b=>b.setAttribute('aria-pressed',b.classList.contains('on')));$('loop').setAttribute('aria-pressed',loop);
+ if(fsel){const nf=document.querySelector(fsel)||document.querySelector('#grid button.on');if(nf&&document.activeElement!==nf)nf.focus({preventScroll:true})}
  try{if('mediaSession' in navigator&&window.MediaMetadata)navigator.mediaSession.metadata=new MediaMetadata({title:'Hanon Exercise '+ex+' · '+bpm+' BPM',artist:'Clarendon Hills Music Academy'})}catch(e){}}
 function draw(){const d=audio.duration||0,c=audio.currentTime||0,p=d?c/d*100:0;$('fill').style.width=p+'%';$('knob').style.left=p+'%';$('cur').textContent=fmt(c);$('dur').textContent=fmt(d);$('bar').setAttribute('aria-valuenow',Math.round(p));$('bar').setAttribute('aria-valuetext',fmt(c)+' of '+fmt(d))}
 audio.addEventListener('timeupdate',draw);
 audio.addEventListener('ended',()=>{if(loop){audio.currentTime=0;audio.play().catch(()=>{})}else{playing=false;render()}});
-audio.addEventListener('error',()=>{$('msg').textContent='Could not load this track. Check your connection and try again.'});
+audio.addEventListener('error',()=>{$('msg').textContent='Could not load this track. Check your connection, then tap Play.'});
 audio.addEventListener('playing',()=>{$('msg').textContent=''});
 // Paused or resumed from outside the page (lock-screen controls, a phone call, AirPods): keep the Play button honest.
 audio.addEventListener('pause',()=>{if(loadedBpm&&playing&&!audio.ended){playing=false;render()}});
 audio.addEventListener('play',()=>{if(!playing){playing=true;render()}});
-$('play').onclick=()=>{if(playing){audio.pause();playing=false}else{playing=true;audio.play().catch(()=>{playing=false;$('msg').textContent='Tap Play again to start.';render()})}render()};
+$('play').onclick=()=>{if(playing){audio.pause();playing=false}else{playing=true;if(audio.error){$('msg').textContent='Loading…';load(true)} /* the last try failed (offline): fetch the track again */audio.play().catch(e=>{playing=false;$('msg').textContent=audio.error||(e&&e.name==='NotSupportedError')?'Could not load this track. Check your connection, then tap Play.':'Tap Play again to start.';render()})}render()};
 $('down').onclick=()=>setBpm(bpm-10);$('up').onclick=()=>setBpm(bpm+10);
 $('restart').onclick=()=>{audio.currentTime=0;draw()};
 $('loop').onclick=()=>{loop=!loop;render()};
@@ -168,6 +172,6 @@ $('grid').onclick=e=>{const b=e.target.closest('button');if(!b)return;setBpm(+b.
  bar.addEventListener('pointerdown',e=>{drag=true;bar.setPointerCapture(e.pointerId);seek(e.clientX)});bar.addEventListener('pointermove',e=>{if(drag)seek(e.clientX)});bar.addEventListener('pointerup',()=>drag=false);
  bar.addEventListener('keydown',e=>{if(!audio.duration)return;const d=e.key==='ArrowRight'||e.key==='ArrowUp'?5:e.key==='ArrowLeft'||e.key==='ArrowDown'?-5:e.key==='Home'?-1e9:0;if(!d)return;e.preventDefault();e.stopPropagation();audio.currentTime=Math.max(0,Math.min(audio.duration-0.1,audio.currentTime+d));draw()})})();
 try{if(navigator.audioSession)navigator.audioSession.type='playback'}catch(e){}
-document.addEventListener('keydown',e=>{if(e.ctrlKey||e.metaKey||e.altKey||e.target.tagName==='INPUT')return;if(e.code==='Space'){e.preventDefault();$('play').click()}else if(e.key==='ArrowUp'||e.key==='ArrowRight')setBpm(bpm+10);else if(e.key==='ArrowDown'||e.key==='ArrowLeft')setBpm(bpm-10)});
+document.addEventListener('keydown',e=>{if(e.ctrlKey||e.metaKey||e.altKey||e.target.tagName==='INPUT')return;if(e.code==='Space'){if(e.target.closest&&e.target.closest('button,a,summary'))return; /* Space on a focused button presses that button */e.preventDefault();$('play').click()}else if(e.key==='ArrowUp'||e.key==='ArrowRight')setBpm(bpm+10);else if(e.key==='ArrowDown'||e.key==='ArrowLeft')setBpm(bpm-10)});
 load(false);
 </script></body></html>
