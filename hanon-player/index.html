@@ -1,0 +1,129 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Hanon Speed Trainer · Clarendon Hills Music Academy</title>
+<meta name="description" content="Hanon Exercises 1 and 2 practice tracks, 50 to 280 BPM, with age-level tempo goals. Switch tempo without losing your place.">
+<style>
+:root{--bg:#191919;--card:#232323;--line:#3a3a3a;--text:#f0efed;--mut:#a5a29c;--acc:#ff5a3c;--acc2:#ffb020;--ok:#4cc38a;
+ --l1:#4cc38a;--l2:#4a9eff;--l3:#b18cff;--l4:#ff9a3c;--l5:#ff5a6a}
+@media (prefers-color-scheme:light){:root{--bg:#ffffff;--card:#f7f6f3;--line:#d9d7d2;--text:#2c2c2b;--mut:#6b6964;--acc:#d9411e;--acc2:#b77700;--ok:#1f8a57;
+ --l1:#1f8a57;--l2:#1f66c9;--l3:#7a4fd6;--l4:#c4650f;--l5:#c9283c}}
+*{box-sizing:border-box}body{margin:0;padding:12px;background:var(--bg);color:var(--text);font:15px/1.45 system-ui,-apple-system,Segoe UI,sans-serif}
+main{max-width:660px;margin:0 auto}.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px;margin-bottom:12px}
+h1{font-size:18px;margin:0 0 2px;letter-spacing:.02em}.by{font-size:13px;color:var(--mut);margin:0 0 12px}.by a{color:inherit}
+button{font:600 14px system-ui;color:var(--text);background:transparent;border:1px solid var(--line);border-radius:9px;min-height:40px;cursor:pointer;padding:0 10px}
+button.on{border-color:var(--acc);background:color-mix(in srgb,var(--acc) 16%,transparent)}
+.seg{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px}
+.lbl{font-size:12px;color:var(--mut);text-transform:uppercase;letter-spacing:.06em;margin:4px 0 6px}
+.levels{display:grid;grid-template-columns:repeat(5,1fr);gap:6px}.levels button{font-size:12px;min-height:46px;line-height:1.15;padding:0 2px;white-space:nowrap}
+.levels small{display:block;font-weight:400;font-size:10px;color:var(--mut)}
+.hands{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-top:8px}
+.goal{margin-top:10px;font-size:14px;padding:8px 10px;border-radius:9px;background:color-mix(in srgb,var(--ok) 14%,transparent)}
+.big{display:flex;align-items:center;justify-content:center;gap:14px;margin:4px 0 10px}
+.big button{width:56px;height:56px;font-size:24px;border-radius:50%;padding:0}
+.bpm{text-align:center;min-width:130px}.bpm b{font-size:44px;line-height:1;font-variant-numeric:tabular-nums}.bpm span{display:block;font-size:12px;color:var(--mut)}
+.play{display:block;width:100%;min-height:58px;font-size:18px;border-color:var(--acc);background:var(--acc);color:#fff;margin-bottom:10px}
+.bar{position:relative;height:28px;cursor:pointer;touch-action:none}.bar .tr{position:absolute;left:0;right:0;top:11px;height:6px;border-radius:3px;background:var(--line)}
+.bar .fill{position:absolute;left:0;top:11px;height:6px;border-radius:3px;background:var(--acc);width:0}
+.bar .knob{position:absolute;top:5px;width:18px;height:18px;margin-left:-9px;border-radius:50%;background:var(--text);left:0}
+.times{display:flex;justify-content:space-between;font-size:12px;color:var(--mut);font-variant-numeric:tabular-nums}
+.opts{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+.grid{display:grid;grid-template-columns:repeat(6,1fr);gap:6px}
+.grid button{min-height:44px;font-size:14px;position:relative;padding:0}
+.grid button i{position:absolute;bottom:4px;left:50%;width:6px;height:6px;margin-left:-3px;border-radius:50%}
+.grid button.stop::after{content:"";position:absolute;right:-4px;top:6px;bottom:6px;width:2px;border-radius:1px;background:var(--mut)}
+.legend{display:flex;flex-wrap:wrap;gap:10px;font-size:12px;color:var(--mut);margin-top:10px}.legend i{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:4px}
+.tip{font-size:13px;color:var(--mut);margin:0}
+.msg{font-size:13px;color:var(--acc2);min-height:18px;text-align:center}
+.appver{text-align:center;font-size:11px;opacity:.6;margin:18px 0 10px;font-family:ui-monospace,Menlo,monospace}
+</style></head><body><main>
+<h1 id="ttl">Hanon Speed Trainer</h1>
+<p class="by">By <a href="https://clarendonhillsmusicacademy.com/" target="_blank" rel="noopener">Clarendon Hills Music Academy</a></p>
+
+<div class="card">
+ <div class="seg" id="exSeg"><button data-ex="1">Exercise 1</button><button data-ex="2">Exercise 2</button></div>
+ <div class="big"><button id="down" aria-label="Slower">&minus;</button><div class="bpm"><b id="bpmV">100</b><span>BPM</span></div><button id="up" aria-label="Faster">+</button></div>
+ <button class="play" id="play">Play</button>
+ <div class="bar" id="bar"><div class="tr"></div><div class="fill" id="fill"></div><div class="knob" id="knob"></div></div>
+ <div class="times"><span id="cur">0:00</span><span id="dur">0:00</span></div>
+ <div class="msg" id="msg"></div>
+ <div class="opts"><button id="loop">Loop: off</button><button id="restart">Start over</button></div>
+</div>
+
+<div class="card">
+ <div class="lbl">My level</div>
+ <div class="levels" id="levels"></div>
+ <div class="hands" id="hands"><button data-h="rh">Right Hand</button><button data-h="lh">Left Hand</button><button data-h="ht">Hands Together</button></div>
+ <div class="goal" id="goal"></div>
+</div>
+
+<div class="card">
+ <div class="lbl">All tempos</div>
+ <div class="grid" id="grid"></div>
+ <div class="legend" id="legend"></div>
+ <p class="tip" style="margin-top:10px">Start at a tempo you can play clean. Switching tempo keeps your place in the exercise. Light touch = faster.</p>
+</div>
+
+<p class="appver">Hanon Speed Trainer · Version 2026-11-11.1</p>
+</main>
+<script>
+const $=id=>document.getElementById(id);
+const TEMPOS=[];for(let b=50;b<=280;b+=10)TEMPOS.push(b);
+/* Tempo goals by age, from the C.H. Music Academy Hanon Speed Training page. Order: hands together, left hand, right hand. */
+const LEVELS=[{n:'Level 1',a:'Ages 4–7',c:'--l1'},{n:'Level 2',a:'Ages 8–9',c:'--l2'},{n:'Level 3',a:'Ages 10–12',c:'--l3'},{n:'Level 4',a:'13–Adult',c:'--l4'},{n:'Bonus',a:'13–Adult',c:'--l5'}];
+const GOALS={1:[[110,120,130],[160,170,180],[200,210,220],[220,230,240],[260,270,280]],
+             2:[[90,100,110],[140,150,160],[180,190,200],[220,230,240],[260,270,280]]};
+const HI={ht:0,lh:1,rh:2},HN={ht:'Hands Together',lh:'Left Hand',rh:'Right Hand'};
+const store={get(k,d){try{const v=localStorage.getItem('hanon_'+k);return v==null?d:JSON.parse(v)}catch(e){return d}},set(k,v){try{localStorage.setItem('hanon_'+k,JSON.stringify(v))}catch(e){}}};
+const q=new URLSearchParams(location.search);
+let ex=+(q.get('ex')||store.get('ex',1));if(ex!==2)ex=1;
+if(q.get('ex'))document.getElementById('exSeg').style.display='none'; /* one exercise per embed */
+let level=+(q.get('level')||store.get('level',0));if(!(level>=0&&level<5))level=0;
+let hand=q.get('hand')||store.get('hand','rh');if(!HI.hasOwnProperty(hand))hand='rh';
+let bpm=+(q.get('bpm')||store.get('bpm'+ex,0))||GOALS[ex][level][0]-40;bpm=snap(bpm);
+let loop=false,playing=false;
+function snap(b){return Math.max(50,Math.min(280,Math.round(b/10)*10))}
+function src(e,b){return 'ex'+e+'/'+String(b).padStart(3,'0')+'.mp3'}
+const audio=new Audio();audio.preload='auto';
+const cache={};function warm(e,b){if(b<50||b>280)return;const k=e+'_'+b;if(cache[k])return;const a=new Audio();a.preload='auto';a.src=src(e,b);cache[k]=a}
+function fmt(s){s=Math.max(0,Math.floor(s||0));return Math.floor(s/60)+':'+String(s%60).padStart(2,'0')}
+function load(keepPos){const frac=keepPos&&audio.duration?audio.currentTime/audio.duration:0,was=playing;
+ audio.src=src(ex,bpm);audio.load();
+ audio.addEventListener('loadedmetadata',function f(){audio.removeEventListener('loadedmetadata',f);if(frac>0&&frac<.995)audio.currentTime=frac*audio.duration;if(was)audio.play().catch(()=>{});draw()});
+ warm(ex,bpm+10);warm(ex,bpm-10);store.set('bpm'+ex,bpm);render()}
+function setBpm(b,keep=true){b=snap(b);if(b===bpm&&audio.src)return;bpm=b;load(keep)}
+function goalsHere(b){const out=[];GOALS[ex].forEach((g,li)=>g.forEach((t,hi)=>{if(t===b)out.push({li,hi})}));return out}
+function render(){
+ $('ttl').textContent='Hanon Exercise '+ex+' · Speed Trainer';document.title='Hanon Exercise '+ex+' · Clarendon Hills Music Academy';
+ document.querySelectorAll('#exSeg button').forEach(b=>b.classList.toggle('on',+b.dataset.ex===ex));
+ $('bpmV').textContent=bpm;$('down').disabled=bpm<=50;$('up').disabled=bpm>=280;
+ $('levels').innerHTML=LEVELS.map((L,i)=>`<button data-l="${i}" class="${i===level?'on':''}" style="${i===level?'border-color:var('+L.c+')':''}">${L.n}<small>${L.a}</small></button>`).join('');
+ document.querySelectorAll('#hands button').forEach(b=>b.classList.toggle('on',b.dataset.h===hand));
+ const tgt=GOALS[ex][level][HI[hand]];
+ const g=$('goal');g.style.background='color-mix(in srgb,var('+LEVELS[level].c+') 14%,transparent)';
+ g.innerHTML=bpm>=tgt?`<b>${HN[hand]} goal: ${tgt} BPM.</b> You're at or past it. Clean and on the beat? Try the next hand or the next level.`
+  :`<b>${HN[hand]} goal: ${tgt} BPM.</b> ${(tgt-bpm)/10} track${tgt-bpm===10?'':'s'} to go. <button id="goGoal" style="min-height:30px;margin-left:6px">Jump to goal</button>`;
+ const gb=$('goGoal');if(gb)gb.onclick=()=>setBpm(tgt);
+ const stops=new Set(GOALS[ex].map(x=>x[2]));
+ $('grid').innerHTML=TEMPOS.map(b=>{const gh=goalsHere(b);const dot=gh.length?`<i style="background:var(${LEVELS[gh[gh.length-1].li].c})"></i>`:'';
+  return `<button data-b="${b}" class="${b===bpm?'on':''} ${stops.has(b)?'stop':''}" title="${gh.map(x=>LEVELS[x.li].n+' '+['HT','LH','RH'][x.hi]).join(', ')}">${b}${dot}</button>`}).join('');
+ $('legend').innerHTML=LEVELS.map(L=>`<span><i style="background:var(${L.c})"></i>${L.n} goal</span>`).join('')+'<span>| = level stop point</span>';
+ $('play').textContent=playing?'Pause':'Play';$('loop').textContent='Loop: '+(loop?'on':'off');$('loop').classList.toggle('on',loop);
+ store.set('ex',ex);store.set('level',level);store.set('hand',hand)}
+function draw(){const d=audio.duration||0,c=audio.currentTime||0,p=d?c/d*100:0;$('fill').style.width=p+'%';$('knob').style.left=p+'%';$('cur').textContent=fmt(c);$('dur').textContent=fmt(d)}
+audio.addEventListener('timeupdate',draw);
+audio.addEventListener('ended',()=>{if(loop){audio.currentTime=0;audio.play().catch(()=>{})}else{playing=false;render()}});
+audio.addEventListener('error',()=>{$('msg').textContent='Could not load this track. Check your connection and try again.'});
+audio.addEventListener('playing',()=>{$('msg').textContent=''});
+$('play').onclick=()=>{if(playing){audio.pause();playing=false}else{playing=true;audio.play().catch(()=>{playing=false;$('msg').textContent='Tap Play again to start.';render()})}render()};
+$('down').onclick=()=>setBpm(bpm-10);$('up').onclick=()=>setBpm(bpm+10);
+$('restart').onclick=()=>{audio.currentTime=0;draw()};
+$('loop').onclick=()=>{loop=!loop;render()};
+$('exSeg').onclick=e=>{const b=e.target.closest('button');if(!b)return;const n=+b.dataset.ex;if(n===ex)return;ex=n;bpm=snap(store.get('bpm'+ex,bpm));load(false)};
+$('levels').onclick=e=>{const b=e.target.closest('button');if(!b)return;level=+b.dataset.l;render()};
+$('hands').onclick=e=>{const b=e.target.closest('button');if(!b)return;hand=b.dataset.h;render()};
+$('grid').onclick=e=>{const b=e.target.closest('button');if(!b)return;setBpm(+b.dataset.b)};
+(function(){const bar=$('bar');let drag=false;const seek=x=>{const r=bar.getBoundingClientRect();const f=Math.min(1,Math.max(0,(x-r.left)/r.width));if(audio.duration){audio.currentTime=f*audio.duration;draw()}};
+ bar.addEventListener('pointerdown',e=>{drag=true;bar.setPointerCapture(e.pointerId);seek(e.clientX)});bar.addEventListener('pointermove',e=>{if(drag)seek(e.clientX)});bar.addEventListener('pointerup',()=>drag=false)})();
+document.addEventListener('keydown',e=>{if(e.target.tagName==='INPUT')return;if(e.code==='Space'){e.preventDefault();$('play').click()}else if(e.key==='ArrowUp'||e.key==='ArrowRight')setBpm(bpm+10);else if(e.key==='ArrowDown'||e.key==='ArrowLeft')setBpm(bpm-10)});
+load(false);
+</script></body></html>
