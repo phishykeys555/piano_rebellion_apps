@@ -5,7 +5,6 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>Rhythm Trainer · Clarendon Hills Music Academy</title><meta name="description" content="Read a rhythm, tap or clap it, and see every hit line up under the notes. 8 levels up to syncopation."><meta property="og:type" content="website"><meta property="og:site_name" content="Clarendon Hills Music Academy"><meta property="og:title" content="Rhythm Trainer · Clarendon Hills Music Academy"><meta property="og:description" content="Read a rhythm, tap or clap it, and see every hit line up under the notes. 8 levels up to syncopation."><meta property="og:url" content="https://phishykeys555.github.io/piano_rebellion_apps/rhythm-trainer/"><meta property="og:image" content="https://phishykeys555.github.io/piano_rebellion_apps/share/rhythm-trainer.png"><meta property="og:image:width" content="1200"><meta property="og:image:height" content="630"><meta property="og:image:alt" content="Rhythm Trainer · Clarendon Hills Music Academy"><meta name="twitter:card" content="summary_large_image"><meta name="twitter:title" content="Rhythm Trainer · Clarendon Hills Music Academy"><meta name="twitter:description" content="Read a rhythm, tap or clap it, and see every hit line up under the notes. 8 levels up to syncopation."><meta name="twitter:image" content="https://phishykeys555.github.io/piano_rebellion_apps/share/rhythm-trainer.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Music&display=swap" media="print" onload="this.media='all'">
 <link rel="stylesheet" href="../shared/chma.css">
 <script src="../shared/brand.js"></script>
 <style>
@@ -265,8 +264,15 @@ button:focus-visible,select:focus-visible,summary:focus-visible,input:focus-visi
   // ---------- engraving (single-line rhythm staff, proportional spacing so notes sit over the timeline) ----------
   const GAP=14, X0=74, BW=324, W=420, LY=64, U=BW/16, SX=6.9; // 16th = 20 px: room for 16th rests and counts
   const xOf=s=>X0+8+s*U;
+  let curRes=null; // the graded bar on screen, so a redraw (fonts arriving, Counts toggled) keeps its colours
+  // quarter, eighth and 16th rests as engraved outlines (traced from Noto Music, SIL OFL), drawn relative to the note's x on the line,
+  // so they look the same with or without web fonts (a blocked font used to swap in a fallback glyph at the wrong size and height)
+  const REST={
+    4:"M-0.65 -13.96 5.17 -6.86Q3.35 -4.71 2.37 -3.15Q1.39 -1.58 1.39 0.02Q1.39 1.37 2.26 2.84Q3.14 4.31 5.03 6.57L4.45 7.37Q2.85 6.35 1.46 6.35Q0.44 6.35 -0.07 7.03Q-0.58 7.7 -0.58 8.65Q-0.58 9.81 -0.08 10.85Q0.41 11.88 1.24 12.83L0.77 13.52Q-1.74 11.7 -2.94 10.21Q-4.14 8.72 -4.14 6.97Q-4.14 5.41 -3.16 4.68Q-2.18 3.95 -0.79 3.95Q0.3 3.95 2.04 4.79V4.71L-3.56 -2.75Q0.12 -5.99 0.12 -8.79Q0.12 -11.01 -2.21 -13.96Z",
+    2:"M0.21 8.96 3.43 -2.46Q2.73 -1.82 1.84 -1.56Q0.95 -1.29 0.07 -1.29Q-1.37 -1.29 -2.35 -2.06Q-3.32 -2.83 -3.32 -4.28Q-3.32 -5.22 -2.65 -5.87Q-1.98 -6.53 -0.93 -6.53Q0.04 -6.53 0.66 -5.91Q1.28 -5.28 1.28 -4.24Q1.28 -3.5 0.95 -2.93Q0.95 -2.73 1.35 -2.73Q3.2 -2.73 4.88 -5.62H5.48L1.42 8.96Z",
+    1:"M-0.14 19.44 3.49 6.59Q2.69 7.31 1.69 7.61Q0.69 7.91 -0.29 7.91Q-1.92 7.91 -3.01 7.04Q-4.11 6.18 -4.11 4.55Q-4.11 3.49 -3.37 2.75Q-2.64 2.02 -1.43 2.02Q-0.33 2.02 0.37 2.72Q1.07 3.42 1.07 4.59Q1.07 5.42 0.69 6.06Q0.69 6.29 1.14 6.29Q2.69 6.29 4.09 4.55L6.06 -2.63Q5.26 -1.91 4.26 -1.61Q3.26 -1.31 2.28 -1.31Q0.65 -1.31 -0.44 -2.18Q-1.54 -3.05 -1.54 -4.67Q-1.54 -5.73 -0.78 -6.47Q-0.03 -7.21 1.14 -7.21Q2.28 -7.21 2.96 -6.49Q3.64 -5.77 3.64 -4.64Q3.64 -4.26 3.53 -3.86Q3.41 -3.46 3.26 -3.16Q3.26 -2.93 3.71 -2.93Q5.79 -2.93 7.68 -6.19H8.36L1.22 19.44Z"};
   const CNT=s=>{const b=Math.floor(s/4)+1,p=s%4;return p===0?String(b):p===2?"&":p===1?"e":"a"};
-  function drawBar(res,playX,pos){ const HIT="#2457d6", hot=e=>pos!=null&&!e.r&&!e.tie&&$("lightup").checked&&pos>=e.s-0.12&&pos<e.s+Math.min(e.d,2);
+  function drawBar(res,playX,pos){ curRes=res||null; const HIT="#2457d6", hot=e=>pos!=null&&!e.r&&!e.tie&&$("lightup").checked&&pos>=e.s-0.12&&pos<e.s+Math.min(e.d,2);
     const ink="#16181d", line="#2a2d33"; let h="";
     h+=`<line x1="16" x2="${W-14}" y1="${LY}" y2="${LY}" stroke="${line}" stroke-width="1.5"/>`;
     h+=`<line x1="16" x2="16" y1="${LY-14}" y2="${LY+14}" stroke="${line}" stroke-width="1.5"/><line x1="${W-14}" x2="${W-14}" y1="${LY-14}" y2="${LY+14}" stroke="${line}" stroke-width="2"/>`;
@@ -283,9 +289,7 @@ button:focus-visible,select:focus-visible,summary:focus-visible,input:focus-visi
       const x=xOf(e.s), col=res&&!e.r&&!e.tie?(res.byNote.get(i)?.col||ink):hot(e)?HIT:ink;
       if(e.tie){ const px=xOf(ev[i-1].s); h+=`<path d="M${px+3} ${LY+8} Q ${(px+x)/2} ${LY+19} ${x-3} ${LY+8} Q ${(px+x)/2} ${LY+15} ${px+3} ${LY+8} z" fill="${ink}"/>` }
       if(e.r){ // rests sit where they would on the middle line of a 5-line staff: quarter centered on the line, eighth/16th hooks just above it with the stem crossing it; half sits on the line, whole hangs from it
-        if(e.d===4) h+=`<text x="${x-6}" y="${LY+18}" font-family="Noto Music" font-size="${GAP*2.6}" fill="${ink}">𝄽</text>`;
-        else if(e.d===2) h+=`<text x="${x-5}" y="${LY+18}" font-family="Noto Music" font-size="${GAP*2.4}" fill="${ink}">𝄾</text>`;
-        else if(e.d===1) h+=`<text x="${x-6}" y="${LY+25}" font-family="Noto Music" font-size="${GAP*2.7}" fill="${ink}">𝄿</text>`; // 16th rest
+        if(REST[e.d]) h+=`<path transform="translate(${x} ${LY})" d="${REST[e.d]}" fill="${ink}"/>`;
         else if(e.d===8) h+=`<rect x="${x-7}" y="${LY-6}" width="15" height="6" fill="${ink}"/>`;
         else if(e.d===16){ const cx=xOf(8)-8; h+=`<rect x="${cx-7}" y="${LY}" width="15" height="6" fill="${ink}"/>` } // whole-bar rest: hangs from the line, centered in the bar
       } else {
@@ -355,17 +359,20 @@ button:focus-visible,select:focus-visible,summary:focus-visible,input:focus-visi
     g.gain.setValueAtTime(0.0001,t); g.gain.exponentialRampToValueAtTime(0.42,t+0.003); g.gain.exponentialRampToValueAtTime(0.0001,t+Math.min(0.25,dur)); o.connect(g).connect(a.destination); track(o); o.start(t); o.stop(t+0.3) }
 
   // ---------- run a bar: 1 count-in bar of clicks, then the rhythm bar ----------
-  const spb=()=>60/bpm, u16=()=>spb()/4;
+  const spb=()=>60/bpm, u16=()=>spb()/4; let starting=false;
   async function play(mode){ // mode: "test" | "hear"
-    if(run) return; const a=ctx(); await a.resume(); if(inMode!=="tap"&&mode==="test"&&!mic) await micStart($("micSel").value||undefined);
+    if(run||starting||calHook) return; const S0=sess; starting=true; let a;
+    // waiting for the audio or the microphone can take a while: a second press, Stop, or the clock running out in that gap must not start a second bar
+    try{ a=ctx(); await a.resume(); if(inMode!=="tap"&&mode==="test"&&!mic) await micStart($("micSel").value||undefined) } finally{ starting=false }
+    if(run||calHook||sess!==S0||(S0&&S0.stopped)) return;
     taps=[]; $("results").hidden=true; $("again").hidden=true; $("go").disabled=!sess; $("hear").disabled=true;
     const t0=a.currentTime+0.15-(mode==="hear"?4*spb():0), start=t0+4*spb(), end=start+16*u16(); // Hear it starts right away (no silent bar)
     // while you play into the mic, the clicks in your bar are softer so the mic hears you, not them
     for(let b=0;b<8;b++){ if(mode==="hear"&&b<4) continue; click(t0+b*spb(),b%4===0,b>=4&&mode==="test"&&inMode!=="tap") }
     if(mode==="hear"||$("guide").checked) bar.notes.forEach(n=>(mode==="test"&&inMode==="clap"&&mic)?wood(start+n.s*u16(),n.d*u16()):hand(start+n.s*u16()));
     msg(null, mode==="hear"?"Listen…":"Count in: 1 · 2 · 3 · 4", mode==="hear"?"":"Start tapping on beat 1 of the next bar.");
-    run={mode,start,end,t0}; if(mode==="test") lastStart=start; lockUI();
-    const tick=()=>{ if(!run) return; const now=a.currentTime; let px=null, pos=null;
+    const R=run={mode,start,end,t0}; if(mode==="test") lastStart=start; lockUI();
+    const tick=()=>{ if(run!==R) return; /* this bar was stopped (or replaced): its frame loop ends here */ const now=a.currentTime; let px=null, pos=null;
       if(now>=start&&now<=end){ pos=(now-start)/u16(); px=$("cursor").checked?xOf(pos):null; if(mode==="test"&&!run.go){ run.go=true; msg(null,"Go!",inMode==="clap"?"Clap or snap every note.":inMode==="note"?"Play your note for every note.":"Tap every note.") } }
       else if(now<start&&mode==="test"){ const left=Math.ceil((start-now)/spb()); $("msg").querySelector(".v").textContent=left<=4?"Count in: "+["","1","2","3","4"][5-left]:"Get ready"; }
       drawBar(null,px,pos);
@@ -462,7 +469,7 @@ button:focus-visible,select:focus-visible,summary:focus-visible,input:focus-visi
   function afterGrade(r){ const pts=Math.max(0,r.perfect+0.5*r.ok-0.5*r.extras);
     if(gmode==="practice"){ round.push(r); const hs=bestNum(bestKey()); if(hs==null||r.score>hs) store.set(bestKey(),r.score); $("go").textContent="Next rhythm"; $("again").hidden=false; stats(); return }
     const S=sess; if(!S) return; S.points+=pts; S.bars.push(r); stats(); if(arc) arcBar();
-    if(S.left>0&&!S.stopped) setTimeout(()=>{ if(sess===S&&S.left>0&&!S.stopped){ newBar(); play("test") } },500); else setTimeout(()=>sessionOver(),500) }
+    if(S.left>0&&!S.stopped) setTimeout(()=>{ if(sess===S&&S.left>0&&!S.stopped){ newBar(); play("test") } },500); else setTimeout(()=>{ if(sess===S) sessionOver() },500) }
   function startSession(secs){ sess={points:0,bars:[],left:secs,stopped:false}; lockUI(); $("results").hidden=true; $("again").hidden=true; $("hear").disabled=true; $("go").textContent="Stop"; stats();
     sess.timer=setInterval(()=>{ const S=sess; if(!S) return; S.left--; stats(); $("clockPill").textContent=Math.max(0,S.left)+" s"; $("clockPill").classList.toggle("hot",S.left<=10); if(arc) arcBar(); if(S.left<=0){ clearInterval(S.timer); if(!run) sessionOver() } },1000);
     $("clockPill").textContent=secs+" s"; newBar(); play("test") }
@@ -524,7 +531,7 @@ button:focus-visible,select:focus-visible,summary:focus-visible,input:focus-visi
   $("close").addEventListener("click",()=>{ $("results").hidden=true; stats(); newBar(); msg(null,"Ready","Press Start."); $("go").focus({preventScroll:true}) });
   $("newRound").addEventListener("click",()=>{ $("results").hidden=true; if(gmode==="sprint") startSession(60); else if(gmode==="chal") arcStart(); else { round=[]; stats(); newBar() } $("go").focus({preventScroll:true}) });
   $("retryRound").addEventListener("click",()=>arcRetry());
-  ["counts","guide"].forEach(id=>{ $(id).checked=store.get(id,id==="counts"); $(id).addEventListener("change",e=>{ store.set(id,e.target.checked); drawBar(null) }) });
+  ["counts","guide"].forEach(id=>{ $(id).checked=store.get(id,id==="counts"); $(id).addEventListener("change",e=>{ store.set(id,e.target.checked); if(!run) drawBar(curRes) }) });
   ["cursor","lightup"].forEach(id=>{ $(id).checked=store.get(id,true)!==false; $(id).addEventListener("change",e=>store.set(id,e.target.checked)) }); try{store.set("who","")}catch(e){} // no names stored (privacy)
   LEVELS.forEach(L=>{ const b=document.createElement("button"); b.className="lvl"; b.innerHTML=`<b>L${L.id}</b><span>${L.name.replace("Syncopation","Synco&shy;pation")}</span>`;
     b.addEventListener("click",()=>{ if(sess||arc) stopSession(true); level=L.id; store.set("level",level); mark(); round=[]; stats(); newBar(); $("go").textContent="Start"; msg(null,"Level "+L.id+": "+L.name,"Press Hear it to listen first, or Start.") }); b.dataset.id=L.id; $("levels").appendChild(b) });
@@ -534,13 +541,13 @@ button:focus-visible,select:focus-visible,summary:focus-visible,input:focus-visi
   // ---------- calibration: tap (or clap) with 8 clicks; the median offset becomes the correction for that input ----------
   let calHook=null;
   const calLabel=()=>{ const v=inMode!=="tap"?latMic:latency; $("calTxt").textContent=v!=null?`${inMode==="clap"?"Clap":inMode==="note"?"Note":"Tap"} offset ${v} ms`:"" }; calLabel();
-  $("cal").addEventListener("click",async()=>{ if(run||calHook) return; const a=ctx(); await a.resume(); if(inMode!=="tap"&&!mic&&!(await micStart($("micSel").value||undefined))){ $("calTxt").textContent="Turn on the microphone first (see the message above), or switch to Tap."; return }
+  $("cal").addEventListener("click",async()=>{ if(run||calHook||starting||sess||arc) return; const a=ctx(); await a.resume(); if(run||calHook) return; if(inMode!=="tap"&&!mic&&!(await micStart($("micSel").value||undefined))){ $("calTxt").textContent="Turn on the microphone first (see the message above), or switch to Tap."; return }
     const t0=a.currentTime+0.6, sp=0.6, hits=[]; for(let i=0;i<8;i++) click(t0+i*sp,i===0);
     $("calTxt").textContent=inMode==="clap"?"Clap with each click…":inMode==="note"?"Play your note with each click…":"Tap the pad with each click…";
-    calHook=t=>hits.push(t);
-    setTimeout(()=>{ calHook=null; const offs=[]; hits.forEach(t=>{ const k=Math.round((t-t0)/sp); if(k>=0&&k<8&&Math.abs(t-(t0+k*sp))<0.25) offs.push((t-(t0+k*sp))*1000) });
+    const cm=inMode, hook=t=>hits.push(t); calHook=hook;
+    setTimeout(()=>{ if(calHook!==hook){ $("calTxt").textContent="Calibration stopped. Try again."; return } calHook=null; const offs=[]; hits.forEach(t=>{ const k=Math.round((t-t0)/sp); if(k>=0&&k<8&&Math.abs(t-(t0+k*sp))<0.25) offs.push((t-(t0+k*sp))*1000) });
       if(offs.length<5){ $("calTxt").textContent="Not enough hits. Try again."; return } offs.sort((x,y)=>x-y); const v=Math.round(offs[Math.floor(offs.length/2)]);
-      if(inMode!=="tap"){ latMic=v; store.set("latMic",v) } else { latency=v; store.set("lat",v) } calLabel(); $("calTxt").textContent+=" (saved)" }, 600+8*sp*1000+500) });
+      if(cm!=="tap"){ latMic=v; store.set("latMic",v) } else { latency=v; store.set("lat",v) } calLabel(); $("calTxt").textContent+=" (saved)" }, 600+8*sp*1000+500) });
 
   // ---------- microphone: clap or snap ----------
   // Echo cancellation keeps the app's own clicks out; a high-pass filter drops piano bass and room rumble so sharp claps and snaps stand out.
@@ -681,9 +688,9 @@ button:focus-visible,select:focus-visible,summary:focus-visible,input:focus-visi
 
   window.__rt={make:(lv)=>{const k=level;level=lv;const b=makeBar();level=k;return b},bar:()=>bar,start:()=>lastStart,tap:t=>tapAt(t),now:()=>audio&&audio.currentTime,u:()=>u16(),setBar:b=>{bar=b;drawBar(null)}}; // test hook
   mark(); newBar(); setMode("practice");
-  if(document.fonts) document.fonts.ready.then(()=>drawBar(null));
+  if(document.fonts) document.fonts.ready.then(()=>{ if(!run) drawBar(curRes) });
 })();
 </script>
-<p class="appver" style="text-align:center;font-size:11px;opacity:.6;margin:18px 0 10px;font-family:ui-monospace,Menlo,monospace">Rhythm Trainer · Version 2026-11-11.14</p>
+<p class="appver" style="text-align:center;font-size:11px;opacity:.6;margin:18px 0 10px;font-family:ui-monospace,Menlo,monospace">Rhythm Trainer · Version 2026-11-11.15</p>
 </body>
 </html>
