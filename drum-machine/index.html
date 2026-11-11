@@ -172,7 +172,9 @@ body.emb .tabs{padding-bottom:3px}
 </style><style>@media (max-width:620px){body.emb .emh .row{gap:4px!important;margin-bottom:4px!important}body.emb .emh .row>button{min-width:0!important;min-height:0!important;padding:8px 2px!important;font-size:13px!important;flex:1 1 13%!important}
 body.emb .emh .row>button.play{flex:1 1 30%!important}body.emb .emh .row>#tap,body.emb .emh .row>#fnow{flex:1 1 22%!important}body.emb .emh .vol{flex:1 1 46%!important;flex-direction:row!important;align-items:center!important;min-height:0!important}
 body.emb .bpm{font-size:26px}body.emb .beat{padding:5px 8px}body.emb .blm{font-size:12px}body.emb .seg button{padding:6px 9px;font-size:12px}
-body.emb .tabs button{padding:6px 8px!important;font-size:11px!important;min-height:0!important}}</style>
+body.emb .tabs button{padding:6px 8px!important;font-size:11px!important;min-height:0!important}}
+.row>label>input[type=checkbox]{flex:none}
+body.emb .tabs.more{-webkit-mask-image:linear-gradient(90deg,#000 82%,transparent);mask-image:linear-gradient(90deg,#000 82%,transparent)}</style>
 
 </head><body class="simple"><div class="wrap">
 <div data-chma-head></div>
@@ -192,7 +194,7 @@ body.emb .tabs button{padding:6px 8px!important;font-size:11px!important;min-hei
 <div class="sec"><h4>My presets</h4>
 <div class="row">
 <label>My presets <select id="ps"><option value="">— choose —</option></select></label><button id="psl">Load</button><button id="psd">Delete</button>
-<input type="text" id="psn" placeholder="Name it (e.g. Blue Rondo slow)" style="width:170px"><button id="pss">💾 Save</button>
+<input type="text" id="psn" placeholder="Name it (e.g. Blue Rondo slow)" style="width:170px"><button id="pss">💾 Save</button><span id="psm" role="status" style="font-size:12px;color:var(--mut)"></span>
 </div>
 <div class="hint">Save everything you set up (groove, tempo, time, sounds, chords) under a name. It stays on this device. Pick one from the list to load it.</div>
 </div>
@@ -623,6 +625,17 @@ const FBK={cow:56,clave:75,wood:76,rim:37,bell:53,clap:39,crash:49};
 function sdvHit(m,i){const on=i%sub===0,acc=on?1:0.7;if(m==='none')return 0;if(m==='q')return on?1:0;
  if(m==='e')return sub===4?(i%2===0?acc:0):sub===3?(on?1:0):acc;if(m==='s')return acc;if(m==='t')return sub===3?acc:(on?1:0);
  if(m==='off')return i%sub===Math.floor(sub/2)&&!on?0.8:0;return 0}
+// The pulse is played exactly as named, whatever grid the groove is on: 16ths over an 8th-note groove, triplets over a straight groove.
+// In 6/8, 9/8 and 12/8 (three per beat) 8th notes = the three 8ths of each beat and 16ths = six per beat.
+// In 5/8, 7/8, 9/8 (2+2+2+3) and 11/8 one beat is already an 8th note: 8ths = every beat, 16ths = two per beat, quarters = the big beats (the groups).
+const GRP8={'5/8':[0,3],'7/8':[0,2,4],'9/8br':[0,2,4,6],'11/8':[0,3,6,9]};
+function sdvEvents(m,i,t,base,dt){if(m==='none')return [];if(m==='off'){const v=sdvHit(m,i);return v?[[t,v]]:[]}
+ const x8=sub===2&&GRP8[$('ts').value];if(x8&&m==='q')return i%sub===0&&x8.includes(i/sub)?[[t,i===0?1:0.8]]:[];
+ const D=m==='q'?1:m==='e'?(sub===3?3:x8?1:2):m==='s'?(sub===3?6:x8?2:4):m==='t'?3:0;if(!D)return [];const on=i%sub===0,ev=[];
+ if(sub%D===0){if(i%(sub/D)===0)ev.push([t,on?1:0.7])}
+ else if(D%sub===0){const r=D/sub;for(let k=0;k<r;k++)ev.push([k?base+k*dt/r:t,on&&!k?1:0.7])}
+ else if(on){for(let k=0;k<D;k++)ev.push([base+k*dt*sub/D,k?0.7:1])}
+ return ev}
 function bellAt(i){const m=$('rb').value;if(m==='off')return false;const on=i%sub===0,bt=Math.floor(i/sub);
  if(m==='beats')return on;if(m==='one')return on&&bt===0;if(m==='24')return on&&bt%2===1;if(m==='and')return sub>1&&i%sub===Math.floor(sub/2);return false}
 ['bb','bh'].forEach(k=>{RIDE[k]=(t,a)=>cymHit(k,'ride',51,t,a,1.7)||RIDE.zil(t,a);
@@ -729,13 +742,13 @@ function parseProg(){const txt=$('prog').value==='custom'?$('cprog').value:$('pr
    const caseMatches=!acc&&(lower===(dia.q!=='maj'));
    if(caseMatches&&!/°|o|ø|dim/.test(sf)){q=dia.q; if(/7/.test(sf)) sv=lower?(dia.s7==='m7b5'?'m7':'m7'):(sf==='maj7'?'maj7':sf==='7'?'7':dia.s7)}   // diatonic: the parent scale decides
    else{q=lower?'min':'maj';if(/°|o|dim/.test(sf))q='dim';if(/ø/.test(sf)){q='dim';sv='m7'}else if(sf==='°7'){q='dim';sv='dim7'}else if(sf==='maj7')sv='maj7';else if(/7/.test(sf))sv=q==='maj'?'7':'m7'}
-   if(caseMatches&&q==='dim'&&/7/.test(sf))sv='m7';
-   ch={pc,q,sev:sv,rn:rnText(acc<0?'♭':acc>0?'♯':'',deg,q,sv),name:spell(pc,deg),deg:acc?-1:deg,dia:caseMatches&&(!sv||sv===(dia.s7==='m7b5'?'m7':dia.s7))}}
-  else if((mm=t.match(/^([A-G])([#b♯♭]?)(maj7|m7|min7|min|m|dim|°|o|ø7|ø|7)?$/))){const acc=/[b♭]/.test(mm[2])?-1:/[#♯]/.test(mm[2])?1:0,sf=mm[3]||'';if(acc<0)flat=true;
-   let q=/^(m|min|m7|min7)$/.test(sf)?'min':/dim|°|o|ø/.test(sf)?'dim':'maj';const sev=sf==='maj7'?'maj7':/ø/.test(sf)?'m7':/7/.test(sf)?(q==='min'?'m7':'7'):'';
+   if(caseMatches&&q==='dim'&&/7/.test(sf)&&sv!=='dim7')sv='m7'; // vii7 / viiø7 = half-diminished; a written vii°7 stays fully diminished
+   ch={pc,q,sev:sv,rn:rnText(acc<0?'♭':acc>0?'♯':'',deg,q,sv),name:spell(pc,deg),deg:acc?-1:deg,dia:caseMatches&&q===dia.q&&(!sv||sv===(dia.s7==='m7b5'?'m7':dia.s7))}}
+  else if((mm=t.match(/^([A-G])([#b♯♭]?)(maj7|m7b5|m7♭5|min7b5|m7|min7|min|m6|m|dim7|dim|°7|o7|°|o|ø7|ø|add9|6|7)?$/))){const acc=/[b♭]/.test(mm[2])?-1:/[#♯]/.test(mm[2])?1:0,sf=mm[3]||'';if(acc<0)flat=true;
+   let q=/^(m|min|m7|min7|m6)$/.test(sf)?'min':/dim|°|o|ø|7b5|7♭5/.test(sf)?'dim':'maj';const sev=sf==='maj7'?'maj7':/ø|7b5|7♭5/.test(sf)?'m7':/^(dim7|°7|o7)$/.test(sf)?'dim7':sf==='add9'?'add9':/6/.test(sf)?'6':/7/.test(sf)?(q==='min'?'m7':'7'):'';
    const pc=mod12(LET[mm[1]]+acc),iv=mod12(pc-kp);let deg=MAJ.indexOf(iv),a='';
    if(deg<0){deg=MAJ.indexOf(mod12(iv+1));a='♭';if(deg<0){deg=MAJ.indexOf(mod12(iv-1));a='♯'}}
-   const dia=deg>=0&&!a?qualOf(deg):null,isDia=!!dia&&dia.q===q&&(!sev||sev===(dia.s7==='m7b5'?'m7':dia.s7));
+   const dia=deg>=0&&!a?qualOf(deg):null,isDia=!!dia&&dia.q===q&&(!sev||sev===(dia.s7==='m7b5'?'m7':dia.s7)||(sev==='6'&&mod12(MAJ[(deg+5)%7]-MAJ[deg])===9)||(sev==='add9'&&mod12(MAJ[(deg+1)%7]-MAJ[deg])===2));
    ch={pc,q,sev,rn:deg>=0?rnText(a,deg,q,sev):'',name:mm[1]+(acc<0?'♭':acc>0?'♯':''),deg:a?-1:deg,dia:isDia}}
   if(ch)res.push(ch)}
  if(!res.length)res.push({pc:kp,q:'maj',sev:'',rn:'I',deg:0,dia:true});
@@ -774,9 +787,12 @@ function bassAuto(){const a=$('bauto').value;if(a==='0'||barN===0)return;const e
 // and each style's own rhythm vocabulary. Scales come from the major parent key (the mode = the number the chord starts on).
 let bassPrevM=null,bassPlan=null,bassSpan=0,bassIB=0,bassRun=0,bassLastCk='';
 const IDI={bossa:1,baiao:1,chacha:1,walk:1,twofeel:1,broken:1,melodic:1,boogie:1,tumbao:1,samba:1,prog:1,funk:1,jbfunk:1,tower:1,meters:1,bootsy:1,vulf:1,cowfunk:1,neosoul:1,afrobeat:1,jamerson:1,modalvamp:1,afro68:1};
+// Chords outside the parent key get the by-the-book chord scale: maj7 and borrowed flat chords (bVI, bIII, bVII) = Lydian,
+// major III and VII (V of vi, V of iii: the E in A minor) = Phrygian dominant, other dominants (I7, IV7, II) = Mixolydian.
+function majMode(ch){return ch.sev==='maj7'||(ch.deg<0&&ch.sev!=='7')?'lydian':ch.deg===2||ch.deg===6?'phrdom':'mixolydian'}
 function chordScale(ch){if(ch.deg>=0&&ch.dia){const d=ch.deg;return [0,1,2,3,4,5,6].map(k=>mod12(MAJ[(d+k)%7]-MAJ[d]))}
- if(ch.q==='min')return [0,2,3,5,7,9,10];if(ch.q==='dim')return [0,1,3,5,6,8,10];if(ch.q==='aug')return [0,2,4,6,8,9,11];
- return ch.sev==='maj7'?[0,2,4,5,7,9,11]:[0,2,4,5,7,9,10]}
+ if(ch.q==='min')return [0,2,3,5,7,9,10];if(ch.q==='dim')return ch.sev==='dim7'?[0,2,3,5,6,8,9]:[0,1,3,5,6,8,10];if(ch.q==='aug')return [0,2,4,6,8,9,11];
+ return MODES[majMode(ch)]}
 const LO=28,HI=50; // E1 to D3: where bass players actually live
 function nearM(m,ref){let x=m;while(x-ref>6)x-=12;while(ref-x>6)x+=12;while(x<LO)x+=12;while(x>HI-3)x-=12;return x}
 function chordPcs(ch){const cs=chordScale(ch);return {sc:cs.map(x=>mod12(ch.pc+x)),ct:[0,third(ch),fifth(ch),cs[6]].map(x=>mod12(ch.pc+x))}}
@@ -1017,7 +1033,7 @@ function keysStyle(){const v=$('kcomp').value;if(v!=='auto')return v;const g=cur
  if(/waltz|sixeight/.test(g))return 'waltzk';if(/jballad|ballad|slowblues|half$/.test(g))return 'ballad';
  if(/^f|funk|disco|jb|neosoul|motown|gogo|minn|dilla|afro/.test(g))return 'funk';if(KJAZZ.test(g))return 'charleston';return 'pop'}
 function keysVoicing(ch){let v=$('kvoice').value;if(v==='auto')v=KJAZZ.test(curName||'')?'rootless':'triad';
- const cs=chordScale(ch),r=ch.pc,add=ch.sev==='add9'||ch.sev==='6',col=ch.sev==='6'?cs[5]:cs[1],iv=v==='triad'?[0,cs[2],cs[4]]:add?(v==='seventh'?[0,cs[2],cs[4],col]:[cs[2],cs[4],col]):v==='seventh'?[0,cs[2],cs[4],cs[6]]:[cs[2],cs[4],cs[6],cs[1]===1?cs[3]:cs[1]],pcs=iv.map(x=>mod12(r+x));
+ const cs=chordScale(ch),r=ch.pc,add=ch.sev==='add9'||ch.sev==='6',col=ch.sev==='6'?cs[5]:cs[1],iv=v==='triad'?[0,cs[2],cs[4]]:add?(v==='seventh'?[0,cs[2],cs[4],col]:[cs[2],cs[4],col]):v==='seventh'?[0,cs[2],cs[4],cs[6]]:[cs[2],cs[4],cs[6],cs[1]===1?(ch.q==='maj'?cs[5]:cs[3]):cs[1]],pcs=iv.map(x=>mod12(r+x));
  // try each note on the bottom, stack the rest upward inside an octave, keep it in the middle of the keyboard, pick the one closest to the last chord
  let best=null,bd=1e9;for(let b=0;b<pcs.length;b++)for(let base=52;base<=66;base++){if(mod12(base)!==pcs[b])continue;const ms=[base];
   for(let k=1;k<pcs.length;k++){const pc=pcs[(b+k)%pcs.length];let m=ms[ms.length-1]+1;while(mod12(m)!==pc)m++;ms.push(m)}
@@ -1128,7 +1144,7 @@ function barStart(){isCount=cin>0;if(isCount)return;pocketBar();
  else{ halfAt=0;const ci=Math.floor(barN/bpc)%prog.length;chordNow=prog[ci];chordNext=prog[(ci+1)%prog.length];
   bassIB=barN%bpc;bassSpan=beats;bassEv=$('bon').checked?genBass(chordNow,chordNext,barN%bpc==bpc-1,barN%(prog.length*bpc*2)):[];}
  bassEv=guardBass(bassEv);keysEv=genKeys();
- if(bpm===lastBpm)barsAtBpm++;else{lastBpm=bpm;barsAtBpm=1}if(barsAtBpm>=8&&!muted)logBest(bpm)}
+ if(bpm===lastBpm)barsAtBpm++;else{lastBpm=bpm;barsAtBpm=1}if(barsAtBpm>=8&&!muted&&!(ctx instanceof OfflineAudioContext))logBest(bpm)}
 // ===== Ghost-note dynamics and real snare rolls =====
 // Four ghost levels, chosen by where the note sits: softest right after a backbeat, loudest leading into one.
 const GH=[0.12,0.2,0.3,0.42];
@@ -1162,7 +1178,7 @@ function sched(h){if(typeof h!=='number'&&ctx){const nowT=performance.now(),gap=
    if(fillOn&&i%sub===0&&!(grid[44]&&grid[44].some(v=>v>0)))hit(44,Math.max(now,t),0.42); // hi-hat foot keeps time under the fill
    const sdvM=$('sdv').value,sdvOn=sdvM!=='groove';
    ROWS.forEach(([k])=>{if(fillOn&&KITROWS.has(k)&&k!==44&&!((k==36||k==35)&&!fHere))return;if(sdvOn&&(k==42||k==51||k==46))return;let val=grid[k]&&grid[k][i];if(!inFill&&k==38){if(pkMove.gAdd===i&&!val)val=0.3;if(pkMove.gDrop===i)val=0;if(val>0&&val<0.5)val=ghostLevel(i,val)}if(val){let kk=k;if(k==42)kk=SUBK[$('cy').value]||42;if(kk==42&&pkMove.lift===i&&!inFill)kk=46;if(kk==51&&bellAt(i))kk=53;const [po,pv]=pocketHit(kk,i,val),acc=pocketNow()===PK.machine&&(kk==42||kk==51)?(i%sub?0.65:1):1;hit(kk,Math.max(now,t+po+hj()),Math.min(1.3,val*acc*pv*hv()))}});
-   if(sdvOn){const sv=sdvHit(sdvM,i);let kk=SUBK[$('cy').value]||42;if(sv&&!(fillOn&&KITROWS.has(kk))){if(kk==51&&bellAt(i))kk=53;hit(kk,Math.max(now,t+hj()),sv*hv())}}
+   if(sdvOn){let kk=SUBK[$('cy').value]||42;if(!(fillOn&&KITROWS.has(kk))){if(kk==51&&bellAt(i))kk=53;for(const [tt,sv] of sdvEvents(sdvM,i,t,next,dt))hit(kk,Math.max(now,tt+hj()),sv*hv())}}
    if(i===0){const fbv=$('fb').value;if(fbv==='beep')clickV(Math.max(now,t),true);else if(FBK[fbv])hit(FBK[fbv],Math.max(now,t),1)}
    if(fillOn)for(const e of (curFill[fIdx]||[]))hit(e.n,Math.max(now,t+(e.o||0)*dt+hj()),e.v*hv());
    {const j=i+sub;if(j<n&&!(fillBar&&j>=n-fl)&&grid[38]&&grid[38][j]>=0.5)rollAt(j,next+sub*dt)} // look one beat ahead so the roll starts before the backbeat
@@ -1183,9 +1199,9 @@ function blUI(e){let h='';
  $('blm').innerHTML=h||'&nbsp;';
  $('chord').innerHTML=e.ch&&($('bon').checked||$('kon').checked)?esc(e.ch.label)+(e.ch.rn?' <small>'+esc(e.ch.rn)+'</small>':'')+' <small style="color:var(--acc,#ffb020)">· '+esc(chordMode(e.ch))+'</small>'+(e.nx?' <small>→ '+esc(e.nx.label)+'</small>':''):''}
 // The mode to play over a chord: its number in the parent key (vi = Aeolian), or by chord quality when it's borrowed
-const MODENAME={ionian:'Ionian',dorian:'Dorian',phrygian:'Phrygian',lydian:'Lydian',mixolydian:'Mixolydian',aeolian:'Aeolian',locrian:'Locrian'};
+const MODENAME={ionian:'Ionian',dorian:'Dorian',phrygian:'Phrygian',lydian:'Lydian',mixolydian:'Mixolydian',aeolian:'Aeolian',locrian:'Locrian',phrdom:'Phrygian dominant'};
 function chordMode(ch){const nm=ch.name||'';if(ch.dia&&ch.deg>=0)return nm+' '+MODENAME[DEGMODE[ch.deg]];
- /* borrowed major chords (bVII, bVI, bIII...) take Lydian */ const m=ch.q==='dim'?'locrian':ch.q==='min'?'dorian':ch.sev==='7'?'mixolydian':'lydian';return nm+' '+MODENAME[m]}
+ /* outside the key: same chord scale the bass and keys play (see majMode) */ return nm+' '+(ch.q==='dim'?(ch.sev==='dim7'?'diminished (whole-half)':'Locrian'):ch.q==='min'?'Dorian':ch.q==='aug'?'Lydian augmented':MODENAME[majMode(ch)])}
 function chordPreview(){if(playing)return;if(!$('bon').checked&&!$('kon').checked){$('chord').innerHTML='';return}const pr=parseProg();$('chord').innerHTML='<small>'+pr.map(c=>esc(c.label)).join(' – ')+(pr.every(c=>c.rn)?' · '+pr.map(c=>esc(c.rn)).join(' – '):'')+'<br>'+esc(modeLine())+'</small>'}
 
 // ===== Export: render the current settings offline (faster than real time) and encode an MP3 =====
@@ -1203,7 +1219,7 @@ async function exportMp3(){const mins=+$('xlen').value,secs=mins*60,SR=44100,xst
   pos=0;barN=0;surStyle=null;surV=null;cin=+$('ci').value;muted=false;prevFill=false;fillBar=false;forceBar=-1;secName='';lastBassM=null;bassPrevM=null;bassPlan=null;bassRun=0;bassLastCk='';trMsg='';q=[];next=0.05;
   xst.textContent='Building '+mins+' min…';sched(secs-0.05);q=[];
   xst.textContent='Rendering… 0%';for(let tt=5;tt<secs;tt+=5)oc.suspend(tt).then(()=>{xst.textContent='Rendering… '+Math.round(100*tt/secs)+'%';oc.resume()});const b=await oc.startRendering();
-  ctx=keep.ctx;bpm=keepBpm;barsAtBpm=0;out=keep.out;comp=keep.comp;master=keep.master;revSend=keep.revSend;bassBus=keep.bassBus;bassStrip=keep.bassStrip;keysBus=keep.keysBus;conv=keep.conv;openHat=keep.openHat;applyTone();
+  ctx=keep.ctx;setBpm(keepBpm);barsAtBpm=0;out=keep.out;comp=keep.comp;master=keep.master;revSend=keep.revSend;bassBus=keep.bassBus;bassStrip=keep.bassStrip;keysBus=keep.keysBus;conv=keep.conv;openHat=keep.openHat;applyTone();
   // normalize to -1 dBFS, 1.5 s fade at the end
   const L=b.getChannelData(0),Rr=b.getChannelData(1),n=L.length;let pk=0;for(let i=0;i<n;i++){pk=Math.max(pk,Math.abs(L[i]),Math.abs(Rr[i]))}
   const g=pk>0?0.89/pk:1,fade=Math.floor(SR*1.5),toI=(x,i)=>{let v=x*g*(i>n-fade?(n-i)/fade:1);v=Math.max(-1,Math.min(1,v));return v<0?v*32768:v*32767};
@@ -1213,7 +1229,7 @@ async function exportMp3(){const mins=+$('xlen').value,secs=mins*60,SR=44100,xst
    if(i%(blk*400)===0){xst.textContent='Encoding MP3… '+Math.round(100*i/n)+'%';await new Promise(r=>setTimeout(r,0))}}
   const e=enc.flush();if(e.length)parts.push(new Uint8Array(e));
   const blob=new Blob(parts,{type:'audio/mpeg'}),url=URL.createObjectURL(blob),gname=($('pre').selectedOptions[0]||{}).textContent||curName;
-  const fn=('Modal Metronome - '+gname.replace(/\s*\(.*\)/,'')+' - '+bpm+' BPM - '+mins+' min').replace(/[^\w\- ]+/g,'').replace(/\s+/g,' ').trim()+'.mp3';
+  const fn=('Modal Metronome - '+gname.replace(/\s*\(.*\)/,'')+' - '+bpm+' BPM - '+mins+' min').replace(/\//g,'-').replace(/[^\w\- ]+/g,'').replace(/\s+/g,' ').trim()+'.mp3';
   // Saving needs a fresh tap (browsers block saves that start after a long render), so offer a Save button
   lastExport={blob,fn,url};
   xst.innerHTML='Ready: '+(blob.size/1048576).toFixed(1)+' MB · <button type="button" id="xsave" class="btn" style="font-weight:800">⬇ Save MP3…</button>';
@@ -1290,6 +1306,7 @@ function applyState(st){if(!st||!st.c)return false;restoring=true;const c=st.c;i
  setBpm(st.bpm||80);uiRefresh();draw();restoring=false;return true}
 function uiRefresh(){fatUI();swUI();$('mvt').textContent=$('mv').value+'%';$('cpl').style.display=$('prog').value==='custom'?'':'none';$('beat').classList.toggle('big',$('bigl').checked);
  if(out)out.gain.setTargetAtTime(volG($('mv').value),ctx.currentTime,0.02);if(revSend)revSend.gain.setTargetAtTime($('room').value/100*0.5,ctx.currentTime,0.05);chordPreview()}
+addEventListener('pagehide',()=>{if(saveT&&!restoring){clearTimeout(saveT);try{store.setItem(SKEY,JSON.stringify(getState(true)))}catch(e){}}});
 function save(){if(restoring)return;clearTimeout(saveT);saveT=setTimeout(()=>{try{store.setItem(SKEY,JSON.stringify(getState(true)));$('sv').textContent=store.mem?'Settings kept until reload':'✓ Settings saved'}catch(e){$('sv').textContent='Saving not available here'}},300)}
 // Song presets from the link: ?pk=1&pre=rock&bpm=80&key=C&md=aeolian&prog=custom&cprog=Am%20G&bon=1&bs=pedal&tr=1&trg=108 ...
 // key = the major PARENT key. Links without pk=1 are older: their key was the mode's own starting note and is converted.
@@ -1360,10 +1377,13 @@ $('vS').onclick=()=>setView('simple');$('vA').onclick=()=>setView('adv');
 $('fnow').onclick=fillNow;
 let taps=[];const tap=()=>{const n=performance.now();taps=taps.filter(t=>n-t<3000);taps.push(n);if(taps.length>1)setBpm(60000/((taps[taps.length-1]-taps[0])/(taps.length-1)))};$('tap').onclick=tap;
 $('logclr').onclick=()=>{logData={days:{},best:{},sessions:0};saveLog();logUI()};
-$('pss').onclick=()=>{const P2=presets();const name=($('psn').value.trim()||$('ps').value||('Preset '+(Object.keys(P2).length+1))).slice(0,60);P2[name]=getState(false);try{store.setItem(PKEY,JSON.stringify(P2));cmsg('Saved “'+name+'”'+(store.mem?' (until reload)':''))}catch(e){cmsg('Could not save')}psUI(name);$('psn').value=''};
+const psMsg=t=>{$('psm').textContent=t};let psDelArm='',psDelT=null;
+$('pss').onclick=()=>{const P2=presets();const name=($('psn').value.trim()||$('ps').value||('Preset '+(Object.keys(P2).length+1))).slice(0,60);P2[name]=getState(false);try{store.setItem(PKEY,JSON.stringify(P2));psMsg('Saved “'+name+'”'+(store.mem?' (until reload)':''))}catch(e){psMsg('Could not save')}psUI(name);$('psn').value=''};
 $('ps').onchange=()=>{if($('ps').value)$('psl').click()};
-$('psl').onclick=()=>{const st=presets()[$('ps').value];if(!st){cmsg('Choose a preset first');return}applyState(st);save();cmsg('Loaded “'+$('ps').value+'”')};
-$('psd').onclick=()=>{const P2=presets(),k=$('ps').value;if(!k)return;delete P2[k];try{store.setItem(PKEY,JSON.stringify(P2))}catch(e){}psUI();cmsg('Deleted “'+k+'”')};
+$('psl').onclick=()=>{const st=presets()[$('ps').value];if(!st){psMsg('Choose a preset first');return}applyState(st);uiRefresh();save();psMsg('Loaded “'+$('ps').value+'”')};
+$('psd').onclick=()=>{const P2=presets(),k=$('ps').value;if(!k){psMsg('Choose a preset first');return}
+ if(psDelArm!==k){psDelArm=k;$('psd').textContent='Sure? Tap again';psMsg('Tap Delete again to erase “'+k+'”');clearTimeout(psDelT);psDelT=setTimeout(()=>{psDelArm='';$('psd').textContent='Delete'},3500);return}
+ psDelArm='';clearTimeout(psDelT);$('psd').textContent='Delete';delete P2[k];try{store.setItem(PKEY,JSON.stringify(P2))}catch(e){}psUI();psMsg('Deleted “'+k+'”')};
 $('cx').onclick=async()=>{const c=encodeCode();$('code').value=c;let ok=false;try{await navigator.clipboard.writeText(c);ok=true}catch(e){try{$('code').select();ok=document.execCommand('copy')}catch(e2){}}cmsg(ok?'Copied! Paste it into another drum machine.':'Code ready — select and copy it from the box.')};
 $('ci2').onclick=()=>{try{applyState(decodeCode($('code').value));save();cmsg('Pattern loaded ✓')}catch(e){cmsg('That code did not work: '+e.message)}};
 document.addEventListener('keydown',e=>{const tg=e.target.tagName,ty=e.target.type;
@@ -1378,7 +1398,7 @@ $('av').value='rock';$('ac').value='pop';psUI();restore();uiRefresh();logUI();re
 {const sp=new URLSearchParams(location.search),dm=sp.get('dm');if(dm){try{applyState(decodeCode(dm));uiRefresh();save()}catch(e){console.error(e)}
   if(sp.get('xp')){$('xlen').value=sp.get('xp');history.replaceState(null,'',location.pathname);$('xst').textContent='Your settings from Notion are loaded. Tap Export to build and save your MP3.';setTimeout(()=>{$('xbtn').scrollIntoView({block:'center'});$('xbtn').focus()},300)}}}
 
-</script><script>(function(){const C=['#e8412c','#f28c28','#f6c33b','#efe6d2'];document.querySelectorAll('.sec>h4').forEach((h,i)=>h.style.setProperty('--band',C[i%4]))})();</script><p class="appver" style="text-align:center;font-size:11px;opacity:.6;margin:18px 0 10px;font-family:ui-monospace,Menlo,monospace">Modal Metronome · Version 2026-11-11.3</p>
+</script><script>(function(){const C=['#e8412c','#f28c28','#f6c33b','#efe6d2'];document.querySelectorAll('.sec>h4').forEach((h,i)=>h.style.setProperty('--band',C[i%4]))})();</script><p class="appver" style="text-align:center;font-size:11px;opacity:.6;margin:18px 0 10px;font-family:ui-monospace,Menlo,monospace">Modal Metronome · Version 2026-11-11.4</p>
 <script>/* Setting help: hover the name on a computer, tap it on a phone or iPad */
 (function(){const T={"mv": "Master volume for everything: drums, bass and keys. Saved on this device only, not in presets or links.", "xlen": "How long the MP3 will be. It records the groove, bass, chords, fills and tempo exactly as they are set now, so you can practice with it anywhere.", "ps": "Your saved setups. Pick one to load it. Type a name and tap Save to store everything you have set right now. Presets live on this device and never get erased by Reset.", "pre": "The drum pattern. Each groove is written the way real drummers play that style. Changing it also sets the time signature the groove is written in.", "ts": "Time signature: how many beats are in a bar and what kind. 4/4 = four quarter-note beats. 6/8, 9/8 (3+3+3) and 12/8 = beats split in three. In 5/8, 7/8, 9/8 (2+2+2+3) and 11/8 each beat is one 8th note, so the BPM counts 8ths.", "sdv": "Subdivide: the steady in-between notes that keep time. \"As written\" plays the groove's own hi-hat or ride part. Pick Quarter notes, 8ths, 16ths, Triplets or Off-beats to replace it with a steady pulse. Off = no subdivision at all, just the kick and snare.", "cy": "Subdivide with: the instrument that plays the subdivision. Hi-hat is tight and dry, ride is washy, ride bell cuts through, shaker and tambourine are soft and bright, cowbell, side stick, claves and woodblock are clicky and easy to hear.", "fb": "First beat: adds an extra sound on beat 1 of every bar so you always know where the bar starts. Great for odd meters like 7/8 and 9/8.", "sw": "Swing pushes every second note late. 50% = straight, even notes. About 67% = triplet swing, like jazz and blues shuffles.", "pkt": "Pocket: where the drummer sits on the beat. Auto uses the real feel of the groove: backbeat a hair behind, hats leading. Machine = perfectly on the grid.", "gdyn": "Ghost notes are the very soft snare taps between the backbeats. \"4 levels\" plays them softer or louder depending on where they fall, like a real drummer. Flat = all the same.", "groll": "Adds soft snare drags and buzz rolls leading into the backbeat, built from real stick bounces.", "hu": "Humanize adds tiny random changes in timing and volume so the drums don't sound like a machine. Zero = perfectly even.", "crash": "Plays a crash cymbal on beat 1 every 4 bars to mark the phrase.", "ci": "Count-in: clicks before the band starts so you can come in on time.", "do": "Drop-out: the drums and bass go silent for some bars while you keep playing. When they come back, you find out if you kept the time yourself.", "bigl": "Makes the beat light big and flashes the screen on every beat, so you can see the pulse from across the room.", "tr": "Tempo trainer: speeds the metronome up a little every few bars until it reaches your goal. It never slows down.", "trg": "The tempo the trainer stops at.", "tri": "How many BPM to add each time.", "trb": "How many bars to play before each speed-up.", "fe": "How often the drummer plays a fill (a short drum break) at the end of a phrase.", "fs": "The kind of fill: toms, snare, or a mix.", "fa": "How busy the fill is. Low = short and simple. High = full bar with doubles.", "fc": "Plays a crash on the beat right after every fill, like a drummer landing the fill.", "key": "The major parent key: the \"1\" of the scale. The studio names every mode from its parent major key.", "md": "The mode: which note of the parent key the music sits on. The bass and keys use it for passing notes and voicings.", "prog": "The chord progression the bass and keys play, written in Roman numerals from the parent key.", "bpc": "How long each chord lasts. Normal = one bar. Double time = two chords per bar. Half time = each chord lasts two bars.", "cprog": "Type your own chords, separated by spaces (for example: ii V I vi or Dm7 G7 Cmaj7).", "bon": "Turns the bass player on. The bass follows the chords and the groove.", "bt": "The bass sound: electric, upright, synth and more.", "btone": "Shapes the bass like a mixing engineer: EQ and compression on the bass channel.", "bs": "How the bass plays: root notes, walking lines, pedal tones and more, matched to the style.", "bauto": "Writes a fresh bass line every few bars so it never gets repetitive.", "bvar": "How often the bass adds passing notes, octave jumps and pickups.", "bv": "Bass volume, separate from the drums.", "kon": "Turns the keyboard player on. The keys play the chords in the progression.", "ksnd": "The keyboard sound: piano, electric piano, organ, pads.", "kcomp": "Comping = how the keys play the chords: held, pushed, stabs. Auto matches the groove.", "kvoice": "Voicing = which chord notes the keys play. Pop/rock uses triads. Jazz plays the 3rd, 5th, 7th and 9th and leaves the root to the bass.", "kv": "Keys volume, separate from the drums.", "kit": "Picks the whole drum kit at once. You can still change each drum below.", "kk": "The kick drum sound.", "sn": "The snare drum sound.", "rv": "The ride cymbal sound.", "hh": "The hi-hat sound.", "hfeel": "Tight = closed and choked. Loose = hats a little open and sloshy.", "sfeel": "Tight = damped, higher crack. Open = lower, fatter, more ring.", "kfeel": "Tight = short and punchy. Boomy = lower and longer.", "tm": "The tom sounds used in fills.", "pc": "The percussion sounds: shaker, tambourine, cowbell, congas and more.", "room": "How much room echo (reverb) is on the whole band.", "arr": "Song mode: switches between a verse groove and a chorus groove, so practice feels like a real song.", "av": "The groove for the verse.", "ac": "The groove for the chorus.", "ab": "How many bars the verse lasts.", "cb": "How many bars the chorus lasts.", "mode": "Direct is fastest. Pick Compatibility only if the sound crackles or won't play on your device.", "dev": "Which speaker or headphones the sound plays through.", "showall": "Shows every drum in the pattern grid, not just the drums this groove uses."};
  const tip=document.createElement('div');tip.id='tip';document.body.appendChild(tip);let cur=null;
@@ -1402,7 +1422,10 @@ $('av').value='rock';$('ac').value='pop';psUI();restore();uiRefresh();logUI();re
  const G=[['Groove',['Groove']],['Presets',['My presets']],['Grid',['Pattern']],['Fills',['Fills']],['Chords',['Harmony']],['Bass',['Bass line']],['Keys',['Keys']],['Practice',['Practice','Practice log']],['Drum sounds',['Drum sounds']],['Mix',['Output']],['Song',['Song']],['Export',['Export']]];
  const used=new Set(G.flatMap(g=>g[1]));secs.forEach(x=>{const h=x.querySelector(':scope>h4'),n=h&&h.firstChild.textContent.trim();if(n&&!used.has(n)){G.push([n,[n]]);used.add(n)}});
  const bar=document.createElement('div');bar.className='tabs';hd.appendChild(bar);let cur='Groove';try{cur=localStorage.getItem('mmTab')||cur}catch(e){}
- function show(name){cur=name;try{localStorage.setItem('mmTab',name)}catch(e){}secs.forEach(x=>x.classList.remove('tabon'));const g=G.find(g=>g[0]===name);(g?g[1]:[]).forEach(n=>byName[n]&&byName[n].classList.add('tabon'));[...bar.children].forEach(b=>b.classList.toggle('sel',b.dataset.t===name))}
+ function show(name){cur=name;try{localStorage.setItem('mmTab',name)}catch(e){}secs.forEach(x=>x.classList.remove('tabon'));const g=G.find(g=>g[0]===name);(g?g[1]:[]).forEach(n=>byName[n]&&byName[n].classList.add('tabon'));[...bar.children].forEach(b=>b.classList.toggle('sel',b.dataset.t===name));
+  const sb=[...bar.children].find(b=>b.dataset.t===name);if(sb){const l=sb.offsetLeft-bar.offsetLeft,r=l+sb.offsetWidth;if(l<bar.scrollLeft)bar.scrollLeft=l-4;else if(r>bar.scrollLeft+bar.clientWidth)bar.scrollLeft=r-bar.clientWidth+4}moreUI()}
+ function moreUI(){bar.classList.toggle('more',bar.scrollLeft+bar.clientWidth<bar.scrollWidth-4)}
+ bar.addEventListener('scroll',moreUI,{passive:true});addEventListener('resize',moreUI)
  window.embRefresh=function(){const simple=document.body.classList.contains('simple');bar.innerHTML='';const ok=G.filter(g=>g[1].some(n=>byName[n]&&!(simple&&byName[n].classList.contains('adv'))));
   ok.forEach(g=>{const b=document.createElement('button');b.textContent=g[0];b.dataset.t=g[0];b.onclick=()=>show(g[0]);bar.appendChild(b)});show(ok.some(g=>g[0]===cur)?cur:ok[0][0])};
  embRefresh()})();</script>

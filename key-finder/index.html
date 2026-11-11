@@ -42,7 +42,13 @@ h1{font-weight:800;font-size:30px;letter-spacing:-.02em;margin:0} h1 em{font-sty
 .prompt{text-align:center;font-size:20px;font-weight:600;min-height:56px;display:flex;align-items:center;justify-content:center;gap:10px}
 .prompt .big{font-family:var(--mono);font-size:40px;font-weight:700;color:var(--accent)}
 .fb{text-align:center;min-height:22px;font-size:14px;color:var(--muted)} .fb.good{color:var(--good)} .fb.bad{color:var(--bad)}
-.pianoScroll{overflow-x:auto;-webkit-overflow-scrolling:touch;border-radius:10px}
+.pianoScroll{overflow-x:auto;-webkit-overflow-scrolling:touch;border-radius:10px;scrollbar-width:none}.pianoScroll::-webkit-scrollbar{display:none}
+/* more keys off-screen: a fade and an arrow on that side */
+.pianoWrap{position:relative}.pianoWrap::before,.pianoWrap::after{content:"";position:absolute;top:0;bottom:0;width:34px;z-index:4;pointer-events:none;opacity:0;transition:opacity .2s;display:flex;align-items:center;justify-content:center;font:700 20px var(--f-body,system-ui);color:#fff}
+.pianoWrap::before{left:0;content:"‹";border-radius:10px 0 0 10px;background:linear-gradient(90deg,rgba(0,0,0,.55),transparent)}
+.pianoWrap::after{right:0;content:"›";border-radius:0 10px 10px 0;background:linear-gradient(270deg,rgba(0,0,0,.55),transparent)}
+.pianoWrap.l::before,.pianoWrap.r::after{opacity:1}
+.swipe{margin:6px 0 0;text-align:center;font-size:12px;color:var(--muted)}
 .piano{position:relative;height:170px;display:flex;user-select:none;-webkit-user-select:none;touch-action:manipulation}
 .piano .w{flex:1;min-width:0;background:var(--key-w);border:1px solid #9aa0aa;border-radius:0 0 8px 8px;margin-right:-1px;padding:0 0 8px;display:flex;align-items:flex-end;justify-content:center;font-family:var(--mono);font-size:10px;color:#8a909b;cursor:pointer}
 .piano .w.mc{color:var(--accent);font-weight:700;font-size:9px;line-height:1.1;text-align:center}
@@ -52,7 +58,7 @@ h1{font-weight:800;font-size:30px;letter-spacing:-.02em;margin:0} h1 em{font-sty
 .piano button.miss{background:var(--bad)!important;color:#fff}
 .pad{display:grid;grid-template-columns:repeat(7,1fr);gap:8px}
 .pad button{font:inherit;font-family:var(--mono);font-weight:700;font-size:20px;min-height:52px;border-radius:12px;border:1px solid var(--border);background:var(--panel);color:var(--ink);cursor:pointer}
-.pad.blk{grid-template-columns:repeat(5,1fr)} .pad.blk button{font-size:15px;background:var(--key-b);color:#fff;border-color:#000}
+.pad.blk{grid-template-columns:repeat(5,1fr)} .pad.blk button{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;line-height:1.05;font-size:15px;background:var(--key-b);color:#fff;border-color:#000}
 .pad button.hit{background:var(--good);color:#fff} .pad button.miss{background:var(--bad);color:#fff}
 .actions{display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap} .btn.primary{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
 .tip{color:var(--muted);font-size:12px;text-align:center;margin:0}
@@ -118,7 +124,7 @@ input[type=checkbox]{accent-color:var(--c-act)}
     </div>
     <div class="clock" id="clock" hidden><b id="tLeft">60</b><div class="bar"><i id="tFill"></i></div></div>
     <div class="prompt" id="prompt"></div>
-    <div class="pianoScroll" id="pianoScroll"><div class="piano" id="piano"></div></div>
+    <div class="pianoWrap" id="pianoWrap"><div class="pianoScroll" id="pianoScroll"><div class="piano" id="piano"></div></div></div><p class="swipe" id="swipe" hidden>Swipe the keyboard to see more keys</p>
     <div class="fb" id="fb"></div>
     <div id="padWrap"><div class="pad" id="padW"></div><div class="pad blk" id="padB" style="margin-top:8px"></div></div>
     <div class="actions"><button class="btn" id="resetBtn">Reset score</button><button class="btn primary" id="sprintBtn">Start 60-second sprint</button></div>
@@ -139,7 +145,7 @@ input[type=checkbox]{accent-color:var(--c-act)}
     <label><input type="checkbox" id="labelsOn"> Show letter names on every white key (easier)</label>
     <label><input type="checkbox" id="flatsOn"> Call black keys by their flat name (D♭) in Find the key</label>
   </details>
-  <p class="appver" id="appVer">Key Finder · Version 2026-11-11.1</p>
+  <p class="appver" id="appVer">Key Finder · Version 2026-11-11.2</p>
 </div>
 
 <script>
@@ -176,22 +182,28 @@ input[type=checkbox]{accent-color:var(--c-act)}
       b.addEventListener("click",()=>keyTap(m,b)); el.appendChild(b);
       if(BLACK.includes((m+1)%12)&&m+1<=lv.hi){ const k=document.createElement("button"); k.className="b"; k.dataset.midi=m+1; k.style.width=(w*0.6)+"%"; k.style.left=((i+1)*w-w*0.3)+"%";
         k.setAttribute("aria-label",both((m+1)%12)); k.addEventListener("click",()=>keyTap(m+1,k)); el.appendChild(k) } });
-    requestAnimationFrame(()=>{ const sc=$("pianoScroll"), mc=el.querySelector(".mc"); if(mc) sc.scrollLeft=mc.offsetLeft-sc.clientWidth/2+mc.offsetWidth/2 }) }
+    requestAnimationFrame(()=>{ const sc=$("pianoScroll"), mc=el.querySelector(".mc"); if(mc) sc.scrollLeft=mc.offsetLeft-sc.clientWidth/2+mc.offsetWidth/2; if(q&&mode==="name") centerKey(keyEl(q.m),true); edges() }) }
   const keyEl=m=>$("piano").querySelector(`[data-midi="${m}"]`);
+  // The keyboard scrolls sideways when it is wider than the screen: the glowing key is always brought to the middle
+  function centerKey(k,instant){ const sc=$("pianoScroll"); if(!k||sc.scrollWidth<=sc.clientWidth+2) return; const x=k.offsetLeft-sc.clientWidth/2+k.offsetWidth/2;
+    try{ sc.scrollTo({left:x,behavior:instant?"auto":"smooth"}) }catch(e){ sc.scrollLeft=x } }
+  function edges(){ const sc=$("pianoScroll"), w=$("pianoWrap"), more=sc.scrollWidth>sc.clientWidth+2;
+    w.classList.toggle("l",more&&sc.scrollLeft>4); w.classList.toggle("r",more&&sc.scrollLeft<sc.scrollWidth-sc.clientWidth-4); $("swipe").hidden=!more }
+  $("pianoScroll").addEventListener("scroll",edges,{passive:true}); window.addEventListener("resize",()=>{ edges(); if(q&&mode==="name") centerKey(keyEl(q.m),true) });
   function clearKeys(){ $("piano").querySelectorAll("button").forEach(b=>b.classList.remove("glow","hit","miss","show")); document.querySelectorAll(".pad button").forEach(b=>b.classList.remove("hit","miss")) }
 
   // ---------- answer pad (Name the key) ----------
   function buildPad(){ const lv=L(), pw=$("padW"), pb=$("padB"); pw.innerHTML=""; pb.innerHTML="";
     const asksW=[0,2,4,5,7,9,11].some(pc=>lv.ask(60+pc)), asksB=BLACK.some(pc=>lv.ask(60+pc));
     ["C","D","E","F","G","A","B"].forEach(n=>{ const b=document.createElement("button"); b.textContent=n; b.dataset.pc=PCN.indexOf(n); b.addEventListener("click",()=>padTap(+b.dataset.pc,b)); pw.appendChild(b) });
-    BLACK.forEach(pc=>{ const b=document.createElement("button"); b.textContent=both(pc); b.dataset.pc=pc; b.addEventListener("click",()=>padTap(pc,b)); pb.appendChild(b) });
+    BLACK.forEach(pc=>{ const b=document.createElement("button"); b.innerHTML=`<span>${PCN[pc]}</span><span>${FLAT[pc]}</span>`; b.setAttribute("aria-label",both(pc)); b.dataset.pc=pc; b.addEventListener("click",()=>padTap(pc,b)); pb.appendChild(b) });
     pw.hidden=!asksW&&false; pb.hidden=!asksB; $("padWrap").hidden=mode!=="name" }
 
   // ---------- questions ----------
   function pool(){ const lv=L(), a=[]; for(let m=lv.lo;m<=lv.hi;m++) if(lv.ask(m)) a.push(m); return a }
   function newQ(){ clearKeys(); $("fb").textContent=""; $("fb").className="fb"; const p=pool(); let m, t=0; do{ m=p[Math.floor(Math.random()*p.length)] }while(p.length>1&&m===lastM&&t++<20); lastM=m;
     q={m,tried:false}; locked=false;
-    if(mode==="name"){ $("prompt").innerHTML="What key is glowing?"; keyEl(m).classList.add("glow") }
+    if(mode==="name"){ $("prompt").innerHTML="What key is glowing?"; const k=keyEl(m); k.classList.add("glow"); centerKey(k) }
     else { const pc=m%12, nm=BLACK.includes(pc)?($("flatsOn").checked?FLAT[pc]:PCN[pc]):PCN[pc]; $("prompt").innerHTML=`Find <span class="big">${nm}</span>` } }
   function grade(ok,btn,answerLabel){ if(!q||locked) return; const pc=q.m%12;
     if(ok){ if(!q.tried||!sprint){ if(!q.tried){ st.pts++; st.streak++; st.best=Math.max(st.best,st.streak) } } st.correct+=q.tried?0:1; if(!q.tried) st.total++;

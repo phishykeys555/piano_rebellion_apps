@@ -66,7 +66,7 @@ button{font:inherit;cursor:pointer;border-radius:10px;border:1px solid var(--bor
 button:focus-visible,input:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
 .letters button{font-family:var(--display);font-weight:800;font-size:22px;padding:14px 0}
 .letters button:active{transform:translateY(1px)}
-.chip{font-family:var(--music);font-size:20px;padding:4px 16px}
+.chip{font-family:var(--music);font-size:24px;padding:4px 16px;min-width:52px;min-height:44px}
 .chip[aria-pressed="true"]{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
 .pianoScroll{overflow-x:auto;-webkit-overflow-scrolling:touch;border-radius:8px;scrollbar-width:thin}
 .piano{position:relative;height:150px;display:flex;user-select:none;-webkit-user-select:none}
@@ -88,7 +88,7 @@ button:focus-visible,input:focus-visible{outline:3px solid var(--accent);outline
 .meter i{display:block;height:100%;width:0;background:var(--good)}
 .rotate{font-size:13px;color:var(--accent);text-align:center;margin:6px 0 0;font-weight:600}
 .seg{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}
-.seg button{padding:9px 6px;font-weight:600;font-size:13px}
+.seg button{padding:9px 6px;font-weight:600;font-size:13px;min-height:44px}
 .seg button[aria-pressed="true"]{background:var(--ink);color:var(--panel);border-color:var(--ink)}
 .ivpad{display:flex;flex-direction:column;gap:10px}
 .rng{display:flex;flex-wrap:wrap;gap:6px 10px;align-items:center;font-size:13px}
@@ -97,10 +97,10 @@ button:focus-visible,input:focus-visible{outline:3px solid var(--accent);outline
 .rng select option,#lmSel option,#lsSel option{color:#111}
 .rngq,.lmchips{display:flex;flex-wrap:wrap;gap:5px;align-items:center;font-size:12px;color:var(--muted)}
 .rngq span{width:100%}
-.rngq button,.lmchips button{padding:4px 10px;font-size:12px;font-weight:700;border-radius:999px}
+.rngq button,.lmchips button{padding:4px 12px;font-size:12px;font-weight:700;border-radius:999px;min-height:36px;min-width:36px}
 .lmchips button[aria-pressed="true"]{background:var(--accent-soft);border-color:var(--accent);color:var(--accent)}
 .ivfocus{display:flex;gap:6px;flex-wrap:wrap;justify-content:center;align-items:center;font-size:12px;color:var(--muted)}
-.ivfocus button{padding:5px 10px;font-size:12px;font-weight:700;border-radius:999px}
+.ivfocus button{padding:5px 12px;font-size:12px;font-weight:700;border-radius:999px;min-height:36px}
 .ivfocus button[aria-pressed="true"]{background:var(--accent-soft);border-color:var(--accent);color:var(--accent)}
 .ivans{display:grid;grid-template-columns:repeat(6,1fr);gap:6px}
 .ivans button{font-family:var(--display);font-weight:800;font-size:18px;padding:14px 0}
@@ -290,7 +290,7 @@ input[type=range],input[type=checkbox],input[type=radio]{accent-color:var(--c-ac
       <button class="primary" id="startTimed">Start 60-second sprint</button>
     </div>
     <p class="tip">Keyboard: A–G to answer. In a key with sharps or flats, tap ♯ or ♭ first (or press = / −). Piano keys must be the exact key, right octave.</p>
-    <p class="tip" id="appVer"><span class="appver">Version 2026-11-11.1</span> · fresh target each round · full keyboard · YIN mic</p>
+    <p class="tip" id="appVer"><span class="appver">Version 2026-11-11.2</span> · fresh target each round · full keyboard · YIN mic</p>
 
     <div class="arcsplash" id="arcSplash" hidden><div class="boom"></div><div id="arcPcs"></div><div class="pre" id="arcSplashP"></div><b id="arcSplashT">ROUND 2</b><span id="arcSplashS"></span></div><div class="hitstamp" id="hitStamp">TARGET HIT!</div>
     <div class="results" id="results" hidden>
@@ -483,7 +483,7 @@ input[type=range],input[type=checkbox],input[type=radio]{accent-color:var(--c-ac
       const b=document.createElement("button"); b.className="w"+(m===60?" mc":""); b.dataset.midi=m; b.setAttribute("aria-label",L+o);
       if(m===60) b.textContent="Middle C"; else if(L==="C") b.textContent="C"+o; b.addEventListener("click",()=>answerMidi(m,b)); el.appendChild(b);
       if("CDFGA".includes(L)&&d<hi){const k=document.createElement("button"); k.className="b"; k.dataset.midi=m+1; k.style.width=(w*0.6)+"%"; k.style.left=((d-lo+1)*w-w*0.3)+"%";
-        k.setAttribute("aria-label",L+"♯"+o); k.addEventListener("click",()=>answerMidi(m+1,k)); el.appendChild(k)}}
+        k.setAttribute("aria-label",L+"♯"+o+" / "+LET[(d+1)%7]+"♭"+Math.floor((d+1)/7)); k.addEventListener("click",()=>answerMidi(m+1,k)); el.appendChild(k)}}
     requestAnimationFrame(()=>{const sc=$("pianoScroll"), mc=el.querySelector(".mc");
       if(mc) sc.scrollLeft=mc.offsetLeft-sc.clientWidth/2+mc.offsetWidth/2;
       $("rotateHint").hidden=!(sc.scrollWidth>sc.clientWidth+4 && window.matchMedia("(orientation:portrait)").matches)});
@@ -507,7 +507,8 @@ input[type=range],input[type=checkbox],input[type=radio]{accent-color:var(--c-ac
       const [lo,hi]=bounds(s,clef); let num, lp, t=0; const fit=ivSet.filter(k=>k-1<=hi-lo), pool=fit.length?fit:[Math.min(...ivSet)];
       do{ num=pool[Math.floor(Math.random()*pool.length)]; lp=lo+Math.floor(Math.random()*Math.max(1,hi-(num-1)-lo+1)); t++ }while(prev&&prev.iv&&prev.num===num&&prev.notes[0].p===lp&&t<10);
       const mk=p=>{const dia=BASE[clef]+p, letter=LET[dia%7], octave=Math.floor(dia/7), base=keyAcc(key,letter); let a=base, pr="";
-        if(s.acc&&Math.random()<.3){const o=["#","b",""].filter(x=>x!==base); a=o[Math.floor(Math.random()*2)]; if(a!==base) pr=a===""?"n":a}
+        if(s.acc&&Math.random()<.3){const o=["#","b",""].filter(x=>x!==base); a=o[Math.floor(Math.random()*2)];
+          if(a==="#"&&"EB".includes(letter)&&!base&&Math.random()<.7)a=base; if(a==="b"&&"CF".includes(letter)&&!base&&Math.random()<.7)a=base; if(a!==base) pr=a===""?"n":a}
         return {clef,p,letter,octave,acc:a,print:pr}};
       q={iv:true,grand:false,key,num,notes:[mk(lp),mk(lp+num-1)]};
       q.marks=[null,null]; q.tried=[false,false]; $("choice").hidden=true; $("staffbox").className="staffbox"; setPrompt(null,"Name the interval"); draw(); return }
@@ -552,7 +553,7 @@ input[type=range],input[type=checkbox],input[type=radio]{accent-color:var(--c-ac
   function glyph(ch,x,y,gap,fill){ const [up,down]=BOX[ch], m=ink(ch), H=(up+down)*gap, fs=100*H/((m.a+m.d)||100), top=y-up*gap;
     return `<text x="${x+m.l*fs/100}" y="${top+m.a*fs/100}" font-family="Noto Music, Bravura, serif" font-size="${fs.toFixed(2)}" fill="${fill}">${ch}</text>` }
   function draw(){
-    const gap=14, line="#2a2d33", x=230, W=360;
+    const gap=14, line="#2a2d33", W=360, x=Math.max(230,Math.round(30+3.9*gap+Math.abs(q.key||0)*gap*1.1+62));   // long key signatures push the note right so its accidental never touches them
     const staffH=4*gap, S=readSettings();
     const staffs=q.grand?["treble","bass"]:[q.notes[0].clef];
     // room above/below each staff for the highest/lowest note this setting can ask, its stem and ledgers (stays put note to note)
@@ -629,7 +630,7 @@ input[type=range],input[type=checkbox],input[type=radio]{accent-color:var(--c-ac
     const rule=odd?`Both notes are ${lo.p%2===0?"on lines":"in spaces"}: that's always an odd interval (3rd, 5th, 7th).`:`One on a line, one in a space: that's always an even interval (4th, 6th, octave).`;
     $("staffbox").className="staffbox "+(ok?"good":"bad");
     if(ok) setPrompt("good",`✓ Right${retried?" on try 2 · +½":""} · ${IVN[q.num]}`,`${nm(lo)} up to ${nm(hi)}.`);
-    else setPrompt("bad","✗ Not quite",`You said ${IVN[k]}. This is a${q.num===8?"n":""} ${IVN[q.num]}: ${nm(lo)} up to ${nm(hi)}. Count every line and space, starting with the bottom note as 1. ${rule}`);
+    else setPrompt("bad","✗ Not quite",`You said ${IVN[k]}. This is a${q.num===8?"n":""} ${IVN[q.num].toLowerCase()}: ${nm(lo)} up to ${nm(hi)}. Count every line and space, starting with the bottom note as 1. ${rule}`);
     draw(); play([midiOf(lo),midiOf(hi)]); render();
     setTimeout(()=>{ if(!sprintOver) newQuestion() }, ok?(arc?400:700):(arc?1500:3200)) }
 
@@ -674,7 +675,9 @@ input[type=range],input[type=checkbox],input[type=radio]{accent-color:var(--c-ac
   // ---------- microphone: hear a real piano, no MIDI ----------
   // Onset (a fresh attack) arms the detector; the pitch is the median of the next few frames, so a ringing old note never answers the new question.
   let mic=null;
-  const NOTE=["C","C♯","D","E♭","E","F","F♯","G","A♭","A","B♭","B"], mname=m=>NOTE[m%12]+(Math.floor(m/12)-1);
+  const NOTE=["C","C♯","D","E♭","E","F","F♯","G","A♭","A","B♭","B"], NSH=["C","C♯","D","D♯","E","F","F♯","G","G♯","A","A♯","B"], NFL=["C","D♭","D","E♭","E","F","G♭","G","A♭","A","B♭","B"];
+  // spell a played/heard key the way this question's key reads it: the target's own spelling when it matches (E♯, C♭ included), else sharps in sharp keys, flats in flat keys
+  const mname=m=>{ const n=q&&q.notes&&q.notes[idx]; if(n&&(m-midiOf(n))%12===0) return nm({...n,octave:n.octave+(m-midiOf(n))/12}); const k=q&&q.key||0; return (k>0?NSH:k<0?NFL:NOTE)[m%12]+(Math.floor(m/12)-1) };
   // YIN pitch detector (de Cheveigne & Kawahara 2002): cumulative-mean-normalised difference, absolute threshold, parabolic refinement.
   // Far fewer octave slips than plain autocorrelation on piano, whose 2nd harmonic is often louder than the fundamental.
   function acf(buf,sr){ const n=buf.length; let rms=0; for(let i=0;i<n;i++) rms+=buf[i]*buf[i]; rms=Math.sqrt(rms/n); if(rms<0.008) return -1;
@@ -769,14 +772,15 @@ input[type=range],input[type=checkbox],input[type=radio]{accent-color:var(--c-ac
       for(let i=P.length-1;i>=0;i--) if(P[i].life<=0) P.splice(i,1);
       if(el<2600||P.length) requestAnimationFrame(frame); else c.remove() })(t0);
     try{ chime() }catch(e){} }
+  function showResults(){ const r=$("card").getBoundingClientRect(); if(r.top<0||r.top>innerHeight*0.4) try{ $("card").scrollIntoView({block:"start"}) }catch(e){} $("results").scrollTop=0 }
   function endSprint(){ clearInterval(timer); timer=null; sprintOver=true; locked=true; $("startTimed").textContent="Start 60-second sprint";
     $("rTitle").textContent="Sprint complete"; $("rWhy").textContent=""; $("retryRound").hidden=true; $("againBtn").textContent="Sprint again"; $("rScore").innerHTML=`${half(st.points)} <small>points in 60 s</small>`;
     $("rPct").textContent=(st.total?Math.min(100,Math.round(100*st.points/st.total)):0)+"%"; $("rTotal").textContent=st.total; $("rBest").textContent=st.best;
     const miss=Object.entries(st.misses).sort((a,b)=>b[1]-a[1]).slice(0,5);
-    $("rMiss").innerHTML=miss.length?miss.map(([k,v])=>`<span>${k} ×${v}</span>`).join(""):"<span>None. Clean run.</span>";
+    $("rMiss").innerHTML=miss.length?miss.map(([k,v])=>`<span>${k} ×${v}</span>`).join(""):(st.total?"<span>None. Clean run.</span>":"<span>No answers this time.</span>");
     const L=LEVELS.find(x=>x.id===level); const d=new Date();
     $("rStamp").textContent=`Level ${L.id==="C"?"Custom":L.id} · ${L.name} · Key ${keySetting()==="mix"?"Mix":keyName(+keySetting())} · ${d.toLocaleDateString(undefined,{weekday:"short",month:"short",day:"numeric"})} ${d.toLocaleTimeString([], {hour:"numeric",minute:"2-digit"})}`;
-    $("results").hidden=false; celebrate() }
+    $("results").hidden=false; showResults(); celebrate() }
   $("startTimed").addEventListener("click",()=>{ if(timer||arc){stopTimer();newQuestion(true)} else startSprint() });
   $("retryRound").addEventListener("click",()=>arcRetry());
   $("againBtn").addEventListener("click",()=>lastMode==="arcade"?arcStart():startSprint());
@@ -836,10 +840,10 @@ input[type=range],input[type=checkbox],input[type=radio]{accent-color:var(--c-ac
     $("rScore").innerHTML=`${half(st.points)} <small>points · ${reached}${isNew?" · new high score":""}</small>`;
     $("rPct").textContent=(st.total?Math.min(100,Math.round(100*st.correct/st.total)):0)+"%"; $("rTotal").textContent=st.total; $("rBest").textContent=st.best;
     const miss=Object.entries(st.misses).sort((a,b)=>b[1]-a[1]).slice(0,5);
-    $("rMiss").innerHTML=miss.length?miss.map(([k,v])=>`<span>${k} ×${v}</span>`).join(""):"<span>None. Clean run.</span>";
+    $("rMiss").innerHTML=miss.length?miss.map(([k,v])=>`<span>${k} ×${v}</span>`).join(""):(st.total?"<span>None. Clean run.</span>":"<span>No answers this time.</span>");
     const L=LEVELS.find(x=>x.id===level); const d=new Date();
     $("rStamp").textContent=`CHALLENGE MODE · High score ${half(best)} · Level ${L.id==="C"?"Custom":L.id} · ${L.name} · Key ${keySetting()==="mix"?"Mix":keyName(+keySetting())} · ${d.toLocaleDateString(undefined,{weekday:"short",month:"short",day:"numeric"})} ${d.toLocaleTimeString([], {hour:"numeric",minute:"2-digit"})}`;
-    $("results").hidden=false; celebrate() }
+    $("results").hidden=false; showResults(); celebrate() }
   function arcEnd(){ if(!arc) return; arc=null; $("arcbar").hidden=true; $("arcMeter").hidden=true; $("arcSplash").hidden=true; $("watch").classList.remove("fire"); $("arcBtn").hidden=!$("chalOn").checked }
   $("arcBtn").addEventListener("click",()=>{ if(timer) stopTimer(); arcStart() });
   $("closeResults").addEventListener("click",()=>{$("results").hidden=true; stopTimer(); newQuestion(true)});
