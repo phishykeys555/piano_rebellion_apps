@@ -95,7 +95,7 @@ button{touch-action:manipulation;cursor:pointer}
 .dirmid{font:italic 700 12px/1.2 var(--f-serif);color:var(--ink-soft);text-align:center}
 
 /* ---------- meter / readout ---------- */
-.meter{margin-top:14px;border-radius:12px;padding:10px 12px;
+.meter{width:100%;max-width:440px;margin-top:14px;border-radius:12px;padding:10px 12px;
   background:linear-gradient(180deg,#2a170a,#170c05);box-shadow:inset 0 2px 10px rgba(0,0,0,.8),0 0 0 2px #8e6a2a,0 0 0 3px #4d3409,0 2px 0 3px rgba(255,255,255,.35);
   display:grid;grid-template-columns:1fr 1fr auto;gap:6px 10px;align-items:center}
 .cell .k{font:700 9.5px/1 var(--f-caps);letter-spacing:.2em;color:#c49a5a;opacity:.85}
@@ -175,7 +175,8 @@ button{touch-action:manipulation;cursor:pointer}
 .str.sel .p{color:#4a2a05}
 .str.hit:not(.sel){box-shadow:0 0 0 2px var(--amber),0 3px 0 #a88c58,0 0 12px rgba(255,160,50,.45)}
 .chromnote{display:none;font:italic 700 15px/1.35 var(--f-serif);color:var(--ink-soft);text-align:center;padding:6px 0}
-.chromatic .strings,.chromatic .auto{display:none}
+.chromatic .strings,.chromatic .strhead{display:none}
+#acc button{font:700 22px/1 var(--f-serif)}
 .chromatic .chromnote{display:block}
 
 /* settings */
@@ -229,7 +230,7 @@ button{touch-action:manipulation;cursor:pointer}
 <body>
 <div class="rig">
   <div class="cheek" aria-hidden="true"></div>
-  <main class="face off" id="face">
+  <main class="face" id="face">
     <div data-chma-head></div>
     <span class="screw s1" aria-hidden="true"></span><span class="screw s2" aria-hidden="true"></span>
     <span class="screw s3" aria-hidden="true"></span><span class="screw s4" aria-hidden="true"></span>
@@ -247,9 +248,9 @@ button{touch-action:manipulation;cursor:pointer}
           </div>
         </div>
         <div class="dirs" aria-label="Which way means sharp or flat">
-          <div class="dir"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 13a7 7 0 1 1-2.1-7.1"/><path d="M17.5 1.8l-.6 4.3-4.3-.6"/></svg><span><b>Flat</b><br>turns left</span></div>
+          <div class="dir"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 13a7 7 0 1 0 2.1-7.1"/><path d="M6.5 1.8l.6 4.3 4.3-.6"/></svg><span><b>Flat</b><br>turns left</span></div>
           <div class="dirmid">Still =<br>in tune</div>
-          <div class="dir" style="text-align:right"><span><b>Sharp</b><br>turns right</span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 13a7 7 0 1 0 2.1-7.1"/><path d="M6.5 1.8l.6 4.3 4.3-.6"/></svg></div>
+          <div class="dir" style="text-align:right"><span><b>Sharp</b><br>turns right</span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 13a7 7 0 1 1-2.1-7.1"/><path d="M17.5 1.8l-.6 4.3-4.3-.6"/></svg></div>
         </div>
 
         <div class="meter" id="meter" role="group" aria-label="Readout">
@@ -358,7 +359,7 @@ const S = { tuning:TUNINGS[0], a4:440, tol:1, acc:'sharp', auto:true, sel:5,
   cand:null, candN:0,
   f0:null, lastP:0,
   stat:null,             // latest strobe message
-  cents:null, centsSrc:'', lastSound:-1e9, ang:[0,0,0], bright:[0,0,0], lit:false };
+  cents:null, centsSrc:'', lastStrobe:-1e9, lastSound:-1e9, ang:[0,0,0], bright:[0,0,0], lit:false };
 
 try { const p = JSON.parse(localStorage.getItem('gr-strobe-v1') || '{}');
   const t = TUNINGS.find(x => x.id === p.t); if (t) S.tuning = t;
@@ -429,10 +430,10 @@ document.querySelectorAll('#acc button').forEach(b => b.addEventListener('click'
 /* ---------- target handling ---------- */
 function setTarget(m){
   S.target = { midi:m, f:freq(m), name:label(m, spellFor()) };
-  sendTarget(S.target.f); S.cents = null; S.stat = null;
+  sendTarget(S.target.f); S.cents = null; S.centsSrc = ''; S.stat = null;
 }
 function sendTarget(f){ if (S.node) S.node.port.postMessage({ target:f }); }
-function resetReadout(){ S.cents = null; S.stat = null; }
+function resetReadout(){ S.cents = null; S.centsSrc = ''; S.stat = null; }
 
 function onPitch(f0){
   S.f0 = f0; S.lastP = performance.now();
@@ -456,7 +457,9 @@ function onStat(m){
   if (!S.target || !m.present) return;
   let c = null, src = '';
   const coarse = (S.f0 && performance.now() - S.lastP < 600) ? 1200 * Math.log2(S.f0 / S.target.f) : null;
-  if (m.df !== null && m.n >= 48 && (coarse === null || Math.abs(coarse) < 40)) { c = 1200 * Math.log2((S.target.f + m.df) / S.target.f); src = 'strobe'; }
+  const now = performance.now();
+  if (m.df !== null && m.n >= 48 && (coarse === null || Math.abs(coarse) < 40)) { c = 1200 * Math.log2((S.target.f + m.df) / S.target.f); src = 'strobe'; S.lastStrobe = now; }
+  else if (S.centsSrc === 'strobe' && now - S.lastStrobe < 1200 && (coarse === null || Math.abs(coarse - S.cents) < 10)) return;  // re-measuring: hold the last strobe reading
   else if (coarse !== null) { c = coarse; src = 'pitch'; }
   if (c === null) return;
   if (S.cents === null || src !== S.centsSrc || Math.abs(c - S.cents) > 15) S.cents = c;
@@ -527,7 +530,8 @@ function readout(){
   const now = performance.now();
   const m = S.stat, fresh = S.running && m && m.present && S.target && S.cents !== null;
   const live = S.running && now - S.lastSound < 1500;
-  const inTune = !!(fresh && S.centsSrc === 'strobe' && Math.abs(S.cents) <= S.tol + 1e-9);
+  // hysteresis: once lit, stay lit until 0.3 c past the window, so the lamp never flickers on the edge
+  const inTune = !!(fresh && S.centsSrc === 'strobe' && Math.abs(S.cents) <= S.tol + (S.lit ? 0.3 : 1e-9));
   S.lit = inTune;
   $('jewel').classList.toggle('lit', inTune);
   $('sig').classList.toggle('lit', !!(S.running && m && m.lvl > 0.0025));
@@ -591,7 +595,7 @@ async function start(){
     stream.getAudioTracks().forEach(t => t.addEventListener('ended', stop));
     keepAwake();
   } catch (err) {
-    setPower(false); console.warn(err);
+    setPower(false); console.warn(err); S.lastErr = err && err.name;
     const n = err && err.name;
     if (n === 'NotAllowedError' || n === 'SecurityError' || n === 'PermissionDeniedError')
       showMsg('The tuner needs to hear your guitar. Tap <b>Allow</b> when your device asks about the microphone. If you tapped Don’t Allow, turn the microphone on for this site in your browser settings (iPhone/iPad Safari: tap <b>aA</b> in the address bar, then Website Settings, then Microphone), then tap Power again.' + openTab());
@@ -665,7 +669,7 @@ window.__tuner = {
     return { running:S.running, note:S.target ? label(S.target.midi, spellFor()) : null, target:S.target ? S.target.f : null,
       cents:S.cents, centsSrc:S.centsSrc, hz:S.target && S.cents !== null ? S.target.f * Math.pow(2, S.cents / 1200) : null,
       phase:m ? m.ph[0] : null, phases:m ? m.ph.slice() : null, df:m ? m.df : null, n:m ? m.n : 0, present:!!(m && m.present),
-      since:m ? m.since : null, t:m ? m.t : null, f0:S.f0, inTune:S.lit, level:m ? m.lvl : 0,
+      since:m ? m.since : null, t:m ? m.t : null, gl:m ? m.gl : 0, f0:S.f0, inTune:S.lit, level:m ? m.lvl : 0,
       ang:S.ang.slice(), tuning:S.tuning.id, a4:S.a4, tol:S.tol }; },
   setTuning(id){ const t = TUNINGS.find(x => x.id === id); if (t) { S.tuning = t; renderTuning(); } },
   setString(i){ if (i === 'auto') { S.auto = true; S.target = null; sendTarget(0); renderStrings(); } else pickString(i); },

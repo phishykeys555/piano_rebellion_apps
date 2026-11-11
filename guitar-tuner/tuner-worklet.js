@@ -44,7 +44,8 @@ class StrobeTuner extends AudioWorkletProcessor {
     this.hmag = new Float64Array(H);
     this.hw = 0; this.hn = 0;
     this.winBlocks = Math.round(0.6 * sr / 128);
-    this.blk = 0; this.hold = 0;
+    this.blk = 0; this.hold = 0; this.settle = 0; this.glitches = 0; this.jump = 0.15;
+    this.slopeBlk = new Float64Array(3);
     // --- level / onset ---
     this.slow = 0; this.present = false; this.quiet = 0; this.onsetBlk = -1e9;
     this.gate = 0.0025;
@@ -64,7 +65,8 @@ class StrobeTuner extends AudioWorkletProcessor {
     this.a = 1 - Math.exp(-TAU * fc / this.sr);
     this.st.fill(0); this.started = false;
     this.hn = 0;
-    this.hold = Math.ceil((4 / (TAU * fc) + 0.03) * this.sr / 128);   // let the filters settle
+    this.settle = Math.ceil(4 / (TAU * fc) * this.sr / 128);
+    this.hold = this.settle + Math.ceil(0.03 * this.sr / 128);   // let the filters settle
   }
 
   yin() {
@@ -111,7 +113,7 @@ class StrobeTuner extends AudioWorkletProcessor {
       for (let i = 0; i < n; i++) { const y = h[(i0 + i) % H] - y0; sy += y; sxy += i * y; }
       const slope = (n * sxy - sx * sy) / den / dt;         // rad/s
       const beat = slope / TAU;                             // Hz at this harmonic
-      beats[b] = beat;
+      beats[b] = beat; this.slopeBlk[b] = slope * dt;
       const w = this.mag[b] * this.mag[b];
       num += w * beat / HARM[b]; wsum += w;
     }
@@ -166,6 +168,7 @@ class StrobeTuner extends AudioWorkletProcessor {
     }
     // strobe phases
     if (on) {
+      let sb = 0;
       for (let b = 0; b < 3; b++) {
         const I = st[b * 6 + 2], Q = st[b * 6 + 5];
         const p = Math.atan2(Q, I);
@@ -173,14 +176,27 @@ class StrobeTuner extends AudioWorkletProcessor {
         if (!this.started) { this.prev[b] = p; }
         let dp = p - this.prev[b];
         if (dp > Math.PI) dp -= TAU; else if (dp < -Math.PI) dp += TAU;
-        this.unw[b] += dp; this.prev[b] = p;
+        this.unw[b] += dp; this.prev[b] = p; 
+        if (this.mag[b] > this.mag[sb]) sb = b;
       }
       this.started = true;
       if (this.hold > 0) this.hold--;
       else if (this.present && this.mag[0] + this.mag[1] + this.mag[2] > this.gate * 0.05) {
         const H = this.H;
-        for (let b = 0; b < 3; b++) this.hist[b][this.hw] = this.unw[b];
-        this.hw = (this.hw + 1) % H; if (this.hn < H) this.hn++;
+        // glitch guard: a dropped or repeated stretch of input makes the phase step. Compare the
+        // last 24 blocks of every band that carries real signal with its fitted slope; restart on a jump.
+        if (this.hn >= 48) {
+          const i24 = (this.hw - 24 + H) % H, big = this.mag[sb] * 0.2;
+          for (let b = 0; b < 3; b++) {
+            if (this.mag[b] < big) continue;
+            const dev = Math.abs(this.unw[b] - this.hist[b][i24] - 24 * this.slopeBlk[b]);
+            if (dev > this.jump) { this.hn = 0; this.hold = Math.max(this.hold, this.settle); this.glitches++; break; }
+          }
+        }
+        if (this.hold === 0) {
+          for (let b = 0; b < 3; b++) this.hist[b][this.hw] = this.unw[b];
+          this.hw = (this.hw + 1) % H; if (this.hn < H) this.hn++;
+        }
       } else if (!this.present) this.hn = 0;
     }
     // pitch finder, only while there is sound
@@ -196,7 +212,7 @@ class StrobeTuner extends AudioWorkletProcessor {
       this.port.postMessage({
         type: 's', t: currentTime, tgt: this.target, ph: [this.unw[0], this.unw[1], this.unw[2]],
         mag: [this.mag[0], this.mag[1], this.mag[2]], df: g ? g.df : null, beats: g ? g.beats : null,
-        n: g ? g.n : 0, lvl: rms, present: this.present, since: (this.blk - this.onsetBlk) * 128 / this.sr
+        n: g ? g.n : 0, gl: this.glitches, lvl: rms, present: this.present, since: (this.blk - this.onsetBlk) * 128 / this.sr
       });
     }
     const out = outputs[0] && outputs[0][0]; if (out) out.fill(0);
