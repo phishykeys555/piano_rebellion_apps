@@ -122,6 +122,9 @@ input[type=range]{accent-color:var(--c-act)}
 #results .row{gap:8px} #results .row button{flex:1 1 auto;min-height:44px}
 button:disabled{opacity:.45;cursor:default;box-shadow:none;transform:none}
 .micp select{min-height:40px} .seg button{min-height:42px} .micp input[type=range]{height:32px}
+/* narrow phones (320 px): level names wrap inside their buttons instead of pushing the grid wider than the card */
+.levels{grid-template-columns:repeat(4,minmax(0,1fr))} .lvl{min-width:0} .lvl span{overflow-wrap:anywhere;hyphens:auto;-webkit-hyphens:auto}
+@media (max-width:360px){ .lvl span{font-size:10px} .lvl{padding:8px 2px} }
 </style>
 </head>
 <body>
@@ -501,7 +504,7 @@ button:disabled{opacity:.45;cursor:default;box-shadow:none;transform:none}
   $("retryRound").addEventListener("click",()=>arcRetry());
   ["counts","guide"].forEach(id=>{ $(id).checked=store.get(id,id==="counts"); $(id).addEventListener("change",e=>{ store.set(id,e.target.checked); drawBar(null) }) });
   ["cursor","lightup"].forEach(id=>{ $(id).checked=store.get(id,true)!==false; $(id).addEventListener("change",e=>store.set(id,e.target.checked)) }); try{store.set("who","")}catch(e){} // no names stored (privacy)
-  LEVELS.forEach(L=>{ const b=document.createElement("button"); b.className="lvl"; b.innerHTML=`<b>L${L.id}</b><span>${L.name}</span>`;
+  LEVELS.forEach(L=>{ const b=document.createElement("button"); b.className="lvl"; b.innerHTML=`<b>L${L.id}</b><span>${L.name.replace("Syncopation","Synco&shy;pation")}</span>`;
     b.addEventListener("click",()=>{ if(sess||arc) stopSession(true); level=L.id; store.set("level",level); mark(); round=[]; stats(); newBar(); $("go").textContent="Start"; msg(null,"Level "+L.id+": "+L.name,"Press Hear it to listen first, or Start.") }); b.dataset.id=L.id; $("levels").appendChild(b) });
   TEMPOS.forEach(t=>{ const b=document.createElement("button"); b.textContent=t; b.dataset.t=t; b.addEventListener("click",()=>{ if(sess||arc) stopSession(true); bpm=t; store.set("bpm",bpm); mark(); stats() }); $("tempo").appendChild(b) });
   function mark(){ document.querySelectorAll(".lvl").forEach(b=>b.setAttribute("aria-pressed",String(b.dataset.id===level))); document.querySelectorAll("#tempo button").forEach(b=>b.setAttribute("aria-pressed",String(+b.dataset.t===bpm))) }
@@ -635,6 +638,6 @@ button:disabled{opacity:.45;cursor:default;box-shadow:none;transform:none}
   if(document.fonts) document.fonts.ready.then(()=>drawBar(null));
 })();
 </script>
-<p class="appver" style="text-align:center;font-size:11px;opacity:.6;margin:18px 0 10px;font-family:ui-monospace,Menlo,monospace">Rhythm Trainer · Version 2026-11-11.10</p>
+<p class="appver" style="text-align:center;font-size:11px;opacity:.6;margin:18px 0 10px;font-family:ui-monospace,Menlo,monospace">Rhythm Trainer · Version 2026-11-11.11</p>
 </body>
 </html>
