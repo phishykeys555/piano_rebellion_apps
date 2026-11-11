@@ -63,6 +63,11 @@ button.on small{color:var(--c-sel-ink);opacity:.85}
 .times{font:500 12px var(--f-num)}
 .grid button{font-family:var(--f-num);font-weight:700;font-size:13px}
 .goal{color:var(--c-ink)}
+/* narrow Notion columns / 320px phones: five level buttons always fit (the "Ages" word drops first) */
+.levels{grid-template-columns:repeat(5,minmax(0,1fr))}
+@media (max-width:360px){.levels .ag{display:none}.levels button{font-size:11.5px}}
+/* position bar: 40px tall touch target, same look */
+.bar{height:40px}.bar .tr,.bar .fill{top:16px}.bar .knob{top:11px}
 .goal button{padding:0 12px;font-size:13px;min-height:40px!important;display:block;margin:8px 0 2px!important}
 button:focus-visible,.bar:focus-visible{outline:2px solid var(--c-sel);outline-offset:2px}
 .tip{color:var(--c-mut)}
@@ -98,7 +103,7 @@ button,a,label,summary,select,input{-webkit-tap-highlight-color:transparent}
  <p class="tip" style="margin-top:10px">Start at a tempo you can play clean. Switching tempo keeps your place in the exercise. Light touch = faster.</p>
 </div>
 
-<p class="appver">Hanon Speed Trainer · Version 2026-11-11.5</p>
+<p class="appver">Hanon Speed Trainer · Version 2026-11-11.6</p>
 </main>
 <script>
 const $=id=>document.getElementById(id);
@@ -136,7 +141,7 @@ function render(){
  $('ttl').textContent='Hanon Exercise '+ex+' · Speed Trainer';document.title='Hanon Exercise '+ex+' · Clarendon Hills Music Academy';
  document.querySelectorAll('#exSeg button').forEach(b=>b.classList.toggle('on',+b.dataset.ex===ex));
  $('bpmV').textContent=bpm;$('down').disabled=bpm<=50;$('up').disabled=bpm>=280;
- $('levels').innerHTML=LEVELS.map((L,i)=>`<button data-l="${i}" class="${i===level?'on':''}" style="${i===level?'border-color:var('+L.c+')':''}">${L.n}<small>${L.a}</small></button>`).join('');
+ $('levels').innerHTML=LEVELS.map((L,i)=>`<button data-l="${i}" class="${i===level?'on':''}" style="${i===level?'border-color:var('+L.c+')':''}">${L.n}<small>${L.a.replace(/^Ages /,'<span class="ag">Ages </span>')}</small></button>`).join('');
  document.querySelectorAll('#hands button').forEach(b=>b.classList.toggle('on',b.dataset.h===hand));
  const tgt=GOALS[ex][level][HI[hand]];
  const g=$('goal');g.style.background='color-mix(in srgb,var('+LEVELS[level].c+') 14%,transparent)';

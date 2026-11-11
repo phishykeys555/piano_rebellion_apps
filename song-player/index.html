@@ -64,7 +64,7 @@ select{font:600 13px var(--f-body);color:var(--c-ink);background:var(--c-key);bo
 #mixChips{margin:0 0 6px}
 .part{grid-template-columns:112px 1fr 40px 40px;gap:8px;margin-top:6px}
 .part b{font-size:13px;font-weight:600}
-.part button{min-height:34px;font:700 12px var(--f-num)}
+.part button{min-height:40px;font:700 12px var(--f-num)}
 .part button.m.on{background:var(--c-mut);border-color:var(--c-mut);color:var(--c-panel)}
 .appver{color:var(--c-mut)}
 @media (max-width:440px){.part{grid-template-columns:106px 1fr 38px 38px}}
@@ -274,5 +274,5 @@ $('xbtn').onclick=()=>{if(!inFrame||own||xRun||!ready)return exportMp3();
 document.querySelector('.ghostbtn').addEventListener('click',()=>{try{unlock()}catch(e){}});
 document.querySelector('.ghostbtn').addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();e.stopPropagation();$('file').click()}});
 window.__sp={exp:exportMp3,ctx:()=>ctx,lastX:()=>lastX,level:()=>{if(!an)return 0;const b=new Float32Array(2048);an.getFloatTimeDomainData(b);let q=0;for(const v of b)q+=v*v;return Math.sqrt(q/2048)},solo:i=>{solo=i;sendGains()},state:()=>({ready,playing,pos:now(),dur,parts,gains:gains(),eng:engineGains()}),seek,start,stop};
-</script><p class="appver" style="text-align:center;font-size:11px;opacity:.6;margin:12px 0 8px;font-family:ui-monospace,Menlo,monospace">Song Player · Version 2026-11-11.8</p>
+</script><p class="appver" style="text-align:center;font-size:11px;opacity:.6;margin:12px 0 8px;font-family:ui-monospace,Menlo,monospace">Song Player · Version 2026-11-11.9</p>
 </body></html>

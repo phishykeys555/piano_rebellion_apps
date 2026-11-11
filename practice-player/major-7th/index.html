@@ -54,7 +54,7 @@ button.on small{color:var(--c-sel-ink);opacity:.85}
 input[type=range],.chk input{accent-color:var(--c-act)}
 select{font:600 13px var(--f-body);color:var(--c-ink);background:var(--c-key);border:1px solid var(--c-key-b);border-radius:10px}
 details{margin-top:16px;background:var(--c-panel2);border:1px solid var(--c-line);border-radius:16px;padding:12px}
-summary{line-height:1.5}
+summary{line-height:1.5;padding:12px 0;margin:-12px 0}.nw{display:inline-flex;align-items:center;gap:6px;white-space:nowrap}
 .steps{color:var(--c-ink);margin-top:14px;line-height:1.5}.keys{color:var(--c-mut)}
 .appver{color:var(--c-mut)}
 select{min-height:40px}
@@ -77,7 +77,7 @@ button,a,label,summary,select,input{-webkit-tap-highlight-color:transparent}
 <div class="row"><button id="back">↺ 10 s</button><button id="fwd">10 s ↻</button><button id="reset">Reset</button><label class="chk"><input type="checkbox" id="loop" checked> Loop</label></div>
 <details id="adv"><summary>ADVANCED: section loop + speed trainer</summary>
 <div class="row"><button id="setA">Set A</button><button id="setB">Set B</button><button id="clrAB">Clear</button><span class="keys" id="abTxt">No section set: loops the whole track.</span></div>
-<div class="row"><label class="chk"><input type="checkbox" id="ramp"> Speed up each loop by</label><select id="rampStep" aria-label="Speed-up step"><option value="2">2%</option><option value="5" selected>5%</option><option value="10">10%</option></select><span class="keys">until</span><select id="rampMax" aria-label="Top speed"><option value="100">100%</option><option value="110">110%</option><option value="125">125%</option><option value="150" selected>150%</option></select></div>
+<div class="row"><label class="chk"><input type="checkbox" id="ramp"> Speed up each loop by</label><select id="rampStep" aria-label="Speed-up step"><option value="2">2%</option><option value="5" selected>5%</option><option value="10">10%</option></select><span class="nw"><span class="keys" style="margin:0">until</span><select id="rampMax" aria-label="Top speed"><option value="100">100%</option><option value="110">110%</option><option value="125">125%</option><option value="150" selected>150%</option></select></span></div>
 <p class="keys">Keyboard: Space play/pause · ← → 5 s · ↑ ↓ speed · [ ] key · A / B set section</p>
 </details>
 <ol class="steps"><li>Ascending: one inversion per measure.</li><li>Ascending and descending: split the measure, two inversions each.</li><li>Bonus: add the block-and-fill pattern.</li></ol>
@@ -152,5 +152,5 @@ document.addEventListener('visibilitychange',()=>{if(!document.hidden&&playing&&
 const sv=LS.get(),ok=(x,lo,hi)=>x!=null&&x!==''&&isFinite(+x)&&+x>=lo&&+x<=hi;if(ok(sv.s,50,150))$('speed').value=sv.s;if(ok(sv.k,-6,6))$('key').value=sv.k;if(ok(sv.v,0,150))$('vol').value=sv.v;if(sv.l===false)$('loop').checked=false;
 pick(ok(sv.t,0,2)?Math.round(+sv.t):0);
 window.__m7={state:()=>({ready,playing,pos:now(),dur,cur}),ctx:()=>ctx};
-</script><p class="appver" style="text-align:center;font-size:11px;opacity:.6;margin:18px 0 10px;font-family:ui-monospace,Menlo,monospace">Major 7th Play-Along · Version 2026-11-11.5</p>
+</script><p class="appver" style="text-align:center;font-size:11px;opacity:.6;margin:18px 0 10px;font-family:ui-monospace,Menlo,monospace">Major 7th Play-Along · Version 2026-11-11.6</p>
 </body></html>
