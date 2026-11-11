@@ -328,7 +328,7 @@ button{touch-action:manipulation;cursor:pointer}
     </div>
 
     <p class="privacy">Your sound stays on this device. Nothing is recorded or uploaded.</p>
-    <p class="appver">Strobe Tuner &middot; Version 2026-11-11.5</p>
+    <p class="appver">Strobe Tuner &middot; Version 2026-11-11.6</p>
   </main>
   <div class="cheek" aria-hidden="true"></div>
 </div>
@@ -355,7 +355,7 @@ const TUNINGS = [
 ];
 
 const S = { tuning:TUNINGS[0], a4:440, tol:1, acc:'sharp', auto:true, sel:5,
-  running:false, ctx:null, node:null, stream:null, src:null, sink:null, wake:null, moduleReady:false,
+  running:false, ctx:null, node:null, stream:null, src:null, sink:null, wake:null, wakeBusy:false, moduleReady:false, startTok:0, ref:null,
   target:null,           // {midi, f, name}
   cand:null, candN:0,
   f0:null, lastP:0, lastRead:-1e9,
@@ -573,7 +573,7 @@ function readout(){
   if (fresh) {
     $('vCents').textContent = fmtC(S.cents);
     $('vHz').innerHTML = (S.target.f * Math.pow(2, S.cents / 1200)).toFixed(2) + '<small>Hz</small>';
-  } else if (!S.target) { $('vCents').textContent = '—'; $('vHz').innerHTML = '—<small>Hz</small>'; }
+  } else if (!S.target || S.cents === null) { $('vCents').textContent = '—'; $('vHz').innerHTML = '—<small>Hz</small>'; }   // a new note never shows the last note's reading
   let st;
   if (!S.running) st = 'Tap Power, then play one string.';
   else if (!fresh) st = live ? 'Listening…' : (S.auto || !S.tuning.m.length ? 'Listening… play one string.' : 'Listening… play string ' + (6 - S.sel) + ' (' + label(S.tuning.m[S.sel], spellFor()) + ').');
@@ -604,24 +604,33 @@ async function start(){
     showMsg('This browser can’t reach the microphone here. Open the tuner in Safari or Chrome (the page must start with https).' + openTab()); return; }
   const ctx = getCtx();
   if (!ctx || !ctx.audioWorklet) { showMsg('This browser is too old for the tuner. Update your device, or try Safari or Chrome.'); return; }
-  const resumed = ctx.resume();                 // inside the tap, before any await (iOS)
+  const resumed = ctx.resume().catch(() => {});  // inside the tap, before any await (iOS)
   setPower('wait');
+  const tok = ++S.startTok;                     // a stop() while warming up cancels this start
+  let stream = null;
+  const drop = () => { if (stream) stream.getTracks().forEach(t => { try { t.stop(); } catch (e) {} }); stream = null; };
   try {
     if (navigator.audioSession) { try { navigator.audioSession.type = 'play-and-record'; } catch (e) {} }
-    const stream = await navigator.mediaDevices.getUserMedia({ audio:{ echoCancellation:false, noiseSuppression:false, autoGainControl:false, channelCount:1 } });
+    stream = await navigator.mediaDevices.getUserMedia({ audio:{ echoCancellation:false, noiseSuppression:false, autoGainControl:false, channelCount:1 } });
+    if (tok !== S.startTok) { drop(); return; }
     await resumed;
     if (!S.moduleReady) { await ctx.audioWorklet.addModule('tuner-worklet.js'); S.moduleReady = true; }
+    if (tok !== S.startTok) { drop(); return; }
     S.stream = stream;
     S.src = ctx.createMediaStreamSource(stream);
-    S.node = new AudioWorkletNode(ctx, 'strobe-tuner', { numberOfInputs:1, numberOfOutputs:1, outputChannelCount:[1], channelCount:1, channelCountMode:'explicit' });
+    const node = S.node = new AudioWorkletNode(ctx, 'strobe-tuner', { numberOfInputs:1, numberOfOutputs:1, outputChannelCount:[1], channelCount:1, channelCountMode:'explicit' });
     S.sink = ctx.createGain(); S.sink.gain.value = 0;
-    S.src.connect(S.node); S.node.connect(S.sink); S.sink.connect(ctx.destination);
-    S.node.port.onmessage = e => { const m = e.data; if (m.type === 'p') onPitch(m); else onStat(m); };
+    S.src.connect(node); node.connect(S.sink); S.sink.connect(ctx.destination);
+    // messages still in flight from a node that was stopped are dropped
+    node.port.onmessage = e => { if (node !== S.node || !S.running) return; const m = e.data; if (m.type === 'p') onPitch(m); else onStat(m); };
     sendTarget(S.target ? S.target.f : 0);
     S.running = true; setPower(true);
-    stream.getAudioTracks().forEach(t => t.addEventListener('ended', stop));
+    const tracks = stream.getAudioTracks();
+    tracks.forEach(t => t.addEventListener('ended', () => { if (S.stream && S.stream.getAudioTracks().includes(t)) stop(); }));
     keepAwake();
   } catch (err) {
+    drop();
+    if (tok !== S.startTok) return;
     setPower(false); console.warn(err); S.lastErr = err && err.name;
     const n = err && err.name;
     if ((n === 'NotAllowedError' || n === 'SecurityError') && isFramed && micPolicyOff()) showMsg(FRAMED_MSG + openTab());
@@ -635,11 +644,12 @@ async function start(){
   }
 }
 function stop(){
-  S.running = false;
+  S.running = false; S.startTok++;
   try { S.stream && S.stream.getTracks().forEach(t => t.stop()); } catch (e) {}
+  if (S.node) { try { S.node.port.onmessage = null; S.node.port.postMessage({ stop:true }); } catch (e) {} }   // lets the worklet end
   try { S.src && S.src.disconnect(); S.node && S.node.disconnect(); S.sink && S.sink.disconnect(); } catch (e) {}
-  S.stream = S.src = S.node = S.sink = null; S.stat = null;
-  if (S.wake) { S.wake.release().catch(() => {}); S.wake = null; }
+  S.stream = S.src = S.node = S.sink = null; S.stat = null; S.f0 = null;
+  if (S.wake) { const w = S.wake; S.wake = null; try { w.release().catch(() => {}); } catch (e) {} }
   if (S.auto) S.target = null;
   setPower(false); renderStrings();
 }
@@ -652,10 +662,21 @@ function setPower(on){
 $('power').addEventListener('click', () => { if (S.running) stop(); else if ($('powerBig').textContent !== 'Warming up') start(); });
 
 async function keepAwake(){
-  if (!('wakeLock' in navigator) || !S.running || document.visibilityState !== 'visible') return;
-  try { S.wake = await navigator.wakeLock.request('screen'); S.wake.addEventListener('release', () => { S.wake = null; }); } catch (e) {}
+  if (!('wakeLock' in navigator) || !S.running || S.wake || S.wakeBusy || document.visibilityState !== 'visible') return;
+  S.wakeBusy = true;
+  let w = null;
+  try { w = await navigator.wakeLock.request('screen'); } catch (e) {}
+  S.wakeBusy = false;
+  if (!w) return;
+  // turned off (or a second request won) while the request was pending: give it straight back
+  if (!S.running || S.wake) { try { w.release().catch(() => {}); } catch (e) {} return; }
+  S.wake = w; w.addEventListener('release', () => { if (S.wake === w) S.wake = null; });
 }
-document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') { if (S.running && !S.wake) keepAwake(); if (S.ctx && S.running) S.ctx.resume(); } });
+document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') { if (S.running && !S.wake) keepAwake(); if (S.ctx && S.running) S.ctx.resume().catch(() => {}); } });
+// a phone call, Siri or another app can suspend the audio; the next tap anywhere wakes it (iOS needs a gesture)
+const wakeAudio = () => { if (S.running && S.ctx && S.ctx.state !== 'running') S.ctx.resume().catch(() => {}); };
+document.addEventListener('pointerdown', wakeAudio, true);
+document.addEventListener('keydown', wakeAudio, true);
 
 /* reference tone: a soft plucked string, built from decaying harmonics */
 function refMidi(){
@@ -667,9 +688,14 @@ function updateRef(){ $('refTxt').textContent = 'Play ' + label(refMidi(), spell
 $('ref').addEventListener('click', () => {
   const ctx = getCtx(); if (!ctx) return;
   if (!S.running && navigator.audioSession) { try { navigator.audioSession.type = 'playback'; } catch (e) {} }
-  ctx.resume();
+  ctx.resume().catch(() => {});
+  // one tone at a time: a new tap quickly fades the previous one out
+  if (S.ref) { const p = S.ref; S.ref = null;
+    try { const tt = ctx.currentTime; p.out.gain.cancelScheduledValues(tt); p.out.gain.setValueAtTime(p.out.gain.value, tt); p.out.gain.linearRampToValueAtTime(0, tt + 0.03);
+      p.oscs.forEach(o => { try { o.stop(tt + 0.04); } catch (e) {} }); } catch (e) {} }   // its onended disconnects it
   const f = freq(refMidi()), t0 = ctx.currentTime + 0.02, dur = 3.2;
   const out = ctx.createGain(); out.gain.value = 0.32;
+  const oscs = [];
   const lp = ctx.createBiquadFilter(); lp.type = 'lowpass'; lp.frequency.value = Math.min(6000, f * 9); lp.Q.value = 0.5;
   lp.connect(out); out.connect(ctx.destination);
   const amps = [1, .55, .38, .26, .18, .12, .08, .05];
@@ -679,11 +705,14 @@ $('ref').addEventListener('click', () => {
     const gn = ctx.createGain(); gn.gain.setValueAtTime(0, t0);
     gn.gain.linearRampToValueAtTime(a / 3, t0 + 0.006);
     gn.gain.setTargetAtTime(0, t0 + 0.006, 1.1 / (1 + 0.5 * i));
-    o.connect(gn); gn.connect(lp); o.start(t0); o.stop(t0 + dur);
+    o.connect(gn); gn.connect(lp); o.start(t0); o.stop(t0 + dur); oscs.push(o);
   });
-  const btn = $('ref'); btn.classList.add('playing'); setTimeout(() => btn.classList.remove('playing'), 900);
-  setTimeout(() => { try { out.disconnect(); } catch (e) {} }, (dur + 0.2) * 1000);
+  const me = { out, oscs }; S.ref = me;
+  // tidy up when the audio clock says the tone is over (a wall-clock timer can fire early if the audio was paused)
+  if (oscs[0]) oscs[0].onended = () => { if (S.ref === me) S.ref = null; try { out.disconnect(); } catch (e) {} };
+  const btn = $('ref'); btn.classList.add('playing'); clearTimeout(refGlow); refGlow = setTimeout(() => btn.classList.remove('playing'), 900);
 });
+let refGlow = 0;
 
 /* ---------- init ---------- */
 $('calOut').textContent = S.a4 + ' Hz'; setTol(S.tol); setAcc(S.acc);
