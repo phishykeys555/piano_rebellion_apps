@@ -185,7 +185,7 @@ button:focus-visible,summary:focus-visible,input:focus-visible{outline:3px solid
       <div><b>Missed most</b><div class="miss" id="rMiss"></div></div>
       <div class="why" id="rWhy"></div><div class="stamp" id="rStamp"></div>
       <p class="tip" style="text-align:left">Screenshot this screen and send it to your instructor.</p>
-      <div class="actions"><button class="btn" id="closeBtn">Back to practice</button><button class="btn" id="retryRound" hidden>Retry round 2</button><button class="btn primary" id="againBtn">Challenge again</button></div>
+      <div class="actions"><button class="btn" id="closeBtn">Back to practice</button><button class="btn primary" id="againBtn">Challenge again</button></div>
     </div>
   </div>
 
@@ -194,7 +194,7 @@ button:focus-visible,summary:focus-visible,input:focus-visible{outline:3px solid
     <label><input type="checkbox" id="labelsOn"> Show letter names on every white key (easier)</label>
     <label><input type="checkbox" id="flatsOn"> Call black keys by their flat name (D♭) in Find the key</label>
   </details>
-  <p class="appver" id="appVer">Key Finder · Version 2026-11-11.8</p>
+  <p class="appver" id="appVer">Key Finder · Version 2026-11-11.9</p>
 </div>
 
 <script>
@@ -292,7 +292,7 @@ button:focus-visible,summary:focus-visible,input:focus-visible{outline:3px solid
   // Round 1 is a 30-second warm-up whose score sets the targets. Rounds 2-5 each have their own fresh target (extra points never carry),
   // then a bonus round where every point counts double. One try per key. Last 10 s of a round = on fire, 2x points. Miss a target = game over.
   const ARC_T=30, ARC_FIRE=10;
-  let arc=null, tLeft=ARC_T, splashTok=0, arcRetryRound=0, arcIncSaved=null;
+  let arc=null, tLeft=ARC_T, splashTok=0;
   const mult=()=>arc&&(arc.bonus||tLeft<=ARC_FIRE)?2:1;
   // floors scale with how hard the level is and how slow the answer is (Find the key means hunting on the keyboard)
   function arcFactor(){ return ({"1":1,"2":1,"3":.8,"4":.7,"5":.6}[level]||.8)*(mode==="find"?.9:1) }
@@ -315,9 +315,6 @@ button:focus-visible,summary:focus-visible,input:focus-visible{outline:3px solid
     const tok=++splashTok; setTimeout(()=>{ if(tok!==splashTok) return; sp.hidden=true; if(arc) then() },ms) }   // a stopped or restarted challenge never wakes an old splash
   function arcStart(){ stopChallenge(); resetScore(); sheet(false); arc={round:1,bonus:false,warm:true,needs:[],start:0}; tLeft=ARC_T; arcUI(true); showClock(); render();
     arcSplash("ROUND 1",`Warm-up: ${mode==="name"?"name":"find"} as many keys as you can in 30 seconds. Your score sets your targets. One try per key, no second chances. Last 10 seconds = 2x points.`,2600,arcRound,"CHALLENGE MODE") }
-  function arcRetry(){ const r=arcRetryRound||1; if(r<2||!arcIncSaved) return arcStart(); stopChallenge(); resetScore(); sheet(false);
-    arc={round:r,bonus:false,warm:false,inc:arcIncSaved.slice(),needs:[],start:0}; arc.needs[r-1]=arc.inc[r-1]; tLeft=ARC_T; arcUI(true); showClock(); render();
-    arcSplash(`ROUND ${r}`,`Target this round: ${arc.inc[r-1]} points.`,2000,arcRound) }
   function arcRound(){ clearInterval(timer); tLeft=ARC_T; const f=$("tFill"); f.style.transition="none"; showClock(); void f.offsetWidth; f.style.transition=""; arcBar(); newQ();   // a fresh round's clock bar snaps full, never slides back up
     timer=setInterval(()=>{ tLeft--; showClock(); arcBar(); if(tLeft<=0) arcRoundEnd() },1000) }
   function arcRoundEnd(){ clearInterval(timer); timer=null; clearTimeout(nextT); locked=true;   // a key answered in the last second never opens a new question under the splash
@@ -325,7 +322,7 @@ button:focus-visible,summary:focus-visible,input:focus-visible{outline:3px solid
     if(arc.warm){ // each later round asks for more than the warm-up (1x, 1.15x, 1.3x, 1.5x), never below a floor for this level and game type, so a sandbagged warm-up can't make every round a gimme
       const B=Math.max(3,st.pts), RAMP=[0,0,1,1.15,1.3,1.5], f=arcFactor(), STEP=[10,14,16,20,24]; arc.inc=[st.pts];
       for(let r=2;r<=5;r++){ const floor=Math.max(3,Math.round(0.5*STEP[r-1]*f)), want=Math.round(B*RAMP[r]); arc.inc.push(Math.max(floor,want,arc.inc[r-2]+(r>2?1:0))) }
-      arc.start=st.pts; arc.needs=[st.pts,st.pts+arc.inc[1]]; arc.warm=false; arcIncSaved=arc.inc.slice(); arc.round=2; arc.hit=false; arcBar();
+      arc.start=st.pts; arc.needs=[st.pts,st.pts+arc.inc[1]]; arc.warm=false; arc.round=2; arc.hit=false; arcBar();
       return arcSplash("ROUND 2",`Target this round: ${arc.inc[1]} points. Fresh count, extras don't carry.`,2600,arcRound,`WARM-UP DONE · YOUR BASELINE ${st.pts}`) }
     const need=arc.needs[arc.round-1];
     if(st.pts<need) return arcFinish(false,need-arc.start,st.pts-arc.start);
@@ -340,7 +337,7 @@ button:focus-visible,summary:focus-visible,input:focus-visible{outline:3px solid
     splashTok++; clearInterval(timer); timer=null; clearTimeout(nextT); arc=null; arcUI(false); locked=true;
     $("rTitle").textContent=won?"Challenge cleared!":"Challenge over";
     $("rWhy").textContent=won?(got>=need?`All 5 rounds cleared and the bonus target hit (${got} / ${need}).`:`All 5 rounds cleared. Bonus target was ${need}; you had ${got}.`):`Round ${failedRound} target was ${need}. You had ${got}. Hit the target before the 30 seconds run out to unlock Round ${failedRound+1}.`;
-    arcRetryRound=won?0:failedRound; $("retryRound").hidden=won||failedRound<2; $("retryRound").textContent=`Retry round ${failedRound}`;
+    
     const pct=st.total?Math.min(100,Math.round(100*st.correct/st.total)):0;
     $("rScore").innerHTML=`${st.pts} <small>points · ${reached}${isNew?" · new high score":""}</small>`; $("rPct").textContent=pct+"%"; $("rTotal").textContent=st.total; $("rBest").textContent=st.best;
     const miss=Object.entries(st.miss).sort((a,b)=>b[1]-a[1]).slice(0,5); $("rMiss").innerHTML=miss.length?miss.map(([k,v])=>`<span>${k} ×${v}</span>`).join(""):(st.total?"<span>None. Clean run.</span>":"<span>No answers this time.</span>");
@@ -368,7 +365,7 @@ button:focus-visible,summary:focus-visible,input:focus-visible{outline:3px solid
     if(id==="labelsOn") $("piano").querySelectorAll(".w").forEach(b=>label(b,+b.dataset.midi)); if(id==="flatsOn"&&q&&mode==="find"&&!locked) findPrompt() }) });
   $("resetBtn").addEventListener("click",()=>{ stopChallenge(); resetScore(); newQ() });
   $("chalBtn").addEventListener("click",()=>{ if(arc){ stopChallenge(); newQ() } else arcStart() });   // Start Challenge doubles as Stop while a run is on (splash included)
-  $("againBtn").addEventListener("click",arcStart); $("retryRound").addEventListener("click",arcRetry);
+  $("againBtn").addEventListener("click",arcStart);
   $("closeBtn").addEventListener("click",()=>{ sheet(false); resetScore(); newQ(); try{ $("chalBtn").focus({preventScroll:true}) }catch(e){} });
   document.addEventListener("keydown",e=>{ if(mode!=="name"||e.target.tagName==="INPUT"||e.repeat||e.metaKey||e.ctrlKey||e.altKey) return; const k=e.key.toUpperCase(); const i=["C","D","E","F","G","A","B"].indexOf(k); if(i<0) return;
     let pc=[0,2,4,5,7,9,11][i]; if(e.shiftKey){ if(!BLACK.includes(pc+1)) return; pc++ } const btn=document.querySelector(`.pad button[data-pc="${pc}"]`); padTap(pc,btn) });
