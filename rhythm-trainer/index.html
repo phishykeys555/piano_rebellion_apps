@@ -5,7 +5,9 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>Rhythm Trainer · Clarendon Hills Music Academy</title><meta name="description" content="Read a rhythm, tap or clap it, and see every hit line up under the notes. 8 levels up to syncopation."><meta property="og:type" content="website"><meta property="og:site_name" content="Clarendon Hills Music Academy"><meta property="og:title" content="Rhythm Trainer · Clarendon Hills Music Academy"><meta property="og:description" content="Read a rhythm, tap or clap it, and see every hit line up under the notes. 8 levels up to syncopation."><meta property="og:url" content="https://phishykeys555.github.io/piano_rebellion_apps/rhythm-trainer/"><meta property="og:image" content="https://phishykeys555.github.io/piano_rebellion_apps/share/rhythm-trainer.png"><meta property="og:image:width" content="1200"><meta property="og:image:height" content="630"><meta property="og:image:alt" content="Rhythm Trainer · Clarendon Hills Music Academy"><meta name="twitter:card" content="summary_large_image"><meta name="twitter:title" content="Rhythm Trainer · Clarendon Hills Music Academy"><meta name="twitter:description" content="Read a rhythm, tap or clap it, and see every hit line up under the notes. 8 levels up to syncopation."><meta name="twitter:image" content="https://phishykeys555.github.io/piano_rebellion_apps/share/rhythm-trainer.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Music&family=Archivo:wght@400;600;800&family=JetBrains+Mono:wght@500;700&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Music&display=swap">
+<link rel="stylesheet" href="../shared/chma.css">
+<script src="../shared/brand.js"></script>
 <style>
 /* Layout: level + tempo pickers, one card with the written bar on engraving paper, the tap timeline under it (aligned to the notes), a big tap pad, and a results sheet after 5 rhythms. */
 :root{
@@ -84,13 +86,39 @@ details{border:1px solid var(--border);border-radius:12px;background:var(--panel
 .arcsplash.go b{animation:pop .5s cubic-bezier(.2,1.6,.4,1)} @keyframes pop{from{transform:scale(.4);opacity:0}to{transform:scale(1);opacity:1}}
 .hitstamp{position:absolute;left:50%;top:38%;z-index:7;transform:translate(-50%,-50%) rotate(-8deg) scale(0);font-weight:900;font-size:34px;color:var(--good);border:4px solid var(--good);border-radius:12px;padding:6px 14px;background:var(--panel);pointer-events:none;opacity:0}
 .hitstamp.go{animation:stamp 1.1s ease-out} @keyframes stamp{0%{transform:translate(-50%,-50%) rotate(-8deg) scale(2.2);opacity:0}15%{transform:translate(-50%,-50%) rotate(-8deg) scale(1);opacity:1}75%{opacity:1}100%{opacity:0}}
+/* ---- CHMA design system (Studio Gear dark / Pocket Synth light) ---- */
+:root:root:root{--bg:var(--c-page);--panel:var(--c-key);--ink:var(--c-ink);--muted:var(--c-mut);--accent:var(--c-sel);--accent-ink:var(--c-sel-ink);
+  --accent-soft:color-mix(in srgb,var(--c-sel) 16%,transparent);--good:var(--c-ok);--ok:var(--c-warn);--bad:var(--c-bad);--border:var(--c-key-b);--display:var(--f-body);--mono:var(--f-num)}
+body{background:var(--c-page);font-family:var(--f-body)}
+.wrap{background:var(--c-panel);border-radius:var(--r-card);box-shadow:var(--shadow-card);padding:0 16px 18px;overflow:hidden}
+.chma-headwrap{margin:0 -16px}
+h1{font-family:var(--f-title);font-weight:700;font-size:30px;letter-spacing:-.01em} h1 em{color:var(--c-act)}
+button{background:var(--c-key);border-color:var(--c-key-b);box-shadow:0 3px 0 var(--c-key-sh);transition:transform .05s,box-shadow .05s}
+button:active{transform:translateY(2px);box-shadow:0 1px 0 var(--c-key-sh)}
+.lvl[aria-pressed="true"],.seg button[aria-pressed="true"],.tempo button[aria-pressed="true"]{background:var(--c-sel);border-color:var(--c-sel);color:var(--c-sel-ink)}
+.seg button[aria-pressed="true"] span,.lvl[aria-pressed="true"] span{color:var(--c-sel-ink)}
+.primary{background:var(--c-act);border-color:var(--c-act);color:var(--c-act-ink);box-shadow:0 3px 0 var(--c-act-sh)}
+.card{background:var(--c-panel2);border-color:var(--c-line);border-radius:18px}
+.stats{background:var(--c-lcd);border:1px solid var(--c-lcd-b);border-radius:14px;box-shadow:inset 0 2px 8px rgba(0,0,0,.55);padding:10px 12px}
+.stat b{color:var(--c-led);text-shadow:var(--c-led-glow)} .stat span{color:#9aa3b2}
+.pad{background:var(--c-key);border:1px solid var(--c-key-b);box-shadow:0 4px 0 var(--c-key-sh);color:var(--c-mut);letter-spacing:.15em;font-size:20px}
+.pad.hit{background:var(--c-act);border-color:var(--c-act);color:var(--c-act-ink)}
+.tempo span,.micp{color:var(--c-mut)} .tempo span{font-weight:700;letter-spacing:.16em;font-size:10.5px}
+details{background:var(--c-panel2);border-color:var(--c-line)}
+.results,.arcsplash{background:var(--c-panel2)}
+.rgrid div{background:var(--c-lcd)} .rgrid b{color:var(--c-led);text-shadow:var(--c-led-glow)} .rgrid span{color:#9aa3b2}
+.big{color:var(--c-led);text-shadow:var(--c-led-glow)}
+.pill{background:color-mix(in srgb,var(--c-sel) 18%,transparent);color:var(--c-ink)}
+.meter,.arcmeter{background:var(--c-lcd)}
+.micp select,.namefield input{background:var(--c-key);border-color:var(--c-key-b)}
+input[type=range]{accent-color:var(--c-act)}
 </style>
 </head>
 <body>
 <div class="wrap">
+  <div data-chma-head></div>
   <header>
     <h1>Rhythm <em>Trainer</em></h1>
-    <p class="byline">By <a href="https://clarendonhillsmusicacademy.com/" target="_blank" rel="noopener" style="color:inherit;text-decoration:underline">Clarendon Hills Music Academy</a></p>
     <p class="sub">Count it. Tap it. Line up with every note.</p>
   </header>
 
@@ -191,11 +219,16 @@ details{border:1px solid var(--border);border-radius:12px;background:var(--panel
 
   // ---------- rhythm generator ----------
   function pick(w){ const t=Object.values(w).reduce((a,b)=>a+b,0); let r=Math.random()*t; for(const k in w){ r-=w[k]; if(r<=0) return k } return Object.keys(w)[0] }
+  // Engraving by the book (Gould, Behind Bars) for 4/4: rests show each beat, except that two quarter rests filling
+  // beats 1-2 or 3-4 become one half rest. Never combine rests across the middle of the bar (beats 2-3): beat 3 stays visible.
+  function engrave(ev){ for(let i=0;i+1<ev.length;i++){ const a=ev[i], b=ev[i+1];
+      if(a.r&&b.r&&a.d===4&&b.d===4&&(a.s===0||a.s===8)&&b.s===a.s+4){ a.d=8; a.cell="HR"; ev.splice(i+1,1) } } return ev }
   function makeBar(){
     const L=LEVELS.find(x=>x.id===level); let beat=0, ev=[], t=0, guard=0;
     while(beat<4&&guard++<50){ const k=pick(L.cells), sp=SPAN[k];
       if(beat+sp>4) continue; if(sp===2&&beat%2) continue; if(sp===4&&beat) continue;
       for(const e of C[k]){ ev.push({s:t,d:e.d,r:!!e.r,tie:!!e.t,cell:k}); t+=e.d } beat+=sp }
+    engrave(ev);
     const notes=ev.filter(e=>!e.r&&!e.tie);
     if(!notes.length) return makeBar();
     if(ev.length===1&&level!=="1") return makeBar();
@@ -203,7 +236,7 @@ details{border:1px solid var(--border);border-radius:12px;background:var(--panel
     return {ev,notes} }
 
   // ---------- engraving (single-line rhythm staff, proportional spacing so notes sit over the timeline) ----------
-  const GAP=14, X0=74, BW=264, W=360, LY=64, U=BW/16;
+  const GAP=14, X0=74, BW=324, W=420, LY=64, U=BW/16, SX=6.9; // 16th = 20 px: room for 16th rests and counts
   const xOf=s=>X0+8+s*U;
   const CNT=s=>{const b=Math.floor(s/4)+1,p=s%4;return p===0?String(b):p===2?"&":p===1?"e":"a"};
   function drawBar(res,playX,pos){ const HIT="#2457d6", hot=e=>pos!=null&&!e.r&&!e.tie&&$("lightup").checked&&pos>=e.s-0.12&&pos<e.s+Math.min(e.d,2);
@@ -225,24 +258,25 @@ details{border:1px solid var(--border);border-radius:12px;background:var(--panel
       if(e.r){ // rests: quarter (zigzag glyph), eighth (glyph), half sits on the line, whole hangs from it
         if(e.d===4) h+=`<text x="${x-6}" y="${LY+11}" font-family="Noto Music" font-size="${GAP*2.6}" fill="${ink}">𝄽</text>`;
         else if(e.d===2) h+=`<text x="${x-5}" y="${LY+8}" font-family="Noto Music" font-size="${GAP*2.4}" fill="${ink}">𝄾</text>`;
+        else if(e.d===1) h+=`<text x="${x-6}" y="${LY+16}" font-family="Noto Music" font-size="${GAP*2.7}" fill="${ink}">𝄿</text>`; // 16th rest
         else if(e.d===8) h+=`<rect x="${x-7}" y="${LY-6}" width="15" height="6" fill="${ink}"/>`;
-        else { const cx=e.d===16?xOf(8)-8:x; h+=`<rect x="${cx-7}" y="${LY}" width="15" height="6" fill="${ink}"/>` } // whole-bar rest: centered
+        else if(e.d===16){ const cx=xOf(8)-8; h+=`<rect x="${cx-7}" y="${LY}" width="15" height="6" fill="${ink}"/>` } // whole-bar rest: hangs from the line, centered in the bar
       } else {
         const open=e.d>=8, dotted=e.d===6||e.d===12||e.d===3;
-        h+=`<ellipse cx="${x}" cy="${LY}" rx="${open?8.6:8.2}" ry="${open?6.2:5.9}" transform="rotate(-20 ${x} ${LY})" fill="${open?"none":col}" stroke="${col}" stroke-width="${open?2.4:0}"/>`;
-        if(dotted) h+=`<circle cx="${x+15}" cy="${LY-4}" r="2.4" fill="${col}"/>`;
-        if(e.d<16){ h+=`<line x1="${x+7.6}" x2="${x+7.6}" y1="${LY-1}" y2="${sTop}" stroke="${col}" stroke-width="1.8"/>`;
+        h+=`<ellipse cx="${x}" cy="${LY}" rx="${open?7.9:7.5}" ry="${open?5.7:5.4}" transform="rotate(-20 ${x} ${LY})" fill="${open?"none":col}" stroke="${col}" stroke-width="${open?2.4:0}"/>`;
+        if(dotted) h+=`<circle cx="${x+13}" cy="${LY-4}" r="2.3" fill="${col}"/>`;
+        if(e.d<16){ h+=`<line x1="${x+SX}" x2="${x+SX}" y1="${LY-1}" y2="${sTop}" stroke="${col}" stroke-width="1.8"/>`;
           if(e.d<4&&!beamed.has(i)){ // single flag(s)
-            for(let f=0;f<(e.d===1?2:1);f++){const y0=sTop+f*8; h+=`<path d="M${x+7.6} ${y0} c 3 8, 12 10, 9 22 c 0 -8, -5 -12, -9 -14 z" fill="${col}"/>`} } }
+            for(let f=0;f<(e.d===1?2:1);f++){const y0=sTop+f*8; h+=`<path d="M${x+SX} ${y0} c 3 8, 12 10, 9 22 c 0 -8, -5 -12, -9 -14 z" fill="${col}"/>`} } }
       }
-      if($("counts").checked) h+=`<text x="${x}" y="${LY+32}" text-anchor="middle" font-family="JetBrains Mono" font-size="12" font-weight="700" fill="${e.r||e.tie?"#9aa0aa":hot(e)?HIT:"#5d6472"}">${e.r||e.tie?"("+CNT(e.s)+")":CNT(e.s)}</text>`;
+      if($("counts").checked) h+=`<text x="${x}" y="${LY+32}" text-anchor="middle" font-family="JetBrains Mono" font-size="${e.r||e.tie?10.5:12}" font-weight="700" letter-spacing="${e.r||e.tie?-0.6:0}" fill="${e.r||e.tie?"#9aa0aa":hot(e)?HIT:"#5d6472"}">${e.r||e.tie?"("+CNT(e.s)+")":CNT(e.s)}</text>`;
     });
-    groups.forEach(gr=>{ if(gr.length<2) return; const x1=xOf(gr[0].s)+7.6, x2=xOf(gr[gr.length-1].s)+7.6;
+    groups.forEach(gr=>{ if(gr.length<2) return; const x1=xOf(gr[0].s)+SX, x2=xOf(gr[gr.length-1].s)+SX;
       h+=`<rect x="${x1-0.9}" y="${sTop}" width="${x2-x1+1.8}" height="5" fill="${!res&&gr.some(hot)?HIT:ink}"/>`;
       // secondary beam over runs of 16ths
       for(let k=0;k<gr.length;k++){ if(gr[k].d!==1) continue; let j=k; while(j+1<gr.length&&gr[j+1].d===1) j++;
-        if(j>k){ const a=xOf(gr[k].s)+7.6,b=xOf(gr[j].s)+7.6; h+=`<rect x="${a-0.9}" y="${sTop+8}" width="${b-a+1.8}" height="5" fill="${ink}"/>` }
-        else { const a=xOf(gr[k].s)+7.6, dir=k===gr.length-1?-1:1; h+=`<rect x="${dir>0?a-0.9:a-9}" y="${sTop+8}" width="10" height="5" fill="${ink}"/>` } k=j } });
+        if(j>k){ const a=xOf(gr[k].s)+SX,b=xOf(gr[j].s)+SX; h+=`<rect x="${a-0.9}" y="${sTop+8}" width="${b-a+1.8}" height="5" fill="${ink}"/>` }
+        else { const a=xOf(gr[k].s)+SX, dir=k===gr.length-1?-1:1; h+=`<rect x="${dir>0?a-0.9:a-9}" y="${sTop+8}" width="10" height="5" fill="${ink}"/>` } k=j } });
     // timeline: beats + subdivisions, aligned with the notes above
     const TY=128;
     h+=`<line x1="${xOf(0)-8}" x2="${xOf(16)-8}" y1="${TY}" y2="${TY}" stroke="#c4c9d2" stroke-width="2"/>`;
@@ -537,11 +571,11 @@ details{border:1px solid var(--border);border-radius:12px;background:var(--panel
   document.querySelectorAll("#inSeg button").forEach(b=>b.addEventListener("click",()=>setIn(b.dataset.in)));
   setIn(inMode);
 
-  window.__rt={bar:()=>bar,start:()=>lastStart,tap:t=>tapAt(t),now:()=>audio&&audio.currentTime,u:()=>u16(),setBar:b=>{bar=b;drawBar(null)}}; // test hook
+  window.__rt={make:(lv)=>{const k=level;level=lv;const b=makeBar();level=k;return b},bar:()=>bar,start:()=>lastStart,tap:t=>tapAt(t),now:()=>audio&&audio.currentTime,u:()=>u16(),setBar:b=>{bar=b;drawBar(null)}}; // test hook
   mark(); newBar(); setMode("practice");
   if(document.fonts) document.fonts.ready.then(()=>drawBar(null));
 })();
 </script>
-<p class="appver" style="text-align:center;font-size:11px;opacity:.6;margin:18px 0 10px;font-family:ui-monospace,Menlo,monospace">Rhythm Trainer · Version 2026-11-11.7</p>
+<p class="appver" style="text-align:center;font-size:11px;opacity:.6;margin:18px 0 10px;font-family:ui-monospace,Menlo,monospace">Rhythm Trainer · Version 2026-11-11.9</p>
 </body>
 </html>
