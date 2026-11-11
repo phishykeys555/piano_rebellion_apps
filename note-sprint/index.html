@@ -309,7 +309,7 @@ input[type=range],input[type=checkbox],input[type=radio]{accent-color:var(--c-ac
       <button class="primary" id="chalBtn" title="Challenge mode: one try per note, no second chances">Start Challenge</button>
     </div>
     <p class="tip" id="kbTip">Keyboard: A–G to answer. In a key with sharps or flats, tap ♯ or ♭ first (or press = / −). Piano keys must be the exact key, right octave.</p>
-    <p class="tip" id="appVer"><span class="appver">Note Sprint · Version 2026-11-11.9</span></p>
+    <p class="tip" id="appVer"><span class="appver">Note Sprint · Version 2026-11-11.10</span></p>
 
     <div class="arcsplash" id="arcSplash" hidden><div class="boom"></div><div id="arcPcs"></div><div class="pre" id="arcSplashP"></div><b id="arcSplashT">ROUND 2</b><span id="arcSplashS"></span></div><div class="hitstamp" id="hitStamp">TARGET HIT!</div>
     <div class="results" id="results" hidden>
@@ -324,7 +324,7 @@ input[type=range],input[type=checkbox],input[type=radio]{accent-color:var(--c-ac
       <div id="rWhy" style="font-weight:600"></div><div class="stamp" id="rStamp"></div>
       <p class="tip" style="text-align:left">Screenshot this screen and send it to your instructor.</p>
       <div class="stamp">Note Sprint · By <a href="https://clarendonhillsmusicacademy.com/" target="_blank" rel="noopener" style="color:inherit;text-decoration:underline">Clarendon Hills Music Academy</a></div>
-      <div class="row"><button class="ghost" id="closeResults">Back to practice</button><button class="ghost" id="retryRound" hidden>Retry round</button><button class="primary" id="againBtn">Play again</button></div>
+      <div class="row"><button class="ghost" id="closeResults">Back to practice</button><button class="primary" id="againBtn">Play again</button></div>
     </div>
   </section>
 
@@ -841,7 +841,6 @@ input[type=range],input[type=checkbox],input[type=radio]{accent-color:var(--c-ac
   function sheet(on){ $("results").hidden=!on; [...$("card").children].forEach(c=>{ if(c!==$("results")) c.inert=on }) }
   function showResults(){ sheet(true); const r=$("card").getBoundingClientRect(); if(r.top<0||r.top>innerHeight*0.4) try{ $("card").scrollIntoView({block:"start"}) }catch(e){} $("results").scrollTop=0; try{ $("rTitle").focus({preventScroll:true}) }catch(e){} }
   $("chalBtn").addEventListener("click",()=>{ if(timer||arc){stopTimer();newQuestion(true)} else arcStart() });   // one button: Start Challenge, Stop while a challenge runs
-  $("retryRound").addEventListener("click",()=>arcRetry());
   $("againBtn").addEventListener("click",()=>arcStart());
 
   // ---------- arcade: rounds like the arcade hoop game. Total score carries over, but each round has its own fresh target: extra points never count toward the next round ----------
@@ -866,10 +865,7 @@ input[type=range],input[type=checkbox],input[type=radio]{accent-color:var(--c-ac
     const pcs=$("arcPcs"); pcs.innerHTML=""; const cols=["var(--accent)","var(--good)","#ff8a1f","#ffd23f"]; for(let i=0;i<22;i++){const a=Math.random()*Math.PI*2,d=110+Math.random()*170,e=document.createElement("i");e.className="pc";e.style.cssText=`background:${cols[i%4]};--dx:${Math.cos(a)*d}px;--dy:${Math.sin(a)*d}px;--r:${Math.random()*720-360}deg`;pcs.appendChild(e)}
     sp.classList.remove("go"); void sp.offsetWidth; sp.classList.add("go"); whoosh();
     const tok=++splashTok; setTimeout(()=>{ if(tok!==splashTok) return; $("arcSplash").hidden=true; if(arc) then() },ms) }   // a stopped or restarted challenge never wakes an old splash
-  let arcRetryRound=0, arcIncSaved=null, splashTok=0;
-  function arcRetry(){ const r=arcRetryRound||1; if(r<2||!arcIncSaved) return arcStart(); resetScore(); sheet(false); arc={round:r,bonus:false,warm:false,inc:arcIncSaved.slice(),needs:[],start:0}; arc.needs[r-1]=arc.inc[r-1];
-    $("arcbar").hidden=false; $("arcMeter").hidden=false; chalLabel(true); render();
-    arcSplash(`ROUND ${r}`,`Target this round: ${half(arc.inc[r-1])} points.`,2000,arcRound) }
+  let splashTok=0;
   function arcStart(){ resetScore(); sheet(false); arc={round:1,bonus:false,warm:true,needs:[]};
     $("arcbar").hidden=false; $("arcMeter").hidden=false; chalLabel(true);
     arcSplash("ROUND 1","Warm-up: score as many as you can in 30 seconds. Your score sets your targets. One try per note, no second chances. Last 10 seconds = 2x points.",2600,arcRound,"CHALLENGE MODE") }
@@ -882,7 +878,7 @@ input[type=range],input[type=checkbox],input[type=radio]{accent-color:var(--c-ac
       // so a slow or sandbagged warm-up can't make every round a gimme
       const B=Math.max(3,st.points), RAMP=[0,0,1,1.15,1.3,1.5], f=arcFactor(), STEP=[10,14,16,20,24]; arc.inc=[st.points];
       for(let r=2;r<=5;r++){ const floor=Math.max(3,Math.round(0.5*STEP[r-1]*f)), want=Math.round(B*RAMP[r]); arc.inc.push(Math.max(floor,want,arc.inc[r-2]+(r>2?1:0))) } arc.start=st.points; arc.needs=[st.points,st.points+arc.inc[1]];
-      arc.warm=false; arcIncSaved=arc.inc.slice(); arc.round=2; arc.hit=false; arcBar();
+      arc.warm=false; arc.round=2; arc.hit=false; arcBar();
       return arcSplash("ROUND 2",`Target this round: ${half(arc.inc[1])} points. Fresh count, extras don't carry.`,2600,arcRound,`WARM-UP DONE · YOUR BASELINE ${half(st.points)}`) }
     const need=arc.needs[arc.round-1];
     if(st.points<need) return arcFinish(false,need-(arc.start||0),st.points-(arc.start||0));
@@ -895,7 +891,6 @@ input[type=range],input[type=checkbox],input[type=radio]{accent-color:var(--c-ac
     store.set(key,best); sprintOver=true; locked=true; arc=null; $("arcbar").hidden=true; $("arcMeter").hidden=true; $("watch").classList.remove("fire"); chalLabel(false);
     $("rTitle").textContent=won?"Challenge cleared!":"Challenge over"; $("againBtn").textContent="Play again";
     $("rWhy").textContent=won?(got>=need?`All 5 rounds cleared and the bonus target hit (${half(got)} / ${half(need)}).`:`All 5 rounds cleared. Bonus target was ${half(need)}; you had ${half(got)}.`):`Round ${failedRound} target was ${half(need)}. You had ${half(got)}. Hit the target before the 30 seconds run out to unlock Round ${failedRound+1}.`;
-    arcRetryRound=won?0:failedRound; $("retryRound").hidden=won; $("retryRound").textContent=`Retry round ${failedRound}`;
     $("rScore").innerHTML=`${half(st.points)} <small>points · ${reached}${isNew?" · new high score":""}</small>`;
     $("rPct").textContent=(st.total?Math.min(100,Math.round(100*st.correct/st.total)):0)+"%"; $("rTotal").textContent=st.total; $("rBest").textContent=st.best;
     const miss=Object.entries(st.misses).sort((a,b)=>b[1]-a[1]).slice(0,5);
