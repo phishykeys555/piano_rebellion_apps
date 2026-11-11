@@ -330,7 +330,7 @@ button:disabled{opacity:.45;cursor:default;box-shadow:none;transform:none}
   async function play(mode){ // mode: "test" | "hear"
     if(run) return; const a=ctx(); await a.resume(); if(inMode!=="tap"&&mode==="test"&&!mic) await micStart($("micSel").value||undefined);
     taps=[]; $("results").hidden=true; $("again").hidden=true; $("go").disabled=!sess; $("hear").disabled=true;
-    const t0=a.currentTime+0.15, start=t0+4*spb(), end=start+16*u16();
+    const t0=a.currentTime+0.15-(mode==="hear"?4*spb():0), start=t0+4*spb(), end=start+16*u16(); // Hear it starts right away (no silent bar)
     // while you play into the mic, the clicks in your bar are softer so the mic hears you, not them
     for(let b=0;b<8;b++){ if(mode==="hear"&&b<4) continue; click(t0+b*spb(),b%4===0,b>=4&&mode==="test"&&inMode!=="tap") }
     if(mode==="hear"||$("guide").checked) bar.notes.forEach(n=>(mode==="test"&&inMode==="clap"&&mic)?wood(start+n.s*u16(),n.d*u16()):hand(start+n.s*u16()));
@@ -608,6 +608,6 @@ button:disabled{opacity:.45;cursor:default;box-shadow:none;transform:none}
   if(document.fonts) document.fonts.ready.then(()=>drawBar(null));
 })();
 </script>
-<p class="appver" style="text-align:center;font-size:11px;opacity:.6;margin:18px 0 10px;font-family:ui-monospace,Menlo,monospace">Rhythm Trainer · Version 2026-11-11.9</p>
+<p class="appver" style="text-align:center;font-size:11px;opacity:.6;margin:18px 0 10px;font-family:ui-monospace,Menlo,monospace">Rhythm Trainer · Version 2026-11-11.10</p>
 </body>
 </html>
