@@ -508,9 +508,9 @@ button:focus-visible,select:focus-visible,summary:focus-visible,input:focus-visi
       arc.warm=false; arcIncSaved=arc.inc.slice(); arc.round=2; arc.start=S.points; arc.needs[1]=S.points+arc.inc[1];
       return splash(`WARM-UP DONE · YOUR BASELINE ${half(S.points)}`,"ROUND 2",`Target this round: ${half(arc.inc[1])} points.`,2600,arcRound) }
     const need=arc.needs[arc.round-1]; if(S.points<need) return arcFinish(false,need-arc.start,S.points-arc.start);
-    if(arc.round===5){ const got=S.points-arc.start, bt=Math.max(arc.inc[4]+1,Math.round(got*1.1)); arc.bonus=true; arc.start=S.points; arc.bonusNeed=S.points+bt;
+    if(arc.round===5){ const got=S.points-arc.start, bt=Math.max(arc.inc[4]+1,Math.round(got*1.05)); arc.bonus=true; arc.start=S.points; arc.bonusNeed=S.points+bt;
       return splash("ROUND 5 CLEARED ✓","BONUS ROUND",`Target: ${half(bt)} points in 30 seconds.`,2600,arcRound) }
-    const cleared=arc.round, got=S.points-arc.start; arc.round++; arc.inc[arc.round-1]=Math.max(arc.inc[arc.round-1],Math.round(got*1.1*2)/2,arc.inc[arc.round-2]+1); arc.start=S.points; arc.needs[arc.round-1]=S.points+arc.inc[arc.round-1];
+    const cleared=arc.round, got=S.points-arc.start; arc.round++; arc.inc[arc.round-1]=Math.max(arc.inc[arc.round-1],Math.round(got*1.05*2)/2,arc.inc[arc.round-2]+1); arc.start=S.points; arc.needs[arc.round-1]=S.points+arc.inc[arc.round-1];
     splash(`ROUND ${cleared} CLEARED ✓`,`ROUND ${arc.round}`,`Target this round: ${half(arc.inc[arc.round-1])} points.`,2400,arcRound) }
   function arcFinish(won,need,got){ const S=sess, failed=won?0:arc.round, reached=arc.bonus?"Bonus round":`Round ${arc.round}`; arc=null; sess=null; lockUI(); $("arcbar").hidden=true; $("arcMeter").hidden=true; $("go").textContent="Start"; $("hear").disabled=false;
     arcRetryRound=failed; $("retryRound").hidden=won||failed<2; $("retryRound").textContent=`Retry round ${failed}`;
@@ -696,6 +696,6 @@ button:focus-visible,select:focus-visible,summary:focus-visible,input:focus-visi
   if(document.fonts) document.fonts.ready.then(()=>{ if(!run) drawBar(curRes) });
 })();
 </script>
-<p class="appver" style="text-align:center;font-size:11px;opacity:.6;margin:18px 0 10px;font-family:ui-monospace,Menlo,monospace">Rhythm Trainer · Version 2026-11-11.16</p>
+<p class="appver" style="text-align:center;font-size:11px;opacity:.6;margin:18px 0 10px;font-family:ui-monospace,Menlo,monospace">Rhythm Trainer · Version 2026-11-11.17</p>
 </body>
 </html>
