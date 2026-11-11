@@ -174,7 +174,7 @@ button:focus-visible,summary:focus-visible,input:focus-visible{outline:3px solid
     <div class="fb" id="fb" aria-live="polite"></div>
     <div id="padWrap"><div class="pad" id="padW"></div><div class="pad blk" id="padB" style="margin-top:8px"></div></div>
     <div class="actions"><button class="btn" id="resetBtn">Reset score</button><button class="btn primary" id="chalBtn">Start Challenge</button></div>
-    <p class="tip">Practice: take your time, try again if you miss. Challenge: five 30-second rounds and a bonus round. Round 1 is the warm-up that sets your targets. One try per key, no second chances. Last 10 seconds of a round = 2x points.</p>
+    <p class="tip">Practice: take your time (turn on Second try in Settings to try again after a miss). Challenge: five 30-second rounds and a bonus round. Round 1 is the warm-up that sets your targets. One try per key, no second chances. Last 10 seconds of a round = 2x points.</p>
 
     <div class="arcsplash" id="arcSplash" hidden><div class="boom"></div><div id="arcPcs"></div><div class="pre" id="arcSplashP"></div><b id="arcSplashT">ROUND 1</b><span id="arcSplashS"></span></div><div class="hitstamp" id="hitStamp" aria-hidden="true">TARGET HIT!</div>
 
@@ -192,9 +192,10 @@ button:focus-visible,summary:focus-visible,input:focus-visible{outline:3px solid
   <details><summary>Settings</summary>
     <label><input type="checkbox" id="soundOn" checked> Play the key's sound</label>
     <label><input type="checkbox" id="labelsOn"> Show letter names on every white key (easier)</label>
+    <label><input type="checkbox" id="retryOn"> Second try on a miss (practice only)</label>
     <label><input type="checkbox" id="flatsOn"> Call black keys by their flat name (D♭) in Find the key</label>
   </details>
-  <p class="appver" id="appVer">Key Finder · Version 2026-11-11.9</p>
+  <p class="appver" id="appVer">Key Finder · Version 2026-11-11.10</p>
 </div>
 
 <script>
@@ -275,7 +276,7 @@ button:focus-visible,summary:focus-visible,input:focus-visible{outline:3px solid
       btn&&btn.classList.add("hit"); keyEl(q.m).classList.remove("glow"); keyEl(q.m).classList.add("hit"); $("fb").textContent=q.tried?`There it is: ${both(pc)}.`:`Yes! ${both(pc)}.${mult()>1?" +2":""}`; $("fb").className="fb good"; locked=true; render(); nextT=setTimeout(next,arc?350:700); return }
     // wrong
     btn&&btn.classList.add("miss"); if(!q.tried){ st.total++; st.streak=0; st.miss[both(pc)]=(st.miss[both(pc)]||0)+1 } q.tried=true; render();
-    if(arc){ keyEl(q.m).classList.remove("glow"); keyEl(q.m).classList.add("show"); $("fb").textContent=`That was ${answerLabel}. This one is ${both(pc)}.`; $("fb").className="fb bad"; locked=true; nextT=setTimeout(next,900) }
+    if(arc||!$("retryOn").checked){ keyEl(q.m).classList.remove("glow"); keyEl(q.m).classList.add("show"); $("fb").textContent=`That was ${answerLabel}. This one is ${both(pc)}.`; $("fb").className="fb bad"; locked=true; nextT=setTimeout(next,900) }
     else { $("fb").textContent=`Not ${answerLabel}. Try again.`; $("fb").className="fb bad"; setTimeout(()=>btn&&btn.classList.remove("miss"),500) } }
   function padTap(pc,btn){ if(mode!=="name"||!q||locked) return; grade(pc===q.m%12,btn,both(pc)) }
   function keyTap(m,btn){ tone(m); if(mode!=="find"||!q||locked) return; grade(m%12===q.m%12,btn,both(m%12)) }
@@ -309,10 +310,10 @@ button:focus-visible,summary:focus-visible,input:focus-visible{outline:3px solid
     const m=$("arcMeter"); $("arcFill").style.width=Math.min(100,Math.max(0,rp/rn*100))+"%"; $("arcHit").textContent=arc.bonus?"✓ BONUS TARGET HIT · 2x POINTS":"✓ TARGET HIT";
     if(hit&&!arc.hit){ arc.hit=true; m.classList.remove("flash"); void m.offsetWidth; m.classList.add("flash"); const hs=$("hitStamp"); hs.classList.remove("go"); void hs.offsetWidth; hs.classList.add("go"); chime(); $("card").classList.add("met") }
     m.classList.toggle("hit",hit) }
-  function arcSplash(t,sub,ms,then,pre){ clearTimeout(nextT); $("arcSplashT").textContent=t; $("arcSplashS").textContent=sub; $("arcSplashP").textContent=pre||""; const sp=$("arcSplash"); sp.hidden=false; locked=true; $("card").classList.remove("met");
+  function arcSplash(t,sub,ms,then,pre){ ms=Math.max(4500,2500+String(sub||"").length*30);   /* long enough to read (students said the round screens flashed by); tap to go sooner */ clearTimeout(nextT); $("arcSplashT").textContent=t; $("arcSplashS").textContent=sub; $("arcSplashP").textContent=pre||""; const sp=$("arcSplash"); sp.hidden=false; locked=true; $("card").classList.remove("met");
     const pcs=$("arcPcs"); pcs.innerHTML=""; const cols=["var(--accent)","var(--good)","#ff8a1f","#ffd23f"]; for(let i=0;i<22;i++){ const a=Math.random()*Math.PI*2,d=110+Math.random()*170,e=document.createElement("i"); e.className="pc"; e.style.cssText=`background:${cols[i%4]};--dx:${Math.cos(a)*d}px;--dy:${Math.sin(a)*d}px;--r:${Math.random()*720-360}deg`; pcs.appendChild(e) }
     sp.classList.remove("go"); void sp.offsetWidth; sp.classList.add("go"); whoosh();
-    const tok=++splashTok; setTimeout(()=>{ if(tok!==splashTok) return; sp.hidden=true; if(arc) then() },ms) }   // a stopped or restarted challenge never wakes an old splash
+    const tok=++splashTok, t0=performance.now(), go=()=>{ if(tok!==splashTok) return; splashTok++; sp.onclick=null; sp.hidden=true; if(arc) then() }; sp.onclick=()=>{ if(performance.now()-t0>900) go() }; let hint=sp.querySelector('.tapgo'); if(!hint){ hint=document.createElement('small'); hint.className='tapgo'; hint.style.cssText='display:block;margin-top:14px;opacity:.6;font-size:12px'; hint.textContent='Tap to start'; ($("arcSplashS").parentNode||sp).appendChild(hint) } setTimeout(go,ms) }   // a stopped or restarted challenge never wakes an old splash
   function arcStart(){ stopChallenge(); resetScore(); sheet(false); arc={round:1,bonus:false,warm:true,needs:[],start:0}; tLeft=ARC_T; arcUI(true); showClock(); render();
     arcSplash("ROUND 1",`Warm-up: ${mode==="name"?"name":"find"} as many keys as you can in 30 seconds. Your score sets your targets. One try per key, no second chances. Last 10 seconds = 2x points.`,2600,arcRound,"CHALLENGE MODE") }
   function arcRound(){ clearInterval(timer); tLeft=ARC_T; const f=$("tFill"); f.style.transition="none"; showClock(); void f.offsetWidth; f.style.transition=""; arcBar(); newQ();   // a fresh round's clock bar snaps full, never slides back up
@@ -361,7 +362,7 @@ button:focus-visible,summary:focus-visible,input:focus-visible{outline:3px solid
   LEVELS.forEach(lv=>{ const b=document.createElement("button"); b.innerHTML=`<b>L${lv.id}</b>${lv.name}<span>${lv.sub}</span>`; b.dataset.id=lv.id; b.addEventListener("click",()=>{ level=lv.id; store.set("level",level); setup() }); $("levels").appendChild(b) });
   document.querySelectorAll("#seg button").forEach(b=>b.addEventListener("click",()=>{ mode=b.dataset.mode; store.set("mode",mode); setup() }));
   // settings never cost a score or stop a challenge: sound just saves, labels relabel the keys in place, flats re-spell the Find prompt
-  ["soundOn","labelsOn","flatsOn"].forEach(id=>{ $(id).checked=store.get(id,$(id).checked); $(id).addEventListener("change",()=>{ store.set(id,$(id).checked);
+  ["soundOn","labelsOn","flatsOn","retryOn"].forEach(id=>{ $(id).checked=store.get(id,$(id).checked); $(id).addEventListener("change",()=>{ store.set(id,$(id).checked);
     if(id==="labelsOn") $("piano").querySelectorAll(".w").forEach(b=>label(b,+b.dataset.midi)); if(id==="flatsOn"&&q&&mode==="find"&&!locked) findPrompt() }) });
   $("resetBtn").addEventListener("click",()=>{ stopChallenge(); resetScore(); newQ() });
   $("chalBtn").addEventListener("click",()=>{ if(arc){ stopChallenge(); newQ() } else arcStart() });   // Start Challenge doubles as Stop while a run is on (splash included)

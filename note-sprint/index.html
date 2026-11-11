@@ -309,7 +309,7 @@ input[type=range],input[type=checkbox],input[type=radio]{accent-color:var(--c-ac
       <button class="primary" id="chalBtn" title="Challenge mode: one try per note, no second chances">Start Challenge</button>
     </div>
     <p class="tip" id="kbTip">Keyboard: A–G to answer. In a key with sharps or flats, tap ♯ or ♭ first (or press = / −). Piano keys must be the exact key, right octave.</p>
-    <p class="tip" id="appVer"><span class="appver">Note Sprint · Version 2026-11-11.10</span></p>
+    <p class="tip" id="appVer"><span class="appver">Note Sprint · Version 2026-11-11.11</span></p>
 
     <div class="arcsplash" id="arcSplash" hidden><div class="boom"></div><div id="arcPcs"></div><div class="pre" id="arcSplashP"></div><b id="arcSplashT">ROUND 2</b><span id="arcSplashS"></span></div><div class="hitstamp" id="hitStamp">TARGET HIT!</div>
     <div class="results" id="results" hidden>
@@ -364,7 +364,7 @@ input[type=range],input[type=checkbox],input[type=radio]{accent-color:var(--c-ac
         <label><input type="checkbox" id="accOn"> Add sharps and flats</label>
         <label><input type="checkbox" id="soundOn" checked> Play the note after I answer</label>
         <label><input type="checkbox" id="ivOn"> Intervals (two notes at once)</label>
-        <label><input type="checkbox" id="retryOn" checked> Second try on a miss (½ point)</label>
+        <label><input type="checkbox" id="retryOn"> Second try on a miss (½ point)</label>
       </fieldset>
       <fieldset><legend>Answer with</legend>
         <label><input type="radio" name="mode" id="mLetters" value="letters" checked> Letter buttons</label>
@@ -449,13 +449,13 @@ input[type=range],input[type=checkbox],input[type=radio]{accent-color:var(--c-ac
     const near=LM.filter(l=>lmOn.includes(l.id)&&LMCLEF[n.clef].includes(l.id)).map(l=>({l,o:d-l.dia})).filter(x=>Math.abs(x.o)<=2).sort((a,b)=>Math.abs(a.o)-Math.abs(b.o))[0];
     if(!near) return ""; return ` ${Math.abs(near.o)===1?"One step":"A skip"} ${near.o>0?"above":"below"} ${near.l.name}.` }
   const custom=store.get("custom",null);
-  $("soundOn").checked=store.get("sound",true); $("retryOn").checked=store.get("retry",true); { const MODES=["letters","piano","mic"], qm=QS.get("mode"), m=MODES.includes(qm)?qm:store.get("mode","letters"); setRadio("mode",MODES.includes(m)?m:"letters"); if(MODES.includes(qm)) store.set("mode",qm) }
+  $("soundOn").checked=store.get("sound",true); $("retryOn").checked=store.get("retry2",false); { const MODES=["letters","piano","mic"], qm=QS.get("mode"), m=MODES.includes(qm)?qm:store.get("mode","letters"); setRadio("mode",MODES.includes(m)?m:"letters"); if(MODES.includes(qm)) store.set("mode",qm) }
   function saveCustom(){ const s=readSettings(); store.set("custom",{staffMode:s.staffMode,acc:s.acc,iv:s.iv,b:s.b,lm:s.lm,ls:s.ls}); selectLevel("C",true) }
   ["tLo","tHi","bLo","bHi","lmSel","lsSel"].forEach(id=>$(id).addEventListener("change",()=>{ lmUi(); saveCustom(); layout(); newQuestion(true) }));
   document.querySelectorAll(".rngq button").forEach(b=>b.addEventListener("click",()=>{ const r=+b.dataset.r; setBounds({treble:rb(r),bass:rb(r)}); saveCustom(); layout(); newQuestion(true) }));
   document.querySelectorAll('.settings input').forEach(el=>el.addEventListener("change",()=>{
     const s=readSettings(); store.set("sound",s.sound); store.set("mode",s.mode);
-    if(el.id==="retryOn"){store.set("retry",el.checked); return}
+    if(el.id==="retryOn"){store.set("retry2",el.checked); return}
     if(el.name!=="mode"&&el.id!=="soundOn") saveCustom()
     layout(); newQuestion(true)}));
 
@@ -861,10 +861,10 @@ input[type=range],input[type=checkbox],input[type=radio]{accent-color:var(--c-ac
     $("arcFill").style.width=pct+"%"; const hit=st.points>=need; $("arcHit").textContent=arc.bonus?"✓ BONUS TARGET HIT · 2x POINTS":"✓ TARGET HIT";
     if(hit&&!arc.hit){ arc.hit=true; m.classList.remove("flash"); void m.offsetWidth; m.classList.add("flash"); const hs=$("hitStamp"); hs.classList.remove("go"); void hs.offsetWidth; hs.classList.add("go"); chime(); $("card")&&$("card").classList.add("met"); $("staffbox").classList.add("hitglow"); setTimeout(()=>$("staffbox").classList.remove("hitglow"),900) }
     m.classList.toggle("hit",hit) }
-  function arcSplash(t,sub,ms,then,pre){ $("arcSplashT").textContent=t; $("arcSplashS").textContent=sub; $("arcSplashP").textContent=pre||""; const sp=$("arcSplash"); sp.hidden=false; locked=true; $("card")&&$("card").classList.remove("met");
+  function arcSplash(t,sub,ms,then,pre){ ms=Math.max(4500,2500+String(sub||"").length*30);   /* long enough to read (students said the round screens flashed by); tap to go sooner */ $("arcSplashT").textContent=t; $("arcSplashS").textContent=sub; $("arcSplashP").textContent=pre||""; const sp=$("arcSplash"); sp.hidden=false; locked=true; $("card")&&$("card").classList.remove("met");
     const pcs=$("arcPcs"); pcs.innerHTML=""; const cols=["var(--accent)","var(--good)","#ff8a1f","#ffd23f"]; for(let i=0;i<22;i++){const a=Math.random()*Math.PI*2,d=110+Math.random()*170,e=document.createElement("i");e.className="pc";e.style.cssText=`background:${cols[i%4]};--dx:${Math.cos(a)*d}px;--dy:${Math.sin(a)*d}px;--r:${Math.random()*720-360}deg`;pcs.appendChild(e)}
     sp.classList.remove("go"); void sp.offsetWidth; sp.classList.add("go"); whoosh();
-    const tok=++splashTok; setTimeout(()=>{ if(tok!==splashTok) return; $("arcSplash").hidden=true; if(arc) then() },ms) }   // a stopped or restarted challenge never wakes an old splash
+    const tok=++splashTok, t0=performance.now(), go=()=>{ if(tok!==splashTok) return; splashTok++; sp.onclick=null; $("arcSplash").hidden=true; if(arc) then() }; sp.onclick=()=>{ if(performance.now()-t0>900) go() }; let hint=sp.querySelector('.tapgo'); if(!hint){ hint=document.createElement('small'); hint.className='tapgo'; hint.style.cssText='display:block;margin-top:14px;opacity:.6;font-size:12px'; hint.textContent='Tap to start'; ($("arcSplashS").parentNode||sp).appendChild(hint) } setTimeout(go,ms) }   // a stopped or restarted challenge never wakes an old splash
   let splashTok=0;
   function arcStart(){ resetScore(); sheet(false); arc={round:1,bonus:false,warm:true,needs:[]};
     $("arcbar").hidden=false; $("arcMeter").hidden=false; chalLabel(true);
