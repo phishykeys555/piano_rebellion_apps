@@ -24,6 +24,10 @@ button.on{border-color:var(--acc);background:color-mix(in srgb,var(--acc) 18%,tr
 .hint{font-size:12px;color:var(--mut)}select{font:600 13px system-ui;color:var(--text);background:var(--card);border:1px solid var(--line);border-radius:8px;min-height:36px;padding:0 6px}
 .err{color:var(--acc);font-size:13px;margin-top:8px}
 .ghostbtn{font:600 14px system-ui;border:1px solid var(--line);border-radius:9px;min-height:40px;padding:0 12px;display:inline-flex;align-items:center;cursor:pointer}
+.sec{font-size:12px;font-weight:700;color:var(--mut);letter-spacing:.04em;margin:14px 0 2px}.sec .hint{font-weight:400;letter-spacing:0}
+.part{display:grid;grid-template-columns:78px 1fr 40px 40px;align-items:center;gap:6px;margin-top:4px}.part b{font-size:13px}.part input{width:100%;accent-color:var(--acc);height:30px}
+.part button{min-height:34px;font-size:12px;padding:0}.part button.m.on{border-color:var(--mut);background:color-mix(in srgb,var(--mut) 30%,transparent)}.part.off b{opacity:.45}
+#play:disabled{opacity:.5}
 @media (max-width:440px){.chips{margin-left:0}.ctl{grid-template-columns:52px 40px 1fr 40px}}
 </style></head><body><main><div class="card">
 <h1 id="title">Song Player</h1>
@@ -38,65 +42,100 @@ button.on{border-color:var(--acc);background:color-mix(in srgb,var(--acc) 18%,tr
 <div class="row"><button id="back">↺ 10 s</button><button id="fwd">10 s ↻</button><button id="setA">Set A</button><button id="setB">Set B</button><button id="clrAB">Clear A-B</button><label class="chk"><input type="checkbox" id="loop" checked> Loop</label></div>
 <div class="hint" id="abTxt" style="margin-top:4px">Loop a tough section: tap Set A at its start, Set B at its end.</div>
 <div class="row"><label class="chk"><input type="checkbox" id="ramp"> Speed up each loop by</label><select id="rampStep"><option value="2">2%</option><option value="5" selected>5%</option><option value="10">10%</option></select><span class="hint">until</span><select id="rampMax"><option value="100" selected>100%</option><option value="110">110%</option><option value="125">125%</option></select><button id="reset">Reset</button></div>
+<div id="mix" hidden><div class="sec">PARTS <span class="hint">split from the record: turn any part down, mute it, or solo it</span></div>
+<div class="chips" id="mixChips" style="margin-left:0"></div><div id="parts"></div></div>
 <div class="row"><label class="ghostbtn" for="file">📂 Load your own MP3</label><input type="file" id="file" accept="audio/*,.mp3,.m4a,.wav,.aac" hidden><span class="hint" id="fileTxt">Any song on this device. It stays on your device and is never uploaded.</span></div>
-<p class="err" id="err" hidden></p>
+<p class="hint" id="load" hidden></p><p class="err" id="err" hidden></p>
 </div></main>
-<audio id="a" preload="metadata" crossorigin="anonymous" playsinline></audio>
-<script>
-// Songs: ?s=<id>. Add a song = drop its MP3 in audio/ and add one line here.
+<script type="module">
+import Stretch from './vendor/SignalsmithStretch.mjs';
+// Songs: ?s=<id>. A song with parts lists them; each part is audio/<id>/<part>.mp3 (made at half volume: boost 2).
+// 'rest' is everything the listed parts don't cover: the player plays the untouched record and subtracts the muted parts, so the full band is the original file.
 const SONGS={
- 'i-love-you-im-sorry':{t:'I Love You, I’m Sorry',sub:'Custom track',f:'audio/i-love-you-im-sorry.mp3'},
- 'all-new-kicks':{t:'All New Kicks',sub:'Play-along track',f:'audio/all-new-kicks.mp3'}
+ 'i-love-you-im-sorry':{t:'I Love You, I’m Sorry',sub:'Custom track',f:'audio/i-love-you-im-sorry.mp3',parts:[]},
+ 'all-new-kicks':{t:'All New Kicks',sub:'Play-along track',f:'audio/all-new-kicks.mp3',parts:['drums','bass','piano'],rest:'other',boost:2}
 };
-const $=i=>document.getElementById(i),a=$('a'),qs=new URLSearchParams(location.search).get('s'),id=qs||'',S=SONGS[id];
+const PN={vocals:'Vocals',drums:'Drums',bass:'Bass',piano:'Piano',guitar:'Guitar',other:'Everything else',mix:'Full record'};
+const $=i=>document.getElementById(i),qs=new URLSearchParams(location.search).get('s'),id=qs||'',S=SONGS[id];
 const IVN={0:'original key',1:'half step up',2:'whole step up',3:'minor 3rd up',4:'major 3rd up',5:'4th up',6:'tritone up','-1':'half step down','-2':'whole step down','-3':'minor 3rd down','-4':'major 3rd down','-5':'4th down','-6':'tritone down'};
-let ctx=null,gain=null,ps=null,A=null,B=null,wrapping=false;let KEY='songplayer:'+id;
+let an=null,src=[],restName='other',ctx=null,node=null,gain=null,A=null,B=null,dur=0,playing=false,pos=0,posAt=0,lastPos=0,parts=[],pg=[],solo=-1,muted=[],ready=false;let KEY='songplayer:'+id;
 const LS={get(){try{return JSON.parse(localStorage.getItem(KEY)||'{}')}catch(e){return {}}},set(o){try{localStorage.setItem(KEY,JSON.stringify(o))}catch(e){}}};
-a.preservesPitch=true;a.mozPreservesPitch=true;a.webkitPreservesPitch=true;
 const fmt=s=>isFinite(s)?Math.floor(s/60)+':'+String(Math.floor(s%60)).padStart(2,'0'):'0:00';
 const rate=()=>+$('speed').value/100,semi=()=>+$('key').value,vol=()=>+$('vol').value/100;
-function save(){LS.set({s:$('speed').value,k:$('key').value,v:$('vol').value,l:$('loop').checked,A,B})}
-async function audio(){if(ctx)return;try{const AC=window.AudioContext||window.webkitAudioContext;ctx=new AC();const src=ctx.createMediaElementSource(a);gain=ctx.createGain();
-  try{await ctx.audioWorklet.addModule('ps-worklet.js');ps=new AudioWorkletNode(ctx,'pitch-shift',{outputChannelCount:[2]});src.connect(ps);ps.connect(gain)}catch(e){src.connect(gain);ps=null;$('keyS').textContent='key change not supported on this browser'}
-  gain.connect(ctx.destination);a.volume=1;apply()}catch(e){ctx=null}}
-function apply(){const r=rate();a.playbackRate=r;a.preservesPitch=true;a.webkitPreservesPitch=true;
- if(gain)gain.gain.setTargetAtTime(vol(),ctx.currentTime,0.02);else a.volume=Math.min(1,vol());
- if(ps)ps.parameters.get('pitch').setTargetAtTime(Math.pow(2,semi()/12),ctx.currentTime,0.01);
- const k=semi();$('spdN').textContent=$('speed').value+'%';$('spdS').textContent=r===1?'speed · original tempo':'speed · '+(r<1?'slower':'faster')+' than the record';
- $('keyN').textContent=(k>0?'+':'')+k;if(!(ctx&&!ps))$('keyS').textContent='key · '+IVN[k];
+function save(){LS.set({s:$('speed').value,k:$('key').value,v:$('vol').value,l:$('loop').checked,A,B,pg,muted,solo})}
+function err(t){$('err').hidden=!t;$('err').textContent=t||''}
+function status(t){$('load').hidden=!t;$('load').textContent=t||''}
+// iPhone/iPad: play even with the ringer switch on silent
+try{if(navigator.audioSession)navigator.audioSession.type='playback'}catch(e){}
+async function engine(){if(node)return node;const AC=window.AudioContext||window.webkitAudioContext;ctx=new AC({latencyHint:'playback'});
+ node=await Stretch(ctx);gain=ctx.createGain();gain.gain.value=vol();node.connect(gain);gain.connect(ctx.destination);an=ctx.createAnalyser();an.fftSize=2048;gain.connect(an);
+ node.setUpdateInterval(0.04,t=>{pos=t;posAt=performance.now()});return node}
+// parts are stored at half scale (6 dB headroom) so peaks above full scale never clip; boost = how much the files were turned down
+const toI16=(f,k)=>{const o=new Int16Array(f.length),m=16384*k;for(let i=0;i<f.length;i++){const v=Math.round(f[i]*m);o[i]=v>32767?32767:v<-32768?-32768:v}return o};
+async function loadParts(list,boost=1){ready=false;$('play').disabled=true;await engine();if(playing)stop();
+ let done=0;status('Loading the song… 0 of '+list.length+' parts');
+ const bufs=await Promise.all(list.map(async p=>{const ab=typeof p.src==='string'?await (await fetch(p.src)).arrayBuffer():await p.src.arrayBuffer();
+   const d=await new Promise((res,rej)=>{const r=ctx.decodeAudioData(ab,res,rej);if(r&&r.then)r.then(res,rej)});
+   const ch=[];for(let c=0;c<Math.min(2,d.numberOfChannels);c++)ch.push(toI16(d.getChannelData(c),p.boost||boost));
+   done++;status('Loading the song… '+done+' of '+list.length+' parts');return ch}));
+ const len=Math.min(...bufs.map(b=>b[0].length));const stems=bufs.map(b=>b.map(x=>x.length>len?x.slice(0,len):x));
+ dur=await node.setStems(stems,stems.flat().map(x=>x.buffer));src=list.map(p=>p.k);parts=src[0]==='mix'&&src.length>1?src.slice(1).concat(restName):src.slice();
+ const sv=LS.get();pg=(sv.pg&&sv.pg.length===parts.length)?sv.pg:parts.map(()=>100);muted=(sv.muted&&sv.muted.length===parts.length)?sv.muted:parts.map(()=>false);solo=sv.solo!=null&&sv.solo<parts.length?sv.solo:-1;
+ buildMix();$('dur').textContent=fmt(dur);pos=Math.min(pos,dur);ready=true;$('play').disabled=false;status('');showAB();apply();}
+function gains(){return parts.map((_,i)=>solo>=0?(i===solo?pg[i]/100:0):(muted[i]?0:pg[i]/100))}
+// engine gains: with a 'rest' part the first track is the whole record, so rest = record - parts
+function engineGains(){const u=gains();if(src[0]!=='mix'||src.length<2)return u;const r=u[u.length-1];return [r].concat(u.slice(0,-1).map(g=>g-r))}
+function sendGains(){if(node&&node.setGains)node.setGains(engineGains());[...$('parts').children].forEach((r,i)=>{r.classList.toggle('off',gains()[i]===0);r.querySelector('.m').classList.toggle('on',muted[i]);r.querySelector('.s').classList.toggle('on',solo===i)});save()}
+const PRESETS=[['Full band',()=>{solo=-1;muted=parts.map(()=>false)}],['No piano (you play it)',()=>{solo=-1;muted=parts.map(k=>k==='piano')},'piano'],['Piano only',()=>{solo=parts.indexOf('piano')},'piano'],['No vocals',()=>{solo=-1;muted=parts.map(k=>k==='vocals')},'vocals'],['Drums + bass',()=>{solo=-1;muted=parts.map(k=>k!=='drums'&&k!=='bass')},'drums']];
+function buildMix(){const box=$('parts');box.innerHTML='';$('mix').hidden=parts.length<2;$('mixChips').innerHTML='';
+ PRESETS.forEach(([n,f,need])=>{if(need&&!parts.includes(need))return;const b=document.createElement('button');b.textContent=n;b.onclick=()=>{f();sendGains()};$('mixChips').appendChild(b)});
+ parts.forEach((k,i)=>{const r=document.createElement('div');r.className='part';r.innerHTML=`<b>${PN[k]||k}</b><input type="range" min="0" max="150" step="5" value="${pg[i]}" aria-label="${PN[k]||k} volume"><button class="m" aria-label="Mute ${PN[k]||k}">M</button><button class="s" aria-label="Solo ${PN[k]||k}">S</button>`;
+  r.querySelector('input').oninput=e=>{pg[i]=+e.target.value;sendGains()};r.querySelector('.m').onclick=()=>{muted[i]=!muted[i];if(solo===i)solo=-1;sendGains()};r.querySelector('.s').onclick=()=>{solo=solo===i?-1:i;sendGains()};box.appendChild(r)});sendGains()}
+function loopRange(){if(A!=null&&B!=null&&$('loop').checked)return [A,B];if($('loop').checked&&A==null)return [0,dur];return [0,0]}
+function apply(){const r=rate(),k=semi();
+ if(node){const [ls,le]=loopRange();node.schedule({rate:r,semitones:k,loopStart:ls,loopEnd:le});if(gain)gain.gain.setTargetAtTime(vol(),ctx.currentTime,0.02)}
+ $('spdN').textContent=$('speed').value+'%';$('spdS').textContent=r===1?'speed · original tempo':'speed · '+(r<1?'slower':'faster')+' than the record';
+ $('keyN').textContent=(k>0?'+':'')+k;$('keyS').textContent='key · '+IVN[k];
  [...$('spdChips').children].forEach(b=>b.classList.toggle('on',+b.dataset.v===+$('speed').value));save()}
 [50,60,75,90,100].forEach(v=>{const b=document.createElement('button');b.textContent=v+'%';b.dataset.v=v;b.onclick=()=>{$('speed').value=v;apply()};$('spdChips').appendChild(b)});
-async function toggle(){await audio();if(ctx&&ctx.state==='suspended')ctx.resume();if(a.paused)a.play().catch(e=>{});else a.pause()}
-$('play').onclick=toggle;a.onplay=()=>{$('play').textContent='❚❚'};a.onpause=()=>{$('play').textContent='▶'};
-a.onloadedmetadata=()=>{$('dur').textContent=fmt(a.duration);showAB();apply()};
-a.onerror=()=>{$('err').hidden=false;$('err').textContent='The track didn’t load. Check your connection and reload the page.'};
+function now(){return playing?Math.min(dur,pos+(performance.now()-posAt)/1000*rate()):pos}
+function seek(t){t=Math.max(0,Math.min(dur-0.05,t));pos=t;posAt=performance.now();lastPos=t;if(node)node.schedule({input:t})}
+function start(){if(!ready)return;if(ctx.state!=='running')ctx.resume();if(pos>=dur-0.1)pos=A!=null?A:0;const [ls,le]=loopRange();
+ node.schedule({active:true,input:pos,rate:rate(),semitones:semi(),loopStart:ls,loopEnd:le});posAt=performance.now();lastPos=pos;playing=true;$('play').textContent='❚❚'}
+function stop(){if(!node)return;pos=now();node.schedule({active:false});playing=false;$('play').textContent='▶'}
+$('play').onclick=async()=>{if(!ready)return;if(playing)stop();else start()};
 function onLoop(){if($('ramp').checked){const mx=+$('rampMax').value,nv=Math.min(mx,+$('speed').value+ +$('rampStep').value);$('speed').value=nv;apply()}}
-function tick(){if(a.duration){$('cur').textContent=fmt(a.currentTime);$('seek').value=Math.round(1000*a.currentTime/a.duration);
-  if(A!=null&&B!=null&&a.currentTime>=B&&!wrapping){if($('loop').checked){wrapping=true;a.currentTime=A;onLoop();setTimeout(()=>wrapping=false,200)}else a.pause()}}
+function tick(){if(ready){const t=now();$('cur').textContent=fmt(t);$('seek').value=Math.round(1000*t/dur);
+  if(playing){if(t+0.25<lastPos)onLoop(); // wrapped back to the loop start
+   if(A!=null&&B!=null&&!$('loop').checked&&t>=B)stop();else if(t>=dur-0.03&&!$('loop').checked){stop();pos=0}
+   lastPos=t}}
  requestAnimationFrame(tick)}requestAnimationFrame(tick);
-a.onended=()=>{if($('loop').checked){a.currentTime=A!=null?A:0;onLoop();a.play()}};
-$('seek').oninput=e=>{if(a.duration)a.currentTime=a.duration*e.target.value/1000};
+$('seek').oninput=e=>{if(dur)seek(dur*e.target.value/1000)};
 const nudge=(i,d)=>{const el=$(i);el.value=Math.max(+el.min,Math.min(+el.max,+el.value+d));apply()};
 ['speed','key','vol'].forEach(i=>$(i).oninput=apply);
 $('sdn').onclick=()=>nudge('speed',-5);$('sup').onclick=()=>nudge('speed',5);$('kdn').onclick=()=>nudge('key',-1);$('kup').onclick=()=>nudge('key',1);$('vdn').onclick=()=>nudge('vol',-10);$('vup').onclick=()=>nudge('vol',10);
-$('back').onclick=()=>{a.currentTime=Math.max(0,a.currentTime-10)};$('fwd').onclick=()=>{a.currentTime=Math.min(a.duration||0,a.currentTime+10)};
-$('reset').onclick=()=>{$('speed').value=100;$('key').value=0;$('vol').value=100;$('ramp').checked=false;A=B=null;showAB();apply()};
-$('loop').onchange=save;
-function showAB(){const el=$('ab');if(A!=null&&a.duration){const b=B!=null?B:a.currentTime;el.style.display='block';el.style.left=(100*A/a.duration)+'%';el.style.width=Math.max(0.5,100*(b-A)/a.duration)+'%'}else el.style.display='none';
- $('abTxt').textContent=A==null?'Loop a tough section: tap Set A at its start, Set B at its end.':B==null?'A = '+fmt(A)+'. Now tap Set B at the end of the section.':'Looping '+fmt(A)+' to '+fmt(B)+'.';save()}
-$('setA').onclick=()=>{A=a.currentTime;if(B!=null&&B<=A)B=null;showAB()};$('setB').onclick=()=>{if(A==null)A=0;if(a.currentTime>A+0.5)B=a.currentTime;showAB()};$('clrAB').onclick=()=>{A=B=null;showAB()};
-document.addEventListener('keydown',e=>{if(e.target.tagName==='SELECT')return;const k=e.key;if(k===' '){e.preventDefault();toggle()}else if(k==='ArrowLeft')a.currentTime=Math.max(0,a.currentTime-5);else if(k==='ArrowRight')a.currentTime+=5;
+$('back').onclick=()=>seek(now()-10);$('fwd').onclick=()=>seek(now()+10);
+$('reset').onclick=()=>{$('speed').value=100;$('key').value=0;$('vol').value=100;$('ramp').checked=false;A=B=null;solo=-1;muted=parts.map(()=>false);pg=parts.map(()=>100);buildMix();showAB();apply()};
+$('loop').onchange=()=>{apply()};
+function showAB(){const el=$('ab');if(A!=null&&dur){const b=B!=null?B:now();el.style.display='block';el.style.left=(100*A/dur)+'%';el.style.width=Math.max(0.5,100*(b-A)/dur)+'%'}else el.style.display='none';
+ $('abTxt').textContent=A==null?'Loop a tough section: tap Set A at its start, Set B at its end.':B==null?'A = '+fmt(A)+'. Now tap Set B at the end of the section.':'Looping '+fmt(A)+' to '+fmt(B)+'.';apply()}
+$('setA').onclick=()=>{A=now();if(B!=null&&B<=A)B=null;showAB()};$('setB').onclick=()=>{if(A==null)A=0;const t=now();if(t>A+0.5){B=t;showAB();if(playing&&$('loop').checked)seek(A)}else showAB()};$('clrAB').onclick=()=>{A=B=null;showAB()};
+document.addEventListener('keydown',e=>{if(e.target.tagName==='SELECT'||e.target.type==='range')return;const k=e.key;if(k===' '){e.preventDefault();$('play').click()}else if(k==='ArrowLeft')seek(now()-5);else if(k==='ArrowRight')seek(now()+5);
  else if(k==='ArrowUp'){e.preventDefault();nudge('speed',1)}else if(k==='ArrowDown'){e.preventDefault();nudge('speed',-1)}else if(k==='[')nudge('key',-1);else if(k===']')nudge('key',1);else if(k==='a'||k==='A')$('setA').click();else if(k==='b'||k==='B')$('setB').click()});
-if(!S){$('title').textContent=qs?'Song not found':'Song Player';$('sub').textContent='Load an MP3 to start';if(qs){$('err').hidden=false;$('err').textContent='This link has no song. Load your own MP3 below, or ask your instructor for the right link.'}}
-else{document.title=S.t+' · Song Player';$('title').textContent=S.t;$('sub').textContent=S.sub||'Play-along';
- const sv=LS.get();if(sv.s)$('speed').value=sv.s;if(sv.k)$('key').value=sv.k;if(sv.v)$('vol').value=sv.v;if(sv.l===false)$('loop').checked=false;if(sv.A!=null){A=sv.A;B=sv.B}
- a.src=S.f;a.load();apply()}
-// Load your own song: plays from this device only (a temporary local link), with the same speed, key and loop controls
-let ownURL=null;
-$('file').onchange=e=>{const f=e.target.files&&e.target.files[0];if(!f)return;if(ownURL)URL.revokeObjectURL(ownURL);ownURL=URL.createObjectURL(f);
+document.addEventListener('visibilitychange',()=>{if(!document.hidden&&playing&&ctx&&ctx.state!=='running')ctx.resume().catch(()=>{})});
+function restore(){const sv=LS.get();$('speed').value=sv.s||100;$('key').value=sv.k||0;$('vol').value=sv.v||100;$('loop').checked=sv.l!==false;A=sv.A!=null?sv.A:null;B=sv.B!=null?sv.B:null}
+// The browser only allows sound after a tap, so the song loads on the first tap anywhere (or right away where allowed)
+let pending=null;function arm(list,boost){pending=list;status('Tap ▶ to load the song.');$('play').disabled=false;$('play').onclick=async()=>{if(!pending)return;const l=pending;pending=null;$('play').onclick=null;
+  try{await loadParts(l,boost);$('play').onclick=()=>{if(!ready)return;if(playing)stop();else start()};start()}catch(e){console.error(e);err('The song didn’t load. Check your connection and reload the page.');status('')}}}
+if(!S){$('title').textContent=qs?'Song not found':'Song Player';$('sub').textContent='Load an MP3 to start';$('play').disabled=true;if(qs)err('This link has no song. Load your own MP3 below, or ask your instructor for the right link.')}
+else{document.title=S.t+' · Song Player';$('title').textContent=S.t;$('sub').textContent=S.sub||'Play-along';restore();apply();
+ restName=S.rest||'other';const pl=(S.parts||[]).map(k=>({k,src:'audio/'+id+'/'+k+'.mp3',boost:S.boost||1}));
+ arm(S.rest?[{k:'mix',src:'audio/'+id+'/mix.mp3',boost:1}].concat(pl):pl.length?pl:[{k:'mix',src:S.f,boost:1}],1)}
+// Load your own song: decoded on this device only, never uploaded. Same speed, key and loop controls.
+$('file').onchange=async e=>{const f=e.target.files&&e.target.files[0];if(!f)return;
  const name=f.name.replace(/\.[^.]+$/,'').replace(/[_-]+/g,' ').trim()||'Your song';KEY='songplayer:own:'+f.name;
- const was=!a.paused;if(was)a.pause();A=B=null;const sv=LS.get();$('speed').value=sv.s||100;$('key').value=sv.k||0;if(sv.A!=null){A=sv.A;B=sv.B}
- $('title').textContent=name;$('sub').textContent='Your own track';document.title=name+' · Song Player';$('err').hidden=true;$('fileTxt').textContent='Playing from this device: '+f.name;
- a.removeAttribute('crossorigin');a.src=ownURL;a.load();apply()};
-</script><p class="appver" style="text-align:center;font-size:11px;opacity:.6;margin:12px 0 8px;font-family:ui-monospace,Menlo,monospace">Song Player · Version 2026-11-11.2</p>
+ if(playing)stop();pos=0;restore();$('title').textContent=name;$('sub').textContent='Your own track';document.title=name+' · Song Player';err('');$('fileTxt').textContent='Playing from this device: '+f.name;
+ pending=null;try{await loadParts([{k:'mix',src:f}]);$('play').onclick=()=>{if(!ready)return;if(playing)stop();else start()};start()}catch(x){console.error(x);err('That file didn’t open. Try an MP3, M4A or WAV.');status('')}};
+window.__sp={level:()=>{if(!an)return 0;const b=new Float32Array(2048);an.getFloatTimeDomainData(b);let q=0;for(const v of b)q+=v*v;return Math.sqrt(q/2048)},solo:i=>{solo=i;sendGains()},state:()=>({ready,playing,pos:now(),dur,parts,gains:gains(),eng:engineGains()}),seek,start,stop};
+</script><p class="appver" style="text-align:center;font-size:11px;opacity:.6;margin:12px 0 8px;font-family:ui-monospace,Menlo,monospace">Song Player · Version 2026-11-11.3</p>
 </body></html>
