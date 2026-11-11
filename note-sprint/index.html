@@ -314,7 +314,7 @@ input[type=range],input[type=checkbox],input[type=radio]{accent-color:var(--c-ac
       <button class="primary" id="startTimed">Start 60-second sprint</button>
     </div>
     <p class="tip" id="kbTip">Keyboard: A–G to answer. In a key with sharps or flats, tap ♯ or ♭ first (or press = / −). Piano keys must be the exact key, right octave.</p>
-    <p class="tip" id="appVer"><span class="appver">Note Sprint · Version 2026-11-11.6</span></p>
+    <p class="tip" id="appVer"><span class="appver">Note Sprint · Version 2026-11-11.7</span></p>
 
     <div class="arcsplash" id="arcSplash" hidden><div class="boom"></div><div id="arcPcs"></div><div class="pre" id="arcSplashP"></div><b id="arcSplashT">ROUND 2</b><span id="arcSplashS"></span></div><div class="hitstamp" id="hitStamp">TARGET HIT!</div>
     <div class="results" id="results" hidden>
@@ -919,9 +919,9 @@ input[type=range],input[type=checkbox],input[type=radio]{accent-color:var(--c-ac
     const L=LEVELS.find(x=>x.id===level); const d=new Date();
     $("rStamp").textContent=`CHALLENGE MODE · High score ${half(best)} · Level ${L.id==="C"?"Custom":L.id} · ${L.name} · Key ${keySetting()==="mix"?"Mix":keyName(+keySetting())} · ${d.toLocaleDateString(undefined,{weekday:"short",month:"short",day:"numeric"})} ${d.toLocaleTimeString([], {hour:"numeric",minute:"2-digit"})}`;
     showResults(); celebrate() }
-  function arcEnd(){ splashTok++; if(!arc) return; arc=null; $("arcbar").hidden=true; $("arcMeter").hidden=true; $("arcSplash").hidden=true; $("watch").classList.remove("fire"); $("arcBtn").hidden=!$("chalOn").checked }
+  function arcEnd(){ splashTok++; if(!arc) return; arc=null; st={correct:0,points:0,total:0,streak:0,best:0,misses:{}}; render();   /* challenge points (2x on fire) never leak into the practice score */ $("arcbar").hidden=true; $("arcMeter").hidden=true; $("arcSplash").hidden=true; $("watch").classList.remove("fire"); $("arcBtn").hidden=!$("chalOn").checked }
   $("arcBtn").addEventListener("click",()=>{ if(timer) stopTimer(); arcStart() });
-  $("closeResults").addEventListener("click",()=>{sheet(false); stopTimer(); newQuestion(true); try{ $("startTimed").focus({preventScroll:true}) }catch(e){} });
+  $("closeResults").addEventListener("click",()=>{sheet(false); stopTimer(); if(lastMode==="arcade") resetScore(); newQuestion(true); try{ $("startTimed").focus({preventScroll:true}) }catch(e){} });
   try{store.set("name","")}catch(e){} // no names stored (privacy)
 
   document.addEventListener("keydown",e=>{
