@@ -436,9 +436,33 @@ details{border:1px solid var(--border);border-radius:12px;background:var(--panel
   // Echo cancellation keeps the app's own clicks out; a high-pass filter drops piano bass and room rumble so sharp claps and snaps stand out.
   // The onset time is taken from the first loud sample inside the buffer, not from when the buffer was read.
   const BASE_THR=0.03, FLAT_MIN=0.12; let thr=BASE_THR;
+  // Clap/snap detector v2: runs inside the audio engine and checks every sample, so a 5 ms snap can never fall between two reads.
+  // It listens only above ~2.8 kHz (4th-order high-pass): snaps and claps are loud there, the app's woodblock click (filtered below 2.6 kHz) is not.
+  // A hit = the fast envelope jumps past the threshold AND 4x above the room's background. Its time is the exact sample where that happens.
+  const DET_SRC=`class Onset extends AudioWorkletProcessor{constructor(){super();this.g=3;this.thr=0.05;this.port.onmessage=e=>Object.assign(this,e.data);
+    const w=2*Math.PI*2800/sampleRate,c=Math.cos(w),s=Math.sin(w);this.bq=[0.5412,1.3066].map(Q=>{const al=s/(2*Q),a0=1+al;return{b0:(1+c)/2/a0,b1:-(1+c)/a0,b2:(1+c)/2/a0,a1:-2*c/a0,a2:(1-al)/a0,x1:0,x2:0,y1:0,y2:0}});
+    this.f=0;this.sl=0;this.hold=0;this.cap=null;this.lv=0;this.ln=0;this.rf=Math.exp(-1/(0.004*sampleRate));this.rs=Math.exp(-1/(0.3*sampleRate));this.warm=Math.round(0.3*sampleRate)}
+   process(ins){const x=ins[0]&&ins[0][0];if(!x)return true;const g=this.g,thr=this.thr;
+    for(let i=0;i<x.length;i++){let v=x[i];for(const b of this.bq){const y=b.b0*v+b.b1*b.x1+b.b2*b.x2-b.a1*b.y1-b.a2*b.y2;b.x2=b.x1;b.x1=v;b.y2=b.y1;b.y1=y;v=y}
+     const a=(v<0?-v:v)*g;this.f=a>this.f?a:this.f*this.rf;if(this.f>this.lv)this.lv=this.f;
+     if(this.warm>0){this.warm--;this.sl=this.sl*this.rs+this.f*(1-this.rs);continue}
+     if(this.cap){if(this.f>this.cap.pk)this.cap.pk=this.f;if(this.cap.k<512)this.cap.buf[this.cap.k++]=v;if(--this.cap.n<=0&&this.cap.k>=512){this.port.postMessage({on:1,t:this.cap.t,pk:this.cap.pk,bg:this.cap.bg,buf:this.cap.buf},[this.cap.buf.buffer]);this.cap=null}}
+     if(this.hold>0){this.hold--;continue}
+     if(this.f>thr&&this.f>this.sl*4){this.cap={t:currentTime+i/sampleRate,pk:this.f,bg:this.sl,n:Math.round(0.012*sampleRate),buf:new Float32Array(512),k:0};this.hold=Math.round(0.07*sampleRate);continue}
+     this.sl=this.sl*this.rs+this.f*(1-this.rs)}
+    this.ln+=x.length;if(this.ln>=1536){this.port.postMessage({lv:this.lv});this.lv=0;this.ln=0}return true}}
+  registerProcessor('rt-onset',Onset);`;
+  let detURL=null; async function detNode(a){ if(!a.__det){ detURL=detURL||URL.createObjectURL(new Blob([DET_SRC],{type:"text/javascript"})); a.__det=a.audioWorklet.addModule(detURL) } await a.__det; return new AudioWorkletNode(a,"rt-onset",{numberOfInputs:1,numberOfOutputs:1,outputChannelCount:[1]}) }
+  const DET_THR=0.025;
+  // How noise-like a hit is above 3 kHz (spectral flatness, 0 = a pure tone, 1 = white noise). Snaps and claps: 0.3-0.5. A click through a speaker: ~0.02.
+  const HW=new Float32Array(512).map((_,i)=>0.5-0.5*Math.cos(2*Math.PI*i/511));
+  function hitFlat(x,sr){ const N=512, re=new Float32Array(N), im=new Float32Array(N); for(let i=0;i<N;i++) re[i]=x[i]*HW[i];
+    for(let i=1,j=0;i<N;i++){ let b=N>>1; for(;j&b;b>>=1) j^=b; j^=b; if(i<j){ const t=re[i]; re[i]=re[j]; re[j]=t } }
+    for(let L=2;L<=N;L<<=1){ const ang=-2*Math.PI/L; for(let i=0;i<N;i+=L) for(let k=0;k<L/2;k++){ const c=Math.cos(ang*k), s=Math.sin(ang*k), a=i+k, b=a+L/2, tr=re[b]*c-im[b]*s, ti=re[b]*s+im[b]*c; re[b]=re[a]-tr; im[b]=im[a]-ti; re[a]+=tr; im[a]+=ti } }
+    const b0=Math.ceil(3000*N/sr), b1=Math.min(N/2,Math.floor(10000*N/sr)); let lg=0, ar=0, n=0; for(let k=b0;k<=b1;k++){ const p=re[k]*re[k]+im[k]*im[k]+1e-14; lg+=Math.log(p); ar+=p; n++ } return Math.exp(lg/n)/(ar/n) }
   function setThr(v){ thr=v; $("thr").style.left=Math.min(100,thr*300)+"%" }
   async function micStart(deviceId){ try{ const a=ctx(); await a.resume(); if(mic) micStop();
-      const c={echoCancellation:true,noiseSuppression:false,autoGainControl:false}; if(deviceId) c.deviceId={exact:deviceId};
+      const c={echoCancellation:inMode==='note',noiseSuppression:false,autoGainControl:false}; if(deviceId) c.deviceId={exact:deviceId};
       const s=await navigator.mediaDevices.getUserMedia({audio:c});
       // The app's clicks are pure tones; a clap or snap is a burst of noise spread across every frequency.
       // A second analyser measures how "noisy" each hit is (spectral flatness): pure tones are rejected, claps pass.
@@ -467,19 +491,22 @@ details{border:1px solid var(--border);border-radius:12px;background:var(--panel
         const H=Math.round(P/2); let dh=0,eh=0; for(let j=0;j<W;j++){ const x=pbuf[j]-pbuf[j+H]; dh+=x*x; eh+=pbuf[j]*pbuf[j]+pbuf[j+H]*pbuf[j+H] }
         return best<0.2&&dh/eh>best*2.5 };
       src.connect(hp); hp.connect(g); g.connect(an); an.connect(mute); mute.connect(a.destination);
-      const buf=new Float32Array(an.fftSize); let last=0, prev=0, pend=null, ckR=0;
+      const buf=new Float32Array(an.fftSize); let last=0, prev=0, pend=null, ckR=0, ckN=0;
+      let det=null; try{ det=await detNode(a); src.connect(det); det.connect(mute); det.port.postMessage({g:+$("micGain").value,thr:DET_THR}) }catch(e){ det=null }
       mic={s,g,mute,an,buf,timer:setInterval(()=>{ an.getFloatTimeDomainData(buf); let r=0, pk=0; for(let i=0;i<buf.length;i++){ r+=buf[i]*buf[i]; pk=Math.max(pk,Math.abs(buf[i])) } r=Math.sqrt(r/buf.length);
-        $("meterFill").style.width=Math.min(100,r*300)+"%"; const now=a.currentTime;
+        if(!(det&&inMode!=="note")) $("meterFill").style.width=Math.min(100,r*300)+"%"; const now=a.currentTime;
         // judge a hit ~20 ms in, when the analyser window is full of the new sound
         if(!pend){ const h0=hb(); hbBase=hbBase?hbBase*0.9+h0*0.1:h0 }
         if(pend) pend.r=Math.max(pend.r||0,r);
         // The app learns how loud its own click is through this mic: during the count-in you aren't playing yet, so every hit there is the click.
         // Later, a hit that lands on a click has to be clearly louder than that to count.
         const ownClick=p=>{ const near=outT.some(o=>Math.abs(p.t-o)<0.06); if(!near||calHook) return false;
-          if(run&&run.mode==="test"&&p.t<run.start-0.1){ ckR=ckR?Math.max(ckR*0.8,p.r):p.r; return true }
-          return ckR>0&&p.r<ckR*1.6 };
+          if(run&&run.mode==="test"&&p.t<run.start-0.1){ ckR=ckN?Math.min(ckR,p.r):p.r; ckN++; return true }
+          return ckR>0&&p.r<ckR*(det?2.2:1.6) };
+        mic.ownClick=ownClick;
         if(pend&&inMode==="note"&&now-pend.at>=0.11){ const p=pend; pend=null; const m=pitch(), tg=+$("noteSel").value;
           if(!ownClick(p)&&((m>0&&Math.abs(m-tg)<=0.6)||hasNote(tg))){ tapAt(p.t,"mic"); $("pad").classList.add("hit"); setTimeout(()=>$("pad").classList.remove("hit"),90) } }
+        if(pend&&inMode!=="note"&&det){ pend=null }
         if(pend&&inMode!=="note"&&now-pend.at>=0.02){ const fl=flat(), h=hb(), p=pend; pend=null;
           if(!ownClick(p)&&(fl>=FLAT_MIN||h>hbBase*10)){ tapAt(p.t,"mic"); $("pad").classList.add("hit"); setTimeout(()=>$("pad").classList.remove("hit"),90) } }
         /* a re-struck piano key over its own ring only jumps ~1.4x */ if(r>thr&&r>prev*(inMode==="note"?1.35:2)&&now-last>0.08){ let k=0; const lim=Math.max(thr*1.5,pk*0.3); while(k<buf.length&&Math.abs(buf[k])<lim) k++;
@@ -487,7 +514,14 @@ details{border:1px solid var(--border);border-radius:12px;background:var(--panel
           // a pure tone (the app's own click or beep) is not a clap: decide once the sound has filled the window
           pend={t,at:now,r} }
         prev=r*0.5+prev*0.5 },8)};
-      $("micBtn").textContent="Microphone on"; $("micBtn").disabled=true; $("micCtl").hidden=false; setThr(thr);
+      if(det){ mic.det=det; det.port.onmessage=e=>{ const m=e.data; if(inMode==="note") return;
+        if(m.lv!=null){ $("meterFill").style.width=Math.min(100,m.lv/DET_THR*15)+"%"; return }
+        const p={t:m.t,r:m.pk}, fl=hitFlat(m.buf,a.sampleRate), near=outT.some(o=>Math.abs(p.t-o)<0.06);
+        if(fl<0.03) return; // a pure tone (a piano note, a beep) is not a clap or snap
+        if(near&&!calHook){ if(run&&run.mode==="test"&&p.t<run.start-0.1){ mic.ownClick(p); return } // count-in: learn the click
+          if(fl<0.06&&mic.ownClick(p)) return } // on a click: must sound like a snap, or be clearly louder than the click
+        (window.__rtHits=window.__rtHits||[]).push(p.t); tapAt(p.t,"mic"); $("pad").classList.add("hit"); setTimeout(()=>$("pad").classList.remove("hit"),90) } }
+      $("micBtn").textContent="Microphone on"; $("micBtn").disabled=true; $("micCtl").hidden=false; setThr(thr); if(det&&inMode!=="note") $("thr").style.left="15%";
       const devs=(await navigator.mediaDevices.enumerateDevices()).filter(d=>d.kind==="audioinput"), cur=s.getAudioTracks()[0].getSettings().deviceId;
       $("micSel").innerHTML=devs.map((d,i)=>`<option value="${d.deviceId}">${(d.label||("Microphone "+(i+1))).replace(/[<>&]/g,"")}</option>`).join(""); if(cur) $("micSel").value=cur;
       $("micStat").textContent="Listening. Clap or snap once: the bar should jump past the line. Too low? Raise Sensitivity.";
@@ -496,8 +530,8 @@ details{border:1px solid var(--border);border-radius:12px;background:var(--panel
     $("micBtn").textContent="Turn on the microphone"; $("micBtn").disabled=false; $("micCtl").hidden=true }
   $("micBtn").addEventListener("click",()=>micStart($("micSel").value||undefined));
   $("micSel").addEventListener("change",e=>micStart(e.target.value));
-  $("micGain").value=store.get("gain","3"); $("micGain").addEventListener("input",e=>{ if(mic) mic.g.gain.value=+e.target.value; store.set("gain",e.target.value) });
-  function setIn(m){ inMode=m; store.set("in",m); document.querySelectorAll("#inSeg button").forEach(b=>b.setAttribute("aria-pressed",String(b.dataset.in===m)));
+  $("micGain").value=store.get("gain","3"); $("micGain").addEventListener("input",e=>{ if(mic){ mic.g.gain.value=+e.target.value; if(mic.det) mic.det.port.postMessage({g:+e.target.value}) } store.set("gain",e.target.value) });
+  function setIn(m){ const was=inMode; inMode=m; if(mic&&m!=="tap"&&(was==="note")!==(m==="note")) micStart($("micSel").value||undefined); store.set("in",m); document.querySelectorAll("#inSeg button").forEach(b=>b.setAttribute("aria-pressed",String(b.dataset.in===m)));
     $("micBox").hidden=m==="tap"; document.querySelectorAll(".noteonly").forEach(e=>e.hidden=m!=="note"); $("pad").textContent=m==="clap"?"CLAP · SNAP · TAP":m==="note"?"PLAY YOUR NOTE · TAP":"TAP"; if(m==="tap") micStop(); calLabel() }
   $("noteSel").value=store.get("note","60"); $("noteSel").addEventListener("change",e=>store.set("note",e.target.value));
   document.querySelectorAll("#inSeg button").forEach(b=>b.addEventListener("click",()=>setIn(b.dataset.in)));
@@ -508,6 +542,6 @@ details{border:1px solid var(--border);border-radius:12px;background:var(--panel
   if(document.fonts) document.fonts.ready.then(()=>drawBar(null));
 })();
 </script>
-<p class="appver" style="text-align:center;font-size:11px;opacity:.6;margin:18px 0 10px;font-family:ui-monospace,Menlo,monospace">Rhythm Trainer · Version 2026-11-11.6</p>
+<p class="appver" style="text-align:center;font-size:11px;opacity:.6;margin:18px 0 10px;font-family:ui-monospace,Menlo,monospace">Rhythm Trainer · Version 2026-11-11.7</p>
 </body>
 </html>
