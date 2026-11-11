@@ -60,6 +60,9 @@ summary{line-height:1.5}
 select{min-height:40px}
 #keyN{white-space:nowrap}
 button:focus-visible,select:focus-visible,input:focus-visible,summary:focus-visible{outline:2px solid var(--c-sel);outline-offset:2px}
+
+/* iPhone/iPad: no grey tap flash box over the rounded keys */
+button,a,label,summary,select,input{-webkit-tap-highlight-color:transparent}
 </style></head><body><main><div class="card">
 <div data-chma-head></div>
 <h1>Major 7th Inversions · Circle of 5ths</h1>
@@ -93,34 +96,44 @@ const fmt=s=>isFinite(s)?Math.floor(s/60)+':'+String(Math.floor(s%60)).padStart(
 const rate=()=>+$('speed').value/100,semi=()=>+$('key').value,vol=()=>+$('vol').value/100;
 function save(){LS.set({t:cur,s:$('speed').value,k:$('key').value,v:$('vol').value,l:$('loop').checked})}
 try{if(navigator.audioSession)navigator.audioSession.type='playback'}catch(e){}
-async function engine(){if(node)return;const AC=window.AudioContext||window.webkitAudioContext;ctx=new AC({latencyHint:'playback'});
- node=await Stretch(ctx);gain=ctx.createGain();gain.gain.value=vol();node.connect(gain);gain.connect(ctx.destination);node.setUpdateInterval(0.04,t=>{pos=t;posAt=performance.now()})}
+function unlock(){if(!ctx){const AC=window.AudioContext||window.webkitAudioContext;ctx=new AC({latencyHint:'playback'});ctx.onstatechange=onState}if(ctx.state!=='running')ctx.resume().catch(()=>{})}
+// Phone locked, a call came in, or Siri spoke: iOS stops the audio clock. Pause at the right spot so the button never shows pause over silence.
+function onState(){if(ctx.state!=='running'&&playing&&ready){stop();$('keyS').textContent='paused: tap ▶ to keep going'}}
+let engP=null;async function engine(){if(node)return;unlock();if(!engP)engP=Stretch(ctx);const n=await engP;if(node)return;node=n;gain=ctx.createGain();gain.gain.value=vol();node.connect(gain);gain.connect(ctx.destination);node.setUpdateInterval(0.04,t=>{pos=t;posAt=performance.now()})}
 const toI16=f=>{const o=new Int16Array(f.length);for(let i=0;i<f.length;i++){const v=Math.round(f[i]*16384);o[i]=v>32767?32767:v<-32768?-32768:v}return o};
 async function load(i){await engine();if(loadedT===i){ready=true;$('dur').textContent=fmt(dur);apply();return}ready=false;if(playing)stop();$('keyS').textContent='loading track…';
- const ab=await (await fetch(T[i].f)).arrayBuffer();const d=await new Promise((res,rej)=>{const r=ctx.decodeAudioData(ab,res,rej);if(r&&r.then)r.then(res,rej)});
+ // A 10-minute track is about 230 MB while decoding and 115 MB in the engine (16-bit), so the old track is freed first.
+ if(loadedT>=0){loadedT=-1;await node.setStems([])}
+ const r0=await fetch(T[i].f);if(!r0.ok)throw new Error('HTTP '+r0.status);let ab=await r0.arrayBuffer();
+ if(i!==cur)return; // another track was picked while this one downloaded: don't decode it
+ let d=await new Promise((res,rej)=>{const r=ctx.decodeAudioData(ab,res,rej);if(r&&r.then)r.then(res,rej)});ab=null;
  if(i!==cur)return; // another track was picked while this one loaded
- const ch=[];for(let c=0;c<Math.min(2,d.numberOfChannels);c++)ch.push(toI16(d.getChannelData(c)));
- dur=await node.setStems([ch],ch.map(x=>x.buffer));node.setGains([1]);loadedT=i;pos=0;ready=true;$('dur').textContent=fmt(dur);apply()}
+ const ch=[];for(let c=0;c<Math.min(2,d.numberOfChannels);c++)ch.push(toI16(d.getChannelData(c)));d=null;
+ const dd=await node.setStems([ch],ch.map(x=>x.buffer));if(i!==cur)return;dur=dd;node.setGains([1]);loadedT=i;pos=0;ready=true;$('dur').textContent=fmt(dur);apply()}
 function loopRange(){if(!$('loop').checked)return [0,0];return A!=null&&B!=null?[A,B]:[0,dur]}
 function apply(){const r=rate(),k=semi();if(node&&ready){const [ls,le]=loopRange();node.schedule({rate:r,semitones:k,loopStart:ls,loopEnd:le});gain.gain.setTargetAtTime(vol(),ctx.currentTime,0.02)}
  $('bpm').textContent=Math.round(T[cur].b*r);$('keyN').textContent=KEYS[(k+12)%12];if(ready||!node)$('keyS').textContent='first chord · '+IVN[k];$('volN').textContent=$('vol').value;save()}
-function now(){return playing?Math.min(dur,pos+(performance.now()-posAt)/1000*rate()):pos}
+function now(){return playing?Math.min(dur,pos+Math.min(0.2,(performance.now()-posAt)/1000)*rate()):pos}
 function seek(t){t=Math.max(0,Math.min(Math.max(0,dur-0.05),t));pos=t;posAt=performance.now();lastPos=t;if(node&&ready)node.schedule({input:t})}
-function start(){if(!ready)return;if(ctx.state!=='running')ctx.resume();if(pos>=dur-0.5)pos=A!=null?A:0;const [ls,le]=loopRange();
+let wake=0;function start(){if(!ready)return;unlock();$('keyS').textContent='first chord · '+IVN[semi()];clearTimeout(wake);wake=setTimeout(()=>{if(playing&&ctx.state!=='running'){stop();$('keyS').textContent='tap ▶ to start the sound'}},1500);if(pos>=dur-0.5)pos=A!=null?A:0;const [ls,le]=loopRange();
  node.schedule({active:true,input:pos,rate:rate(),semitones:semi(),loopStart:ls,loopEnd:le});posAt=performance.now();lastPos=pos;playing=true;$('play').textContent='❚❚'}
-function stop(){if(!node)return;pos=now();node.schedule({active:false});playing=false;$('play').textContent='▶'}
+function stop(){if(!node)return;clearTimeout(wake);pos=now();node.schedule({active:false});playing=false;$('play').textContent='▶'}
 let resume=false; // keep playing across quick track switches
+// one load per track at a time: a tap on ▶ while a picked track is still loading waits for that load (never decodes it twice)
+let inflight={i:-1,p:null};function loadOnce(i){if(inflight.i===i&&inflight.p)return inflight.p;const p=load(i).finally(()=>{if(inflight.p===p)inflight={i:-1,p:null}});inflight={i,p};return p}
 function pick(i){const was=playing||resume;cur=i;[...$('tracks').children].forEach((b,j)=>b.classList.toggle('on',j===i));A=B=null;showAB();apply();
- if(node){resume=was;loading=load(i).then(()=>{if(resume&&cur===i&&ready){resume=false;start()}})}else{$('dur').textContent='0:00'}}
+ if(node){resume=was;loading=loadOnce(i).then(()=>{if(resume&&cur===i&&ready){resume=false;start()}}).catch(e=>{console.error(e);resume=false;if(cur===i)$('keyS').textContent='the track didn’t load: check your connection'})}else{$('dur').textContent='0:00'}}
 T.forEach((t,i)=>{const b=document.createElement('button');b.innerHTML=t.b+' BPM<small>track '+(i+1)+'</small>';b.onclick=()=>pick(i);$('tracks').appendChild(b)});
-async function toggle(){resume=false;if(!node||loadedT!==cur){$('play').disabled=true;try{await engine();if(ctx.state!=='running')ctx.resume();await load(cur);start()}catch(e){console.error(e);$('keyS').textContent='the track didn’t load: check your connection'}$('play').disabled=false;return}
+async function toggle(){resume=false;unlock();if(!node||loadedT!==cur){$('play').disabled=true;resume=true;try{await engine();await loadOnce(cur);if(loadedT===cur&&resume){resume=false;start()}}catch(e){console.error(e);resume=false;$('keyS').textContent='the track didn’t load: check your connection'}$('play').disabled=false;return}
  if(playing)stop();else start()}
 $('play').onclick=toggle;
 function onLoop(){if($('ramp').checked){const mx=+$('rampMax').value,nv=Math.min(mx,+$('speed').value+ +$('rampStep').value);$('speed').value=nv;apply()}}
-function tick(){if(ready){const t=now();$('cur').textContent=fmt(t);$('seek').value=Math.round(1000*t/dur);
+let lastTxt='',lastVal=-1;function tick(){if(ready){const t=now(),tx=fmt(t),v=Math.round(1000*t/dur);if(tx!==lastTxt){$('cur').textContent=lastTxt=tx}if(v!==lastVal&&!scrub){$('seek').value=lastVal=v}
   if(playing){if(t+0.25<lastPos)onLoop();if(!$('loop').checked&&((A!=null&&B!=null&&t>=B)||t>=dur-0.15)){stop();if(t>=dur-0.15)seek(0)}lastPos=t}}
  requestAnimationFrame(tick)}requestAnimationFrame(tick);
 $('seek').oninput=e=>{if(dur)seek(dur*e.target.value/1000)};
+// while a finger is on the position bar, playback doesn't fight the thumb
+let scrub=false;['pointerdown','touchstart'].forEach(ev=>$('seek').addEventListener(ev,()=>{scrub=true},{passive:true}));['pointerup','pointercancel','touchend','touchcancel','change'].forEach(ev=>$('seek').addEventListener(ev,()=>{scrub=false;lastVal=-1}));
 const nudge=(id,d)=>{const el=$(id);el.value=Math.max(+el.min,Math.min(+el.max,+el.value+d));apply()};
 ['speed','key','vol'].forEach(id=>$(id).oninput=apply);
 $('sdn').onclick=()=>nudge('speed',-5);$('sup').onclick=()=>nudge('speed',5);$('kdn').onclick=()=>nudge('key',-1);$('kup').onclick=()=>nudge('key',1);$('vdn').onclick=()=>nudge('vol',-10);$('vup').onclick=()=>nudge('vol',10);
@@ -135,6 +148,6 @@ document.addEventListener('keydown',e=>{if(e.ctrlKey||e.metaKey||e.altKey||e.tar
 document.addEventListener('visibilitychange',()=>{if(!document.hidden&&playing&&ctx&&ctx.state!=='running')ctx.resume().catch(()=>{})});
 const sv=LS.get();if(sv.s)$('speed').value=sv.s;if(sv.k)$('key').value=sv.k;if(sv.v)$('vol').value=sv.v;if(sv.l===false)$('loop').checked=false;
 pick(sv.t>=0&&sv.t<3?sv.t:0);
-window.__m7={state:()=>({ready,playing,pos:now(),dur,cur})};
-</script><p class="appver" style="text-align:center;font-size:11px;opacity:.6;margin:18px 0 10px;font-family:ui-monospace,Menlo,monospace">Major 7th Play-Along · Version 2026-11-11.3</p>
+window.__m7={state:()=>({ready,playing,pos:now(),dur,cur}),ctx:()=>ctx};
+</script><p class="appver" style="text-align:center;font-size:11px;opacity:.6;margin:18px 0 10px;font-family:ui-monospace,Menlo,monospace">Major 7th Play-Along · Version 2026-11-11.4</p>
 </body></html>
