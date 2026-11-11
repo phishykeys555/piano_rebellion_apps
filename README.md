@@ -19,5 +19,5 @@ Every app shows its version at the bottom of the page: `Version YYYY-MM-DD.N` (d
 | Modal Metronome | 2026-11-11.3 |
 | Hanon Speed Trainer | 2026-11-11.2 |
 | Major 7th Play-Along | 2026-11-11.2 |
-| Song Player | 2026-11-11.4 |
+| Song Player | 2026-11-11.5 |
 | Music Games (home) | 2026-11-11.3 |
