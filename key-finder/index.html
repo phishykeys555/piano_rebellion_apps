@@ -104,8 +104,9 @@ input[type=checkbox]{accent-color:var(--c-act)}
 @media (max-width:560px){.card{padding:14px 12px}.stats{padding:10px}.stats span{letter-spacing:.06em}}
 /* phones: no double-tap zoom or grey flash when a kid taps fast; action buttons share the row instead of a ragged wrap */
 button,summary,label{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
+button{-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
 .actions .btn{flex:1 1 auto}
-@media (max-width:400px){.pad{gap:6px}}
+@media (max-width:400px){.pad{gap:6px}.stats span{font-size:10px;letter-spacing:.02em}}
 </style></head>
 <body>
 <div class="wrap">
