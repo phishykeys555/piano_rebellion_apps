@@ -62,6 +62,7 @@ class StrobeTuner extends AudioWorkletProcessor {
       if (m.target !== undefined) this.setTarget(m.target);
       if (m.gate !== undefined) this.gate = m.gate;
       if (m.strings !== undefined) this.strings = m.strings;   // the tuning's string frequencies
+      if (m.stop) this.dead = true;                            // tuner switched off: let this node go
     };
   }
 
@@ -167,6 +168,7 @@ class StrobeTuner extends AudioWorkletProcessor {
   }
 
   process(inputs, outputs) {
+    if (this.dead) return false;
     const inp = inputs[0] && inputs[0][0];
     if (!inp) return true;
     const n = inp.length, aa = this.aa, z = this.z;
