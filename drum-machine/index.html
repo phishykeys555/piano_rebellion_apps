@@ -700,9 +700,9 @@ function fill(){const n=steps(),len=cur.b*cur.s;grid={};ROWS.forEach(([k])=>grid
  else{for(const [k,arr] of Object.entries(cur.h))for(const e of arr){const [st,vel]=Array.isArray(e)?e:[e,1];if(st%cur.s)continue;const bt=st/cur.s;for(let b=bt;b<beats;b+=cur.b)grid[k][b*sub]=vel}
   if(cur.h[42]||cur.h[51])for(let i=0;i<n;i++)grid[cur.h[51]?51:42][i]=i%sub==0?1:.6}
  draw()}
-function setSwing(x){swing=x/100;$('sw').value=x;swUI()}
+function setSwing(x){x=+x;if(!isFinite(x))x=50;x=Math.max(50,Math.min(75,x));swing=x/100;$('sw').value=x;swUI()}
 function swUI(){const x=+$('sw').value,tri=sub===3;$('sw').disabled=tri;$('swt').textContent=tri?'Triplet grid':x<=50?'Straight':(x>=66&&x<=67)?x+'% (triplet)':x+'%'}
-function preset(name){if(!P[name])name='rock';curName=name;cur=P[name];beats=cur.b;sub=cur.s;$('b').value=beats;$('sub').value=sub;setSwing(cur.sw||50);fill();if(window.tsUI)tsUI()}
+function preset(name){if(!Object.prototype.hasOwnProperty.call(P,name))name='rock';curName=name;cur=P[name];beats=cur.b;sub=cur.s;$('b').value=beats;$('sub').value=sub;setSwing(cur.sw||50);fill();if(window.tsUI)tsUI()}
 const SUBL={2:['','&'],3:['','&','a'],4:['','e','&','a']};
 // Pattern grid for keyboard and screen readers: one Tab stop, arrow keys move, Space or Enter cycles hit / ghost / off.
 function cellLbl(name,i,val){return name+', beat '+(Math.floor(i/sub)+1)+(i%sub?' '+SUBL[sub][i%sub]:'')+': '+(val>=1?'hit':val>0?'ghost':'off')}
@@ -1114,7 +1114,8 @@ function synthBass(ty,t,mi,dur,a,glide){const f=mtof(mi),end=t+Math.max(0.06,dur
  else{const l=ctx.createBiquadFilter(),d=shaper(1.5);l.type='lowpass';l.Q.value=3;l.frequency.value=650;const lfo=ctx.createOscillator(),lg=ctx.createGain();lfo.frequency.value=0.35;lg.gain.value=320;lfo.connect(lg);lg.connect(l.frequency);lfo.start(t);lfo.stop(end+0.6);
   l.connect(d);d.connect(gn);mk('sawtooth',-14,l,0.35);mk('sawtooth',0,l,0.35);mk('sawtooth',14,l,0.35);mk('sine',0,gn,0.6);amp(a*0.5,0.01,0.05)}}
 // ===== audio init =====
-async function init(){if(!ctx){try{if(navigator.audioSession)navigator.audioSession.type='playback'}catch(e){}
+async function init(force){if(xBusy&&!force)return new Promise(()=>{}); // export running: previews wait, they must not land in the MP3
+  if(initP)await initP;if(!ctx){let done;initP=new Promise(r=>done=r);try{try{if(navigator.audioSession)navigator.audioSession.type='playback'}catch(e){}
  ctx=new (window.AudioContext||window.webkitAudioContext)({latencyHint:'playback'});ctx.resume().catch(()=>{});{const C=ctx;C.addEventListener('statechange',()=>{if(ctx===C&&playing&&C.state!=='running')$('blm').textContent='Sound paused by the device. Tap anywhere to bring it back.'})}out=ctx.createGain();out.gain.value=volG($('mv').value);
  comp=ctx.createDynamicsCompressor();comp.threshold.value=-10;comp.ratio.value=3;const lim=ctx.createDynamicsCompressor();lim.threshold.value=-6;lim.knee.value=0;lim.ratio.value=20;lim.attack.value=0.001;lim.release.value=0.12;const trim=ctx.createGain();trim.gain.value=0.85;comp.connect(trim);trim.connect(lim);lim.connect(out);
  master=ctx.createGain();master.connect(comp);revSend=ctx.createGain();revSend.gain.value=$('room').value/100*0.5;master.connect(revSend);
@@ -1122,11 +1123,11 @@ async function init(){if(!ctx){try{if(navigator.audioSession)navigator.audioSess
  route();listDevs();
  noise=ctx.createBuffer(1,ctx.sampleRate*2,ctx.sampleRate);{const d=noise.getChannelData(0);for(let i=0;i<d.length;i++)d[i]=Math.random()*2-1}
  let ok=0;await Promise.all(Object.entries(SAMPLES).map(async([k,u])=>{try{buf[k]=await decodeB64(u);ok++}catch(e){}}));sampleCount=ok;
- conv=ctx.createConvolver();conv.buffer=buf.ir_plate||makeIR(1.6);revSend.connect(conv);conv.connect(comp)}
+ conv=ctx.createConvolver();conv.buffer=buf.ir_plate||makeIR(1.6);revSend.connect(conv);conv.connect(comp)}finally{done();initP=null}}
  await ctx.resume();if(el&&$('mode').value==='compat')el.play().catch(()=>{});
  status('Audio '+ctx.state+' · '+sampleCount+'/'+Object.keys(SAMPLES).length+' samples loaded')}
 // ===== scheduler =====
-let halfAt=0,chordB=null,chordC=null,pos=0,barN=0,cin=0,isCount=false,muted=false,fillBar=false,prevFill=false,crashNow=false,bassEv=[],chordNow=null,chordNext=null,secName='',barsAtBpm=0,lastBpm=0,trMsg='',flT=null;
+let halfAt=0,chordB=null,chordC=null,pos=0,barN=0,cin=0,isCount=false,muted=false,fillBar=false,prevFill=false,crashNow=false,bassEv=[],chordNow=null,chordNext=null,secName='',barsAtBpm=0,lastBpm=0,trMsg='',flT=null,xBusy=false,rafId=0;
 // ===== Chord-tone guard: the bass never plays the wrong 3rd or the wrong 7th for the chord that is sounding =====
 // m7 / minor / half-diminished: no major 3rd, no major 7th (leading tone). Major / dominant: no minor 3rd. Dominant 7: no major 7th. maj7: no flat 7th.
 function badPcs(ch){const r=ch.pc,minor=ch.q==='min'||ch.q==='dim',b=new Set([mod12(r+(minor?4:3))]);
@@ -1205,7 +1206,7 @@ function anim(){if(!playing)return;const now=ctx.currentTime;let e=null,eb=null;
   if(eb){e=eb;const ds=$('dots').children;for(let j=0;j<ds.length;j++){ds[j].classList.toggle('on',j==e.b);ds[j].classList.toggle('one',j==0)}
    if($('bigl').checked&&now-e.t<0.25){const bt=$('beat');bt.classList.remove('flash','flash1');void bt.offsetWidth;bt.classList.add(e.b==0?'flash1':'flash');clearTimeout(flT);flT=setTimeout(()=>bt.classList.remove('flash','flash1'),110)}
    blUI(e)}}
- requestAnimationFrame(anim)}
+ rafId=requestAnimationFrame(anim)}
 function blUI(e){let h='';
  if(e.cnt)h='<span class="tag cnt">COUNT-IN</span>'+e.cnt+(e.cb>1?' <small style="font-weight:500">('+e.cb+' bars left)</small>':'');
  else{if(e.sec)h+='<span class="tag sec">'+e.sec+'</span>';if(e.mu)h+='<span class="tag mute">DROP-OUT</span>🤫 Keep going!';else if(e.f)h+='<span class="tag">FILL</span>';if(e.tr)h+=' '+esc(e.tr)}
@@ -1219,8 +1220,8 @@ function chordPreview(){if(playing)return;if(!$('bon').checked&&!$('kon').checke
 
 // ===== Export: render the current settings offline (faster than real time) and encode an MP3 =====
 function loadScript(u){return new Promise((res,rej)=>{if(window.lamejs)return res();const sc=document.createElement('script');sc.src=u;sc.onload=res;sc.onerror=()=>{sc.remove();rej(new Error('the MP3 maker could not load. Check your internet connection and tap Export again.'))};document.head.appendChild(sc)})}
-async function exportMp3(){const mins=+$('xlen').value,secs=mins*60,SR=44100,xst=$('xst'),btn=$('xbtn');btn.disabled=true;
- try{xst.textContent='Loading sounds…';await init();if(playing)stop();
+async function exportMp3(){const mins=+$('xlen').value,secs=mins*60,SR=44100,xst=$('xst'),btn=$('xbtn');btn.disabled=true;xBusy=true;
+ try{xst.textContent='Loading sounds…';await init(true);if(playing)stop();
   if(LIB[$('bt').value])await loadLib($('bt').value);if($('kon').checked&&LIB[$('ksnd').value])await loadLib($('ksnd').value);for(const id of ['kk','sn','tm'])if(DKIT[$(id).value])await loadKit($(id).value);
   await loadScript('https://cdnjs.cloudflare.com/ajax/libs/lamejs/1.2.1/lame.min.js');
   const keep={ctx,out,comp,master,revSend,bassBus,bassStrip,keysBus,conv,openHat},keepBpm=bpm;
@@ -1232,7 +1233,7 @@ async function exportMp3(){const mins=+$('xlen').value,secs=mins*60,SR=44100,xst
   pos=0;barN=0;surStyle=null;surV=null;cin=+$('ci').value;muted=false;prevFill=false;fillBar=false;forceBar=-1;secName='';lastBassM=null;bassPrevM=null;bassPlan=null;bassRun=0;bassLastCk='';trMsg='';q=[];next=0.05;
   xst.textContent='Building '+mins+' min…';sched(secs-0.05);q=[];
   xst.textContent='Rendering… 0%';for(let tt=5;tt<secs;tt+=5)oc.suspend(tt).then(()=>{xst.textContent='Rendering… '+Math.round(100*tt/secs)+'%';oc.resume()});const b=await oc.startRendering();
-  ctx=keep.ctx;setBpm(keepBpm);barsAtBpm=0;out=keep.out;comp=keep.comp;master=keep.master;revSend=keep.revSend;bassBus=keep.bassBus;bassStrip=keep.bassStrip;keysBus=keep.keysBus;conv=keep.conv;openHat=keep.openHat;applyTone();
+  ctx=keep.ctx;setBpm(keepBpm);barsAtBpm=0;out=keep.out;comp=keep.comp;master=keep.master;revSend=keep.revSend;bassBus=keep.bassBus;bassStrip=keep.bassStrip;keysBus=keep.keysBus;conv=keep.conv;openHat=keep.openHat;applyTone();out.gain.value=volG($('mv').value);revSend.gain.value=$('room').value/100*0.5;
   // normalize to -1 dBFS, 1.5 s fade at the end
   const L=b.getChannelData(0),Rr=b.getChannelData(1),n=L.length;let pk=0;for(let i=0;i<n;i++){pk=Math.max(pk,Math.abs(L[i]),Math.abs(Rr[i]))}
   const g=pk>0?0.89/pk:1,fade=Math.floor(SR*1.5),toI=(x,i)=>{let v=x*g*(i>n-fade?(n-i)/fade:1);v=Math.max(-1,Math.min(1,v));return v<0?v*32768:v*32767};
@@ -1248,7 +1249,7 @@ async function exportMp3(){const mins=+$('xlen').value,secs=mins*60,SR=44100,xst
   xst.innerHTML='Ready: '+(blob.size/1048576).toFixed(1)+' MB · <button type="button" id="xsave" class="btn" style="font-weight:800">⬇ Save MP3…</button>';
   $('xsave').addEventListener('click',saveExport);
  }catch(err){let em=(err&&err.message)||String(err);if(/Failed to fetch|NetworkError|Load failed|decode/i.test(em))em='some sounds could not load. Check your internet connection and tap Export again.';xst.textContent='Export failed: '+em;console.error(err);if(ctx instanceof OfflineAudioContext)location.reload()}
- finally{btn.disabled=false}}
+ finally{btn.disabled=false;xBusy=false}}
 let lastExport=null;
 // Save the rendered MP3: a "Save as" box that opens in Downloads where the browser supports it (Chrome, Edge);
 // the share sheet on iPad / iPhone (pick "Save to Files"); otherwise a normal download into the Downloads folder.
@@ -1262,7 +1263,7 @@ async function saveExport(){const X=lastExport,xst=$('xst');if(!X)return;
   xst.innerHTML='Download started: '+X.fn+' (check your Downloads) · <button type="button" id="xsave" class="btn">Save again</button>';$('xsave').addEventListener('click',saveExport)
  }catch(err){if(err&&err.name==='AbortError'){xst.innerHTML='Not saved. <button type="button" id="xsave" class="btn">⬇ Save MP3…</button>';$('xsave').addEventListener('click',saveExport);return}
   const a=document.createElement('a');a.href=X.url;a.download=X.fn;document.body.appendChild(a);a.click();a.remove();xst.innerHTML='Download started: '+X.fn+'. Not in Downloads? <a href="'+X.url+'" download="'+X.fn+'">Tap here</a>'}}
-let clockW=null;
+let clockW=null,initP=null;
 function startClock(){lastTick=0;LA=0.35;try{if(!clockW){const u=URL.createObjectURL(new Blob(["let t=null;onmessage=e=>{clearInterval(t);if(e.data>0)t=setInterval(()=>postMessage(0),e.data)}"],{type:'text/javascript'}));clockW=new Worker(u);clockW.onmessage=()=>{if(playing)sched()}}clockW.postMessage(25);return null}catch(e){return setInterval(sched,25)}}
 function stopClock(){if(clockW)clockW.postMessage(0);if(timer){clearInterval(timer);timer=null}}
 // Background tab (reading music in another tab or app): Safari can pause timers for many seconds, so while hidden we
@@ -1281,8 +1282,8 @@ document.addEventListener('visibilitychange',()=>{if(!ctx||!playing)return;if(!d
 function wake(){if(!ctx||!playing||ctx.state==='running')return;ctx.resume().then(()=>{if(ctx.state==='running')handover()}).catch(()=>{});if(el&&$('mode').value==='compat')el.play().catch(()=>{})}
 window.addEventListener('focus',wake);['pointerdown','keydown'].forEach(t=>document.addEventListener(t,wake,true));
 let starting=null; // one start at a time: a second Space/tap while the sounds load must not start a second loop
-function start(){if(playing)return Promise.resolve();return starting||(starting=start0().finally(()=>{starting=null}))}
-async function start0(){await init();playing=true;pos=0;barN=0;surStyle=null;surV=null;cin=+$('ci').value;muted=false;prevFill=false;fillBar=false;forceBar=-1;secName='';lastBassM=null;bassPrevM=null;bassPlan=null;bassRun=0;bassLastCk='';trMsg='';q=[];next=ctx.currentTime+0.08;timer=startClock();sched();anim();p.textContent='■ Stop';logStart()}
+function start(){if(playing)return Promise.resolve();if(xBusy){$('blm').textContent='Building your MP3. Play works again when it is ready.';return Promise.resolve()}return starting||(starting=start0().finally(()=>{starting=null}))}
+async function start0(){await init();if(xBusy||playing)return;playing=true;pos=0;barN=0;surStyle=null;surV=null;cin=+$('ci').value;muted=false;prevFill=false;fillBar=false;forceBar=-1;secName='';lastBassM=null;bassPrevM=null;bassPlan=null;bassRun=0;bassLastCk='';trMsg='';q=[];next=ctx.currentTime+0.08;timer=startClock();sched();cancelAnimationFrame(rafId);anim();p.textContent='■ Stop';logStart()}
 function stop(){playing=false;stopClock();if(ctx&&master)swapBuses(ctx.currentTime+0.01);q=[];forceBar=-1;document.querySelectorAll('.now').forEach(c=>c.classList.remove('now'));[...$('dots').children].forEach(d=>d.classList.remove('on'));$('blm').innerHTML='Press ▶ Play or Space';p.textContent='▶ Play';chordPreview();logStop()}
 function fillNow(){if(!playing){start().then(()=>{forceBar=0});return}if(isCount){forceBar=0;return}const n=steps(),fl=fillBeats()*sub;
  if(pos<n-fl&&!muted){fillBar=true;curFill=genFill(fl);prevFill=true}else forceBar=barN+1}
@@ -1312,18 +1313,19 @@ function legacyKey(c){if(!c)return;if(PROG2[c.prog])c.prog=PROG2[c.prog];const o
  if(OLDPROG[old])c.prog=OLDPROG[old];
  if(deg&&c.key!=null){const i=NOTES.indexOf(c.key);if(i>=0)c.key=NOTES[mod12(i-MAJ[deg])]}}
 function setSel(e,val){if([...e.options].some(o=>o.value==val))e.value=val}
-function applyState(st){if(!st||!st.c)return false;restoring=true;const c=st.c;if(c.bt==='growly')c.bt='jbass';if(c.bt==='slap')c.bt='gslap';if(c.bt==='upright')c.bt='gupright';if(PROG2[c.prog])c.prog=PROG2[c.prog];if(!st.av){if(c.hh==='ac')c.hh='studio';if(c.rv==='soft')c.rv='zil'}if(!st.fl&&(c.hu==null||+c.hu===0))c.hu='30';if(!st.vt&&c.mv!=null){const v=+c.mv;c.mv=String(v<=0?0:Math.max(1,Math.min(100,Math.round(100*(1+20*Math.log10(v/100)/45)))))}if(!st.bj){if(c.bt==='finger')c.bt='jbass';if(c.bt==='upright')c.bt='dbass'}if(!st.kt&&(c.kit==='acoustic'||!c.kit)){c.kit='bpearl';c.kk='bp';c.sn='bp';c.tm='bp'}if(!st.pk)legacyKey(c);
+function applyState(st){try{return applyState0(st)}finally{restoring=false}}
+function applyState0(st){if(!st||!st.c)return false;restoring=true;const c=st.c;if(c.bt==='growly')c.bt='jbass';if(c.bt==='slap')c.bt='gslap';if(c.bt==='upright')c.bt='gupright';if(PROG2[c.prog])c.prog=PROG2[c.prog];if(!st.av){if(c.hh==='ac')c.hh='studio';if(c.rv==='soft')c.rv='zil'}if(!st.fl&&(c.hu==null||+c.hu===0))c.hu='30';if(!st.vt&&c.mv!=null){const v=+c.mv;c.mv=String(v<=0?0:Math.max(1,Math.min(100,Math.round(100*(1+20*Math.log10(v/100)/45)))))}if(!st.bj){if(c.bt==='finger')c.bt='jbass';if(c.bt==='upright')c.bt='dbass'}if(!st.kt&&(c.kit==='acoustic'||!c.kit)){c.kit='bpearl';c.kk='bp';c.sn='bp';c.tm='bp'}if(!st.pk)legacyKey(c);
  for(const id in c){const e=$(id);if(!e)continue;if(e.type==='checkbox')e.checked=!!c[id];else if(e.tagName==='SELECT')setSel(e,c[id]);else e.value=c[id]}
  preset(P[c.pre]?c.pre:'rock');$('pre').value=curName;
  let nb=+c.b||beats,ns=+c.sub||sub;if(!(nb>=2&&nb<=12&&nb%1===0))nb=beats;if(![2,3,4].includes(ns))ns=sub;if(nb!==beats||ns!==sub){beats=nb;sub=ns;$('b').value=beats;$('sub').value=sub;fill()}if(window.tsUI)tsUI();
  if(c.sw)setSwing(+c.sw);
  if(st.rowVol)for(const k in st.rowVol)if(k in rowVol&&isFinite(+st.rowVol[k]))rowVol[k]=Math.max(0,Math.min(2,+st.rowVol[k]));
- if(st.grid)ROWS.forEach(([k])=>{const r=st.grid[k];if(Array.isArray(r)&&r.length===steps())grid[k]=r.map(Number)});
+ if(st.grid)ROWS.forEach(([k])=>{const r=st.grid[k];if(Array.isArray(r)&&r.length===steps())grid[k]=r.map(x=>{x=+x;return x>0?Math.min(1,x):0})});
  if(!st.tm2&&$('tm').value!=='linn')$('tm').value='pearl';
  if(st.seed)bassSeed=st.seed;if(st.dev!=null)savedDev=st.dev;if(st.view)setView(st.view,true);
  setBpm(st.bpm||80);uiRefresh();draw();restoring=false;return true}
 function uiRefresh(){fatUI();swUI();$('mvt').textContent=$('mv').value+'%';$('cpl').style.display=$('prog').value==='custom'?'':'none';$('beat').classList.toggle('big',$('bigl').checked);
- if(out)out.gain.setTargetAtTime(volG($('mv').value),ctx.currentTime,0.02);if(revSend)revSend.gain.setTargetAtTime($('room').value/100*0.5,ctx.currentTime,0.05);chordPreview()}
+ if(out&&!xBusy)out.gain.setTargetAtTime(volG($('mv').value),ctx.currentTime,0.02);if(revSend&&!xBusy)revSend.gain.setTargetAtTime($('room').value/100*0.5,ctx.currentTime,0.05);chordPreview()}
 addEventListener('pagehide',()=>{if(saveT&&!restoring){clearTimeout(saveT);try{store.setItem(SKEY,JSON.stringify(getState(true)))}catch(e){}}});
 function save(){if(restoring)return;clearTimeout(saveT);saveT=setTimeout(()=>{try{store.setItem(SKEY,JSON.stringify(getState(true)));$('sv').textContent=store.mem?'Settings kept until reload':'✓ Settings saved'}catch(e){$('sv').textContent='Saving not available here'}},300)}
 // Song presets from the link: ?pk=1&pre=rock&bpm=80&key=C&md=aeolian&prog=custom&cprog=Am%20G&bon=1&bs=pedal&tr=1&trg=108 ...
@@ -1360,9 +1362,9 @@ $('xbtn').onclick=()=>{if(!inFrame)return exportMp3();
  const u=location.origin+location.pathname+'?dm='+encodeURIComponent(encodeCode())+'&xp='+$('xlen').value;
  const w=window.open(u,'_blank');
  $('xst').innerHTML=w?'Opened full screen to export and save your MP3 (Notion blocks downloads inside the page).':'Notion blocks downloads here. <a href="'+u+'" target="_blank" rel="noopener">Open full screen to export</a>'};
-p.onclick=async()=>{if(playing){stop();return}p.disabled=true;p.textContent='Loading sounds…';try{await start()}catch(e){p.textContent='▶ Play';status('Audio could not start. Try again.');console.error(e)}finally{p.disabled=false}};
+p.onclick=async()=>{if(playing){stop();return}if(xBusy){start();return}p.disabled=true;p.textContent='Loading sounds…';try{await start()}catch(e){p.textContent='▶ Play';status('Audio could not start. Try again.');console.error(e)}finally{p.disabled=false;if(!playing)p.textContent='▶ Play'}};
 s.oninput=e=>setBpm(+e.target.value);
-$('mv').oninput=e=>{$('mvt').textContent=e.target.value+'%';if(out)out.gain.setTargetAtTime(volG(e.target.value),ctx.currentTime,0.02)};
+$('mv').oninput=e=>{$('mvt').textContent=e.target.value+'%';if(out&&!xBusy)out.gain.setTargetAtTime(volG(e.target.value),ctx.currentTime,0.02)};
 [['d5',-5],['d1',-1],['u1',1],['u5',5]].forEach(([id,n])=>$(id).onclick=()=>setBpm(bpm+n));
 $('pre').onchange=e=>{preset(e.target.value);pos=0};
 $('b').onchange=e=>{beats=+e.target.value;pos=0;fill()};
@@ -1381,7 +1383,7 @@ $('prog').onchange=()=>{const o=$('prog').selectedOptions[0];if(o&&o.dataset.md)
 $('cprog').oninput=chordPreview;$('bon').onchange=chordPreview;
 $('kit').onchange=e=>{const [k,sn,h,tm]=KITS[e.target.value];$('kk').value=k;$('sn').value=sn;$('hh').value=h;$('tm').value=tm;if(ctx)[k,sn,tm,h].forEach(x=>{if(DKIT[x])loadKit(x)})};
 ['kk','sn','tm'].forEach(id=>$(id).addEventListener('change',()=>{if(ctx&&DKIT[$(id).value])loadKit($(id).value)}));
-$('room').oninput=e=>{if(revSend)revSend.gain.setTargetAtTime(e.target.value/100*0.5,ctx.currentTime,0.05)};
+$('room').oninput=e=>{if(revSend&&!xBusy)revSend.gain.setTargetAtTime(e.target.value/100*0.5,ctx.currentTime,0.05)};
 ['kk','sn','hh','tm'].forEach(id=>$(id).addEventListener('change',async()=>{await init();const n=id=='kk'?36:id=='sn'?38:id=='hh'?42:47;hit(n,ctx.currentTime+0.02,1)}));
 const previewBass=async()=>{await init();if(LIB[$('bt').value])await loadLib($('bt').value);bassNote(ctx.currentTime+0.03,bassRoot(keyPc()),0.6,0.9)};
 $('bt').addEventListener('change',previewBass);$('btone').addEventListener('change',()=>{applyTone();previewBass()});$('kon').addEventListener('change',()=>{chordPreview();if($('kon').checked&&ctx&&LIB[$('ksnd').value])loadLib($('ksnd').value)});$('ksnd').addEventListener('change',()=>{if(/^(pad|sweeppad|strings)/.test($('ksnd').value))$('kcomp').value='sustain';if($('kon').checked&&ctx&&LIB[$('ksnd').value])loadLib($('ksnd').value)});
@@ -1426,9 +1428,9 @@ document.addEventListener('keydown',e=>{const tg=e.target.tagName,ty=e.target.ty
 // ===== boot =====
 p.disabled=false;p.textContent='▶ Play';$('av').value='rock';$('ac').value='pop';psUI();restore();uiRefresh();logUI();restoring=false;listDevs();
 {const sp=new URLSearchParams(location.search),dm=sp.get('dm');if(dm){try{applyState(decodeCode(dm));uiRefresh();save()}catch(e){console.error(e)}
-  if(sp.get('xp')){$('xlen').value=sp.get('xp');history.replaceState(null,'',location.pathname);$('xst').textContent='Your settings from Notion are loaded. Tap Export to build and save your MP3.';setTimeout(()=>{$('xbtn').scrollIntoView({block:'center'});$('xbtn').focus()},300)}}}
+  if(sp.get('xp')){setSel($('xlen'),sp.get('xp'));history.replaceState(null,'',location.pathname);$('xst').textContent='Your settings from Notion are loaded. Tap Export to build and save your MP3.';setTimeout(()=>{$('xbtn').scrollIntoView({block:'center'});$('xbtn').focus()},300)}}}
 
-</script><script>(function(){const C=['#e8412c','#f28c28','#f6c33b','#efe6d2'];document.querySelectorAll('.sec>h4').forEach((h,i)=>h.style.setProperty('--band',C[i%4]))})();</script><p class="appver" style="text-align:center;font-size:11px;opacity:.6;margin:18px 0 10px;font-family:ui-monospace,Menlo,monospace">Modal Metronome · Version 2026-11-11.7</p>
+</script><script>(function(){const C=['#e8412c','#f28c28','#f6c33b','#efe6d2'];document.querySelectorAll('.sec>h4').forEach((h,i)=>h.style.setProperty('--band',C[i%4]))})();</script><p class="appver" style="text-align:center;font-size:11px;opacity:.6;margin:18px 0 10px;font-family:ui-monospace,Menlo,monospace">Modal Metronome · Version 2026-11-11.8</p>
 <script>/* Setting help: hover the name on a computer, tap it on a phone or iPad */
 (function(){const T={"mv": "Master volume for everything: drums, bass and keys. Saved on this device only, not in presets or links.", "xlen": "How long the MP3 will be. It records the groove, bass, chords, fills and tempo exactly as they are set now, so you can practice with it anywhere.", "ps": "Your saved setups. Pick one to load it. Type a name and tap Save to store everything you have set right now. Presets live on this device and never get erased by Reset.", "pre": "The drum pattern. Each groove is written the way real drummers play that style. Changing it also sets the time signature the groove is written in.", "ts": "Time signature: how many beats are in a bar and what kind. 4/4 = four quarter-note beats. 6/8, 9/8 (3+3+3) and 12/8 = beats split in three. In 5/8, 7/8, 9/8 (2+2+2+3) and 11/8 each beat is one 8th note, so the BPM counts 8ths.", "sdv": "Subdivide: the steady in-between notes that keep time. \"As written\" plays the groove's own hi-hat or ride part. Pick Quarter notes, 8ths, 16ths, Triplets or Off-beats to replace it with a steady pulse. Off = no subdivision at all, just the kick and snare.", "cy": "Subdivide with: the instrument that plays the subdivision. Hi-hat is tight and dry, ride is washy, ride bell cuts through, shaker and tambourine are soft and bright, cowbell, side stick, claves and woodblock are clicky and easy to hear.", "fb": "First beat: adds an extra sound on beat 1 of every bar so you always know where the bar starts. Great for odd meters like 7/8 and 9/8.", "sw": "Swing pushes every second note late. 50% = straight, even notes. About 67% = triplet swing, like jazz and blues shuffles.", "pkt": "Pocket: where the drummer sits on the beat. Auto uses the real feel of the groove: backbeat a hair behind, hats leading. Machine = perfectly on the grid.", "gdyn": "Ghost notes are the very soft snare taps between the backbeats. \"4 levels\" plays them softer or louder depending on where they fall, like a real drummer. Flat = all the same.", "groll": "Adds soft snare drags and buzz rolls leading into the backbeat, built from real stick bounces.", "hu": "Humanize adds tiny random changes in timing and volume so the drums don't sound like a machine. Zero = perfectly even.", "crash": "Plays a crash cymbal on beat 1 every 4 bars to mark the phrase.", "ci": "Count-in: clicks before the band starts so you can come in on time.", "do": "Drop-out: the drums and bass go silent for some bars while you keep playing. When they come back, you find out if you kept the time yourself.", "bigl": "Makes the beat light big and flashes the screen on every beat, so you can see the pulse from across the room.", "tr": "Tempo trainer: speeds the metronome up a little every few bars until it reaches your goal. It never slows down.", "trg": "The tempo the trainer stops at.", "tri": "How many BPM to add each time.", "trb": "How many bars to play before each speed-up.", "fe": "How often the drummer plays a fill (a short drum break) at the end of a phrase.", "fs": "The kind of fill: toms, snare, or a mix.", "fa": "How busy the fill is. Low = short and simple. High = full bar with doubles.", "fc": "Plays a crash on the beat right after every fill, like a drummer landing the fill.", "key": "The major parent key: the \"1\" of the scale. The studio names every mode from its parent major key.", "md": "The mode: which note of the parent key the music sits on. The bass and keys use it for passing notes and voicings.", "prog": "The chord progression the bass and keys play, written in Roman numerals from the parent key.", "bpc": "How long each chord lasts. Normal = one bar. Double time = two chords per bar. Half time = each chord lasts two bars.", "cprog": "Type your own chords, separated by spaces (for example: ii V I vi or Dm7 G7 Cmaj7).", "bon": "Turns the bass player on. The bass follows the chords and the groove.", "bt": "The bass sound: electric, upright, synth and more.", "btone": "Shapes the bass like a mixing engineer: EQ and compression on the bass channel.", "bs": "How the bass plays: root notes, walking lines, pedal tones and more, matched to the style.", "bauto": "Writes a fresh bass line every few bars so it never gets repetitive.", "bvar": "How often the bass adds passing notes, octave jumps and pickups.", "bv": "Bass volume, separate from the drums.", "kon": "Turns the keyboard player on. The keys play the chords in the progression.", "ksnd": "The keyboard sound: piano, electric piano, organ, pads.", "kcomp": "Comping = how the keys play the chords: held, pushed, stabs. Auto matches the groove.", "kvoice": "Voicing = which chord notes the keys play. Pop/rock uses triads. Jazz plays the 3rd, 5th, 7th and 9th and leaves the root to the bass.", "kv": "Keys volume, separate from the drums.", "kit": "Picks the whole drum kit at once. You can still change each drum below.", "kk": "The kick drum sound.", "sn": "The snare drum sound.", "rv": "The ride cymbal sound.", "hh": "The hi-hat sound.", "hfeel": "Tight = closed and choked. Loose = hats a little open and sloshy.", "sfeel": "Tight = damped, higher crack. Open = lower, fatter, more ring.", "kfeel": "Tight = short and punchy. Boomy = lower and longer.", "tm": "The tom sounds used in fills.", "pc": "The percussion sounds: shaker, tambourine, cowbell, congas and more.", "room": "How much room echo (reverb) is on the whole band.", "arr": "Song mode: switches between a verse groove and a chorus groove, so practice feels like a real song.", "av": "The groove for the verse.", "ac": "The groove for the chorus.", "ab": "How many bars the verse lasts.", "cb": "How many bars the chorus lasts.", "mode": "Direct is fastest. Pick Compatibility only if the sound crackles or won't play on your device.", "dev": "Which speaker or headphones the sound plays through.", "showall": "Shows every drum in the pattern grid, not just the drums this groove uses."};
  const tip=document.createElement('div');tip.id='tip';document.body.appendChild(tip);let cur=null;
@@ -1465,5 +1467,5 @@ p.disabled=false;p.textContent='▶ Play';$('av').value='rock';$('ac').value='po
  const cn=navigator.connection;if(navigator.onLine===false||(cn&&(cn.saveData||/2g|3g/.test(cn.effectiveType||''))))return;
  setTimeout(()=>{fetch(location.pathname+'?_v='+Date.now(),{cache:'no-store'}).then(r=>r.text()).then(t=>{const l=t.match(/Modal Metronome · Version ([0-9.-]+)/);
   if(!l||l[1]===m[1])return;let k='mmUpd'+l[1];try{if(sessionStorage.getItem(k))return;sessionStorage.setItem(k,'1')}catch(e){}
-  if(typeof playing!=='undefined'&&playing)return;const base=location.href.split('#')[0].replace(/[?&]_(v|r)=[^&]*/g,'').replace(/\?&/,'?'),ref=new URLSearchParams(location.search).get('_r');location.replace(base+(base.includes('?')?'&':'?')+'_r='+encodeURIComponent(ref!==null?ref:document.referrer||'')+'&_v='+l[1])}).catch(()=>{})},1500)})();</script>
+  if(typeof playing!=='undefined'&&(playing||xBusy))return;const base=location.href.split('#')[0].replace(/[?&]_(v|r)=[^&]*/g,'').replace(/\?&/,'?'),ref=new URLSearchParams(location.search).get('_r');location.replace(base+(base.includes('?')?'&':'?')+'_r='+encodeURIComponent(ref!==null?ref:document.referrer||'')+'&_v='+l[1])}).catch(()=>{})},1500)})();</script>
 </body></html>
