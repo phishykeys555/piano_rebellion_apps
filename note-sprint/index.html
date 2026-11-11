@@ -747,7 +747,7 @@ input[type=range],input[type=checkbox],input[type=radio]{accent-color:var(--c-ac
   // older versions could learn a bad tuning from talking: start every device fresh once
   if(store.get("tuneV",0)!==2){ tuneOff=0; store.set("tuneOff",0); store.set("tuneV",2) }
   const micG=x=>0.25*Math.pow(48,(+x)/100);
-  const THR=0.015, AP=0.12; let thr=THR, lastAp=1;
+  const THR=0.015, AP=0.12, HOLDK=0.9, HOLDR=1.2; let thr=THR, lastAp=1;
   function setThr(v){ thr=v; $("thr").style.left=Math.min(100,thr*600)+"%" }
   // Embedded pages (Notion and most sites) usually do not pass the microphone through to the app. Spot it before the tap where the browser can tell,
   // and always offer a one-tap way out: the same app in its own tab, opened in mic mode with this level and key.
@@ -807,9 +807,11 @@ input[type=range],input[type=checkbox],input[type=radio]{accent-color:var(--c-ac
     // room noise floor = the quietest look in the last ~2 s. Pitch is read down to 3x that (never above the old fixed 0.008), so a top-of-the-staff note
     // like F5, which fades in a fraction of a second, still gives the 4 steady looks a decision needs.
     m.hist.push(r); if(m.hist.length>50) m.hist.shift(); const gate=Math.min(0.008,Math.max(0.002,3*Math.min(...m.hist)));
-    // a new key = the newest 20 ms jumps well past both of the last two looks. A ringing string that swells as its 2-3 strings beat (strongest in the
-    // upper treble) rises far slower, so it never re-arms and never answers the next question by itself.
-    if(!m.armed&&now>m.cool&&Math.max(r,rs)>thr&&rs>1.8*Math.min(p1,p2)){m.armed=true;m.armedAt=now;m.cand=[];m.res=[];m.raw=[];m.rawX=[];m.env=[]}
+    // a new key = the newest 20 ms jumps well past both of the last two looks AND past the fading peak of what was already ringing. A string that
+    // swells back as its 2-3 strings beat (strongest in the upper treble) never climbs over its own earlier peak, so it never re-arms and never
+    // answers the next question by itself.
+    const hold=m.hold||0; m.hold=Math.max(rs,hold*HOLDK);
+    if(!m.armed&&now>m.cool&&Math.max(r,rs)>thr&&rs>1.8*Math.min(p1,p2)&&rs>HOLDR*hold){m.armed=true;m.armedAt=now;m.cand=[];m.res=[];m.raw=[];m.rawX=[];m.env=[]}
     if(m.armed) m.env.push(r);
     if(m.armed&&now-m.armedAt>=70){ const f=acf(m.buf,audio.sampleRate,gate);
       // tuneOff = how sharp/flat this piano sits (semitones), learned from every confirmed note, so a home piano that's a bit off still reads exactly

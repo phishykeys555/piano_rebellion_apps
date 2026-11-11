@@ -200,6 +200,8 @@ button:focus-visible,select:focus-visible,summary:focus-visible,input:focus-visi
       <label><input type="checkbox" id="guide"> Play the rhythm with me (easier)</label>
       <label><input type="checkbox" id="cursor" checked> Show the moving cursor (turn off to read without it)</label>
       <label><input type="checkbox" id="lightup" checked> Light up each note in blue when it should be hit</label>
+      <label><input type="checkbox" id="ramp" checked> Speed up each Challenge round</label>
+      <span class="stamp">On: each Challenge round is 8% faster. Off: every round stays at your tempo, with the same accuracy targets. A change applies from the next Start.</span>
       <div class="row"><button class="ghost" id="cal">Calibrate timing</button><span class="stamp" id="calTxt" role="status" aria-live="polite"></span></div>
       <span class="stamp">Calibrate once per device, and again with Bluetooth headphones: tap (or clap, in Clap mode) along with 8 clicks. Tap and the microphone keep separate settings.</span>
     </div>
@@ -459,10 +461,11 @@ button:focus-visible,select:focus-visible,summary:focus-visible,input:focus-visi
   let gmode="practice", sess=null, arc=null; const ARC_T=30;
   // Challenge "Faster + accuracy": round 1 is a warm-up at your tempo; every round after it is 8% faster and needs more accuracy.
   const ARC_NEED=[0,0,75,80,85,90,90], ARC_MAX=180; // index = round (6 = bonus)
-  const arcTempo=r=>Math.min(ARC_MAX,Math.round(bpm*Math.pow(1.08,r-1)));
+  const rampOn=()=>$("ramp").checked; // read at Start: a change during a run applies to the next run
+  const arcTempo=(r,ramp)=>ramp?Math.min(ARC_MAX,Math.round(bpm*Math.pow(1.08,r-1))):bpm;
   const avgAcc=bars=>bars.length?Math.round(bars.reduce((a,b)=>a+b.score,0)/bars.length):null; // the same accuracy as the results screen
   const half=x=>Number.isInteger(x)?String(x):(Math.floor(x)||"")+"½";
-  function bestKey(){ return "best-"+gmode+"-"+level+"-"+bpm+"-"+inMode }
+  function bestKey(steady){ return "best-"+gmode+"-"+level+"-"+bpm+"-"+inMode+(gmode==="chal"&&(steady!=null?steady:arc?!arc.ramp:!rampOn())?"-steady":"") } // a steady-tempo challenge keeps its own high score
   function stats(){ const S=sess, T=gmode==="practice";
     $("lRound").textContent=T?"Tries":"Time"; $("lScore").textContent=T?"Last":"Points"; $("lAvg").textContent=T?"Average":"Accuracy"; $("lBest").textContent=T?"Best":"High score";
     const hs=bestNum(bestKey());
@@ -473,7 +476,7 @@ button:focus-visible,select:focus-visible,summary:focus-visible,input:focus-visi
   function setMode(m){ if(m!=="practice") m="chal"; // only two modes: any other or old value lands on Challenge
     if(sess) stopSession(true); gmode=m; document.querySelectorAll("#modeSeg button").forEach(b=>b.setAttribute("aria-pressed",String(b.dataset.m===m)));
     round=[]; $("results").hidden=true; $("again").hidden=true; $("go").textContent="Start";
-    msg(null,m==="practice"?"Single tries":"Challenge mode",m==="practice"?"One rhythm at a time, with your timing after every try.":"Faster + accuracy. Round 1 is a 30-second warm-up at your tempo. Each round after it is 8% faster and needs more accuracy: 75%, 80%, 85%, 90%, then a bonus round.");
+    msg(null,m==="practice"?"Single tries":"Challenge mode",m==="practice"?"One rhythm at a time, with your timing after every try.":"Faster + accuracy. Round 1 is a 30-second warm-up at your tempo. Each round after it is 8% faster and needs more accuracy: 75%, 80%, 85%, 90%, then a bonus round. (Settings: turn off Speed up for a steady tempo.)");
     stats() }
   document.querySelectorAll("#modeSeg button").forEach(b=>b.addEventListener("click",()=>setMode(b.dataset.m)));
   function chime(){ const a=ctx(),t=a.currentTime; [784,1047,1319].forEach((f,i)=>{ const o=a.createOscillator(),g=a.createGain(); o.type="triangle"; o.frequency.value=f; g.gain.setValueAtTime(0.0001,t+i*0.08); g.gain.exponentialRampToValueAtTime(0.25,t+i*0.08+0.01); g.gain.exponentialRampToValueAtTime(0.0001,t+i*0.08+0.35); o.connect(g).connect(a.destination); o.start(t+i*0.08); o.stop(t+i*0.08+0.4) }) }
@@ -483,7 +486,7 @@ button:focus-visible,select:focus-visible,summary:focus-visible,input:focus-visi
     if(S.left>0&&!S.stopped) setTimeout(()=>{ if(sess===S&&S.left>0&&!S.stopped){ newBar(); play("test") } },500); else setTimeout(()=>{ if(sess===S) sessionOver() },500) }
   function stopSession(silent){ if(!sess) return; clearInterval(sess.timer); sess.stopped=true; sess=null; arc=null; splashTok++; if(run){ run=null; hush(); drawBar(null); $("go").disabled=false } lockUI(); $("arcbar").hidden=true; $("arcMeter").hidden=true; $("arcSplash").hidden=true; $("hear").disabled=false; $("go").textContent="Start"; if(!silent) msg(null,"Stopped","Press Start to go again."); stats() }
   function sessionOver(){ if(!sess) return; if(arc) return arcRoundEnd(); stopSession(true) }
-  function showResults(title,S,why,tag,tempoTxt){ const bars=S.bars, all=bars.flatMap(r=>r.errs), mean=all.length?all.reduce((a,b)=>a+b,0)/all.length:0, key=bestKey(), prev=bestNum(key)||0, best=Math.max(prev,S.points), isNew=S.points>0&&S.points>=best;
+  function showResults(title,S,why,tag,tempoTxt,steady){ const bars=S.bars, all=bars.flatMap(r=>r.errs), mean=all.length?all.reduce((a,b)=>a+b,0)/all.length:0, key=bestKey(steady), prev=bestNum(key)||0, best=Math.max(prev,S.points), isNew=S.points>0&&S.points>=best;
     store.set(key,best); $("rTitle").textContent=title; $("rWhy").textContent=why||"";
     $("rScore").innerHTML=`${half(S.points)} <small>points</small>${isNew?"<small>· new high score</small>":""}`; // two pieces: on a narrow phone "new high score" wraps to its own line instead of running off the card
     $("rAcc").textContent=bars.length?Math.round(bars.reduce((a,b)=>a+b.score,0)/bars.length)+"%":"–";
@@ -505,13 +508,13 @@ button:focus-visible,select:focus-visible,summary:focus-visible,input:focus-visi
     if(hit&&!arc.hit){ arc.hit=true; const hs=$("hitStamp"); hs.classList.remove("go"); void hs.offsetWidth; hs.classList.add("go"); chime() } }
   let splashTok=0;
   function splash(pre,t,tempo,sub,ms,then){ const tok=++splashTok; $("spP").textContent=pre||""; $("spT").textContent=t; $("spB").textContent=tempo||""; $("spB").hidden=!tempo; $("spS").textContent=sub; const sp=$("arcSplash"); sp.hidden=false; sp.classList.remove("go"); void sp.offsetWidth; sp.classList.add("go"); setTimeout(()=>{ if(tok!==splashTok) return; sp.hidden=true; if(arc) then() },ms) }
-  function arcStart(){ if(sess) stopSession(true); sess={points:0,bars:[],left:ARC_T,stopped:true}; arc={round:1,bpm:arcTempo(1),top:arcTempo(1),from:0,hit:false}; lockUI(); $("clockPill").textContent=ARC_T+" s"; $("clockPill").classList.remove("hot"); $("results").hidden=true; $("go").textContent="Stop"; $("hear").disabled=true;
-    arcBar(); splash("CHALLENGE MODE","ROUND 1",`${arc.bpm} BPM`,"Warm-up: no target, just play. Then every round is 8% faster and needs more accuracy. One try per rhythm.",2800,arcRound) }
+  function arcStart(){ if(sess) stopSession(true); sess={points:0,bars:[],left:ARC_T,stopped:true}; arc={round:1,ramp:rampOn(),from:0,hit:false}; arc.bpm=arc.top=arcTempo(1,arc.ramp); lockUI(); $("clockPill").textContent=ARC_T+" s"; $("clockPill").classList.remove("hot"); $("results").hidden=true; $("go").textContent="Stop"; $("hear").disabled=true;
+    arcBar(); splash(arc.ramp?"CHALLENGE MODE":"CHALLENGE MODE · STEADY TEMPO","ROUND 1",`${arc.bpm} BPM`,arc.ramp?"Warm-up: no target, just play. Then every round is 8% faster and needs more accuracy. One try per rhythm.":"Warm-up: no target, just play. Then every round needs more accuracy, all at this tempo. One try per rhythm.",2800,arcRound) }
   function arcRound(){ clearInterval(sess.timer); sess.left=ARC_T; sess.stopped=false; arc.hit=false; arc.from=sess.bars.length; $("clockPill").textContent=ARC_T+" s"; $("clockPill").classList.remove("hot"); arcBar();
     sess.timer=setInterval(()=>{ const S=sess; if(!S) return; S.left--; stats(); $("clockPill").textContent=Math.max(0,S.left)+" s"; $("clockPill").classList.toggle("hot",S.left<=10); arcBar(); if(S.left<=0){ clearInterval(S.timer); if(!run) arcRoundEnd() } },1000);
     newBar(); play("test") }
-  function arcNext(pre){ arc.round++; arc.bpm=arcTempo(arc.round); arc.top=Math.max(arc.top,arc.bpm);
-    splash(pre,arcRoundName(),`${arc.bpm} BPM`,`Target: ${ARC_NEED[arc.round]}% accuracy. Faster every round.`,2600,arcRound) }
+  function arcNext(pre){ arc.round++; arc.bpm=arcTempo(arc.round,arc.ramp); arc.top=Math.max(arc.top,arc.bpm);
+    splash(pre,arcRoundName(),`${arc.bpm} BPM${arc.ramp?"":" · steady tempo"}`,`Target: ${ARC_NEED[arc.round]}% accuracy. ${arc.ramp?"Faster every round.":"Same tempo every round."}`,2600,arcRound) }
   function arcRoundEnd(){ const S=sess; clearInterval(S.timer); S.stopped=true; const acc=avgAcc(S.bars.slice(arc.from));
     if(arc.round===1) return arcNext(`WARM-UP DONE${acc==null?"":` · ${acc}% ACCURACY`}`);
     const need=ARC_NEED[arc.round], ok=acc!=null&&acc>=need;
@@ -519,12 +522,12 @@ button:focus-visible,select:focus-visible,summary:focus-visible,input:focus-visi
     if(!ok) return arcFinish(false,acc);
     if(arc.round===5) return arcNext(`ROUND 5 CLEARED ✓ · ${acc}%`);
     arcNext(`ROUND ${arc.round} CLEARED ✓ · ${acc}%`) }
-  function arcFinish(won,acc){ const S=sess, r=arc.round, t=arc.bpm, need=ARC_NEED[r], top=won?arc.top:t, start=arcTempo(1);
+  function arcFinish(won,acc){ const S=sess, r=arc.round, t=arc.bpm, need=ARC_NEED[r], top=won?arc.top:t, start=bpm, ramp=arc.ramp;
     arc=null; sess=null; lockUI(); $("arcbar").hidden=true; $("arcMeter").hidden=true; $("go").textContent="Start"; $("hear").disabled=false;
     const had=acc==null?"No rhythm finished in time, so there was nothing to judge.":`You had ${acc}%.`;
-    const why=won?(acc!=null&&acc>=need?`All 5 rounds cleared, and the bonus round at ${t} BPM too (${acc}% / ${need}%).`:`All 5 rounds cleared, up to ${arcTempo(5)} BPM. The bonus round at ${t} BPM needed ${need}% accuracy. ${had}`)
+    const why=won?(acc!=null&&acc>=need?`All 5 rounds cleared, and the bonus round at ${t} BPM too (${acc}% / ${need}%).`:`All 5 rounds cleared, up to ${arcTempo(5,ramp)} BPM. The bonus round at ${t} BPM needed ${need}% accuracy. ${had}`)
       :`Round ${r} at ${t} BPM needed ${need}% accuracy. ${had} Hit ${need}% to unlock ${r===5?"the bonus round":"Round "+(r+1)}.`;
-    showResults(won?"Challenge cleared!":"Challenge over",S,why,`CHALLENGE · ${won?"ALL ROUNDS CLEARED":"ROUND "+r}`,`Start ${start} BPM · Reached ${top} BPM`) }
+    showResults(won?"Challenge cleared!":"Challenge over",S,why,`CHALLENGE · ${won?"ALL ROUNDS CLEARED":"ROUND "+r}`,ramp?`Start ${start} BPM · Reached ${top} BPM`:`Steady tempo ${start} BPM`,!ramp) }
   // ---------- controls ----------
   // a screen reader hears the rhythm as words: "quarter, eighth, eighth, quarter rest, half"
   const DUR={16:"whole",12:"dotted half",8:"half",6:"dotted quarter",4:"quarter",3:"dotted eighth",2:"eighth",1:"16th"};
@@ -541,7 +544,7 @@ button:focus-visible,select:focus-visible,summary:focus-visible,input:focus-visi
   $("close").addEventListener("click",()=>{ $("results").hidden=true; stats(); newBar(); msg(null,"Ready","Press Start."); $("go").focus({preventScroll:true}) });
   $("newRound").addEventListener("click",()=>{ $("results").hidden=true; if(gmode==="chal") arcStart(); else { round=[]; stats(); newBar() } $("go").focus({preventScroll:true}) });
   ["counts","guide"].forEach(id=>{ $(id).checked=store.get(id,id==="counts"); $(id).addEventListener("change",e=>{ store.set(id,e.target.checked); if(!run) drawBar(curRes) }) });
-  ["cursor","lightup"].forEach(id=>{ $(id).checked=store.get(id,true)!==false; $(id).addEventListener("change",e=>store.set(id,e.target.checked)) }); try{store.set("who","")}catch(e){} // no names stored (privacy)
+  ["cursor","lightup","ramp"].forEach(id=>{ $(id).checked=store.get(id,true)!==false; $(id).addEventListener("change",e=>store.set(id,e.target.checked)) }); $("ramp").addEventListener("change",()=>stats()); try{store.set("who","")}catch(e){} // no names stored (privacy)
   LEVELS.forEach(L=>{ const b=document.createElement("button"); b.className="lvl"; b.innerHTML=`<b>L${L.id}</b><span>${L.name.replace("Syncopation","Synco&shy;pation")}</span>`;
     b.addEventListener("click",()=>{ if(sess||arc) stopSession(true); level=L.id; store.set("level",level); mark(); round=[]; stats(); newBar(); $("go").textContent="Start"; msg(null,"Level "+L.id+": "+L.name,"Press Hear it to listen first, or Start.") }); b.dataset.id=L.id; $("levels").appendChild(b) });
   TEMPOS.forEach(t=>{ const b=document.createElement("button"); b.textContent=t; b.dataset.t=t; b.addEventListener("click",()=>{ if(sess||arc) stopSession(true); bpm=t; store.set("bpm",bpm); mark(); stats() }); $("tempo").appendChild(b) });
@@ -567,15 +570,16 @@ button:focus-visible,select:focus-visible,summary:focus-visible,input:focus-visi
   // It listens only above ~2.8 kHz (4th-order high-pass): snaps and claps are loud there, the app's woodblock click (filtered below 2.6 kHz) is not.
   // A hit = the fast envelope jumps past the threshold AND 4x above the room's background AND 3x above its lowest point since the last hit
   // (so the ringing tail or room echo of one clap can never count as a second clap). Its time is the exact sample where that happens.
+  // Inside the 70 ms hold after a hit, a sound 2.5x louder than that hit is a new hit: a clap right after the click (beat 1's louder click) is no longer swallowed or stamped late.
   const DET_SRC=`class Onset extends AudioWorkletProcessor{constructor(){super();this.g=3;this.thr=0.05;this.port.onmessage=e=>Object.assign(this,e.data);
     const w=2*Math.PI*2800/sampleRate,c=Math.cos(w),s=Math.sin(w);this.bq=[0.5412,1.3066].map(Q=>{const al=s/(2*Q),a0=1+al;return{b0:(1+c)/2/a0,b1:-(1+c)/a0,b2:(1+c)/2/a0,a1:-2*c/a0,a2:(1-al)/a0,x1:0,x2:0,y1:0,y2:0}});
-    this.f=0;this.sl=0;this.hold=0;this.mn=0;this.cap=null;this.lv=0;this.ln=0;this.rf=Math.exp(-1/(0.004*sampleRate));this.rs=Math.exp(-1/(0.3*sampleRate));this.warm=Math.round(0.3*sampleRate)}
+    this.f=0;this.sl=0;this.hold=0;this.hp=0;this.mn=0;this.cap=null;this.lv=0;this.ln=0;this.rf=Math.exp(-1/(0.004*sampleRate));this.rs=Math.exp(-1/(0.3*sampleRate));this.warm=Math.round(0.3*sampleRate)}
    process(ins){const x=ins[0]&&ins[0][0];if(!x)return true;const g=this.g,thr=this.thr;
     for(let i=0;i<x.length;i++){let v=x[i];for(const b of this.bq){const y=b.b0*v+b.b1*b.x1+b.b2*b.x2-b.a1*b.y1-b.a2*b.y2;b.x2=b.x1;b.x1=v;b.y2=b.y1;b.y1=y;v=y}
      const a=(v<0?-v:v)*g;this.f=a>this.f?a:this.f*this.rf;if(this.f>this.lv)this.lv=this.f;
      if(this.warm>0){this.warm--;this.sl=this.sl*this.rs+this.f*(1-this.rs);continue}
-     if(this.cap){if(this.f>this.cap.pk)this.cap.pk=this.f;if(this.cap.k<512)this.cap.buf[this.cap.k++]=v;if(--this.cap.n<=0&&this.cap.k>=512){this.port.postMessage({on:1,t:this.cap.t,pk:this.cap.pk,bg:this.cap.bg,buf:this.cap.buf},[this.cap.buf.buffer]);this.cap=null}}
-     if(this.hold>0){this.hold--;this.mn=this.f;continue}this.mn=this.f<this.mn?this.f:this.mn;
+     if(this.cap){if(this.f>this.cap.pk)this.cap.pk=this.f;if(this.cap.k<512)this.cap.buf[this.cap.k++]=v;if(--this.cap.n<=0&&this.cap.k>=512){this.hp=this.cap.pk;this.port.postMessage({on:1,t:this.cap.t,pk:this.cap.pk,bg:this.cap.bg,buf:this.cap.buf},[this.cap.buf.buffer]);this.cap=null}}
+     if(this.hold>0){this.hold--;this.mn=this.f;if(!this.cap&&this.hp&&this.f>thr&&this.f>this.hp*2.5){this.cap={t:currentTime+i/sampleRate,pk:this.f,bg:this.sl,n:Math.round(0.012*sampleRate),buf:new Float32Array(512),k:0};this.hold=Math.round(0.07*sampleRate)}continue}this.mn=this.f<this.mn?this.f:this.mn;
      if(this.f>thr&&this.f>this.sl*4&&this.f>this.mn*3){this.cap={t:currentTime+i/sampleRate,pk:this.f,bg:this.sl,n:Math.round(0.012*sampleRate),buf:new Float32Array(512),k:0};this.hold=Math.round(0.07*sampleRate);continue}
      this.sl=this.sl*this.rs+this.f*(1-this.rs)}
     this.ln+=x.length;if(this.ln>=1536){this.port.postMessage({lv:this.lv});this.lv=0;this.ln=0}return true}}
@@ -647,6 +651,11 @@ button:focus-visible,select:focus-visible,summary:focus-visible,input:focus-visi
         let rn=r; if(inMode==="note"){ an3.getFloatTimeDomainData(pbuf); let q=0; for(let i=pbuf.length-512;i<pbuf.length;i++) q+=pbuf[i]*pbuf[i]; rn=Math.sqrt(q/512);
           noteHist.push([now,hasNote(+$("noteSel").value),rn]); while(noteHist.length&&noteHist[0][0]<now-0.4) noteHist.shift() }
         if(pend) pend.r=Math.max(pend.r||0,rn);
+        // One note mode onset: walk back on the last 43 ms of unfiltered sound (1.3 ms blocks) from where it first got loud to where it
+        // left the level before it (silence or the previous note's ring). A soft or slow attack is no longer stamped late.
+        const noteOnset=()=>{ const B=64, nb=pbuf.length/B, e=new Float32Array(nb); for(let j=0;j<nb;j++){ let m=0; for(let i=j*B;i<(j+1)*B;i++){ const v=Math.abs(pbuf[i]); if(v>m) m=v } e[j]=m }
+          const base=[...e.slice(0,6)].sort((x,y)=>x-y)[3], pkE=Math.max(...e), L=base+0.3*(pkE-base); let jc=6; while(jc<nb&&e[jc]<=L) jc++; if(jc>=nb) return null;
+          let j=jc; while(j>6&&e[j-1]>base*1.25+1e-4&&e[j-1]<e[j]*1.02) j--; // stops at the floor, or at the dip after a click's tail return now-(pbuf.length-j*B)/a.sampleRate };
         // The app learns how loud its own click is through this mic: during the count-in you aren't playing yet, so every hit there is the click.
         // Later, a hit that lands on a click has to be clearly louder than that to count.
         const ownClick=p=>{ const near=outT.some(o=>Math.abs(p.t-o)<0.06); if(!near||calHook) return false;
@@ -660,9 +669,11 @@ button:focus-visible,select:focus-visible,summary:focus-visible,input:focus-visi
         if(pend&&inMode!=="note"&&now-pend.at>=0.02){ const fl=flat(), h=hb(), p=pend; pend=null;
           if(!ownClick(p)&&(fl>=FLAT_MIN||h>hbBase*10)){ tapAt(p.t,"mic"); $("pad").classList.add("hit"); setTimeout(()=>$("pad").classList.remove("hit"),90) } }
         /* a re-struck piano key over its own ring only jumps ~1.4x */ if(r>thr&&r>prev*(inMode==="note"?1.35:2)&&now-last>0.08){ let k=0; const lim=Math.max(thr*1.5,pk*0.3); while(k<buf.length&&Math.abs(buf[k])<lim) k++;
-          const t=now-(buf.length-k)/a.sampleRate; last=now;
+          let t=now-(buf.length-k)/a.sampleRate; last=now; if(inMode==="note"){ const o=noteOnset(); if(o!=null) t=o }
           // a pure tone (the app's own click or beep) is not a clap: decide once the sound has filled the window
-          pend={t,at:now,r:rn} }
+          pend={t,at:now,r:rn,r0:r} }
+        // One note mode: your note starting just after a click (beat 1's click is the loudest) is a new, much louder sound: it takes over the hit's time
+        else if(inMode==="note"&&pend&&r>thr&&r>prev*1.35&&r>pend.r0*2&&now-pend.at>0.01){ const o=noteOnset(); if(o!=null&&o>pend.t+0.01){ pend.t=o; pend.at=now; pend.r0=r; pend.r=rn; last=now } }
         prev=r*0.5+prev*0.5 },8)};
       if(det){ mic.det=det; det.port.onmessage=e=>{ const m=e.data; if(inMode==="note") return;
         if(m.lv!=null){ $("meterFill").style.width=Math.min(100,m.lv/DET_THR*15)+"%"; return }
