@@ -565,7 +565,7 @@ function loop(){ draw(); readout(); requestAnimationFrame(loop); }
 const isFramed = (() => { try { return window.self !== window.top; } catch (e) { return true; } })();
 function showMsg(html){ const m = $('msg'); m.innerHTML = html; m.classList.add('show'); }
 function hideMsg(){ $('msg').classList.remove('show'); }
-const openTab = () => isFramed ? ' <a href="' + location.href.split('#')[0] + '" target="_blank" rel="noopener">Open the tuner in its own tab</a> and try there.' : '';
+const openTab = () => isFramed ? ' <a href="' + location.href.split('#')[0] + '" target="_blank" rel="noopener">↗ Open full screen</a> and try there.' : '';
 
 function getCtx(){
   if (!S.ctx) { const AC = window.AudioContext || window.webkitAudioContext; if (!AC) return null; S.ctx = new AC({ latencyHint:'interactive' }); }
