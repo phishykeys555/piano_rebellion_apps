@@ -328,7 +328,7 @@ button:focus-visible,select:focus-visible,summary:focus-visible,input:focus-visi
   const aSess=t=>{ try{ if(navigator.audioSession) navigator.audioSession.type=t }catch(e){} };
   function ctx(){ if(!audio){ aSess(mic?"play-and-record":"playback"); audio=new (window.AudioContext||window.webkitAudioContext)();
       // a phone call, the lock screen or another app can pause the audio clock: stop the try cleanly instead of freezing mid-bar
-      audio.onstatechange=()=>{ if(audio.state!=="running"&&(run||sess||arc)) abortRun() } } return audio }
+      audio.onstatechange=()=>{ if(audio.state!=="running"&&(run||sess||arc||calHook)) abortRun() } } return audio }
   function abortRun(){ if(!run&&!sess&&!arc&&!calHook) return; calHook=null; run=null; hush(); if(sess||arc) stopSession(true); $("go").disabled=false; $("hear").disabled=false; $("arcSplash").hidden=true; lockUI(); drawBar(null);
     msg(null,"Paused","The app was in the background, so this try stopped. Press Start to go again.") }
   document.addEventListener("visibilitychange",()=>{ if(document.hidden) abortRun() }); window.addEventListener("pagehide",()=>abortRun());
@@ -365,6 +365,7 @@ button:focus-visible,select:focus-visible,summary:focus-visible,input:focus-visi
     // waiting for the audio or the microphone can take a while: a second press, Stop, or the clock running out in that gap must not start a second bar
     try{ a=ctx(); await a.resume(); if(inMode!=="tap"&&mode==="test"&&!mic) await micStart($("micSel").value||undefined) } finally{ starting=false }
     if(run||calHook||sess!==S0||(S0&&S0.stopped)) return;
+    if(document.hidden){ if(sess||arc) abortRun(); return } // a page hidden while waiting never starts a bar it can't draw (a sprint pauses, as it does when hidden mid-bar)
     taps=[]; $("results").hidden=true; $("again").hidden=true; $("go").disabled=!sess; $("hear").disabled=true;
     const t0=a.currentTime+0.15-(mode==="hear"?4*spb():0), start=t0+4*spb(), end=start+16*u16(); // Hear it starts right away (no silent bar)
     // while you play into the mic, the clicks in your bar are softer so the mic hears you, not them
@@ -388,7 +389,7 @@ button:focus-visible,select:focus-visible,summary:focus-visible,input:focus-visi
   $("pad").addEventListener("pointerdown",e=>{ e.preventDefault(); if(audio) tapAt(audio.currentTime) });
   document.addEventListener("keydown",e=>{ const tg=e.target.tagName; if(e.code!=="Space"||tg==="INPUT"||tg==="SELECT"||tg==="TEXTAREA"||tg==="SUMMARY"||tg==="A") return;
     if(!run&&!calHook&&tg==="BUTTON"&&!["go","pad","again"].includes(e.target.id)) return; // Space still presses the focused button
-    e.preventDefault(); if(e.repeat) return; if(audio&&(run||calHook)) tapAt(audio.currentTime); else if(!run&&!$("go").disabled&&$("results").hidden) $("go").click() });
+    e.preventDefault(); if(e.repeat) return; if(audio&&(run||calHook)) tapAt(audio.currentTime); else if(!run&&!sess&&!arc&&!starting&&!$("go").disabled&&$("results").hidden) $("go").click() }); // in a sprint or challenge, Space between bars is a (late) tap, never Stop
 
   // Silent spots in the bar: rests, tied-over notes, and beats held inside a long note or rest. A tap nearer one of these than
   // to the note is a reading mistake (tapping the rest, the tie or the held beat), not a "close" hit on the note.
@@ -522,8 +523,9 @@ button:focus-visible,select:focus-visible,summary:focus-visible,input:focus-visi
   function sayBar(){ const w=[]; bar.ev.forEach(e=>{ const n=DUR[e.d]||"note"; if(e.tie&&w.length) w[w.length-1]+=" tied to "+n; else w.push(n+(e.r?" rest":"")) });
     $("bar").setAttribute("aria-label","Rhythm to tap, 4/4: "+w.join(", ")) }
   function newBar(){ bar=makeBar(); drawBar(null); sayBar() }
-  $("go").addEventListener("click",async()=>{ if(gmode!=="practice"){ if(sess||arc){ stopSession(); return } if(run) return; return gmode==="sprint"?startSession(60):arcStart() } if($("go").textContent==="Next rhythm"||!bar) newBar(); $("go").textContent="Start"; $("again").hidden=true; await startTest() });
-  $("again").addEventListener("click",async()=>{ $("again").hidden=true; if(round.length) round.pop(); stats(); await startTest() });
+  $("go").addEventListener("click",async()=>{ if(gmode!=="practice"&&(sess||arc)){ stopSession(); return } if(run||starting) return; if(calHook){ msg(null,"Calibrating…","Finish the 8 clicks first (Settings), then press Start."); return }
+    if(gmode!=="practice") return gmode==="sprint"?startSession(60):arcStart(); if($("go").textContent==="Next rhythm"||!bar) newBar(); $("go").textContent="Start"; $("again").hidden=true; await startTest() });
+  $("again").addEventListener("click",async()=>{ if(run||starting||calHook) return; $("again").hidden=true; if(round.length) round.pop(); stats(); await startTest() });
   $("hear").addEventListener("click",()=>{ if(!bar) newBar(); play("hear") });
   async function startTest(){ await play("test") }
   // while the results sheet covers the card, the controls under it are out of the Tab order (no tabbing into hidden buttons)
@@ -541,11 +543,12 @@ button:focus-visible,select:focus-visible,summary:focus-visible,input:focus-visi
   // ---------- calibration: tap (or clap) with 8 clicks; the median offset becomes the correction for that input ----------
   let calHook=null;
   const calLabel=()=>{ const v=inMode!=="tap"?latMic:latency; $("calTxt").textContent=v!=null?`${inMode==="clap"?"Clap":inMode==="note"?"Note":"Tap"} offset ${v} ms`:"" }; calLabel();
-  $("cal").addEventListener("click",async()=>{ if(run||calHook||starting||sess||arc) return; const a=ctx(); await a.resume(); if(run||calHook) return; if(inMode!=="tap"&&!mic&&!(await micStart($("micSel").value||undefined))){ $("calTxt").textContent="Turn on the microphone first (see the message above), or switch to Tap."; return }
+  $("cal").addEventListener("click",async()=>{ if(run||calHook||starting||sess||arc) return; const a=ctx(); await a.resume(); if(run||calHook||starting||sess||arc) return; if(inMode!=="tap"&&!mic&&!(await micStart($("micSel").value||undefined))){ $("calTxt").textContent="Turn on the microphone first (see the message above), or switch to Tap."; return }
+    if(run||calHook||starting||sess||arc) return; // a try or a sprint started while the microphone was opening
     const t0=a.currentTime+0.6, sp=0.6, hits=[]; for(let i=0;i<8;i++) click(t0+i*sp,i===0);
     $("calTxt").textContent=inMode==="clap"?"Clap with each click…":inMode==="note"?"Play your note with each click…":"Tap the pad with each click…";
     const cm=inMode, hook=t=>hits.push(t); calHook=hook;
-    setTimeout(()=>{ if(calHook!==hook){ $("calTxt").textContent="Calibration stopped. Try again."; return } calHook=null; const offs=[]; hits.forEach(t=>{ const k=Math.round((t-t0)/sp); if(k>=0&&k<8&&Math.abs(t-(t0+k*sp))<0.25) offs.push((t-(t0+k*sp))*1000) });
+    setTimeout(()=>{ if(calHook!==hook){ if(!calHook) $("calTxt").textContent="Calibration stopped. Try again."; return } calHook=null; if(!run&&$("msg").querySelector(".v").textContent==="Calibrating…") msg(null,"Ready","Press Start."); const offs=[]; hits.forEach(t=>{ const k=Math.round((t-t0)/sp); if(k>=0&&k<8&&Math.abs(t-(t0+k*sp))<0.25) offs.push((t-(t0+k*sp))*1000) });
       if(offs.length<5){ $("calTxt").textContent="Not enough hits. Try again."; return } offs.sort((x,y)=>x-y); const v=Math.round(offs[Math.floor(offs.length/2)]);
       if(cm!=="tap"){ latMic=v; store.set("latMic",v) } else { latency=v; store.set("lat",v) } calLabel(); $("calTxt").textContent+=" (saved)" }, 600+8*sp*1000+500) });
 
@@ -596,7 +599,9 @@ button:focus-visible,select:focus-visible,summary:focus-visible,input:focus-visi
       micMsg("Waiting for the microphone. Tap Allow if your device asks."); const myTry=++micTries;
       setTimeout(()=>{ if(micBusy&&micTries===myTry) micMsg("Still waiting for the microphone. Look for an Allow box (sometimes at the top of the screen)."+(framed?" Nothing there?"+fullLink()+".":"")) },8000);
       const c={echoCancellation:inMode==='note',noiseSuppression:false,autoGainControl:false}; if(deviceId) c.deviceId={exact:deviceId};
-      aSess("play-and-record"); const s=await navigator.mediaDevices.getUserMedia({audio:c}); await a.resume();
+      aSess("play-and-record"); const wantNote=inMode==="note", s=await navigator.mediaDevices.getUserMedia({audio:c}); await a.resume();
+      // switched to Tap (or between Clap and One note) while the device was asking: close this one instead of listening in the wrong mode
+      if(inMode==="tap"||(inMode==="note")!==wantNote){ s.getTracks().forEach(t=>t.stop()); micBusy=false; $("micBtn").disabled=false; if(inMode==="tap"){ aSess("playback"); return false } return micStart(deviceId) }
       // The app's clicks are pure tones; a clap or snap is a burst of noise spread across every frequency.
       // A second analyser measures how "noisy" each hit is (spectral flatness): pure tones are rejected, claps pass.
       const src=a.createMediaStreamSource(s), hp=a.createBiquadFilter(), g=a.createGain(), an=a.createAnalyser(), mute=a.createGain(), an2=a.createAnalyser();
@@ -686,11 +691,11 @@ button:focus-visible,select:focus-visible,summary:focus-visible,input:focus-visi
   document.querySelectorAll("#inSeg button").forEach(b=>b.addEventListener("click",()=>setIn(b.dataset.in)));
   setIn(inMode);
 
-  window.__rt={make:(lv)=>{const k=level;level=lv;const b=makeBar();level=k;return b},bar:()=>bar,start:()=>lastStart,tap:t=>tapAt(t),now:()=>audio&&audio.currentTime,u:()=>u16(),setBar:b=>{bar=b;drawBar(null)},st:()=>({run:run?run.mode:null,sess:!!sess,arc:!!arc,starting,cal:!!calHook,mic:!!mic,micBusy,inMode,gmode,live:live.size,left:sess?sess.left:null,points:sess?sess.points:null})}; // test hook
+  window.__rt={make:(lv)=>{const k=level;level=lv;const b=makeBar();level=k;return b},bar:()=>bar,start:()=>lastStart,tap:t=>tapAt(t),now:()=>audio&&audio.currentTime,u:()=>u16(),setBar:b=>{bar=b;drawBar(null)},st:()=>({run:run?run.mode:null,rid:run?run.t0:null,sess:!!sess,arc:!!arc,starting,cal:!!calHook,mic:!!mic,micBusy,inMode,gmode,live:live.size,left:sess?sess.left:null,points:sess?sess.points:null})}; // test hook
   mark(); newBar(); setMode("practice");
   if(document.fonts) document.fonts.ready.then(()=>{ if(!run) drawBar(curRes) });
 })();
 </script>
-<p class="appver" style="text-align:center;font-size:11px;opacity:.6;margin:18px 0 10px;font-family:ui-monospace,Menlo,monospace">Rhythm Trainer · Version 2026-11-11.15</p>
+<p class="appver" style="text-align:center;font-size:11px;opacity:.6;margin:18px 0 10px;font-family:ui-monospace,Menlo,monospace">Rhythm Trainer · Version 2026-11-11.16</p>
 </body>
 </html>
