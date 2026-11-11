@@ -4,6 +4,8 @@
 <meta name="description" content="Key Finder: learn every key on the piano by sight. No sheet music, just the keyboard. Built by Clarendon Hills Music Academy.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;600;800&family=JetBrains+Mono:wght@500;700&display=swap">
+<link rel="stylesheet" href="../shared/chma.css">
+<script src="../shared/brand.js"></script>
 <style>
 /* One practice card: score strip, prompt, keyboard, answer pad. Results sheet over the card when a sprint ends. */
 :root{
@@ -63,12 +65,43 @@ details{background:var(--panel);border:1px solid var(--border);border-radius:14p
 details label{display:flex;gap:8px;align-items:center;margin-top:10px}
 .appver{text-align:center;font-size:11px;opacity:.6;margin:6px 0 0;font-family:var(--mono)}
 @media (max-width:560px){ .stats b{font-size:18px} .pad button{font-size:17px;min-height:48px} .pick button{min-width:46%} }
+/* ---- CHMA design system (Studio Gear dark / Pocket Synth light) ---- */
+:root:root:root{--bg:var(--c-page);--panel:var(--c-key);--ink:var(--c-ink);--muted:var(--c-mut);--accent:var(--c-sel);--accent-ink:var(--c-sel-ink);
+  --accent-soft:color-mix(in srgb,var(--c-sel) 16%,transparent);--good:var(--c-ok);--bad:var(--c-bad);--border:var(--c-key-b);--display:var(--f-body);--mono:var(--f-num)}
+body{background:var(--c-page);font-family:var(--f-body)}
+.wrap{background:var(--c-panel);border-radius:var(--r-card);box-shadow:var(--shadow-card);padding:0 16px 18px;overflow:hidden}
+.chma-headwrap{margin:0 -16px}
+h1{font-family:var(--f-title);font-weight:700;font-size:30px;letter-spacing:-.01em} h1 em{color:var(--c-act)}
+.pick button,.seg button,.btn,.pad button{background:var(--c-key);border-color:var(--c-key-b);color:var(--c-ink);box-shadow:0 3px 0 var(--c-key-sh);transition:transform .05s,box-shadow .05s}
+.pick button:active,.seg button:active,.btn:active,.pad button:active{transform:translateY(2px);box-shadow:0 1px 0 var(--c-key-sh)}
+.pick button[aria-pressed="true"],.seg button[aria-pressed="true"]{background:var(--c-sel);border-color:var(--c-sel);color:var(--c-sel-ink)}
+.pick button[aria-pressed="true"] span{color:var(--c-sel-ink)}
+.btn.primary{background:var(--c-act);border-color:var(--c-act);color:var(--c-act-ink);box-shadow:0 3px 0 var(--c-act-sh)}
+.btn.primary:active{box-shadow:0 1px 0 var(--c-act-sh)}
+.pad.blk button{background:#1b1d22;border-color:#000;color:#fff;box-shadow:0 3px 0 #000}
+.pad button.hit{background:var(--c-ok);border-color:var(--c-ok);color:#fff} .pad button.miss{background:var(--c-bad);border-color:var(--c-bad);color:#fff}
+.card{background:var(--c-panel2);border-color:var(--c-line)}
+.stats{background:var(--c-lcd);border:1px solid var(--c-lcd-b);border-radius:14px;box-shadow:inset 0 2px 8px rgba(0,0,0,.55);padding:10px 12px}
+.stats b{color:var(--c-led);text-shadow:var(--c-led-glow)} .stats span{color:#9aa3b2}
+.clock b{color:var(--c-ink)} .bar{background:var(--c-lcd)} .bar i{background:var(--c-act)}
+.prompt .big{color:var(--c-act)}
+.piano .w.mc{color:var(--c-sel)} .piano .w.glow{color:#1b1c1f}
+details{background:var(--c-panel2);border-color:var(--c-line)}
+input[type=checkbox]{accent-color:var(--c-act)}
+.results{background:var(--c-panel2)}
+.results h2{font-family:var(--f-title);font-weight:700}
+.results .score{color:var(--c-led);text-shadow:var(--c-led-glow);background:var(--c-lcd);border:1px solid var(--c-lcd-b);border-radius:14px;box-shadow:inset 0 2px 8px rgba(0,0,0,.55);padding:12px 16px}
+.results .score small{color:#9aa3b2;text-shadow:none}
+.rgrid div{background:var(--c-lcd);border-radius:10px;padding:10px} .rgrid b{color:var(--c-led);text-shadow:var(--c-led-glow)} .rgrid span{color:#9aa3b2}
+.miss span{background:var(--c-key);border:1px solid var(--c-key-b)}
+.appver{opacity:1;color:var(--c-mut);margin-top:2px}
+@media (max-width:560px){.card{padding:14px 12px}.stats{padding:10px}.stats span{letter-spacing:.06em}}
 </style></head>
 <body>
 <div class="wrap">
+  <div data-chma-head></div>
   <header>
     <h1>Key <em>Finder</em></h1>
-    <p class="byline">By <a href="https://clarendonhillsmusicacademy.com/" target="_blank" rel="noopener">Clarendon Hills Music Academy</a></p>
     <p class="sub">No sheet music. Just the keys. Learn every key on the piano by sight.</p>
   </header>
 
@@ -106,7 +139,7 @@ details label{display:flex;gap:8px;align-items:center;margin-top:10px}
     <label><input type="checkbox" id="labelsOn"> Show letter names on every white key (easier)</label>
     <label><input type="checkbox" id="flatsOn"> Call black keys by their flat name (D♭) in Find the key</label>
   </details>
-  <p class="appver" id="appVer">Key Finder · Version 2026-11-05.1</p>
+  <p class="appver" id="appVer">Key Finder · Version 2026-11-11.1</p>
 </div>
 
 <script>
