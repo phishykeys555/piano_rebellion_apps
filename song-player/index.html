@@ -71,6 +71,7 @@ select{font:600 13px var(--f-body);color:var(--c-ink);background:var(--c-key);bo
 #mixChips button{min-height:40px;padding:0 12px;font-size:12.5px}
 .chips button{min-height:40px}select{min-height:40px}.nw{display:inline-flex;align-items:center;gap:6px;white-space:nowrap}
 #xbtn:disabled{opacity:.45;transform:none}
+.xfull{text-decoration:none;margin-top:8px}
 button:focus-visible,.ghostbtn:focus-visible,select:focus-visible,input:focus-visible{outline:2px solid var(--c-sel);outline-offset:2px}
 
 /* iPhone/iPad: no grey tap flash box over the rounded keys */
@@ -93,7 +94,7 @@ button,a,label,summary,select,input{-webkit-tap-highlight-color:transparent}
 <div class="row"><label class="chk"><input type="checkbox" id="ramp"> Speed up each loop by</label><select id="rampStep" aria-label="Speed-up step"><option value="2">2%</option><option value="5" selected>5%</option><option value="10">10%</option></select><span class="nw"><span class="hint">until</span> <select id="rampMax" aria-label="Top speed"><option value="100" selected>100%</option><option value="110">110%</option><option value="125">125%</option></select></span><button id="reset">Reset</button></div>
 <div id="mix" hidden><div class="sec">PARTS <span class="hint">split from the record: turn any part down, mute it, or solo it</span></div>
 <div class="chips" id="mixChips" style="margin-left:0"></div><div id="parts"></div></div>
-<div class="row" id="xrow"><button id="xbtn" disabled>⬇ Export MP3</button><span id="xrep" hidden><select id="xn" aria-label="How many times to repeat the section"><option value="1">section once</option><option value="2">section 2×</option><option value="4" selected>section 4×</option><option value="8">section 8×</option><option value="16">section 16×</option></select></span><span class="hint" id="xst">Saves exactly what you hear: speed, key and parts.</span></div>
+<div class="row" id="xrow"><button id="xbtn" disabled>⬇ Export MP3</button><span id="xrep" hidden><select id="xn" aria-label="How many times to repeat the section"><option value="1">section once</option><option value="2">section 2×</option><option value="4" selected>section 4×</option><option value="8">section 8×</option><option value="16">section 16×</option></select></span><span class="hint" id="xst" role="status" aria-live="polite">Saves exactly what you hear: speed, key and parts.</span></div>
 <div class="row"><label class="ghostbtn" for="file" tabindex="0" role="button">📂 Load your own MP3</label><input type="file" id="file" accept="audio/*,.mp3,.m4a,.wav,.aac" hidden><span class="hint" id="fileTxt">Any song on this device. It stays on your device and is never uploaded.</span></div>
 </div></main>
 <script type="module">
@@ -108,10 +109,21 @@ const PN={vocals:'Vocals',drums:'Drums',bass:'Bass',piano:'Piano',guitar:'Guitar
 const $=i=>document.getElementById(i),qs=new URLSearchParams(location.search).get('s'),id=qs||'',S=SONGS[id];
 const IVN={0:'original key',1:'half step up',2:'whole step up',3:'minor 3rd up',4:'major 3rd up',5:'4th up',6:'tritone up','-1':'half step down','-2':'whole step down','-3':'minor 3rd down','-4':'major 3rd down','-5':'4th down','-6':'tritone down'};
 let an=null,src=[],restName='other',ctx=null,node=null,gain=null,A=null,B=null,dur=0,playing=false,pos=0,posAt=0,lastPos=0,parts=[],pg=[],solo=-1,muted=[],ready=false;let KEY='songplayer:'+id;
-const LS={get(){try{return JSON.parse(localStorage.getItem(KEY)||'{}')}catch(e){return {}}},set(o){try{localStorage.setItem(KEY,JSON.stringify(o))}catch(e){}}};
+// Saved settings: checked field by field (an old or broken save never breaks the page), kept in memory too (private mode blocks storage)
+const num=(x,lo,hi)=>{if(x===null||x===''||typeof x==='boolean')return null;x=+x;return isFinite(x)&&x>=lo&&x<=hi?x:null};
+function clean(o){const r={};if(!o||typeof o!=='object'||Array.isArray(o))return r;const s=num(o.s,40,130),k=num(o.k,-6,6),v=num(o.v,0,150),A=num(o.A,0,36000),B=num(o.B,0,36000),so=num(o.solo,-1,31);
+ if(s!=null)r.s=Math.round(s);if(k!=null)r.k=Math.round(k);if(v!=null)r.v=v;if(typeof o.l==='boolean')r.l=o.l;if(A!=null){r.A=A;if(B!=null&&B>A+0.5)r.B=B}
+ if(Array.isArray(o.pg)&&o.pg.every(x=>num(x,0,150)!=null))r.pg=o.pg.map(Number);if(Array.isArray(o.muted))r.muted=o.muted.map(x=>x===true);if(so!=null)r.solo=Math.round(so);return r}
+const MEM={};const LS={get(){if(MEM[KEY])return MEM[KEY];try{return clean(JSON.parse(localStorage.getItem(KEY)||'{}'))}catch(e){return {}}},set(o){MEM[KEY]=clean(o);try{localStorage.setItem(KEY,JSON.stringify(o))}catch(e){}}};
+// Inside Notion (an embed): downloads are blocked in the frame, so Export hands the settings to a full-screen tab (?st=…&xp=…)
+const inFrame=(()=>{try{return window.self!==window.top}catch(e){return true}})();
+const QP=new URLSearchParams(location.search),XP=num(QP.get('xp'),1,16);
+if(QP.get('st')){try{MEM[KEY]=clean(JSON.parse(QP.get('st')))}catch(e){}}
+if(QP.has('st')||QP.has('xp')){try{const u=new URL(location.href);u.searchParams.delete('st');u.searchParams.delete('xp');history.replaceState(null,'',u.href)}catch(e){}}
 const fmt=s=>isFinite(s)?Math.floor(s/60)+':'+String(Math.floor(s%60)).padStart(2,'0'):'0:00';
 const rate=()=>+$('speed').value/100,semi=()=>+$('key').value,vol=()=>+$('vol').value/100;
-function save(){LS.set({s:$('speed').value,k:$('key').value,v:$('vol').value,l:$('loop').checked,A,B,pg,muted,solo})}
+// before the song's parts are loaded, keep the saved mix (it used to be wiped by the first save on page load)
+function save(){const o={s:$('speed').value,k:$('key').value,v:$('vol').value,l:$('loop').checked,A,B,pg,muted,solo};if(!parts.length){const sv=LS.get();o.pg=sv.pg;o.muted=sv.muted;o.solo=sv.solo}LS.set(o)}
 function err(t){$('err').hidden=!t;$('err').textContent=t||''}
 function status(t){$('load').hidden=!t;$('load').textContent=t||''}
 // iPhone/iPad: play even with the ringer switch on silent
@@ -137,11 +149,12 @@ async function loadParts(list,boost=1){cancelX();const gen=++loadGen;curList=lis
  const len=Math.min(...bufs.map(b=>b[0].length));const stems=bufs.map(b=>b.map(x=>x.length>len?x.slice(0,len):x));
  dur=await node.setStems(stems,stems.flat().map(x=>x.buffer));src=list.map(p=>p.k);parts=src[0]==='mix'&&src.length>1?src.slice(1).concat(restName):src.slice();
  const sv=LS.get();pg=(sv.pg&&sv.pg.length===parts.length)?sv.pg:parts.map(()=>100);muted=(sv.muted&&sv.muted.length===parts.length)?sv.muted:parts.map(()=>false);solo=sv.solo!=null&&sv.solo<parts.length?sv.solo:-1;
+ if(A!=null&&A>=dur-0.5)A=B=null;if(B!=null&&B>dur)B=null;
  buildMix();$('dur').textContent=fmt(dur);pos=Math.min(pos,dur);ready=true;$('play').disabled=false;$('xbtn').disabled=false;status('');showAB();apply();}
 function gains(){return parts.map((_,i)=>solo>=0?(i===solo?pg[i]/100:0):(muted[i]?0:pg[i]/100))}
 // engine gains: with a 'rest' part the first track is the whole record, so rest = record - parts
 function engineGains(){const u=gains();if(src[0]!=='mix'||src.length<2)return u;const r=u[u.length-1];return [r].concat(u.slice(0,-1).map(g=>g-r))}
-function sendGains(){if(node&&node.setGains)node.setGains(engineGains());[...$('parts').children].forEach((r,i)=>{r.classList.toggle('off',gains()[i]===0);r.querySelector('.m').classList.toggle('on',muted[i]);r.querySelector('.s').classList.toggle('on',solo===i)});save()}
+function sendGains(){if(node&&node.setGains)node.setGains(engineGains());[...$('parts').children].forEach((r,i)=>{r.classList.toggle('off',gains()[i]===0);const m=r.querySelector('.m'),so=r.querySelector('.s');m.classList.toggle('on',muted[i]);so.classList.toggle('on',solo===i);m.setAttribute('aria-pressed',!!muted[i]);so.setAttribute('aria-pressed',solo===i)});save()}
 const PRESETS=[['Full band',()=>{solo=-1;muted=parts.map(()=>false)}],['No piano (you play it)',()=>{solo=-1;muted=parts.map(k=>k==='piano')},'piano'],['Piano only',()=>{solo=parts.indexOf('piano')},'piano'],['No vocals',()=>{solo=-1;muted=parts.map(k=>k==='vocals')},'vocals'],['Drums + bass',()=>{solo=-1;muted=parts.map(k=>k!=='drums'&&k!=='bass')},'drums']];
 function buildMix(){const box=$('parts');box.innerHTML='';$('mix').hidden=parts.length<2;$('mixChips').innerHTML='';
  PRESETS.forEach(([n,f,need])=>{if(need&&!parts.includes(need))return;const b=document.createElement('button');b.textContent=n;b.onclick=()=>{f();sendGains()};$('mixChips').appendChild(b)});
@@ -152,13 +165,14 @@ function apply(){const r=rate(),k=semi();
  if(node){const [ls,le]=loopRange();node.schedule({rate:r,semitones:k,loopStart:ls,loopEnd:le});if(gain)gain.gain.setTargetAtTime(vol(),ctx.currentTime,0.02)}
  $('spdN').textContent=$('speed').value+'%';$('spdS').textContent=r===1?'speed · original tempo':'speed · '+(r<1?'slowed down':'sped up');
  $('keyN').textContent=(k>0?'+':'')+k;$('keyS').textContent='key · '+IVN[k];
- [...$('spdChips').children].forEach(b=>b.classList.toggle('on',+b.dataset.v===+$('speed').value));save()}
+ [...$('spdChips').children].forEach(b=>{const on=+b.dataset.v===+$('speed').value;b.classList.toggle('on',on);b.setAttribute('aria-pressed',on)});
+ $('speed').setAttribute('aria-valuetext',$('speed').value+' percent');$('key').setAttribute('aria-valuetext',IVN[k]);$('vol').setAttribute('aria-valuetext',$('vol').value+' percent');save()}
 [50,60,75,90,100].forEach(v=>{const b=document.createElement('button');b.textContent=v+'%';b.dataset.v=v;b.onclick=()=>{$('speed').value=v;apply()};$('spdChips').appendChild(b)});
 function now(){return playing?Math.min(dur,pos+Math.min(0.2,(performance.now()-posAt)/1000)*rate()):pos}
 function seek(t){t=Math.max(0,Math.min(dur-0.05,t));pos=t;posAt=performance.now();lastPos=t;if(node)node.schedule({input:t})}
-let wake=0;function start(){if(!ready)return;unlock();status('');clearTimeout(wake);wake=setTimeout(()=>{if(playing&&ctx.state!=='running'){stop();status('Tap ▶ to start the sound.')}},1500);if(pos>=dur-0.5)pos=A!=null?A:0;const [ls,le]=loopRange();
- node.schedule({active:true,input:pos,rate:rate(),semitones:semi(),loopStart:ls,loopEnd:le});posAt=performance.now();lastPos=pos;playing=true;$('play').textContent='❚❚'}
-function stop(){if(!node)return;clearTimeout(wake);pos=now();node.schedule({active:false});playing=false;$('play').textContent='▶'}
+let wake=0;function start(){if(!ready)return;unlock();status('');clearTimeout(wake);wake=setTimeout(()=>{if(playing&&ctx.state!=='running'){stop();status('Tap ▶ to start the sound.')}},1500);if(pos>=dur-0.5)pos=A!=null?A:0;const [ls,le]=loopRange();if(A!=null&&B!=null&&$('loop').checked&&(pos<A||pos>=B))pos=A; // a section is set: start at A
+ node.schedule({active:true,input:pos,rate:rate(),semitones:semi(),loopStart:ls,loopEnd:le});posAt=performance.now();lastPos=pos;playing=true;$('play').textContent='❚❚';$('play').setAttribute('aria-label','Pause')}
+function stop(){if(!node)return;clearTimeout(wake);pos=now();node.schedule({active:false});playing=false;$('play').textContent='▶';$('play').setAttribute('aria-label','Play')}
 $('play').onclick=async()=>{if(!ready)return;if(playing)stop();else start()};
 function onLoop(){if($('ramp').checked){const mx=+$('rampMax').value,nv=Math.min(mx,+$('speed').value+ +$('rampStep').value);$('speed').value=nv;apply()}}
 let lastTxt='',lastVal=-1;function tick(){if(ready){const t=now(),tx=fmt(t),v=Math.round(1000*t/dur);if(tx!==lastTxt){$('cur').textContent=lastTxt=tx}if(v!==lastVal&&!scrub){$('seek').value=lastVal=v}
@@ -178,37 +192,44 @@ $('loop').onchange=()=>{apply()};
 function showAB(){const xr=$('xrep');if(xr)xr.hidden=!(A!=null&&B!=null);const el=$('ab');if(A!=null&&dur){const b=B!=null?B:now();el.style.display='block';el.style.left=(100*A/dur)+'%';el.style.width=Math.max(0.5,100*(b-A)/dur)+'%'}else el.style.display='none';
  $('abTxt').textContent=A==null?'Loop a tough section: tap Set A at its start, Set B at its end.':B==null?'A = '+fmt(A)+'. Now tap Set B at the end of the section.':'Looping '+fmt(A)+' to '+fmt(B)+'.';apply()}
 $('setA').onclick=()=>{A=now();if(B!=null&&B<=A)B=null;showAB()};$('setB').onclick=()=>{if(A==null)A=0;const t=now();if(t>A+0.5){B=t;showAB();if(playing&&$('loop').checked)seek(A)}else{showAB();$('abTxt').textContent='B has to come after A. Play past A, then tap Set B.'}};$('clrAB').onclick=()=>{A=B=null;showAB()};
-document.addEventListener('keydown',e=>{if(e.ctrlKey||e.metaKey||e.altKey||e.target.tagName==='SELECT'||e.target.type==='range')return;const k=e.key;if(k===' '){e.preventDefault();$('play').click()}else if(k==='ArrowLeft')seek(now()-5);else if(k==='ArrowRight')seek(now()+5);
+document.addEventListener('keydown',e=>{if(e.ctrlKey||e.metaKey||e.altKey||e.target.tagName==='SELECT'||e.target.type==='range')return;const k=e.key;if(k===' '){if(e.target.closest&&e.target.closest('button,a,summary,[role=button],input[type=checkbox]'))return;e.preventDefault();$('play').click()}else if(k==='ArrowLeft')seek(now()-5);else if(k==='ArrowRight')seek(now()+5);
  else if(k==='ArrowUp'){e.preventDefault();nudge('speed',1)}else if(k==='ArrowDown'){e.preventDefault();nudge('speed',-1)}else if(k==='[')nudge('key',-1);else if(k===']')nudge('key',1);else if(k==='a'||k==='A')$('setA').click();else if(k==='b'||k==='B')$('setB').click()});
 document.addEventListener('visibilitychange',()=>{if(!document.hidden&&playing&&ctx&&ctx.state!=='running')ctx.resume().catch(()=>{})});
-function restore(){const sv=LS.get();$('speed').value=sv.s||100;$('key').value=sv.k||0;$('vol').value=sv.v||100;$('loop').checked=sv.l!==false;A=sv.A!=null?sv.A:null;B=sv.B!=null?sv.B:null}
+function restore(){const sv=LS.get();$('speed').value=sv.s!=null?sv.s:100;$('key').value=sv.k||0;$('vol').value=sv.v!=null?sv.v:100;$('loop').checked=sv.l!==false;A=sv.A!=null?sv.A:null;B=sv.B!=null?sv.B:null}
 // The browser only allows sound after a tap, so the song loads on the first tap anywhere (or right away where allowed)
-let pending=null;function arm(list,boost){pending=list;status('Tap ▶ to load the song.');$('play').disabled=false;$('play').onclick=async()=>{if(!pending)return;const l=pending;pending=null;$('play').onclick=null;
-  try{await loadParts(l,boost);$('play').onclick=()=>{if(!ready)return;if(playing)stop();else start()};start()}catch(e){if(e&&e.message==='superseded')return;console.error(e);err('The song didn’t load. Check your connection and reload the page.');status('')}}}
+let pending=null;function arm(list,boost){pending=list;status('Tap ▶ to load the song.');$('play').disabled=false;$('play').onclick=async()=>{if(!pending)return;const l=pending;pending=null;$('play').onclick=null;err('');
+  try{await loadParts(l,boost);$('play').onclick=()=>{if(!ready)return;if(playing)stop();else start()};start()}catch(e){if(e&&e.message==='superseded')return;console.error(e);arm(l,boost);err('The song didn’t load. Check your connection, then tap ▶ to try again.')}}}
 if(!S){$('title').textContent=qs?'Song not found':'Song Player';$('sub').textContent='Load an MP3 to start';$('play').disabled=true;if(qs)err('This link has no song. Load your own MP3 below, or ask your instructor for the right link.')}
 else{document.title=S.t+' · Song Player';$('title').textContent=S.t;$('sub').textContent=S.sub||'Play-along';restore();apply();
  restName=S.rest||'other';const pl=(S.parts||[]).map(k=>({k,src:'audio/'+id+'/'+k+'.mp3',boost:S.boost||1}));
- arm(S.rest?[{k:'mix',src:'audio/'+id+'/mix.mp3',boost:1}].concat(pl):pl.length?pl:[{k:'mix',src:S.f,boost:1}],1)}
+ const L0=S.rest?[{k:'mix',src:'audio/'+id+'/mix.mp3',boost:1}].concat(pl):pl.length?pl:[{k:'mix',src:S.f,boost:1}];
+ if(!XP)arm(L0,1);
+ else{ // opened from the Export button inside Notion: load and make the MP3 right away (no sound needed), then Save takes one tap
+  if([...$('xn').options].some(o=>+o.value===XP))$('xn').value=XP;setTimeout(async()=>{try{await loadParts(L0,1);$('play').onclick=()=>{if(!ready)return;if(playing)stop();else start()};$('xbtn').scrollIntoView({block:'center'});exportMp3()}catch(e){if(e&&e.message==='superseded')return;console.error(e);err('The song didn’t load. Check your connection and reload the page.');status('')}},0)}}
 // Load your own song: decoded on this device only, never uploaded. Same speed, key and loop controls.
 $('file').onchange=async e=>{const f=e.target.files&&e.target.files[0];if(!f)return;
  const name=f.name.replace(/\.[^.]+$/,'').replace(/[_-]+/g,' ').trim()||'Your song';KEY='songplayer:own:'+f.name;
  if(playing)stop();pos=0;restore();$('title').textContent=name;$('sub').textContent='Your own track';document.title=name+' · Song Player';err('');$('fileTxt').textContent='Playing from this device: '+f.name;
- pending=null;try{await loadParts([{k:'mix',src:f}]);$('play').onclick=()=>{if(!ready)return;if(playing)stop();else start()};start()}catch(x){if(x&&x.message==='superseded')return;console.error(x);err('That file didn’t open. Try an MP3, M4A or WAV.');status('')}};
+ pending=null;own=true;try{await loadParts([{k:'mix',src:f}]);$('play').onclick=()=>{if(!ready)return;if(playing)stop();else start()};start()}catch(x){if(x&&x.message==='superseded')return;console.error(x);err('That file didn’t open. Try an MP3, M4A or WAV.');status('')}};
 // ---------- Export: render what you hear (speed, key, parts, A-B section) to an MP3 ----------
 // The parts are decoded again for the export (the player's copies live inside the audio engine), only the needed stretch is kept,
 // then the same Signalsmith engine renders it offline, faster than real time.
-function loadScript(u){return new Promise((res,rej)=>{if(window.lamejs)return res();const sc=document.createElement('script');sc.src=u;sc.onload=res;sc.onerror=rej;document.head.appendChild(sc)})}
+function loadScript(u){return new Promise((res,rej)=>{if(window.lamejs)return res();const sc=document.createElement('script');sc.src=u;sc.onload=res;sc.onerror=()=>{sc.remove();rej(new Error('the MP3 maker didn’t download. Check your connection and try again'))};document.head.appendChild(sc)})}
+const allows=f=>{try{const P=document.permissionsPolicy||document.featurePolicy;return !P||P.allowsFeature(f)}catch(e){return true}};
+// the same song and settings, full screen (a new tab outside the embed)
+function fullUrl(xp){const o={s:+$('speed').value,k:semi(),v:+$('vol').value,l:$('loop').checked,A,B,pg,muted,solo};return location.origin+location.pathname+'?s='+encodeURIComponent(id)+'&st='+encodeURIComponent(JSON.stringify(o))+(xp?'&xp='+xp:'')}
+let own=false;
 let lastX=null;
 // While an export runs the button turns into Cancel; the screen is kept awake so a slow phone can finish.
 let xRun=null;function cancelX(){if(!xRun)return;xRun.c=true;if(xRun.rej)xRun.rej(new Error('canceled'))}
 async function exportMp3(){if(xRun){cancelX();return}if(!ready||!curList)return;const btn=$('xbtn'),xst=$('xst'),X=xRun={c:false};
  const chk=()=>{if(X.c)throw new Error('canceled')};btn.textContent='✕ Cancel export';btn.classList.add('on');let wl=null;
- try{try{if(navigator.wakeLock)wl=await navigator.wakeLock.request('screen')}catch(e){}const SR=44100,r=rate(),k=semi(),sec=A!=null&&B!=null,a0=sec?A:0,a1=sec?B:dur,reps=sec?+$('xn').value:1,pad=0.5;
+ try{try{if(navigator.wakeLock&&allows('screen-wake-lock'))wl=await navigator.wakeLock.request('screen')}catch(e){}const SR=44100,r=rate(),k=semi(),sec=A!=null&&B!=null,a0=sec?A:0,a1=sec?B:dur,reps=sec?+$('xn').value:1,pad=0.5;
   const outLen=(a1-a0)*reps/r+0.25;if(outLen>1200)throw new Error('that would be over 20 minutes; set an A-B section or speed it up');
   xst.textContent='Preparing…';await loadScript('https://cdnjs.cloudflare.com/ajax/libs/lamejs/1.2.1/lame.min.js');
   const oc=new OfflineAudioContext(2,Math.ceil(outLen*SR),SR);const s0=Math.max(0,Math.floor((a0-pad)*SR)),off=s0/SR;
   const stems=[];for(const [n,p] of curList.entries()){xst.textContent='Preparing parts… '+(n+1)+' of '+curList.length;
-   const ab=typeof p.src==='string'?await (await fetch(p.src)).arrayBuffer():await p.src.arrayBuffer();chk();
+   let ab;try{if(typeof p.src==='string'){const r0=await fetch(p.src);if(!r0.ok)throw 0;ab=await r0.arrayBuffer()}else ab=await p.src.arrayBuffer()}catch(e){chk();throw new Error(typeof p.src==='string'?'the song didn’t download. Check your connection and try again':'the file can’t be read any more. Load it again')}chk();
    const d=await new Promise((res,rej)=>{const q=oc.decodeAudioData(ab,res,rej);if(q&&q.then)q.then(res,rej)});chk();
    const s1=Math.min(d.length,Math.ceil((a1+pad)*SR)),ch=[];for(let c=0;c<Math.min(2,d.numberOfChannels);c++)ch.push(toI16(d.getChannelData(c).subarray(s0,s1),p.boost||curBoost));stems.push(ch)}
   const len=Math.min(...stems.map(x=>x[0].length));stems.forEach((x,i)=>stems[i]=x.map(c=>c.length>len?c.slice(0,len):c));
@@ -239,12 +260,19 @@ async function saveX(){const X=lastX,xst=$('xst');if(!X)return;
  try{if(window.showSaveFilePicker){const h=await window.showSaveFilePicker({suggestedName:X.fn,startIn:'downloads',types:[{description:'MP3 audio',accept:{'audio/mpeg':['.mp3']}}]});const w=await h.createWritable();await w.write(X.blob);await w.close();xst.textContent='Saved: '+X.fn;return}
   const file=new File([X.blob],X.fn,{type:'audio/mpeg'});
   if(/iPad|iPhone|iPod/.test(navigator.userAgent)||(navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1)){if(navigator.canShare&&navigator.canShare({files:[file]})){await navigator.share({files:[file],title:X.fn});xst.textContent='Shared: pick "Save to Files" to keep it.';return}}
-  const a=document.createElement('a');a.href=X.url;a.download=X.fn;document.body.appendChild(a);a.click();a.remove();xst.textContent='Download started: '+X.fn}
+  dl(X)}
  catch(err){if(err&&err.name==='AbortError'){xst.innerHTML='Not saved. <button type="button" id="xsave" style="padding:0 12px">Save MP3…</button>';$('xsave').onclick=saveX;return}
-  const a=document.createElement('a');a.href=X.url;a.download=X.fn;document.body.appendChild(a);a.click();a.remove();xst.textContent='Download started: '+X.fn}}
-$('xbtn').onclick=exportMp3;
+  dl(X)}}
+function dl(X){const xst=$('xst'),a=document.createElement('a');a.href=X.url;a.download=X.fn;document.body.appendChild(a);a.click();a.remove();
+ if(!inFrame){xst.textContent='Download started: '+X.fn;return}
+ // Notion and other embeds can block downloads without saying so
+ xst.innerHTML='No file in your Downloads? This page is inside Notion, which can block saving. '+(own?'Open it full screen, load your MP3 there and export again.':'Open it full screen and export there.')+'<br><a class="ghostbtn xfull" target="_blank" rel="noopener" id="xfull">↗ Open full screen</a>';$('xfull').href=own?location.origin+location.pathname:fullUrl(+$('xn').value||1)}
+$('xbtn').onclick=()=>{if(!inFrame||own||xRun||!ready)return exportMp3();
+ // inside Notion: the export runs in a full-screen tab, where Save works
+ const sec=A!=null&&B!=null,u=fullUrl(sec?+$('xn').value:1),w=window.open(u,'_blank');
+ $('xst').innerHTML=w?'Opened full screen to make and save your MP3 (Notion blocks saving inside the page).':'Notion blocks saving here, so the export runs full screen.<br><a class="ghostbtn xfull" target="_blank" rel="noopener" id="xfull">↗ Open full screen to export</a>';const xf=$('xfull');if(xf)xf.href=u};
 document.querySelector('.ghostbtn').addEventListener('click',()=>{try{unlock()}catch(e){}});
 document.querySelector('.ghostbtn').addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();e.stopPropagation();$('file').click()}});
 window.__sp={exp:exportMp3,ctx:()=>ctx,lastX:()=>lastX,level:()=>{if(!an)return 0;const b=new Float32Array(2048);an.getFloatTimeDomainData(b);let q=0;for(const v of b)q+=v*v;return Math.sqrt(q/2048)},solo:i=>{solo=i;sendGains()},state:()=>({ready,playing,pos:now(),dur,parts,gains:gains(),eng:engineGains()}),seek,start,stop};
-</script><p class="appver" style="text-align:center;font-size:11px;opacity:.6;margin:12px 0 8px;font-family:ui-monospace,Menlo,monospace">Song Player · Version 2026-11-11.7</p>
+</script><p class="appver" style="text-align:center;font-size:11px;opacity:.6;margin:12px 0 8px;font-family:ui-monospace,Menlo,monospace">Song Player · Version 2026-11-11.8</p>
 </body></html>
