@@ -1,6 +1,6 @@
 <!doctype html>
 <html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Song Player · Clarendon Hills Music Academy</title>
+<title>Song Dissector · Clarendon Hills Music Academy</title>
 <meta name="description" content="Play along with your song at any speed and in any key. Section loop and speed-up trainer.">
 <link rel="stylesheet" href="../shared/chma.css">
 <script src="../shared/brand.js"></script>
@@ -79,7 +79,7 @@ button,a,label,summary,select,input{-webkit-tap-highlight-color:transparent}
 @media (max-width:440px){.ctl{grid-template-columns:60px 40px 1fr 40px}}
 </style></head><body><main><div class="card">
 <div data-chma-head></div>
-<h1 id="title">Song Player</h1>
+<h1 id="title">Song Dissector</h1>
 <p class="by"><span id="sub">Play-along</span></p>
 <div class="transport"><button id="play" aria-label="Play">▶</button>
 <div class="time"><div id="ab"></div><input id="seek" type="range" min="0" max="1000" value="0" aria-label="Position"><div class="lbl"><span id="cur">0:00</span><span id="dur">0:00</span></div></div></div>
@@ -204,8 +204,8 @@ function restore(){const sv=LS.get();$('speed').value=sv.s!=null?sv.s:100;$('key
 // The browser only allows sound after a tap, so the song loads on the first tap anywhere (or right away where allowed)
 let L0=null,pending=null;function arm(list,boost){pending=list;status('Tap ▶ to load the song.');$('play').disabled=false;$('play').onclick=async()=>{if(!pending)return;const l=pending;pending=null;$('play').onclick=null;err('');
   try{await loadParts(l,boost);$('play').onclick=()=>{if(!ready)return;if(playing)stop();else start()};start()}catch(e){if(e&&e.message==='superseded')return;console.error(e);arm(l,boost);err('The song didn’t load. Check your connection, then tap ▶ to try again.')}}}
-if(!S){$('title').textContent=qs?'Song not found':'Song Player';$('sub').textContent='Load an MP3 to start';$('play').disabled=true;if(qs)err('This link has no song. Load your own MP3 below, or ask your instructor for the right link.')}
-else{document.title=S.t+' · Song Player';$('title').textContent=S.t;$('sub').textContent=S.sub||'Play-along';restore();apply();
+if(!S){$('title').textContent=qs?'Song not found':'Song Dissector';$('sub').textContent='Load an MP3 to start';$('play').disabled=true;if(qs)err('This link has no song. Load your own MP3 below, or ask your instructor for the right link.')}
+else{document.title=S.t+' · Song Dissector';$('title').textContent=S.t;$('sub').textContent=S.sub||'Play-along';restore();apply();
  restName=S.rest||'other';const pl=(S.parts||[]).map(k=>({k,src:'audio/'+id+'/'+k+'.mp3',boost:S.boost||1}));
  L0=S.rest?[{k:'mix',src:'audio/'+id+'/mix.mp3',boost:1}].concat(pl):pl.length?pl:[{k:'mix',src:S.f,boost:1}];
  if(!XP)arm(L0,1);
@@ -214,7 +214,7 @@ else{document.title=S.t+' · Song Player';$('title').textContent=S.t;$('sub').te
 // Load your own song: decoded on this device only, never uploaded. Same speed, key and loop controls.
 $('file').onchange=async e=>{const f=e.target.files&&e.target.files[0];e.target.value=''; /* picking the same file again works too */if(!f)return;
  const name=f.name.replace(/\.[^.]+$/,'').replace(/[_-]+/g,' ').trim()||'Your song';KEY='songplayer:own:'+f.name;
- if(playing)stop();pos=0;restore();$('title').textContent=name;$('sub').textContent='Your own track';document.title=name+' · Song Player';err('');$('fileTxt').textContent='Playing from this device: '+f.name;
+ if(playing)stop();pos=0;restore();$('title').textContent=name;$('sub').textContent='Your own track';document.title=name+' · Song Dissector';err('');$('fileTxt').textContent='Playing from this device: '+f.name;
  pending=null;own=true;try{await loadParts([{k:'mix',src:f}]);$('play').onclick=()=>{if(!ready)return;if(playing)stop();else start()};start()}catch(x){if(x&&x.message==='superseded')return;if(!(x&&x.name==='EncodingError'))console.error(x);status('');backToSong();err('That file didn’t open. Try an MP3, M4A or WAV.')}};
 // ---------- Export: render what you hear (speed, key, parts, A-B section) to an MP3 ----------
 // The parts are decoded again for the export (the player's copies live inside the audio engine), only the needed stretch is kept,
@@ -225,7 +225,7 @@ const allows=f=>{try{const P=document.permissionsPolicy||document.featurePolicy;
 function fullUrl(xp){const o={s:+$('speed').value,k:semi(),v:+$('vol').value,l:$('loop').checked,A,B,pg,muted,solo};return location.origin+location.pathname+'?s='+encodeURIComponent(id)+'&st='+encodeURIComponent(JSON.stringify(o))+(xp?'&xp='+xp:'')}
 let own=false;
 // a file that won't open leaves the page's own song ready to load again (it used to leave ▶ greyed out until a reload)
-function backToSong(){if(!S||!L0){$('title').textContent='Song Player';$('sub').textContent='Load an MP3 to start';document.title='Song Player · Clarendon Hills Music Academy';$('fileTxt').textContent='Any song on this device. It stays on your device and is never uploaded.';return}own=false;KEY='songplayer:'+id;document.title=S.t+' · Song Player';$('title').textContent=S.t;$('sub').textContent=S.sub||'Play-along';$('fileTxt').textContent='Any song on this device. It stays on your device and is never uploaded.';pos=0;A=B=null;restore();showAB();arm(L0,1)}
+function backToSong(){if(!S||!L0){$('title').textContent='Song Dissector';$('sub').textContent='Load an MP3 to start';document.title='Song Dissector · Clarendon Hills Music Academy';$('fileTxt').textContent='Any song on this device. It stays on your device and is never uploaded.';return}own=false;KEY='songplayer:'+id;document.title=S.t+' · Song Dissector';$('title').textContent=S.t;$('sub').textContent=S.sub||'Play-along';$('fileTxt').textContent='Any song on this device. It stays on your device and is never uploaded.';pos=0;A=B=null;restore();showAB();arm(L0,1)}
 let lastX=null;
 // While an export runs the button turns into Cancel; the screen is kept awake so a slow phone can finish.
 let xRun=null;function cancelX(){if(!xRun)return;xRun.c=true;if(xRun.stop)xRun.stop();if(xRun.rej)xRun.rej(new Error('canceled'))}
@@ -291,5 +291,5 @@ $('xbtn').onclick=()=>{if(!inFrame||own||xRun||!ready)return exportMp3();
 document.querySelector('.ghostbtn').addEventListener('click',()=>{try{unlock()}catch(e){}});
 document.querySelector('.ghostbtn').addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();e.stopPropagation();$('file').click()}});
 window.__sp={exp:exportMp3,ctx:()=>ctx,lastX:()=>lastX,level:()=>{if(!an)return 0;const b=new Float32Array(2048);an.getFloatTimeDomainData(b);let q=0;for(const v of b)q+=v*v;return Math.sqrt(q/2048)},solo:i=>{solo=i;sendGains()},state:()=>({ready,playing,pos:now(),dur,A,B,parts,gains:gains(),eng:engineGains()}),seek,start,stop};
-</script><p class="appver" style="text-align:center;font-size:11px;opacity:.6;margin:12px 0 8px;font-family:ui-monospace,Menlo,monospace">Song Player · Version 2026-11-11.11</p>
+</script><p class="appver" style="text-align:center;font-size:11px;opacity:.6;margin:12px 0 8px;font-family:ui-monospace,Menlo,monospace">Song Dissector · Version 2026-11-11.12</p>
 </body></html>
