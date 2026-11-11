@@ -109,7 +109,7 @@ details{border:1px solid var(--border);border-radius:12px;background:var(--panel
       <button class="ghost" id="again" hidden>↺ Try this one again</button>
       <button class="primary" id="go">Start</button>
     </div>
-    <p class="tip">Tap the pad or the space bar, or switch to Clap or snap. Rests are silent: don't tap them. Clapping with speakers? Headphones give the cleanest timing.</p>
+    <p class="tip">Tap the pad or the space bar, or switch to Clap or snap. Rests are silent: don't tap them. Clapping or playing with speakers? Headphones are best: the mic never hears the clicks at all.</p>
 
     <div class="results" id="results" hidden>
       <h2>Round complete</h2>
@@ -238,8 +238,16 @@ details{border:1px solid var(--border);border-radius:12px;background:var(--panel
   // ---------- sound ----------
   function ctx(){ audio=audio||new (window.AudioContext||window.webkitAudioContext)(); return audio }
   const outT=[]; // when the app itself makes a sound, so the mic can tell its own clicks from your claps
-  function click(t,accent){ if(inMode==="note") return tick(t,accent); outT.push(t); if(outT.length>64) outT.shift(); const a=ctx(), o=a.createOscillator(), g=a.createGain(); o.type="sine"; o.frequency.value=accent?1760:1175;
-    g.gain.setValueAtTime(0.0001,t); g.gain.exponentialRampToValueAtTime(accent?0.5:0.32,t+0.002); g.gain.exponentialRampToValueAtTime(0.0001,t+0.06); o.connect(g).connect(a.destination); o.start(t); o.stop(t+0.07) }
+  // The click: a short, warm wooden "tock" (like a real metronome's woodblock), not a shrill beep.
+  // Its pitch is kept well away from the note you're playing in One note mode.
+  function tockF(){ const base=[587,440,740,330]; if(inMode!=="note") return 587; const tg=+$("noteSel").value, far=f=>{ const m=69+12*Math.log2(f/440); return [0,5].every(k=>{ const d=Math.abs(((m+k-tg)%12+12)%12); return Math.min(d,12-d)>=2 })&&Math.abs(m-tg)>=4 };
+    return base.find(far)||330 }
+  function click(t,accent,soft){ outT.push(t); if(outT.length>64) outT.shift(); const a=ctx(), f=tockF()*(accent?1.335:1), out=a.createBiquadFilter(); out.type="lowpass"; out.frequency.value=2600; out.connect(a.destination);
+    const o=a.createOscillator(), g=a.createGain(), o2=a.createOscillator(), g2=a.createGain(); o.type="sine"; o2.type="sine";
+    o.frequency.setValueAtTime(f*1.35,t); o.frequency.exponentialRampToValueAtTime(f,t+0.012); o2.frequency.setValueAtTime(f*2.76,t);
+    g.gain.setValueAtTime(0.0001,t); g.gain.exponentialRampToValueAtTime((accent?0.55:0.38)*(soft?0.35:1),t+0.0015); g.gain.exponentialRampToValueAtTime(0.0001,t+0.09);
+    g2.gain.setValueAtTime(0.0001,t); g2.gain.exponentialRampToValueAtTime((accent?0.16:0.11)*(soft?0.35:1),t+0.001); g2.gain.exponentialRampToValueAtTime(0.0001,t+0.035);
+    o.connect(g).connect(out); o2.connect(g2).connect(out); o.start(t); o2.start(t); o.stop(t+0.1); o2.stop(t+0.05) }
   // In One note mode the clicks are short noise ticks with no pitch, so they can never be mistaken for your note
   function tick(t,accent){ outT.push(t); const a=ctx(), L=Math.floor(a.sampleRate*0.03), nb=a.createBuffer(1,L,a.sampleRate), d=nb.getChannelData(0);
     for(let i=0;i<L;i++) d[i]=(Math.random()*2-1)*Math.exp(-i/a.sampleRate/0.004);
@@ -258,7 +266,8 @@ details{border:1px solid var(--border);border-radius:12px;background:var(--panel
     if(run) return; const a=ctx(); await a.resume(); if(inMode!=="tap"&&mode==="test"&&!mic) await micStart($("micSel").value||undefined);
     taps=[]; $("results").hidden=true; $("again").hidden=true; $("go").disabled=true; $("hear").disabled=true;
     const t0=a.currentTime+0.15, start=t0+4*spb(), end=start+16*u16();
-    for(let b=0;b<8;b++){ if(mode==="hear"&&b<4) continue; click(t0+b*spb(),b%4===0) }
+    // while you play into the mic, the clicks in your bar are softer so the mic hears you, not them
+    for(let b=0;b<8;b++){ if(mode==="hear"&&b<4) continue; click(t0+b*spb(),b%4===0,b>=4&&mode==="test"&&inMode!=="tap") }
     if(mode==="hear"||$("guide").checked) bar.notes.forEach(n=>(mode==="test"&&inMode==="clap"&&mic)?wood(start+n.s*u16(),n.d*u16()):hand(start+n.s*u16()));
     msg(null, mode==="hear"?"Listen…":"Count in: 1 · 2 · 3 · 4", mode==="hear"?"":"Start tapping on beat 1 of the next bar.");
     run={mode,start,end,t0}; if(mode==="test") lastStart=start;
@@ -373,20 +382,33 @@ details{border:1px solid var(--border);border-radius:12px;background:var(--panel
         let T=-1; for(let t=minL;t<=maxL;t++) if(c[t]<0.15){ while(t+1<=maxL&&c[t+1]<c[t]) t++; T=t; break }
         if(T<0) return -1; if(2*T<=maxL&&c[2*T]<c[T]*0.5) T=2*T; const x1=c[T-1],x2=c[T],x3=c[T+1],aa=(x1+x3-2*x2)/2,bb=(x3-x1)/2, Tf=aa>0?T-bb/(2*aa):T;
         return 69+12*Math.log2(sr/Tf/440) };
+      // Is this exact note sounding? Check the period of the chosen note directly (works even when another sound overlaps it)
+      const hasNote=tg=>{ an3.getFloatTimeDomainData(pbuf); const sr=a.sampleRate, P=sr/(440*Math.pow(2,(tg-69)/12)), n=pbuf.length, lo=Math.floor(P*0.985), hi=Math.ceil(P*1.015), W=n-hi-1; if(W<P*2) return false;
+        let e0=0; for(let j=0;j<W;j++) e0+=pbuf[j]*pbuf[j]; if(e0<=0) return false; let best=9;
+        for(let L=lo;L<=hi;L++){ let d=0,e1=0; for(let j=0;j<W;j++){ const x=pbuf[j]-pbuf[j+L]; d+=x*x; e1+=pbuf[j+L]*pbuf[j+L] } best=Math.min(best,d/(e0+e1)) }
+        // and not just an octave relative: the half period must not match as well
+        const H=Math.round(P/2); let dh=0,eh=0; for(let j=0;j<W;j++){ const x=pbuf[j]-pbuf[j+H]; dh+=x*x; eh+=pbuf[j]*pbuf[j]+pbuf[j+H]*pbuf[j+H] }
+        return best<0.2&&dh/eh>best*2.5 };
       src.connect(hp); hp.connect(g); g.connect(an); an.connect(mute); mute.connect(a.destination);
-      const buf=new Float32Array(an.fftSize); let last=0, prev=0, pend=null;
+      const buf=new Float32Array(an.fftSize); let last=0, prev=0, pend=null, ckR=0;
       mic={s,g,mute,an,buf,timer:setInterval(()=>{ an.getFloatTimeDomainData(buf); let r=0, pk=0; for(let i=0;i<buf.length;i++){ r+=buf[i]*buf[i]; pk=Math.max(pk,Math.abs(buf[i])) } r=Math.sqrt(r/buf.length);
         $("meterFill").style.width=Math.min(100,r*300)+"%"; const now=a.currentTime;
         // judge a hit ~20 ms in, when the analyser window is full of the new sound
         if(!pend){ const h0=hb(); hbBase=hbBase?hbBase*0.9+h0*0.1:h0 }
-        if(pend&&inMode==="note"&&now-pend.at>=0.045){ const p=pend; pend=null; const m=pitch(), tg=+$("noteSel").value;
-          if(m>0&&Math.abs(m-tg)<=0.6){ tapAt(p.t,"mic"); $("pad").classList.add("hit"); setTimeout(()=>$("pad").classList.remove("hit"),90) } }
+        if(pend) pend.r=Math.max(pend.r||0,r);
+        // The app learns how loud its own click is through this mic: during the count-in you aren't playing yet, so every hit there is the click.
+        // Later, a hit that lands on a click has to be clearly louder than that to count.
+        const ownClick=p=>{ const near=outT.some(o=>Math.abs(p.t-o)<0.06); if(!near||calHook) return false;
+          if(run&&run.mode==="test"&&p.t<run.start-0.1){ ckR=ckR?Math.max(ckR*0.8,p.r):p.r; return true }
+          return ckR>0&&p.r<ckR*1.6 };
+        if(pend&&inMode==="note"&&now-pend.at>=0.11){ const p=pend; pend=null; const m=pitch(), tg=+$("noteSel").value;
+          if(!ownClick(p)&&((m>0&&Math.abs(m-tg)<=0.6)||hasNote(tg))){ tapAt(p.t,"mic"); $("pad").classList.add("hit"); setTimeout(()=>$("pad").classList.remove("hit"),90) } }
         if(pend&&inMode!=="note"&&now-pend.at>=0.02){ const fl=flat(), h=hb(), p=pend; pend=null;
-          if(fl>=FLAT_MIN||h>hbBase*10){ tapAt(p.t,"mic"); $("pad").classList.add("hit"); setTimeout(()=>$("pad").classList.remove("hit"),90) } }
-        if(r>thr&&r>prev*2&&now-last>0.08){ let k=0; const lim=Math.max(thr*1.5,pk*0.3); while(k<buf.length&&Math.abs(buf[k])<lim) k++;
+          if(!ownClick(p)&&(fl>=FLAT_MIN||h>hbBase*10)){ tapAt(p.t,"mic"); $("pad").classList.add("hit"); setTimeout(()=>$("pad").classList.remove("hit"),90) } }
+        /* a re-struck piano key over its own ring only jumps ~1.4x */ if(r>thr&&r>prev*(inMode==="note"?1.35:2)&&now-last>0.08){ let k=0; const lim=Math.max(thr*1.5,pk*0.3); while(k<buf.length&&Math.abs(buf[k])<lim) k++;
           const t=now-(buf.length-k)/a.sampleRate; last=now;
           // a pure tone (the app's own click or beep) is not a clap: decide once the sound has filled the window
-          pend={t,at:now} }
+          pend={t,at:now,r} }
         prev=r*0.5+prev*0.5 },8)};
       $("micBtn").textContent="Microphone on"; $("micBtn").disabled=true; $("micCtl").hidden=false; setThr(thr);
       const devs=(await navigator.mediaDevices.enumerateDevices()).filter(d=>d.kind==="audioinput"), cur=s.getAudioTracks()[0].getSettings().deviceId;
@@ -409,6 +431,6 @@ details{border:1px solid var(--border);border-radius:12px;background:var(--panel
   if(document.fonts) document.fonts.ready.then(()=>drawBar(null));
 })();
 </script>
-<p class="appver" style="text-align:center;font-size:11px;opacity:.6;margin:18px 0 10px;font-family:ui-monospace,Menlo,monospace">Rhythm Trainer · Version 2026-11-11.3</p>
+<p class="appver" style="text-align:center;font-size:11px;opacity:.6;margin:18px 0 10px;font-family:ui-monospace,Menlo,monospace">Rhythm Trainer · Version 2026-11-11.4</p>
 </body>
 </html>
