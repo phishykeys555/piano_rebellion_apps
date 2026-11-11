@@ -103,7 +103,7 @@ button,a,label,summary,select,input{-webkit-tap-highlight-color:transparent}
  <p class="tip" style="margin-top:10px">Start at a tempo you can play clean. Switching tempo keeps your place in the exercise. Light touch = faster.</p>
 </div>
 
-<p class="appver">Hanon Speed Trainer · Version 2026-11-11.6</p>
+<p class="appver">Hanon Speed Trainer · Version 2026-11-11.7</p>
 </main>
 <script>
 const $=id=>document.getElementById(id);
@@ -117,8 +117,8 @@ const store={get(k,d){try{const v=localStorage.getItem('hanon_'+k);return v==nul
 const q=new URLSearchParams(location.search);
 let ex=+(q.get('ex')||store.get('ex',1));if(ex!==2)ex=1;
 if(q.get('ex'))document.getElementById('exSeg').style.display='none'; /* one exercise per embed */
-let level=+(q.get('level')||store.get('level',0));if(!(level>=0&&level<5))level=0;
-let hand=q.get('hand')||store.get('hand','rh');if(!HI.hasOwnProperty(hand))hand='rh';
+let level=+(q.get('level')||store.get('level',0));if(!(Number.isInteger(level)&&level>=0&&level<5))level=0; // ?level=1.5 or an old save of 0.5 used to blank the page
+let hand=q.get('hand')||store.get('hand','rh');if(typeof hand!=='string'||!HI.hasOwnProperty(hand))hand='rh';
 let bpm=+(q.get('bpm')||store.get('bpm'+ex,0))||GOALS[ex][level][0]-40;bpm=snap(bpm);
 let loop=false,playing=false;
 function snap(b){b=+b;if(!isFinite(b))b=100;return Math.max(50,Math.min(280,Math.round(b/10)*10))} // an old or broken save can't make the tempo NaN

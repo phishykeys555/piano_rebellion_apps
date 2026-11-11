@@ -18,8 +18,8 @@ Every app shows its version at the bottom of the page: `Version YYYY-MM-DD.N` (d
 | Key Finder | 2026-11-11.6 |
 | Rhythm Trainer | 2026-11-11.15 |
 | Modal Metronome | 2026-11-11.8 |
-| Hanon Speed Trainer | 2026-11-11.6 |
-| Major 7th Play-Along | 2026-11-11.6 |
-| Song Player | 2026-11-11.9 |
+| Hanon Speed Trainer | 2026-11-11.7 |
+| Major 7th Play-Along | 2026-11-11.7 |
+| Song Player | 2026-11-11.10 |
 | Strobe Tuner (Guitar Revolution) | 2026-11-11.4 |
 | Music Games (home) | 2026-11-11.6 |
