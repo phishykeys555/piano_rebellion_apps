@@ -934,7 +934,7 @@ input[type=range],input[type=checkbox],input[type=radio]{accent-color:var(--c-ac
 
   selectLevel(level,true); if(level==="C") applySettings(store.get("custom",null)||{});   // Custom with nothing saved (new tab, private mode, a full-screen link from an embed) starts from a normal range, never one stray note
   layout(); render(); newQuestion(true);
-  window.__ns={note:()=>q&&!locked?q.notes[idx]:null};   // test hook
+  window.__ns={note:()=>q&&!locked?q.notes[idx]:null, q:()=>q, state:()=>({timer:!!timer,arc:!!arc,locked,sprintOver,mic:!!mic,micBusy,idx,timeLeft,st:{...st}})};   // test hooks (read-only)
   if(document.fonts){ const redraw=()=>{ for(const k in GM) delete GM[k]; q&&draw() };
     document.fonts.load("100px 'Noto Music'","𝄞𝄢♯♭♮").then(redraw).catch(()=>{}); document.fonts.ready.then(redraw);
     try{ document.fonts.addEventListener("loadingdone",redraw) }catch(e){} }

@@ -201,39 +201,44 @@ document.addEventListener('keydown',e=>{if(e.ctrlKey||e.metaKey||e.altKey||e.tar
 document.addEventListener('visibilitychange',()=>{if(!document.hidden&&playing&&ctx&&ctx.state!=='running')ctx.resume().catch(()=>{})});
 function restore(){const sv=LS.get();$('speed').value=sv.s!=null?sv.s:100;$('key').value=sv.k||0;$('vol').value=sv.v!=null?sv.v:100;$('loop').checked=sv.l!==false;A=sv.A!=null?sv.A:null;B=sv.B!=null?sv.B:null}
 // The browser only allows sound after a tap, so the song loads on the first tap anywhere (or right away where allowed)
-let pending=null;function arm(list,boost){pending=list;status('Tap ▶ to load the song.');$('play').disabled=false;$('play').onclick=async()=>{if(!pending)return;const l=pending;pending=null;$('play').onclick=null;err('');
+let L0=null,pending=null;function arm(list,boost){pending=list;status('Tap ▶ to load the song.');$('play').disabled=false;$('play').onclick=async()=>{if(!pending)return;const l=pending;pending=null;$('play').onclick=null;err('');
   try{await loadParts(l,boost);$('play').onclick=()=>{if(!ready)return;if(playing)stop();else start()};start()}catch(e){if(e&&e.message==='superseded')return;console.error(e);arm(l,boost);err('The song didn’t load. Check your connection, then tap ▶ to try again.')}}}
 if(!S){$('title').textContent=qs?'Song not found':'Song Player';$('sub').textContent='Load an MP3 to start';$('play').disabled=true;if(qs)err('This link has no song. Load your own MP3 below, or ask your instructor for the right link.')}
 else{document.title=S.t+' · Song Player';$('title').textContent=S.t;$('sub').textContent=S.sub||'Play-along';restore();apply();
  restName=S.rest||'other';const pl=(S.parts||[]).map(k=>({k,src:'audio/'+id+'/'+k+'.mp3',boost:S.boost||1}));
- const L0=S.rest?[{k:'mix',src:'audio/'+id+'/mix.mp3',boost:1}].concat(pl):pl.length?pl:[{k:'mix',src:S.f,boost:1}];
+ L0=S.rest?[{k:'mix',src:'audio/'+id+'/mix.mp3',boost:1}].concat(pl):pl.length?pl:[{k:'mix',src:S.f,boost:1}];
  if(!XP)arm(L0,1);
  else{ // opened from the Export button inside Notion: load and make the MP3 right away (no sound needed), then Save takes one tap
   if([...$('xn').options].some(o=>+o.value===XP))$('xn').value=XP;setTimeout(async()=>{try{await loadParts(L0,1);$('play').onclick=()=>{if(!ready)return;if(playing)stop();else start()};$('xbtn').scrollIntoView({block:'center'});exportMp3()}catch(e){if(e&&e.message==='superseded')return;console.error(e);err('The song didn’t load. Check your connection and reload the page.');status('')}},0)}}
 // Load your own song: decoded on this device only, never uploaded. Same speed, key and loop controls.
-$('file').onchange=async e=>{const f=e.target.files&&e.target.files[0];if(!f)return;
+$('file').onchange=async e=>{const f=e.target.files&&e.target.files[0];e.target.value=''; /* picking the same file again works too */if(!f)return;
  const name=f.name.replace(/\.[^.]+$/,'').replace(/[_-]+/g,' ').trim()||'Your song';KEY='songplayer:own:'+f.name;
  if(playing)stop();pos=0;restore();$('title').textContent=name;$('sub').textContent='Your own track';document.title=name+' · Song Player';err('');$('fileTxt').textContent='Playing from this device: '+f.name;
- pending=null;own=true;try{await loadParts([{k:'mix',src:f}]);$('play').onclick=()=>{if(!ready)return;if(playing)stop();else start()};start()}catch(x){if(x&&x.message==='superseded')return;console.error(x);err('That file didn’t open. Try an MP3, M4A or WAV.');status('')}};
+ pending=null;own=true;try{await loadParts([{k:'mix',src:f}]);$('play').onclick=()=>{if(!ready)return;if(playing)stop();else start()};start()}catch(x){if(x&&x.message==='superseded')return;if(!(x&&x.name==='EncodingError'))console.error(x);status('');backToSong();err('That file didn’t open. Try an MP3, M4A or WAV.')}};
 // ---------- Export: render what you hear (speed, key, parts, A-B section) to an MP3 ----------
 // The parts are decoded again for the export (the player's copies live inside the audio engine), only the needed stretch is kept,
 // then the same Signalsmith engine renders it offline, faster than real time.
-function loadScript(u){return new Promise((res,rej)=>{if(window.lamejs)return res();const sc=document.createElement('script');sc.src=u;sc.onload=res;sc.onerror=()=>{sc.remove();rej(new Error('the MP3 maker didn’t download. Check your connection and try again'))};document.head.appendChild(sc)})}
+function loadScript(u){return new Promise((res,rej)=>{if(window.lamejs)return res();const sc=document.createElement('script');sc.src=u;sc.onload=res;sc.onerror=()=>{sc.remove();rej(UE('the MP3 maker didn’t download. Check your connection and try again'))};document.head.appendChild(sc)})}
 const allows=f=>{try{const P=document.permissionsPolicy||document.featurePolicy;return !P||P.allowsFeature(f)}catch(e){return true}};
 // the same song and settings, full screen (a new tab outside the embed)
 function fullUrl(xp){const o={s:+$('speed').value,k:semi(),v:+$('vol').value,l:$('loop').checked,A,B,pg,muted,solo};return location.origin+location.pathname+'?s='+encodeURIComponent(id)+'&st='+encodeURIComponent(JSON.stringify(o))+(xp?'&xp='+xp:'')}
 let own=false;
+// a file that won't open leaves the page's own song ready to load again (it used to leave ▶ greyed out until a reload)
+function backToSong(){if(!S||!L0){$('title').textContent='Song Player';$('sub').textContent='Load an MP3 to start';document.title='Song Player · Clarendon Hills Music Academy';$('fileTxt').textContent='Any song on this device. It stays on your device and is never uploaded.';return}own=false;KEY='songplayer:'+id;document.title=S.t+' · Song Player';$('title').textContent=S.t;$('sub').textContent=S.sub||'Play-along';$('fileTxt').textContent='Any song on this device. It stays on your device and is never uploaded.';pos=0;A=B=null;restore();showAB();arm(L0,1)}
 let lastX=null;
 // While an export runs the button turns into Cancel; the screen is kept awake so a slow phone can finish.
 let xRun=null;function cancelX(){if(!xRun)return;xRun.c=true;if(xRun.rej)xRun.rej(new Error('canceled'))}
-async function exportMp3(){if(xRun){cancelX();return}if(!ready||!curList)return;const btn=$('xbtn'),xst=$('xst'),X=xRun={c:false};
+const UE=m=>Object.assign(new Error(m),{user:true}); // a message for the student, not a bug
+async function exportMp3(){if(xRun){cancelX();return}if(!ready||!curList)return;const btn=$('xbtn'),xst=$('xst');
+ if(!(vol()>0)||!gains().some(g=>g>0)){xst.textContent=vol()>0?'Nothing to export: every part is muted. Turn one on first.':'Nothing to export: the volume is at 0. Turn it up first.';return}
+ const X=xRun={c:false};
  const chk=()=>{if(X.c)throw new Error('canceled')};btn.textContent='✕ Cancel export';btn.classList.add('on');let wl=null;
  try{try{if(navigator.wakeLock&&allows('screen-wake-lock'))wl=await navigator.wakeLock.request('screen')}catch(e){}const SR=44100,r=rate(),k=semi(),sec=A!=null&&B!=null,a0=sec?A:0,a1=sec?B:dur,reps=sec?+$('xn').value:1,pad=0.5;
-  const outLen=(a1-a0)*reps/r+0.25;if(outLen>1200)throw new Error('that would be over 20 minutes; set an A-B section or speed it up');
+  const outLen=(a1-a0)*reps/r+0.25;if(outLen>1200)throw UE('that would be over 20 minutes; set an A-B section or speed it up');
   xst.textContent='Preparing…';await loadScript('https://cdnjs.cloudflare.com/ajax/libs/lamejs/1.2.1/lame.min.js');
   const oc=new OfflineAudioContext(2,Math.ceil(outLen*SR),SR);const s0=Math.max(0,Math.floor((a0-pad)*SR)),off=s0/SR;
   const stems=[];for(const [n,p] of curList.entries()){xst.textContent='Preparing parts… '+(n+1)+' of '+curList.length;
-   let ab;try{if(typeof p.src==='string'){const r0=await fetch(p.src);if(!r0.ok)throw 0;ab=await r0.arrayBuffer()}else ab=await p.src.arrayBuffer()}catch(e){chk();throw new Error(typeof p.src==='string'?'the song didn’t download. Check your connection and try again':'the file can’t be read any more. Load it again')}chk();
+   let ab;try{if(typeof p.src==='string'){const r0=await fetch(p.src);if(!r0.ok)throw 0;ab=await r0.arrayBuffer()}else ab=await p.src.arrayBuffer()}catch(e){chk();throw UE(typeof p.src==='string'?'the song didn’t download. Check your connection and try again':'the file can’t be read any more. Load it again')}chk();
    const d=await new Promise((res,rej)=>{const q=oc.decodeAudioData(ab,res,rej);if(q&&q.then)q.then(res,rej)});chk();
    const s1=Math.min(d.length,Math.ceil((a1+pad)*SR)),ch=[];for(let c=0;c<Math.min(2,d.numberOfChannels);c++)ch.push(toI16(d.getChannelData(c).subarray(s0,s1),p.boost||curBoost));stems.push(ch)}
   const len=Math.min(...stems.map(x=>x[0].length));stems.forEach((x,i)=>stems[i]=x.map(c=>c.length>len?c.slice(0,len):c));
@@ -246,7 +251,7 @@ async function exportMp3(){if(xRun){cancelX();return}if(!ready||!curList)return;
   for(let t=step;t<outLen;t+=step)oc.suspend(t).then(()=>{if(X.c)return;xst.textContent='Rendering… '+Math.round(100*t/outLen)+'%';oc.resume()});
   xst.textContent='Rendering… 0%';const b=await Promise.race([oc.startRendering(),new Promise((_,rej)=>{X.rej=rej})]);chk();
   const L=b.getChannelData(0),R=b.getChannelData(1),N=L.length;let pk=0;for(let i=0;i<N;i++){const v=Math.max(Math.abs(L[i]),Math.abs(R[i]));if(v>pk)pk=v}
-  if(pk<1e-4)throw new Error('the render came out silent; try again');
+  if(pk<1e-4)throw UE('this part of the song is silent. Pick another section');
   const gn=pk>0.97?0.97/pk:1,fi=Math.floor(SR*0.01),fo=Math.floor(SR*(sec?0.03:0.5)),toI=(x,i)=>{let v=x*gn*Math.min(1,i/fi,(N-i)/fo);v=Math.max(-1,Math.min(1,v));return v<0?v*32768:v*32767};
   const enc=new lamejs.Mp3Encoder(2,SR,192),blk=1152,ps=[],li=new Int16Array(blk),ri=new Int16Array(blk);
   for(let i=0;i<N;i+=blk){const m=Math.min(blk,N-i);for(let j=0;j<m;j++){li[j]=toI(L[i+j],i+j);ri[j]=toI(R[i+j],i+j)}
@@ -257,7 +262,7 @@ async function exportMp3(){if(xRun){cancelX();return}if(!ready||!curList)return;
   const fn=[$('title').textContent,Math.round(r*100)+'%',k?(k>0?'+':'')+k+' key':'',desc,sec?fmt(a0).replace(':','m')+'-'+fmt(a1).replace(':','m')+(reps>1?' x'+reps:''):''].filter(Boolean).join(' - ').replace(/[^\w\-+% ]+/g,'').replace(/\s+/g,' ').trim()+'.mp3';
   if(lastX)URL.revokeObjectURL(lastX.url);const blob=new Blob(ps,{type:'audio/mpeg'});lastX={blob,fn,url:URL.createObjectURL(blob)};
   xst.innerHTML='Ready: '+(blob.size/1048576).toFixed(1)+' MB · <button type="button" id="xsave" style="padding:0 12px">Save MP3…</button>';$('xsave').onclick=saveX;
- }catch(err){if(X.c){xst.textContent='Export canceled.'}else{console.error(err);xst.textContent='Export failed: '+(err&&err.message||err)}}
+ }catch(err){if(X.c){xst.textContent='Export canceled.'}else{if(!(err&&err.user))console.error(err);xst.textContent='Export failed: '+(err&&err.message||err)}}
  finally{if(xRun===X)xRun=null;btn.textContent='⬇ Export MP3';btn.classList.remove('on');btn.disabled=!ready;try{if(wl)wl.release()}catch(e){}}}
 // Saving needs a fresh tap: Save-as box where supported, the share sheet on iPad/iPhone ("Save to Files"), else a download.
 async function saveX(){const X=lastX,xst=$('xst');if(!X)return;

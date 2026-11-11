@@ -686,7 +686,7 @@ button:focus-visible,select:focus-visible,summary:focus-visible,input:focus-visi
   document.querySelectorAll("#inSeg button").forEach(b=>b.addEventListener("click",()=>setIn(b.dataset.in)));
   setIn(inMode);
 
-  window.__rt={make:(lv)=>{const k=level;level=lv;const b=makeBar();level=k;return b},bar:()=>bar,start:()=>lastStart,tap:t=>tapAt(t),now:()=>audio&&audio.currentTime,u:()=>u16(),setBar:b=>{bar=b;drawBar(null)}}; // test hook
+  window.__rt={make:(lv)=>{const k=level;level=lv;const b=makeBar();level=k;return b},bar:()=>bar,start:()=>lastStart,tap:t=>tapAt(t),now:()=>audio&&audio.currentTime,u:()=>u16(),setBar:b=>{bar=b;drawBar(null)},st:()=>({run:run?run.mode:null,sess:!!sess,arc:!!arc,starting,cal:!!calHook,mic:!!mic,micBusy,inMode,gmode,live:live.size,left:sess?sess.left:null,points:sess?sess.points:null})}; // test hook
   mark(); newBar(); setMode("practice");
   if(document.fonts) document.fonts.ready.then(()=>{ if(!run) drawBar(curRes) });
 })();

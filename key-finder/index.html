@@ -273,6 +273,7 @@ button:focus-visible,summary:focus-visible,input:focus-visible{outline:3px solid
   function setup(){ stopSprint(); sheet(false); document.querySelectorAll("#levels button").forEach(b=>b.setAttribute("aria-pressed",String(b.dataset.id===level)));
     document.querySelectorAll("#seg button").forEach(b=>b.setAttribute("aria-pressed",String(b.dataset.mode===mode))); buildPiano(); buildPad(); resetScore(); newQ() }
   setup();
+  window.__kf={state:()=>({q,locked,sprint,timer:!!timer,mode,level,tLeft,st:{...st}})};   // test hook (read-only)
 })();
 </script>
 </body></html>
