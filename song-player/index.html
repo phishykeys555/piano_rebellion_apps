@@ -23,6 +23,7 @@ button.on{border-color:var(--acc);background:color-mix(in srgb,var(--acc) 18%,tr
 .chk{display:flex;align-items:center;gap:6px;font-size:13px;min-height:40px}.chk input{width:18px;height:18px;accent-color:var(--acc)}
 .hint{font-size:12px;color:var(--mut)}select{font:600 13px system-ui;color:var(--text);background:var(--card);border:1px solid var(--line);border-radius:8px;min-height:36px;padding:0 6px}
 .err{color:var(--acc);font-size:13px;margin-top:8px}
+.ghostbtn{font:600 14px system-ui;border:1px solid var(--line);border-radius:9px;min-height:40px;padding:0 12px;display:inline-flex;align-items:center;cursor:pointer}
 @media (max-width:440px){.chips{margin-left:0}.ctl{grid-template-columns:52px 40px 1fr 40px}}
 </style></head><body><main><div class="card">
 <h1 id="title">Song Player</h1>
@@ -37,6 +38,7 @@ button.on{border-color:var(--acc);background:color-mix(in srgb,var(--acc) 18%,tr
 <div class="row"><button id="back">↺ 10 s</button><button id="fwd">10 s ↻</button><button id="setA">Set A</button><button id="setB">Set B</button><button id="clrAB">Clear A-B</button><label class="chk"><input type="checkbox" id="loop" checked> Loop</label></div>
 <div class="hint" id="abTxt" style="margin-top:4px">Loop a tough section: tap Set A at its start, Set B at its end.</div>
 <div class="row"><label class="chk"><input type="checkbox" id="ramp"> Speed up each loop by</label><select id="rampStep"><option value="2">2%</option><option value="5" selected>5%</option><option value="10">10%</option></select><span class="hint">until</span><select id="rampMax"><option value="100" selected>100%</option><option value="110">110%</option><option value="125">125%</option></select><button id="reset">Reset</button></div>
+<div class="row"><label class="ghostbtn" for="file">📂 Load your own MP3</label><input type="file" id="file" accept="audio/*,.mp3,.m4a,.wav,.aac" hidden><span class="hint" id="fileTxt">Any song on this device. It stays on your device and is never uploaded.</span></div>
 <p class="err" id="err" hidden></p>
 </div></main>
 <audio id="a" preload="metadata" crossorigin="anonymous" playsinline></audio>
@@ -46,9 +48,9 @@ const SONGS={
  'i-love-you-im-sorry':{t:'I Love You, I’m Sorry',sub:'Custom track',f:'audio/i-love-you-im-sorry.mp3'},
  'all-new-kicks':{t:'All New Kicks',sub:'Play-along track',f:'audio/all-new-kicks.mp3'}
 };
-const $=i=>document.getElementById(i),a=$('a'),id=new URLSearchParams(location.search).get('s')||Object.keys(SONGS)[0],S=SONGS[id];
+const $=i=>document.getElementById(i),a=$('a'),qs=new URLSearchParams(location.search).get('s'),id=qs||'',S=SONGS[id];
 const IVN={0:'original key',1:'half step up',2:'whole step up',3:'minor 3rd up',4:'major 3rd up',5:'4th up',6:'tritone up','-1':'half step down','-2':'whole step down','-3':'minor 3rd down','-4':'major 3rd down','-5':'4th down','-6':'tritone down'};
-let ctx=null,gain=null,ps=null,A=null,B=null,wrapping=false;const KEY='songplayer:'+id;
+let ctx=null,gain=null,ps=null,A=null,B=null,wrapping=false;let KEY='songplayer:'+id;
 const LS={get(){try{return JSON.parse(localStorage.getItem(KEY)||'{}')}catch(e){return {}}},set(o){try{localStorage.setItem(KEY,JSON.stringify(o))}catch(e){}}};
 a.preservesPitch=true;a.mozPreservesPitch=true;a.webkitPreservesPitch=true;
 const fmt=s=>isFinite(s)?Math.floor(s/60)+':'+String(Math.floor(s%60)).padStart(2,'0'):'0:00';
@@ -85,9 +87,16 @@ function showAB(){const el=$('ab');if(A!=null&&a.duration){const b=B!=null?B:a.c
 $('setA').onclick=()=>{A=a.currentTime;if(B!=null&&B<=A)B=null;showAB()};$('setB').onclick=()=>{if(A==null)A=0;if(a.currentTime>A+0.5)B=a.currentTime;showAB()};$('clrAB').onclick=()=>{A=B=null;showAB()};
 document.addEventListener('keydown',e=>{if(e.target.tagName==='SELECT')return;const k=e.key;if(k===' '){e.preventDefault();toggle()}else if(k==='ArrowLeft')a.currentTime=Math.max(0,a.currentTime-5);else if(k==='ArrowRight')a.currentTime+=5;
  else if(k==='ArrowUp'){e.preventDefault();nudge('speed',1)}else if(k==='ArrowDown'){e.preventDefault();nudge('speed',-1)}else if(k==='[')nudge('key',-1);else if(k===']')nudge('key',1);else if(k==='a'||k==='A')$('setA').click();else if(k==='b'||k==='B')$('setB').click()});
-if(!S){$('title').textContent='Song not found';$('err').hidden=false;$('err').textContent='This link has no song. Ask your instructor for the right link.'}
+if(!S){$('title').textContent=qs?'Song not found':'Song Player';$('sub').textContent='Load an MP3 to start';if(qs){$('err').hidden=false;$('err').textContent='This link has no song. Load your own MP3 below, or ask your instructor for the right link.'}}
 else{document.title=S.t+' · Song Player';$('title').textContent=S.t;$('sub').textContent=S.sub||'Play-along';
  const sv=LS.get();if(sv.s)$('speed').value=sv.s;if(sv.k)$('key').value=sv.k;if(sv.v)$('vol').value=sv.v;if(sv.l===false)$('loop').checked=false;if(sv.A!=null){A=sv.A;B=sv.B}
  a.src=S.f;a.load();apply()}
-</script><p class="appver" style="text-align:center;font-size:11px;opacity:.6;margin:12px 0 8px;font-family:ui-monospace,Menlo,monospace">Song Player · Version 2026-11-11.1</p>
+// Load your own song: plays from this device only (a temporary local link), with the same speed, key and loop controls
+let ownURL=null;
+$('file').onchange=e=>{const f=e.target.files&&e.target.files[0];if(!f)return;if(ownURL)URL.revokeObjectURL(ownURL);ownURL=URL.createObjectURL(f);
+ const name=f.name.replace(/\.[^.]+$/,'').replace(/[_-]+/g,' ').trim()||'Your song';KEY='songplayer:own:'+f.name;
+ const was=!a.paused;if(was)a.pause();A=B=null;const sv=LS.get();$('speed').value=sv.s||100;$('key').value=sv.k||0;if(sv.A!=null){A=sv.A;B=sv.B}
+ $('title').textContent=name;$('sub').textContent='Your own track';document.title=name+' · Song Player';$('err').hidden=true;$('fileTxt').textContent='Playing from this device: '+f.name;
+ a.removeAttribute('crossorigin');a.src=ownURL;a.load();apply()};
+</script><p class="appver" style="text-align:center;font-size:11px;opacity:.6;margin:12px 0 8px;font-family:ui-monospace,Menlo,monospace">Song Player · Version 2026-11-11.2</p>
 </body></html>
