@@ -58,6 +58,7 @@ input[type=range],.chk input{accent-color:var(--c-act)}
 select{font:600 13px var(--f-body);color:var(--c-ink);background:var(--c-key);border:1px solid var(--c-key-b);border-radius:10px}
 .hint{color:var(--c-mut)}
 .err{color:var(--c-bad)}
+#load,#err{margin:8px 0 0;text-align:center;font-size:13.5px}#load{color:var(--c-ink)}
 #mix{background:var(--c-panel2);border:1px solid var(--c-line);border-radius:16px;padding:12px 12px 10px;margin-top:16px}
 .sec{margin:0 0 8px;line-height:1.5}.sec .hint{display:block;font:400 12px var(--f-body);letter-spacing:0;text-transform:none;margin-top:1px}
 #mixChips{margin:0 0 6px}
@@ -77,6 +78,7 @@ button:focus-visible,.ghostbtn:focus-visible,select:focus-visible,input:focus-vi
 <p class="by"><span id="sub">Play-along</span></p>
 <div class="transport"><button id="play" aria-label="Play">▶</button>
 <div class="time"><div id="ab"></div><input id="seek" type="range" min="0" max="1000" value="0" aria-label="Position"><div class="lbl"><span id="cur">0:00</span><span id="dur">0:00</span></div></div></div>
+<p class="hint" id="load" role="status" aria-live="polite" hidden></p><p class="err" id="err" role="alert" hidden></p>
 <div class="readout"><div><b id="spdN">100%</b><span id="spdS">speed · original tempo</span></div><div><b id="keyN">0</b><span id="keyS">key · original key</span></div></div>
 <div class="ctl"><label for="speed">SPEED</label><button id="sdn" aria-label="Slower">−</button><input id="speed" type="range" min="40" max="130" step="1" value="100"><button id="sup" aria-label="Faster">+</button></div>
 <div class="chips" id="spdChips"></div>
@@ -89,7 +91,6 @@ button:focus-visible,.ghostbtn:focus-visible,select:focus-visible,input:focus-vi
 <div class="chips" id="mixChips" style="margin-left:0"></div><div id="parts"></div></div>
 <div class="row" id="xrow"><button id="xbtn" disabled>⬇ Export MP3</button><span id="xrep" hidden><select id="xn" aria-label="How many times to repeat the section"><option value="1">section once</option><option value="2">section 2×</option><option value="4" selected>section 4×</option><option value="8">section 8×</option><option value="16">section 16×</option></select></span><span class="hint" id="xst">Saves exactly what you hear: speed, key and parts.</span></div>
 <div class="row"><label class="ghostbtn" for="file" tabindex="0" role="button">📂 Load your own MP3</label><input type="file" id="file" accept="audio/*,.mp3,.m4a,.wav,.aac" hidden><span class="hint" id="fileTxt">Any song on this device. It stays on your device and is never uploaded.</span></div>
-<p class="hint" id="load" hidden></p><p class="err" id="err" hidden></p>
 </div></main>
 <script type="module">
 import Stretch from './vendor/SignalsmithStretch.mjs';
@@ -111,18 +112,24 @@ function err(t){$('err').hidden=!t;$('err').textContent=t||''}
 function status(t){$('load').hidden=!t;$('load').textContent=t||''}
 // iPhone/iPad: play even with the ringer switch on silent
 try{if(navigator.audioSession)navigator.audioSession.type='playback'}catch(e){}
-async function engine(){if(node)return node;const AC=window.AudioContext||window.webkitAudioContext;ctx=new AC({latencyHint:'playback'});
- node=await Stretch(ctx);gain=ctx.createGain();gain.gain.value=vol();node.connect(gain);gain.connect(ctx.destination);an=ctx.createAnalyser();an.fftSize=2048;gain.connect(an);
+function unlock(){if(!ctx){const AC=window.AudioContext||window.webkitAudioContext;ctx=new AC({latencyHint:'playback'});ctx.onstatechange=onState}if(ctx.state!=='running')ctx.resume().catch(()=>{})}
+// Phone locked, a call came in, or Siri spoke: iOS stops the audio clock. Pause at the right spot so the button never shows pause over silence.
+function onState(){if(ctx.state!=='running'&&playing&&ready){stop();status('Paused: the sound was interrupted (screen lock or a call). Tap ▶ to keep going.')}}
+let engP=null;async function engine(){if(node)return node;unlock();if(!engP)engP=Stretch(ctx);node=await engP;gain=ctx.createGain();gain.gain.value=vol();node.connect(gain);gain.connect(ctx.destination);an=ctx.createAnalyser();an.fftSize=2048;gain.connect(an);
  node.setUpdateInterval(0.04,t=>{pos=t;posAt=performance.now()});return node}
 // parts are stored at half scale (6 dB headroom) so peaks above full scale never clip; boost = how much the files were turned down
 const toI16=(f,k)=>{const o=new Int16Array(f.length),m=16384*k;for(let i=0;i<f.length;i++){const v=Math.round(f[i]*m);o[i]=v>32767?32767:v<-32768?-32768:v}return o};
 let curList=null,curBoost=1;
-async function loadParts(list,boost=1){curList=list;curBoost=boost;ready=false;$('play').disabled=true;$('xbtn').disabled=true;await engine();if(playing)stop();
- let done=0;status('Loading the song… 0 of '+list.length+' parts');
- const bufs=await Promise.all(list.map(async p=>{const ab=typeof p.src==='string'?await (await fetch(p.src)).arrayBuffer():await p.src.arrayBuffer();
-   const d=await new Promise((res,rej)=>{const r=ctx.decodeAudioData(ab,res,rej);if(r&&r.then)r.then(res,rej)});
-   const ch=[];for(let c=0;c<Math.min(2,d.numberOfChannels);c++)ch.push(toI16(d.getChannelData(c),p.boost||boost));
-   done++;status('Loading the song… '+done+' of '+list.length+' parts');return ch}));
+let loadGen=0;
+async function loadParts(list,boost=1){cancelX();const gen=++loadGen;curList=list;curBoost=boost;ready=false;$('play').disabled=true;$('xbtn').disabled=true;await engine();if(playing)stop();
+ await node.setStems([]); // free the last song before decoding the next one
+ const n=list.length,many=n>1,msg=d=>status(many?'Loading the song… '+d+' of '+n+' parts':'Loading the song…');msg(0);
+ const raw=list.map(p=>typeof p.src==='string'?fetch(p.src).then(r=>{if(!r.ok)throw new Error('HTTP '+r.status);return r.arrayBuffer()}):p.src.arrayBuffer());raw.forEach(q=>q.catch(()=>{}));
+ const bufs=[];for(let i=0;i<n;i++){let ab=await raw[i];raw[i]=null;if(gen!==loadGen)throw new Error('superseded');
+   let d=await new Promise((res,rej)=>{const r=ctx.decodeAudioData(ab,res,rej);if(r&&r.then)r.then(res,rej)});ab=null;
+   const ch=[];for(let c=0;c<Math.min(2,d.numberOfChannels);c++)ch.push(toI16(d.getChannelData(c),list[i].boost||boost));d=null;
+   bufs.push(ch);msg(i+1)}
+ if(gen!==loadGen)throw new Error('superseded');
  const len=Math.min(...bufs.map(b=>b[0].length));const stems=bufs.map(b=>b.map(x=>x.length>len?x.slice(0,len):x));
  dur=await node.setStems(stems,stems.flat().map(x=>x.buffer));src=list.map(p=>p.k);parts=src[0]==='mix'&&src.length>1?src.slice(1).concat(restName):src.slice();
  const sv=LS.get();pg=(sv.pg&&sv.pg.length===parts.length)?sv.pg:parts.map(()=>100);muted=(sv.muted&&sv.muted.length===parts.length)?sv.muted:parts.map(()=>false);solo=sv.solo!=null&&sv.solo<parts.length?sv.solo:-1;
@@ -139,15 +146,15 @@ function buildMix(){const box=$('parts');box.innerHTML='';$('mix').hidden=parts.
 function loopRange(){if(!$('loop').checked)return [0,0];return A!=null&&B!=null?[A,B]:[0,dur]}
 function apply(){const r=rate(),k=semi();
  if(node){const [ls,le]=loopRange();node.schedule({rate:r,semitones:k,loopStart:ls,loopEnd:le});if(gain)gain.gain.setTargetAtTime(vol(),ctx.currentTime,0.02)}
- $('spdN').textContent=$('speed').value+'%';$('spdS').textContent=r===1?'speed · original tempo':'speed · '+(r<1?'slower':'faster')+' than the record';
+ $('spdN').textContent=$('speed').value+'%';$('spdS').textContent=r===1?'speed · original tempo':'speed · '+(r<1?'slowed down':'sped up');
  $('keyN').textContent=(k>0?'+':'')+k;$('keyS').textContent='key · '+IVN[k];
  [...$('spdChips').children].forEach(b=>b.classList.toggle('on',+b.dataset.v===+$('speed').value));save()}
 [50,60,75,90,100].forEach(v=>{const b=document.createElement('button');b.textContent=v+'%';b.dataset.v=v;b.onclick=()=>{$('speed').value=v;apply()};$('spdChips').appendChild(b)});
-function now(){return playing?Math.min(dur,pos+(performance.now()-posAt)/1000*rate()):pos}
+function now(){return playing?Math.min(dur,pos+Math.min(0.2,(performance.now()-posAt)/1000)*rate()):pos}
 function seek(t){t=Math.max(0,Math.min(dur-0.05,t));pos=t;posAt=performance.now();lastPos=t;if(node)node.schedule({input:t})}
-function start(){if(!ready)return;if(ctx.state!=='running')ctx.resume();if(pos>=dur-0.5)pos=A!=null?A:0;const [ls,le]=loopRange();
+let wake=0;function start(){if(!ready)return;unlock();status('');clearTimeout(wake);wake=setTimeout(()=>{if(playing&&ctx.state!=='running'){stop();status('Tap ▶ to start the sound.')}},1500);if(pos>=dur-0.5)pos=A!=null?A:0;const [ls,le]=loopRange();
  node.schedule({active:true,input:pos,rate:rate(),semitones:semi(),loopStart:ls,loopEnd:le});posAt=performance.now();lastPos=pos;playing=true;$('play').textContent='❚❚'}
-function stop(){if(!node)return;pos=now();node.schedule({active:false});playing=false;$('play').textContent='▶'}
+function stop(){if(!node)return;clearTimeout(wake);pos=now();node.schedule({active:false});playing=false;$('play').textContent='▶'}
 $('play').onclick=async()=>{if(!ready)return;if(playing)stop();else start()};
 function onLoop(){if($('ramp').checked){const mx=+$('rampMax').value,nv=Math.min(mx,+$('speed').value+ +$('rampStep').value);$('speed').value=nv;apply()}}
 function tick(){if(ready){const t=now();$('cur').textContent=fmt(t);$('seek').value=Math.round(1000*t/dur);
@@ -171,7 +178,7 @@ document.addEventListener('visibilitychange',()=>{if(!document.hidden&&playing&&
 function restore(){const sv=LS.get();$('speed').value=sv.s||100;$('key').value=sv.k||0;$('vol').value=sv.v||100;$('loop').checked=sv.l!==false;A=sv.A!=null?sv.A:null;B=sv.B!=null?sv.B:null}
 // The browser only allows sound after a tap, so the song loads on the first tap anywhere (or right away where allowed)
 let pending=null;function arm(list,boost){pending=list;status('Tap ▶ to load the song.');$('play').disabled=false;$('play').onclick=async()=>{if(!pending)return;const l=pending;pending=null;$('play').onclick=null;
-  try{await loadParts(l,boost);$('play').onclick=()=>{if(!ready)return;if(playing)stop();else start()};start()}catch(e){console.error(e);err('The song didn’t load. Check your connection and reload the page.');status('')}}}
+  try{await loadParts(l,boost);$('play').onclick=()=>{if(!ready)return;if(playing)stop();else start()};start()}catch(e){if(e&&e.message==='superseded')return;console.error(e);err('The song didn’t load. Check your connection and reload the page.');status('')}}}
 if(!S){$('title').textContent=qs?'Song not found':'Song Player';$('sub').textContent='Load an MP3 to start';$('play').disabled=true;if(qs)err('This link has no song. Load your own MP3 below, or ask your instructor for the right link.')}
 else{document.title=S.t+' · Song Player';$('title').textContent=S.t;$('sub').textContent=S.sub||'Play-along';restore();apply();
  restName=S.rest||'other';const pl=(S.parts||[]).map(k=>({k,src:'audio/'+id+'/'+k+'.mp3',boost:S.boost||1}));
@@ -180,41 +187,47 @@ else{document.title=S.t+' · Song Player';$('title').textContent=S.t;$('sub').te
 $('file').onchange=async e=>{const f=e.target.files&&e.target.files[0];if(!f)return;
  const name=f.name.replace(/\.[^.]+$/,'').replace(/[_-]+/g,' ').trim()||'Your song';KEY='songplayer:own:'+f.name;
  if(playing)stop();pos=0;restore();$('title').textContent=name;$('sub').textContent='Your own track';document.title=name+' · Song Player';err('');$('fileTxt').textContent='Playing from this device: '+f.name;
- pending=null;try{await loadParts([{k:'mix',src:f}]);$('play').onclick=()=>{if(!ready)return;if(playing)stop();else start()};start()}catch(x){console.error(x);err('That file didn’t open. Try an MP3, M4A or WAV.');status('')}};
+ pending=null;try{await loadParts([{k:'mix',src:f}]);$('play').onclick=()=>{if(!ready)return;if(playing)stop();else start()};start()}catch(x){if(x&&x.message==='superseded')return;console.error(x);err('That file didn’t open. Try an MP3, M4A or WAV.');status('')}};
 // ---------- Export: render what you hear (speed, key, parts, A-B section) to an MP3 ----------
 // The parts are decoded again for the export (the player's copies live inside the audio engine), only the needed stretch is kept,
 // then the same Signalsmith engine renders it offline, faster than real time.
 function loadScript(u){return new Promise((res,rej)=>{if(window.lamejs)return res();const sc=document.createElement('script');sc.src=u;sc.onload=res;sc.onerror=rej;document.head.appendChild(sc)})}
 let lastX=null;
-async function exportMp3(){if(!ready||!curList)return;const btn=$('xbtn'),xst=$('xst');btn.disabled=true;
- try{const SR=44100,r=rate(),k=semi(),sec=A!=null&&B!=null,a0=sec?A:0,a1=sec?B:dur,reps=sec?+$('xn').value:1,pad=0.5;
+// While an export runs the button turns into Cancel; the screen is kept awake so a slow phone can finish.
+let xRun=null;function cancelX(){if(!xRun)return;xRun.c=true;if(xRun.rej)xRun.rej(new Error('canceled'))}
+async function exportMp3(){if(xRun){cancelX();return}if(!ready||!curList)return;const btn=$('xbtn'),xst=$('xst'),X=xRun={c:false};
+ const chk=()=>{if(X.c)throw new Error('canceled')};btn.textContent='✕ Cancel export';btn.classList.add('on');let wl=null;
+ try{try{if(navigator.wakeLock)wl=await navigator.wakeLock.request('screen')}catch(e){}const SR=44100,r=rate(),k=semi(),sec=A!=null&&B!=null,a0=sec?A:0,a1=sec?B:dur,reps=sec?+$('xn').value:1,pad=0.5;
   const outLen=(a1-a0)*reps/r+0.25;if(outLen>1200)throw new Error('that would be over 20 minutes; set an A-B section or speed it up');
   xst.textContent='Preparing…';await loadScript('https://cdnjs.cloudflare.com/ajax/libs/lamejs/1.2.1/lame.min.js');
   const oc=new OfflineAudioContext(2,Math.ceil(outLen*SR),SR);const s0=Math.max(0,Math.floor((a0-pad)*SR)),off=s0/SR;
   const stems=[];for(const [n,p] of curList.entries()){xst.textContent='Preparing parts… '+(n+1)+' of '+curList.length;
-   const ab=typeof p.src==='string'?await (await fetch(p.src)).arrayBuffer():await p.src.arrayBuffer();
-   const d=await new Promise((res,rej)=>{const q=oc.decodeAudioData(ab,res,rej);if(q&&q.then)q.then(res,rej)});
+   const ab=typeof p.src==='string'?await (await fetch(p.src)).arrayBuffer():await p.src.arrayBuffer();chk();
+   const d=await new Promise((res,rej)=>{const q=oc.decodeAudioData(ab,res,rej);if(q&&q.then)q.then(res,rej)});chk();
    const s1=Math.min(d.length,Math.ceil((a1+pad)*SR)),ch=[];for(let c=0;c<Math.min(2,d.numberOfChannels);c++)ch.push(toI16(d.getChannelData(c).subarray(s0,s1),p.boost||curBoost));stems.push(ch)}
   const len=Math.min(...stems.map(x=>x[0].length));stems.forEach((x,i)=>stems[i]=x.map(c=>c.length>len?c.slice(0,len):c));
   const n=await Stretch(oc);const g=oc.createGain();g.gain.value=vol();n.connect(g);g.connect(oc.destination);
   await n.setStems(stems,stems.flat().map(x=>x.buffer));await n.setGains(engineGains());
   // await: an offline render does not deliver worklet messages until its first suspend, so an unawaited schedule started the MP3 with seconds of silence
   await n.schedule({active:true,output:0,input:a0-off,rate:r,semitones:k,loopStart:sec?a0-off:0,loopEnd:sec?a1-off:0});
-  for(let t=5;t<outLen;t+=5)oc.suspend(t).then(()=>{xst.textContent='Rendering… '+Math.round(100*t/outLen)+'%';oc.resume()});
-  xst.textContent='Rendering… 0%';const b=await oc.startRendering();
+  chk();const step=Math.max(2,Math.ceil(outLen/50));
+  // Cancel: stop resuming at the next checkpoint, so the render stops using the CPU
+  for(let t=step;t<outLen;t+=step)oc.suspend(t).then(()=>{if(X.c)return;xst.textContent='Rendering… '+Math.round(100*t/outLen)+'%';oc.resume()});
+  xst.textContent='Rendering… 0%';const b=await Promise.race([oc.startRendering(),new Promise((_,rej)=>{X.rej=rej})]);chk();
   const L=b.getChannelData(0),R=b.getChannelData(1),N=L.length;let pk=0;for(let i=0;i<N;i++){const v=Math.max(Math.abs(L[i]),Math.abs(R[i]));if(v>pk)pk=v}
   if(pk<1e-4)throw new Error('the render came out silent; try again');
   const gn=pk>0.97?0.97/pk:1,fi=Math.floor(SR*0.01),fo=Math.floor(SR*(sec?0.03:0.5)),toI=(x,i)=>{let v=x*gn*Math.min(1,i/fi,(N-i)/fo);v=Math.max(-1,Math.min(1,v));return v<0?v*32768:v*32767};
   const enc=new lamejs.Mp3Encoder(2,SR,192),blk=1152,ps=[],li=new Int16Array(blk),ri=new Int16Array(blk);
   for(let i=0;i<N;i+=blk){const m=Math.min(blk,N-i);for(let j=0;j<m;j++){li[j]=toI(L[i+j],i+j);ri[j]=toI(R[i+j],i+j)}
    const e=enc.encodeBuffer(m<blk?li.subarray(0,m):li,m<blk?ri.subarray(0,m):ri);if(e.length)ps.push(new Uint8Array(e));
-   if(i%(blk*300)===0){xst.textContent='Making the MP3… '+Math.round(100*i/N)+'%';await new Promise(z=>setTimeout(z,0))}}
+   if(i%(blk*100)===0){xst.textContent='Making the MP3… '+Math.round(100*i/N)+'%';await new Promise(z=>setTimeout(z,0));chk()}}
   const e=enc.flush();if(e.length)ps.push(new Uint8Array(e));
   const u=gains(),nm=q=>(PN[q]||q).toLowerCase(),pOff=parts.filter((_,i)=>u[i]===0),pOn=parts.filter((_,i)=>u[i]>0),desc=solo>=0?(PN[parts[solo]]||parts[solo])+' only':!pOff.length?'':pOn.length<=pOff.length?pOn.map(nm).join(' + ')+' only':pOff.map(q=>'no '+nm(q)).join(' ');
   const fn=[$('title').textContent,Math.round(r*100)+'%',k?(k>0?'+':'')+k+' key':'',desc,sec?fmt(a0).replace(':','m')+'-'+fmt(a1).replace(':','m')+(reps>1?' x'+reps:''):''].filter(Boolean).join(' - ').replace(/[^\w\-+% ]+/g,'').replace(/\s+/g,' ').trim()+'.mp3';
   if(lastX)URL.revokeObjectURL(lastX.url);const blob=new Blob(ps,{type:'audio/mpeg'});lastX={blob,fn,url:URL.createObjectURL(blob)};
   xst.innerHTML='Ready: '+(blob.size/1048576).toFixed(1)+' MB · <button type="button" id="xsave" style="padding:0 12px">Save MP3…</button>';$('xsave').onclick=saveX;
- }catch(err){console.error(err);xst.textContent='Export failed: '+(err&&err.message||err)}finally{btn.disabled=!ready}}
+ }catch(err){if(X.c){xst.textContent='Export canceled.'}else{console.error(err);xst.textContent='Export failed: '+(err&&err.message||err)}}
+ finally{if(xRun===X)xRun=null;btn.textContent='⬇ Export MP3';btn.classList.remove('on');btn.disabled=!ready;try{if(wl)wl.release()}catch(e){}}}
 // Saving needs a fresh tap: Save-as box where supported, the share sheet on iPad/iPhone ("Save to Files"), else a download.
 async function saveX(){const X=lastX,xst=$('xst');if(!X)return;
  try{if(window.showSaveFilePicker){const h=await window.showSaveFilePicker({suggestedName:X.fn,startIn:'downloads',types:[{description:'MP3 audio',accept:{'audio/mpeg':['.mp3']}}]});const w=await h.createWritable();await w.write(X.blob);await w.close();xst.textContent='Saved: '+X.fn;return}
@@ -224,7 +237,8 @@ async function saveX(){const X=lastX,xst=$('xst');if(!X)return;
  catch(err){if(err&&err.name==='AbortError'){xst.innerHTML='Not saved. <button type="button" id="xsave" style="padding:0 12px">Save MP3…</button>';$('xsave').onclick=saveX;return}
   const a=document.createElement('a');a.href=X.url;a.download=X.fn;document.body.appendChild(a);a.click();a.remove();xst.textContent='Download started: '+X.fn}}
 $('xbtn').onclick=exportMp3;
+document.querySelector('.ghostbtn').addEventListener('click',()=>{try{unlock()}catch(e){}});
 document.querySelector('.ghostbtn').addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();e.stopPropagation();$('file').click()}});
-window.__sp={exp:exportMp3,lastX:()=>lastX,level:()=>{if(!an)return 0;const b=new Float32Array(2048);an.getFloatTimeDomainData(b);let q=0;for(const v of b)q+=v*v;return Math.sqrt(q/2048)},solo:i=>{solo=i;sendGains()},state:()=>({ready,playing,pos:now(),dur,parts,gains:gains(),eng:engineGains()}),seek,start,stop};
+window.__sp={exp:exportMp3,ctx:()=>ctx,lastX:()=>lastX,level:()=>{if(!an)return 0;const b=new Float32Array(2048);an.getFloatTimeDomainData(b);let q=0;for(const v of b)q+=v*v;return Math.sqrt(q/2048)},solo:i=>{solo=i;sendGains()},state:()=>({ready,playing,pos:now(),dur,parts,gains:gains(),eng:engineGains()}),seek,start,stop};
 </script><p class="appver" style="text-align:center;font-size:11px;opacity:.6;margin:12px 0 8px;font-family:ui-monospace,Menlo,monospace">Song Player · Version 2026-11-11.6</p>
 </body></html>

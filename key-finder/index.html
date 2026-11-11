@@ -30,7 +30,7 @@ h1{font-weight:800;font-size:30px;letter-spacing:-.02em;margin:0} h1 em{font-sty
 .byline{font-weight:600;margin:2px 0 0} .byline a{color:inherit} .sub{color:var(--muted);font-size:13px;margin:4px 0 0}
 .row{display:flex;gap:8px;flex-wrap:wrap}
 .pick button,.seg button,.btn{font:inherit;font-weight:600;border:1px solid var(--border);background:var(--panel);color:var(--ink);border-radius:12px;padding:10px 14px;cursor:pointer;min-height:44px}
-.pick button{flex:1;min-width:120px;display:flex;flex-direction:column;align-items:center;gap:2px}
+.pick button{flex:1;min-width:120px;padding:10px 8px;display:flex;flex-direction:column;align-items:center;gap:2px}
 .pick button b{font-family:var(--mono);font-size:15px} .pick button span{font-size:12px;color:var(--muted);font-weight:400}
 .pick button[aria-pressed="true"],.seg button[aria-pressed="true"]{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
 .pick button[aria-pressed="true"] span{color:var(--accent-ink)}
@@ -102,6 +102,10 @@ input[type=checkbox]{accent-color:var(--c-act)}
 .miss span{background:var(--c-key);border:1px solid var(--c-key-b)}
 .appver{opacity:1;color:var(--c-mut);margin-top:2px}
 @media (max-width:560px){.card{padding:14px 12px}.stats{padding:10px}.stats span{letter-spacing:.06em}}
+/* phones: no double-tap zoom or grey flash when a kid taps fast; action buttons share the row instead of a ragged wrap */
+button,summary,label{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
+.actions .btn{flex:1 1 auto}
+@media (max-width:400px){.pad{gap:6px}}
 </style></head>
 <body>
 <div class="wrap">
@@ -136,6 +140,7 @@ input[type=checkbox]{accent-color:var(--c-act)}
       <div class="rgrid"><div><b id="rPct">0%</b><span>Accuracy</span></div><div><b id="rTotal">0</b><span>Keys</span></div><div><b id="rBest">0</b><span>Best streak</span></div></div>
       <div><b>Missed most</b><div class="miss" id="rMiss"></div></div>
       <div class="stamp" id="rStamp"></div>
+      <p class="tip" style="text-align:left">Screenshot this screen and send it to your instructor.</p>
       <div class="actions"><button class="btn" id="closeBtn">Back to practice</button><button class="btn primary" id="againBtn">Sprint again</button></div>
     </div>
   </div>
@@ -145,7 +150,7 @@ input[type=checkbox]{accent-color:var(--c-act)}
     <label><input type="checkbox" id="labelsOn"> Show letter names on every white key (easier)</label>
     <label><input type="checkbox" id="flatsOn"> Call black keys by their flat name (D♭) in Find the key</label>
   </details>
-  <p class="appver" id="appVer">Key Finder · Version 2026-11-11.2</p>
+  <p class="appver" id="appVer">Key Finder · Version 2026-11-11.3</p>
 </div>
 
 <script>
@@ -168,9 +173,10 @@ input[type=checkbox]{accent-color:var(--c-act)}
 
   // ---------- sound: short piano-like tone ----------
   let ac=null;
-  function tone(m){ if(!$("soundOn").checked) return; try{ ac=ac||new (window.AudioContext||window.webkitAudioContext)(); if(ac.state==="suspended") ac.resume();
+  function tone(m){ if(!$("soundOn").checked) return; try{ if(!ac){ try{ if(navigator.audioSession) navigator.audioSession.type="playback" }catch(e){} ac=new (window.AudioContext||window.webkitAudioContext)() } if(ac.state!=="running") ac.resume().catch(()=>{});
     const f=440*Math.pow(2,(m-69)/12), t=ac.currentTime, g=ac.createGain(); g.gain.setValueAtTime(0.0001,t); g.gain.exponentialRampToValueAtTime(0.35,t+0.01); g.gain.exponentialRampToValueAtTime(0.0001,t+1.2); g.connect(ac.destination);
     [[1,1],[2,0.4],[3,0.15]].forEach(([h,a])=>{const o=ac.createOscillator(),og=ac.createGain(); o.type="sine"; o.frequency.value=f*h; og.gain.value=a; o.connect(og); og.connect(g); o.start(t); o.stop(t+1.25)}) }catch(e){} }
+  document.addEventListener("visibilitychange",()=>{ if(!document.hidden&&ac&&ac.state!=="running") ac.resume().catch(()=>{}) });
   function chime(){ if(!$("soundOn").checked) return; [72,76,79,84].forEach((m,i)=>setTimeout(()=>tone(m),i*90)) }
 
   // ---------- keyboard: fills the width at finger size (44px+ per white key), whole black-key groups ----------
@@ -178,18 +184,20 @@ input[type=checkbox]{accent-color:var(--c-act)}
     const whites=[]; for(let m=lv.lo;m<=lv.hi;m++) if(!BLACK.includes(m%12)) whites.push(m);
     const n=whites.length, w=100/n; el.style.minWidth=(n*44)+"px";
     whites.forEach((m,i)=>{ const b=document.createElement("button"); b.className="w"+(m===60?" mc":""); b.dataset.midi=m; b.setAttribute("aria-label",PCN[m%12]+(Math.floor(m/12)-1));
-      if(m===60) b.textContent="Middle C"; else if($("labelsOn").checked) b.textContent=PCN[m%12]; else if(m%12===0) b.textContent="C"+(Math.floor(m/12)-1);
+      label(b,m);
       b.addEventListener("click",()=>keyTap(m,b)); el.appendChild(b);
       if(BLACK.includes((m+1)%12)&&m+1<=lv.hi){ const k=document.createElement("button"); k.className="b"; k.dataset.midi=m+1; k.style.width=(w*0.6)+"%"; k.style.left=((i+1)*w-w*0.3)+"%";
         k.setAttribute("aria-label",both((m+1)%12)); k.addEventListener("click",()=>keyTap(m+1,k)); el.appendChild(k) } });
     requestAnimationFrame(()=>{ const sc=$("pianoScroll"), mc=el.querySelector(".mc"); if(mc) sc.scrollLeft=mc.offsetLeft-sc.clientWidth/2+mc.offsetWidth/2; if(q&&mode==="name") centerKey(keyEl(q.m),true); edges() }) }
+  function label(b,m){ b.textContent=m===60?"Middle C":$("labelsOn").checked?PCN[m%12]:m%12===0?"C"+(Math.floor(m/12)-1):"" }
   const keyEl=m=>$("piano").querySelector(`[data-midi="${m}"]`);
   // The keyboard scrolls sideways when it is wider than the screen: the glowing key is always brought to the middle
   function centerKey(k,instant){ const sc=$("pianoScroll"); if(!k||sc.scrollWidth<=sc.clientWidth+2) return; const x=k.offsetLeft-sc.clientWidth/2+k.offsetWidth/2;
     try{ sc.scrollTo({left:x,behavior:instant?"auto":"smooth"}) }catch(e){ sc.scrollLeft=x } }
   function edges(){ const sc=$("pianoScroll"), w=$("pianoWrap"), more=sc.scrollWidth>sc.clientWidth+2;
     w.classList.toggle("l",more&&sc.scrollLeft>4); w.classList.toggle("r",more&&sc.scrollLeft<sc.scrollWidth-sc.clientWidth-4); $("swipe").hidden=!more }
-  $("pianoScroll").addEventListener("scroll",edges,{passive:true}); window.addEventListener("resize",()=>{ edges(); if(q&&mode==="name") centerKey(keyEl(q.m),true) });
+  let lastW=innerWidth; $("pianoScroll").addEventListener("scroll",edges,{passive:true});
+  window.addEventListener("resize",()=>{ edges(); if(innerWidth===lastW) return; lastW=innerWidth; if(q&&mode==="name") centerKey(keyEl(q.m),true) });
   function clearKeys(){ $("piano").querySelectorAll("button").forEach(b=>b.classList.remove("glow","hit","miss","show")); document.querySelectorAll(".pad button").forEach(b=>b.classList.remove("hit","miss")) }
 
   // ---------- answer pad (Name the key) ----------
@@ -204,7 +212,8 @@ input[type=checkbox]{accent-color:var(--c-act)}
   function newQ(){ clearKeys(); $("fb").textContent=""; $("fb").className="fb"; const p=pool(); let m, t=0; do{ m=p[Math.floor(Math.random()*p.length)] }while(p.length>1&&m===lastM&&t++<20); lastM=m;
     q={m,tried:false}; locked=false;
     if(mode==="name"){ $("prompt").innerHTML="What key is glowing?"; const k=keyEl(m); k.classList.add("glow"); centerKey(k) }
-    else { const pc=m%12, nm=BLACK.includes(pc)?($("flatsOn").checked?FLAT[pc]:PCN[pc]):PCN[pc]; $("prompt").innerHTML=`Find <span class="big">${nm}</span>` } }
+    else findPrompt() }
+  function findPrompt(){ const pc=q.m%12, nm=BLACK.includes(pc)?($("flatsOn").checked?FLAT[pc]:PCN[pc]):PCN[pc]; $("prompt").innerHTML=`Find <span class="big">${nm}</span>` }
   function grade(ok,btn,answerLabel){ if(!q||locked) return; const pc=q.m%12;
     if(ok){ if(!q.tried||!sprint){ if(!q.tried){ st.pts++; st.streak++; st.best=Math.max(st.best,st.streak) } } st.correct+=q.tried?0:1; if(!q.tried) st.total++;
       btn&&btn.classList.add("hit"); keyEl(q.m).classList.remove("glow"); keyEl(q.m).classList.add("hit"); $("fb").textContent=q.tried?`There it is: ${both(pc)}.`:`Yes! ${both(pc)}.`; $("fb").className="fb good"; locked=true; render(); setTimeout(newQ,sprint?350:700); return }
@@ -226,7 +235,8 @@ input[type=checkbox]{accent-color:var(--c-act)}
     const miss=Object.entries(st.miss).sort((a,b)=>b[1]-a[1]).slice(0,5); $("rMiss").innerHTML=miss.length?miss.map(([k,v])=>`<span>${k} ×${v}</span>`).join(""):"<span>None. Clean run.</span>";
     const d=new Date(), lv=L(), key="best-"+level+"-"+mode, hi=Math.max(store.get(key,0),st.pts); store.set(key,hi);
     $("rStamp").textContent=`Key Finder · Level ${lv.id} · ${lv.name} (${lv.sub}) · ${mode==="name"?"Name the key":"Find the key"} · High score ${hi} · ${d.toLocaleDateString(undefined,{weekday:"short",month:"short",day:"numeric"})} ${d.toLocaleTimeString([],{hour:"numeric",minute:"2-digit"})}`;
-    $("results").hidden=false; if(pct>=90&&st.total>=5) fireworks() }
+    $("results").hidden=false; $("results").scrollTop=0; const r=$("card").getBoundingClientRect(); if(r.top<0||r.top>innerHeight*0.4) try{ $("card").scrollIntoView({block:"start"}) }catch(e){}
+    if(pct>=90&&st.total>=5) fireworks() }
 
   // ---------- fireworks for 90%+ (skipped for reduced motion) ----------
   function fireworks(){ chime(); if(window.matchMedia&&matchMedia("(prefers-reduced-motion: reduce)").matches) return;
@@ -240,13 +250,14 @@ input[type=checkbox]{accent-color:var(--c-act)}
   // ---------- wiring ----------
   LEVELS.forEach(lv=>{ const b=document.createElement("button"); b.innerHTML=`<b>L${lv.id}</b>${lv.name}<span>${lv.sub}</span>`; b.dataset.id=lv.id; b.addEventListener("click",()=>{ level=lv.id; store.set("level",level); setup() }); $("levels").appendChild(b) });
   document.querySelectorAll("#seg button").forEach(b=>b.addEventListener("click",()=>{ mode=b.dataset.mode; store.set("mode",mode); setup() }));
-  ["soundOn","labelsOn","flatsOn"].forEach(id=>{ $(id).checked=store.get(id,$(id).checked); $(id).addEventListener("change",()=>{ store.set(id,$(id).checked); setup() }) });
+  // settings never cost a score or stop a sprint: sound just saves, labels relabel the keys in place, flats re-spell the Find prompt
+  ["soundOn","labelsOn","flatsOn"].forEach(id=>{ $(id).checked=store.get(id,$(id).checked); $(id).addEventListener("change",()=>{ store.set(id,$(id).checked);
+    if(id==="labelsOn") $("piano").querySelectorAll(".w").forEach(b=>label(b,+b.dataset.midi)); if(id==="flatsOn"&&q&&mode==="find"&&!locked) findPrompt() }) });
   $("resetBtn").addEventListener("click",()=>{ stopSprint(); resetScore(); newQ() });
   $("sprintBtn").addEventListener("click",()=>{ if(timer){ stopSprint(); newQ() } else startSprint() });
   $("againBtn").addEventListener("click",startSprint); $("closeBtn").addEventListener("click",()=>{ $("results").hidden=true; resetScore(); newQ() });
-  document.addEventListener("keydown",e=>{ if(mode!=="name"||e.target.tagName==="INPUT") return; const k=e.key.toUpperCase(); const i=["C","D","E","F","G","A","B"].indexOf(k); if(i<0) return;
-    let pc=[0,2,4,5,7,9,11][i]; if(e.shiftKey) pc=(pc+1)%12; const btn=document.querySelector(`.pad button[data-pc="${pc}"]`); padTap(pc,btn) });
-  window.addEventListener("resize",()=>{ const m=q&&q.m; buildPiano(); if(m!=null&&mode==="name"&&!locked) keyEl(m).classList.add("glow") });
+  document.addEventListener("keydown",e=>{ if(mode!=="name"||e.target.tagName==="INPUT"||e.repeat||e.metaKey||e.ctrlKey||e.altKey) return; const k=e.key.toUpperCase(); const i=["C","D","E","F","G","A","B"].indexOf(k); if(i<0) return;
+    let pc=[0,2,4,5,7,9,11][i]; if(e.shiftKey){ if(!BLACK.includes(pc+1)) return; pc++ } const btn=document.querySelector(`.pad button[data-pc="${pc}"]`); padTap(pc,btn) });
   function setup(){ stopSprint(); $("results").hidden=true; document.querySelectorAll("#levels button").forEach(b=>b.setAttribute("aria-pressed",String(b.dataset.id===level)));
     document.querySelectorAll("#seg button").forEach(b=>b.setAttribute("aria-pressed",String(b.dataset.mode===mode))); buildPiano(); buildPad(); resetScore(); newQ() }
   setup();

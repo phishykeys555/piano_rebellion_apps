@@ -358,7 +358,7 @@ const S = { tuning:TUNINGS[0], a4:440, tol:1, acc:'sharp', auto:true, sel:5,
   cand:null, candN:0,
   f0:null, lastP:0,
   stat:null,             // latest strobe message
-  cents:null, centsSrc:'', lastSound:-1e9, ang:[0,0,0], bright:[0,0,0], lit:false };
+  cents:null, centsSrc:'', lastStrobe:-1e9, lastSound:-1e9, ang:[0,0,0], bright:[0,0,0], lit:false };
 
 try { const p = JSON.parse(localStorage.getItem('gr-strobe-v1') || '{}');
   const t = TUNINGS.find(x => x.id === p.t); if (t) S.tuning = t;
@@ -429,10 +429,10 @@ document.querySelectorAll('#acc button').forEach(b => b.addEventListener('click'
 /* ---------- target handling ---------- */
 function setTarget(m){
   S.target = { midi:m, f:freq(m), name:label(m, spellFor()) };
-  sendTarget(S.target.f); S.cents = null; S.stat = null;
+  sendTarget(S.target.f); S.cents = null; S.centsSrc = ''; S.stat = null;
 }
 function sendTarget(f){ if (S.node) S.node.port.postMessage({ target:f }); }
-function resetReadout(){ S.cents = null; S.stat = null; }
+function resetReadout(){ S.cents = null; S.centsSrc = ''; S.stat = null; }
 
 function onPitch(f0){
   S.f0 = f0; S.lastP = performance.now();
@@ -456,7 +456,9 @@ function onStat(m){
   if (!S.target || !m.present) return;
   let c = null, src = '';
   const coarse = (S.f0 && performance.now() - S.lastP < 600) ? 1200 * Math.log2(S.f0 / S.target.f) : null;
-  if (m.df !== null && m.n >= 48 && (coarse === null || Math.abs(coarse) < 40)) { c = 1200 * Math.log2((S.target.f + m.df) / S.target.f); src = 'strobe'; }
+  const now = performance.now();
+  if (m.df !== null && m.n >= 48 && (coarse === null || Math.abs(coarse) < 40)) { c = 1200 * Math.log2((S.target.f + m.df) / S.target.f); src = 'strobe'; S.lastStrobe = now; }
+  else if (S.centsSrc === 'strobe' && now - S.lastStrobe < 1200 && (coarse === null || Math.abs(coarse - S.cents) < 10)) return;  // re-measuring: hold the last strobe reading
   else if (coarse !== null) { c = coarse; src = 'pitch'; }
   if (c === null) return;
   if (S.cents === null || src !== S.centsSrc || Math.abs(c - S.cents) > 15) S.cents = c;
@@ -665,7 +667,7 @@ window.__tuner = {
     return { running:S.running, note:S.target ? label(S.target.midi, spellFor()) : null, target:S.target ? S.target.f : null,
       cents:S.cents, centsSrc:S.centsSrc, hz:S.target && S.cents !== null ? S.target.f * Math.pow(2, S.cents / 1200) : null,
       phase:m ? m.ph[0] : null, phases:m ? m.ph.slice() : null, df:m ? m.df : null, n:m ? m.n : 0, present:!!(m && m.present),
-      since:m ? m.since : null, t:m ? m.t : null, f0:S.f0, inTune:S.lit, level:m ? m.lvl : 0,
+      since:m ? m.since : null, t:m ? m.t : null, gl:m ? m.gl : 0, f0:S.f0, inTune:S.lit, level:m ? m.lvl : 0,
       ang:S.ang.slice(), tuning:S.tuning.id, a4:S.a4, tol:S.tol }; },
   setTuning(id){ const t = TUNINGS.find(x => x.id === id); if (t) { S.tuning = t; renderTuning(); } },
   setString(i){ if (i === 'auto') { S.auto = true; S.target = null; sendTarget(0); renderStrings(); } else pickString(i); },
