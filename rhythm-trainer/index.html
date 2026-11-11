@@ -82,6 +82,8 @@ details{border:1px solid var(--border);border-radius:12px;background:var(--panel
 .arcsplash{position:absolute;inset:0;z-index:6;border-radius:14px;background:var(--panel);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;text-align:center;padding:20px}
 .arcsplash .pre{font-family:var(--mono);font-size:12px;letter-spacing:.12em;color:var(--good);font-weight:700}
 .arcsplash b{font-size:44px;font-weight:900;letter-spacing:.02em;color:var(--accent)} .arcsplash span{max-width:420px;font-size:15px}
+.arcsplash em{font-family:var(--mono);font-style:normal;font-size:26px;font-weight:800;letter-spacing:.04em;color:var(--ink);margin-top:-6px}
+.arcmeter s{position:absolute;top:0;bottom:0;width:3px;margin-left:-1px;background:var(--ink);opacity:.8;z-index:1}
 .arcsplash.go b{animation:pop .5s cubic-bezier(.2,1.6,.4,1)} @keyframes pop{from{transform:scale(.4);opacity:0}to{transform:scale(1);opacity:1}}
 .hitstamp{position:absolute;left:50%;top:38%;z-index:7;transform:translate(-50%,-50%) rotate(-8deg) scale(0);font-weight:900;font-size:34px;color:var(--good);border:4px solid var(--good);border-radius:12px;padding:6px 14px;background:var(--panel);pointer-events:none;opacity:0}
 .hitstamp.go{animation:stamp 1.1s ease-out} @keyframes stamp{0%{transform:translate(-50%,-50%) rotate(-8deg) scale(2.2);opacity:0}15%{transform:translate(-50%,-50%) rotate(-8deg) scale(1);opacity:1}75%{opacity:1}100%{opacity:0}}
@@ -104,7 +106,7 @@ button:active{transform:translateY(2px);box-shadow:0 1px 0 var(--c-key-sh)}
 .pad.hit{background:var(--c-act);border-color:var(--c-act);color:var(--c-act-ink)}
 .tempo span,.micp{color:var(--c-mut)} .tempo span{font-weight:700;letter-spacing:.16em;font-size:10.5px}
 details{background:var(--c-panel2);border-color:var(--c-line)}
-.results,.arcsplash{background:var(--c-panel2)}
+.results,.arcsplash{background:var(--c-panel2)} .arcsplash em{color:var(--c-ink)} .arcmeter s{background:var(--c-ink)}
 .rgrid div{background:var(--c-lcd)} .rgrid b{color:var(--c-led);text-shadow:var(--c-led-glow)} .rgrid span{color:#9aa3b2}
 .big{color:var(--c-led);text-shadow:var(--c-led-glow)}
 .pill{background:color-mix(in srgb,var(--c-sel) 18%,transparent);color:var(--c-ink)}
@@ -124,7 +126,7 @@ button:disabled{opacity:.45;cursor:default;box-shadow:none;transform:none}
 /* narrow phones (320 px): level names wrap inside their buttons instead of pushing the grid wider than the card */
 .levels{grid-template-columns:repeat(4,minmax(0,1fr))} .lvl{min-width:0} .lvl span{overflow-wrap:anywhere;hyphens:auto;-webkit-hyphens:auto}
 @media (max-width:360px){ .lvl span{font-size:10px} .lvl{padding:8px 2px} }
-/* keyboard users see where they are; reduced motion: the splash and the TARGET HIT stamp fade instead of zooming */
+/* keyboard users see where they are; reduced motion: the splash and the ON TARGET stamp fade instead of zooming */
 #micStat a{color:var(--c-act);font-weight:700;text-decoration:underline;display:inline-block;padding:8px 2px;margin:-8px 0}
 button:focus-visible,select:focus-visible,summary:focus-visible,input:focus-visible,a:focus-visible{outline:3px solid var(--c-act);outline-offset:2px}
 @media (prefers-reduced-motion:reduce){ .arcsplash.go b{animation:fadein .2s} .hitstamp.go{animation:stampfade 1.1s} .arcmeter i{transition:none} button{transition:none}
@@ -151,7 +153,7 @@ button:focus-visible,select:focus-visible,summary:focus-visible,input:focus-visi
       <div class="stat"><b id="sBest">–</b><span id="lBest">Best</span></div>
     </div>
     <div class="arcbar" id="arcbar" hidden><span class="pill" id="arcRound">ROUND 1</span><span class="pill need" id="arcNeed"></span><span class="pill clock" id="clockPill">30 s</span></div>
-    <div class="arcmeter" id="arcMeter" hidden><i id="arcFill"></i><b id="arcHit">✓ TARGET HIT</b></div>
+    <div class="arcmeter" id="arcMeter" hidden><i id="arcFill"></i><s id="arcTgt" hidden></s><b id="arcHit">✓ ON TARGET</b></div>
     <div class="paper"><svg id="bar" role="img" aria-label="Rhythm to tap"></svg></div>
     <div class="msg" id="msg" role="status" aria-live="polite"><div class="v">Press Start</div><div class="c">You'll hear one bar of clicks first. Start tapping on beat 1 of the next bar.</div></div>
     <div class="seg" id="inSeg" role="group" aria-label="How you answer"><button data-in="tap"><span aria-hidden="true">👆</span> Tap</button><button data-in="clap"><span aria-hidden="true">👏</span> Clap or snap</button><button data-in="note"><span aria-hidden="true">🎹</span> One note</button></div>
@@ -173,7 +175,7 @@ button:focus-visible,select:focus-visible,summary:focus-visible,input:focus-visi
     </div>
     <p class="tip">Tap the pad or the space bar, or switch to Clap or snap. Rests are silent: don't tap them. Clapping or playing with speakers? Headphones are best: the mic never hears the clicks at all.</p>
 
-    <div class="arcsplash" id="arcSplash" hidden><div class="pre" id="spP"></div><b id="spT"></b><span id="spS"></span></div><div class="hitstamp" id="hitStamp">TARGET HIT!</div>
+    <div class="arcsplash" id="arcSplash" hidden><div class="pre" id="spP"></div><b id="spT"></b><em id="spB" hidden></em><span id="spS"></span></div><div class="hitstamp" id="hitStamp">ON TARGET!</div>
     <div class="results" id="results" role="region" aria-label="Results" hidden>
       <h2 id="rTitle" tabindex="-1" style="outline:none">Time!</h2>
       <div class="big" id="rScore">0<small>%</small></div>
@@ -187,7 +189,7 @@ button:focus-visible,select:focus-visible,summary:focus-visible,input:focus-visi
       <div class="stamp" id="rStamp"></div>
       <p class="tip" style="text-align:left">Screenshot this screen and send it to your instructor.</p>
       <div class="stamp">Rhythm Trainer · By <a href="https://clarendonhillsmusicacademy.com/" target="_blank" rel="noopener" style="color:inherit;text-decoration:underline">Clarendon Hills Music Academy</a></div>
-      <div class="row" style="justify-content:space-between"><button class="ghost" id="close">Back</button><button class="ghost" id="retryRound" hidden>Retry round</button><button class="primary" id="newRound">Play again</button></div>
+      <div class="row" style="justify-content:space-between"><button class="ghost" id="close">Back</button><button class="primary" id="newRound">Play again</button></div>
     </div>
   </section>
 
@@ -359,7 +361,8 @@ button:focus-visible,select:focus-visible,summary:focus-visible,input:focus-visi
     g.gain.setValueAtTime(0.0001,t); g.gain.exponentialRampToValueAtTime(0.42,t+0.003); g.gain.exponentialRampToValueAtTime(0.0001,t+Math.min(0.25,dur)); o.connect(g).connect(a.destination); track(o); o.start(t); o.stop(t+0.3) }
 
   // ---------- run a bar: 1 count-in bar of clicks, then the rhythm bar ----------
-  const spb=()=>60/bpm, u16=()=>spb()/4; let starting=false;
+  // In a challenge each round has its own tempo (arc.bpm); the selected tempo (bpm) is never changed by it.
+  const curBpm=()=>arc&&arc.bpm?arc.bpm:bpm, spb=()=>60/curBpm(), u16=()=>spb()/4; let starting=false;
   async function play(mode){ // mode: "test" | "hear"
     if(run||starting||calHook) return; const S0=sess; starting=true; let a;
     // waiting for the audio or the microphone can take a while: a second press, Stop, or the clock running out in that gap must not start a second bar
@@ -367,15 +370,16 @@ button:focus-visible,select:focus-visible,summary:focus-visible,input:focus-visi
     if(run||calHook||sess!==S0||(S0&&S0.stopped)) return;
     if(document.hidden){ if(sess||arc) abortRun(); return } // a page hidden while waiting never starts a bar it can't draw (a challenge stops, as it does when hidden mid-bar)
     taps=[]; $("results").hidden=true; $("again").hidden=true; $("go").disabled=!sess; $("hear").disabled=true;
-    const t0=a.currentTime+0.15-(mode==="hear"?4*spb():0), start=t0+4*spb(), end=start+16*u16(); // Hear it starts right away (no silent bar)
+    const SP=spb(), U=SP/4; // this bar's tempo, fixed for the whole bar (count-in, clicks, cursor and grading)
+    const t0=a.currentTime+0.15-(mode==="hear"?4*SP:0), start=t0+4*SP, end=start+16*U; // Hear it starts right away (no silent bar)
     // while you play into the mic, the clicks in your bar are softer so the mic hears you, not them
-    for(let b=0;b<8;b++){ if(mode==="hear"&&b<4) continue; click(t0+b*spb(),b%4===0,b>=4&&mode==="test"&&inMode!=="tap") }
-    if(mode==="hear"||$("guide").checked) bar.notes.forEach(n=>(mode==="test"&&inMode==="clap"&&mic)?wood(start+n.s*u16(),n.d*u16()):hand(start+n.s*u16()));
+    for(let b=0;b<8;b++){ if(mode==="hear"&&b<4) continue; click(t0+b*SP,b%4===0,b>=4&&mode==="test"&&inMode!=="tap") }
+    if(mode==="hear"||$("guide").checked) bar.notes.forEach(n=>(mode==="test"&&inMode==="clap"&&mic)?wood(start+n.s*U,n.d*U):hand(start+n.s*U));
     msg(null, mode==="hear"?"Listen…":"Count in: 1 · 2 · 3 · 4", mode==="hear"?"":"Start tapping on beat 1 of the next bar.");
-    const R=run={mode,start,end,t0}; if(mode==="test") lastStart=start; lockUI();
+    const R=run={mode,start,end,t0,u:U}; if(mode==="test"){ lastStart=start; lastU=U } lockUI();
     const tick=()=>{ if(run!==R) return; /* this bar was stopped (or replaced): its frame loop ends here */ const now=a.currentTime; let px=null, pos=null;
-      if(now>=start&&now<=end){ pos=(now-start)/u16(); px=$("cursor").checked?xOf(pos):null; if(mode==="test"&&!run.go){ run.go=true; msg(null,"Go!",inMode==="clap"?"Clap or snap every note.":inMode==="note"?"Play your note for every note.":"Tap every note.") } }
-      else if(now<start&&mode==="test"){ const left=Math.ceil((start-now)/spb()); $("msg").querySelector(".v").textContent=left<=4?"Count in: "+["","1","2","3","4"][5-left]:"Get ready"; }
+      if(now>=start&&now<=end){ pos=(now-start)/U; px=$("cursor").checked?xOf(pos):null; if(mode==="test"&&!run.go){ run.go=true; msg(null,"Go!",inMode==="clap"?"Clap or snap every note.":inMode==="note"?"Play your note for every note.":"Tap every note.") } }
+      else if(now<start&&mode==="test"){ const left=Math.ceil((start-now)/SP); $("msg").querySelector(".v").textContent=left<=4?"Count in: "+["","1","2","3","4"][5-left]:"Get ready"; }
       drawBar(null,px,pos);
       if(now>end+0.35){ const m=run.mode; run=null; $("go").disabled=false; lockUI(); $("hear").disabled=!!sess; if(m==="test") grade(); else { drawBar(null); msg(null,"Your turn","Press Start, count in, then tap it.") } return }
       requestAnimationFrame(tick) };
@@ -398,7 +402,7 @@ button:focus-visible,select:focus-visible,summary:focus-visible,input:focus-visi
   // Each note gets one tap within 250 ms. Perfect ≤ 60 ms = 1, Good ≤ 120 ms = 0.75, Close ≤ 250 ms = 0.4.
   // Extra taps (rests, doubles) cost 0.25 each.
   function grade(){
-    const st=lastStart, u=u16();
+    const st=lastStart, u=lastU;
     const notes=bar.notes, used=new Set(), byNote=new Map(), resTaps=[], missed=[]; let pts=0, errs=[], perfect=0, okN=0;
     // Pair taps with notes in time order, choosing the pairing that scores best overall (so one missed or doubled
     // note never shifts every later tap onto the wrong note, even with 16ths at fast tempos).
@@ -445,13 +449,17 @@ button:focus-visible,select:focus-visible,summary:focus-visible,input:focus-visi
       else { const worst=bar.notes[errs.map(Math.abs).indexOf(Math.max(...errs.map(Math.abs)))]; c=worst?`Close. Watch "${CNT(worst.s)}". Say the counts out loud while you tap.`:"Close. Say the counts out loud while you tap." } }
     msg(cls,v,c);
     afterGrade({score,perfect,ok:okN,notes:notes.length,errs,missed:missed.length,extras:extras.length}) }
-  let lastStart=0;
+  let lastStart=0, lastU=0.25*60/72;
   function msg(cls,v,c){ const el=$("msg"); el.className="msg"+(cls?" "+cls:""); el.querySelector(".v").textContent=v; el.querySelector(".c").textContent=c||"" }
   // ---------- modes: Single tries (default) · Challenge (same shape as Note Sprint) ----------
   // Points per rhythm: 1 for every perfect note (within 60 ms), ½ for a close one (within 120 ms), −½ for an extra tap.
   // Level, tempo, mode and input are locked while a rhythm plays or a challenge runs (press Stop first), so a change can never re-grade the wrong bar.
   function lockUI(){ const on=!!(run||sess||arc); document.querySelectorAll("#levels button,#tempo button,#modeSeg button,#inSeg button").forEach(b=>b.disabled=on) }
-  let gmode="practice", sess=null, arc=null, arcRetryRound=0, arcIncSaved=null; const ARC_T=30;
+  let gmode="practice", sess=null, arc=null; const ARC_T=30;
+  // Challenge "Faster + accuracy": round 1 is a warm-up at your tempo; every round after it is 8% faster and needs more accuracy.
+  const ARC_NEED=[0,0,75,80,85,90,90], ARC_MAX=180; // index = round (6 = bonus)
+  const arcTempo=r=>Math.min(ARC_MAX,Math.round(bpm*Math.pow(1.08,r-1)));
+  const avgAcc=bars=>bars.length?Math.round(bars.reduce((a,b)=>a+b.score,0)/bars.length):null; // the same accuracy as the results screen
   const half=x=>Number.isInteger(x)?String(x):(Math.floor(x)||"")+"½";
   function bestKey(){ return "best-"+gmode+"-"+level+"-"+bpm+"-"+inMode }
   function stats(){ const S=sess, T=gmode==="practice";
@@ -464,7 +472,7 @@ button:focus-visible,select:focus-visible,summary:focus-visible,input:focus-visi
   function setMode(m){ if(m!=="practice") m="chal"; // only two modes: any other or old value lands on Challenge
     if(sess) stopSession(true); gmode=m; document.querySelectorAll("#modeSeg button").forEach(b=>b.setAttribute("aria-pressed",String(b.dataset.m===m)));
     round=[]; $("results").hidden=true; $("again").hidden=true; $("go").textContent="Start";
-    msg(null,m==="practice"?"Single tries":"Challenge mode",m==="practice"?"One rhythm at a time, with your timing after every try.":"Round 1 is a warm-up that sets your targets. Beat each round's target in 30 seconds to unlock the next.");
+    msg(null,m==="practice"?"Single tries":"Challenge mode",m==="practice"?"One rhythm at a time, with your timing after every try.":"Faster + accuracy. Round 1 is a 30-second warm-up at your tempo. Each round after it is 8% faster and needs more accuracy: 75%, 80%, 85%, 90%, then a bonus round.");
     stats() }
   document.querySelectorAll("#modeSeg button").forEach(b=>b.addEventListener("click",()=>setMode(b.dataset.m)));
   function chime(){ const a=ctx(),t=a.currentTime; [784,1047,1319].forEach((f,i)=>{ const o=a.createOscillator(),g=a.createGain(); o.type="triangle"; o.frequency.value=f; g.gain.setValueAtTime(0.0001,t+i*0.08); g.gain.exponentialRampToValueAtTime(0.25,t+i*0.08+0.01); g.gain.exponentialRampToValueAtTime(0.0001,t+i*0.08+0.35); o.connect(g).connect(a.destination); o.start(t+i*0.08); o.stop(t+i*0.08+0.4) }) }
@@ -474,7 +482,7 @@ button:focus-visible,select:focus-visible,summary:focus-visible,input:focus-visi
     if(S.left>0&&!S.stopped) setTimeout(()=>{ if(sess===S&&S.left>0&&!S.stopped){ newBar(); play("test") } },500); else setTimeout(()=>{ if(sess===S) sessionOver() },500) }
   function stopSession(silent){ if(!sess) return; clearInterval(sess.timer); sess.stopped=true; sess=null; arc=null; splashTok++; if(run){ run=null; hush(); drawBar(null); $("go").disabled=false } lockUI(); $("arcbar").hidden=true; $("arcMeter").hidden=true; $("arcSplash").hidden=true; $("hear").disabled=false; $("go").textContent="Start"; if(!silent) msg(null,"Stopped","Press Start to go again."); stats() }
   function sessionOver(){ if(!sess) return; if(arc) return arcRoundEnd(); stopSession(true) }
-  function showResults(title,S,why,tag){ const bars=S.bars, all=bars.flatMap(r=>r.errs), mean=all.length?all.reduce((a,b)=>a+b,0)/all.length:0, key=bestKey(), prev=bestNum(key)||0, best=Math.max(prev,S.points), isNew=S.points>0&&S.points>=best;
+  function showResults(title,S,why,tag,tempoTxt){ const bars=S.bars, all=bars.flatMap(r=>r.errs), mean=all.length?all.reduce((a,b)=>a+b,0)/all.length:0, key=bestKey(), prev=bestNum(key)||0, best=Math.max(prev,S.points), isNew=S.points>0&&S.points>=best;
     store.set(key,best); $("rTitle").textContent=title; $("rWhy").textContent=why||"";
     $("rScore").innerHTML=`${half(S.points)} <small>points</small>${isNew?"<small>· new high score</small>":""}`; // two pieces: on a narrow phone "new high score" wraps to its own line instead of running off the card
     $("rAcc").textContent=bars.length?Math.round(bars.reduce((a,b)=>a+b.score,0)/bars.length)+"%":"–";
@@ -482,38 +490,40 @@ button:focus-visible,select:focus-visible,summary:focus-visible,input:focus-visi
     $("rTiming").textContent=!all.length?"–":Math.abs(mean)<15?"On time":Math.round(Math.abs(mean))+" ms "+(mean<0?"early":"late");
     $("rMissed").textContent=`${bars.reduce((a,b)=>a+b.missed,0)} / ${bars.reduce((a,b)=>a+b.extras,0)}`;
     const L=LEVELS.find(x=>x.id===level), d=new Date(), how=inMode==="tap"?"Tap":inMode==="clap"?"Clap":"One note";
-    $("rStamp").textContent=`${tag} · High score ${half(best)} · Level ${L.id} · ${L.name} · ${bpm} BPM · ${how} · ${d.toLocaleDateString(undefined,{weekday:"short",month:"short",day:"numeric"})} ${d.toLocaleTimeString([],{hour:"numeric",minute:"2-digit"})}`;
+    $("rStamp").textContent=`${tag} · High score ${half(best)} · Level ${L.id} · ${L.name} · ${tempoTxt||bpm+" BPM"} · ${how} · ${d.toLocaleDateString(undefined,{weekday:"short",month:"short",day:"numeric"})} ${d.toLocaleTimeString([],{hour:"numeric",minute:"2-digit"})}`;
     $("results").hidden=false; stats(); try{ $("rTitle").focus({preventScroll:true}) }catch(e){} }
-  // Challenge: warm-up round sets the targets; each round asks for more; one try per rhythm
-  function arcBar(){ if(!arc||!sess) return; const S=sess; $("arcbar").hidden=false; $("arcMeter").hidden=false;
-    if(arc.warm){ $("arcRound").textContent="ROUND 1 OF 5 · WARM-UP"; $("arcNeed").textContent=`SCORE ${half(S.points)}`; $("arcNeed").classList.remove("met"); $("arcFill").style.width=(100*(ARC_T-S.left)/ARC_T)+"%"; $("arcMeter").classList.remove("hit"); return }
-    const need=arc.bonus?arc.bonusNeed:arc.needs[arc.round-1], got=S.points-arc.start, inc=need-arc.start;
-    $("arcRound").textContent=arc.bonus?"BONUS ROUND":`ROUND ${arc.round} OF 5`; $("arcNeed").textContent=`${S.points>=need?"✓ ":""}${half(got)} / ${half(inc)}`; $("arcNeed").classList.toggle("met",S.points>=need);
-    $("arcFill").style.width=Math.min(100,100*got/Math.max(1,inc))+"%"; const hit=S.points>=need; $("arcMeter").classList.toggle("hit",hit);
+  // Challenge "Faster + accuracy": round 1 warm-up (no target) at your tempo, rounds 2-5 and the bonus each 8% faster with an accuracy target.
+  // Points still add up over the whole run. A bar still playing when the 30 seconds run out finishes and counts for that round.
+  const arcRoundName=()=>arc.round===6?"BONUS ROUND":`ROUND ${arc.round}`;
+  function arcBar(){ if(!arc||!sess) return; const S=sess, acc=avgAcc(S.bars.slice(arc.from)); $("arcbar").hidden=false; $("arcMeter").hidden=false;
+    if(arc.round===1){ $("arcRound").textContent=`ROUND 1 OF 5 · WARM-UP · ${arc.bpm} BPM`; $("arcNeed").textContent=`ACCURACY ${acc==null?"–":acc+"%"}`; $("arcNeed").classList.remove("met"); $("arcFill").style.width=(100*(ARC_T-S.left)/ARC_T)+"%"; $("arcTgt").hidden=true; $("arcMeter").classList.remove("hit"); return }
+    const need=ARC_NEED[arc.round], hit=acc!=null&&acc>=need;
+    $("arcRound").textContent=`${arc.round===6?"BONUS":`ROUND ${arc.round} OF 5`} · ${arc.bpm} BPM`; $("arcNeed").textContent=`${hit?"✓ ":""}${acc==null?"–":acc+"%"} / ${need}%`; $("arcNeed").classList.toggle("met",hit);
+    $("arcFill").style.width=(acc||0)+"%"; $("arcTgt").hidden=false; $("arcTgt").style.left=need+"%"; $("arcMeter").classList.toggle("hit",hit);
+    $("arcMeter").setAttribute("aria-label",`Accuracy this round ${acc==null?"not yet":acc+"%"}, target ${need}%`);
     if(hit&&!arc.hit){ arc.hit=true; const hs=$("hitStamp"); hs.classList.remove("go"); void hs.offsetWidth; hs.classList.add("go"); chime() } }
   let splashTok=0;
-  function splash(pre,t,sub,ms,then){ const tok=++splashTok; $("spP").textContent=pre||""; $("spT").textContent=t; $("spS").textContent=sub; const sp=$("arcSplash"); sp.hidden=false; sp.classList.remove("go"); void sp.offsetWidth; sp.classList.add("go"); setTimeout(()=>{ if(tok!==splashTok) return; sp.hidden=true; if(arc) then() },ms) }
-  function arcStart(){ if(sess) stopSession(true); sess={points:0,bars:[],left:ARC_T,stopped:true}; arc={round:1,warm:true,bonus:false,needs:[],start:0,hit:false}; lockUI(); $("clockPill").textContent=ARC_T+" s"; $("clockPill").classList.remove("hot"); $("results").hidden=true; $("go").textContent="Stop"; $("hear").disabled=true;
-    arcBar(); splash("CHALLENGE MODE","ROUND 1","Warm-up: score as many points as you can in 30 seconds. Your score sets your targets. One try per rhythm.",2800,arcRound) }
-  function arcRound(){ clearInterval(sess.timer); sess.left=ARC_T; sess.stopped=false; arc.hit=false; $("clockPill").textContent=ARC_T+" s"; arcBar();
+  function splash(pre,t,tempo,sub,ms,then){ const tok=++splashTok; $("spP").textContent=pre||""; $("spT").textContent=t; $("spB").textContent=tempo||""; $("spB").hidden=!tempo; $("spS").textContent=sub; const sp=$("arcSplash"); sp.hidden=false; sp.classList.remove("go"); void sp.offsetWidth; sp.classList.add("go"); setTimeout(()=>{ if(tok!==splashTok) return; sp.hidden=true; if(arc) then() },ms) }
+  function arcStart(){ if(sess) stopSession(true); sess={points:0,bars:[],left:ARC_T,stopped:true}; arc={round:1,bpm:arcTempo(1),top:arcTempo(1),from:0,hit:false}; lockUI(); $("clockPill").textContent=ARC_T+" s"; $("clockPill").classList.remove("hot"); $("results").hidden=true; $("go").textContent="Stop"; $("hear").disabled=true;
+    arcBar(); splash("CHALLENGE MODE","ROUND 1",`${arc.bpm} BPM`,"Warm-up: no target, just play. Then every round is 8% faster and needs more accuracy. One try per rhythm.",2800,arcRound) }
+  function arcRound(){ clearInterval(sess.timer); sess.left=ARC_T; sess.stopped=false; arc.hit=false; arc.from=sess.bars.length; $("clockPill").textContent=ARC_T+" s"; $("clockPill").classList.remove("hot"); arcBar();
     sess.timer=setInterval(()=>{ const S=sess; if(!S) return; S.left--; stats(); $("clockPill").textContent=Math.max(0,S.left)+" s"; $("clockPill").classList.toggle("hot",S.left<=10); arcBar(); if(S.left<=0){ clearInterval(S.timer); if(!run) arcRoundEnd() } },1000);
     newBar(); play("test") }
-  function arcRoundEnd(){ const S=sess; clearInterval(S.timer); S.stopped=true;
-    if(arc.bonus) return arcFinish(true,arc.bonusNeed-arc.start,S.points-arc.start);
-    if(arc.warm){ const B=Math.max(2,S.points), RAMP=[0,0,1,1.15,1.3,1.5], FLOOR=[0,0,2,3,4,5]; arc.inc=[S.points];
-      for(let r=2;r<=5;r++) arc.inc.push(Math.max(FLOOR[r],Math.round(B*RAMP[r]*2)/2,arc.inc[r-2]+(r>2?1:0)));
-      arc.warm=false; arcIncSaved=arc.inc.slice(); arc.round=2; arc.start=S.points; arc.needs[1]=S.points+arc.inc[1];
-      return splash(`WARM-UP DONE · YOUR BASELINE ${half(S.points)}`,"ROUND 2",`Target this round: ${half(arc.inc[1])} points.`,2600,arcRound) }
-    const need=arc.needs[arc.round-1]; if(S.points<need) return arcFinish(false,need-arc.start,S.points-arc.start);
-    if(arc.round===5){ const got=S.points-arc.start, bt=Math.max(arc.inc[4]+1,Math.round(got*1.05)); arc.bonus=true; arc.start=S.points; arc.bonusNeed=S.points+bt;
-      return splash("ROUND 5 CLEARED ✓","BONUS ROUND",`Target: ${half(bt)} points in 30 seconds.`,2600,arcRound) }
-    const cleared=arc.round, got=S.points-arc.start; arc.round++; arc.inc[arc.round-1]=Math.max(arc.inc[arc.round-1],Math.round(got*1.05*2)/2,arc.inc[arc.round-2]+1); arc.start=S.points; arc.needs[arc.round-1]=S.points+arc.inc[arc.round-1];
-    splash(`ROUND ${cleared} CLEARED ✓`,`ROUND ${arc.round}`,`Target this round: ${half(arc.inc[arc.round-1])} points.`,2400,arcRound) }
-  function arcFinish(won,need,got){ const S=sess, failed=won?0:arc.round, reached=arc.bonus?"Bonus round":`Round ${arc.round}`; arc=null; sess=null; lockUI(); $("arcbar").hidden=true; $("arcMeter").hidden=true; $("go").textContent="Start"; $("hear").disabled=false;
-    arcRetryRound=failed; $("retryRound").hidden=won||failed<2; $("retryRound").textContent=`Retry round ${failed}`;
-    showResults(won?"Challenge cleared!":"Challenge over",S,won?(got>=need?`All 5 rounds cleared and the bonus target hit (${half(got)} / ${half(need)}).`:`All 5 rounds cleared. Bonus target was ${half(need)}; you had ${half(got)}.`):`Round ${failed} target was ${half(need)}. You had ${half(got)}. Hit the target before the 30 seconds run out to unlock Round ${failed+1}.`,`CHALLENGE · ${reached.toUpperCase()}`) }
-  function arcRetry(){ const r=arcRetryRound; if(r<2||!arcIncSaved) return arcStart(); sess={points:0,bars:[],left:ARC_T,stopped:true}; arc={round:r,warm:false,bonus:false,inc:arcIncSaved.slice(),needs:[],start:0,hit:false}; lockUI(); arc.needs[r-1]=arc.inc[r-1];
-    $("results").hidden=true; $("go").textContent="Stop"; $("hear").disabled=true; splash("",`ROUND ${r}`,`Target this round: ${half(arc.inc[r-1])} points.`,2200,arcRound) }
+  function arcNext(pre){ arc.round++; arc.bpm=arcTempo(arc.round); arc.top=Math.max(arc.top,arc.bpm);
+    splash(pre,arcRoundName(),`${arc.bpm} BPM`,`Target: ${ARC_NEED[arc.round]}% accuracy. Faster every round.`,2600,arcRound) }
+  function arcRoundEnd(){ const S=sess; clearInterval(S.timer); S.stopped=true; const acc=avgAcc(S.bars.slice(arc.from));
+    if(arc.round===1) return arcNext(`WARM-UP DONE${acc==null?"":` · ${acc}% ACCURACY`}`);
+    const need=ARC_NEED[arc.round], ok=acc!=null&&acc>=need;
+    if(arc.round===6) return arcFinish(true,acc);
+    if(!ok) return arcFinish(false,acc);
+    if(arc.round===5) return arcNext(`ROUND 5 CLEARED ✓ · ${acc}%`);
+    arcNext(`ROUND ${arc.round} CLEARED ✓ · ${acc}%`) }
+  function arcFinish(won,acc){ const S=sess, r=arc.round, t=arc.bpm, need=ARC_NEED[r], top=won?arc.top:t, start=arcTempo(1);
+    arc=null; sess=null; lockUI(); $("arcbar").hidden=true; $("arcMeter").hidden=true; $("go").textContent="Start"; $("hear").disabled=false;
+    const had=acc==null?"No rhythm finished in time, so there was nothing to judge.":`You had ${acc}%.`;
+    const why=won?(acc!=null&&acc>=need?`All 5 rounds cleared, and the bonus round at ${t} BPM too (${acc}% / ${need}%).`:`All 5 rounds cleared, up to ${arcTempo(5)} BPM. The bonus round at ${t} BPM needed ${need}% accuracy. ${had}`)
+      :`Round ${r} at ${t} BPM needed ${need}% accuracy. ${had} Hit ${need}% to unlock ${r===5?"the bonus round":"Round "+(r+1)}.`;
+    showResults(won?"Challenge cleared!":"Challenge over",S,why,`CHALLENGE · ${won?"ALL ROUNDS CLEARED":"ROUND "+r}`,`Start ${start} BPM · Reached ${top} BPM`) }
   // ---------- controls ----------
   // a screen reader hears the rhythm as words: "quarter, eighth, eighth, quarter rest, half"
   const DUR={16:"whole",12:"dotted half",8:"half",6:"dotted quarter",4:"quarter",3:"dotted eighth",2:"eighth",1:"16th"};
@@ -529,7 +539,6 @@ button:focus-visible,select:focus-visible,summary:focus-visible,input:focus-visi
   new MutationObserver(()=>{ const on=!$("results").hidden; [...$("card").children].forEach(el=>{ if(el.id!=="results"&&el.id!=="hitStamp"){ if(on) el.setAttribute("inert",""); else el.removeAttribute("inert") } }) }).observe($("results"),{attributes:true,attributeFilter:["hidden"]});
   $("close").addEventListener("click",()=>{ $("results").hidden=true; stats(); newBar(); msg(null,"Ready","Press Start."); $("go").focus({preventScroll:true}) });
   $("newRound").addEventListener("click",()=>{ $("results").hidden=true; if(gmode==="chal") arcStart(); else { round=[]; stats(); newBar() } $("go").focus({preventScroll:true}) });
-  $("retryRound").addEventListener("click",()=>arcRetry());
   ["counts","guide"].forEach(id=>{ $(id).checked=store.get(id,id==="counts"); $(id).addEventListener("change",e=>{ store.set(id,e.target.checked); if(!run) drawBar(curRes) }) });
   ["cursor","lightup"].forEach(id=>{ $(id).checked=store.get(id,true)!==false; $(id).addEventListener("change",e=>store.set(id,e.target.checked)) }); try{store.set("who","")}catch(e){} // no names stored (privacy)
   LEVELS.forEach(L=>{ const b=document.createElement("button"); b.className="lvl"; b.innerHTML=`<b>L${L.id}</b><span>${L.name.replace("Syncopation","Synco&shy;pation")}</span>`;
@@ -693,6 +702,6 @@ button:focus-visible,select:focus-visible,summary:focus-visible,input:focus-visi
   if(document.fonts) document.fonts.ready.then(()=>{ if(!run) drawBar(curRes) });
 })();
 </script>
-<p class="appver" style="text-align:center;font-size:11px;opacity:.6;margin:18px 0 10px;font-family:ui-monospace,Menlo,monospace">Rhythm Trainer · Version 2026-11-11.18</p>
+<p class="appver" style="text-align:center;font-size:11px;opacity:.6;margin:18px 0 10px;font-family:ui-monospace,Menlo,monospace">Rhythm Trainer · Version 2026-11-11.19</p>
 </body>
 </html>
