@@ -1,0 +1,694 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Ear Trainer · Clarendon Hills Music Academy</title>
+<meta name="description" content="Ear Trainer: relative pitch with reference notes. Hear a note you know, then name the mystery note, the scale degree or the interval. Single tries or Challenge mode. Built by Clarendon Hills Music Academy.">
+<link rel="stylesheet" href="../shared/chma.css">
+<script src="../shared/brand.js"></script>
+<script src="../shared/hype.js"></script>
+<style>
+/* One practice card: score strip, prompt, keyboard, answer pad. Results sheet over the card when a challenge ends. */
+:root{
+  --bg:#eef1f5; --panel:#ffffff; --ink:#16181d; --muted:#5d6472;
+  --accent:#2457d6; --accent-ink:#ffffff; --accent-soft:#e3eafc; --good:#1f8a4c; --bad:#c2352b; --glow:#ffb020;
+  --key-w:#ffffff; --key-b:#1b1d22; --border:#d6dbe3;
+  --display:"Archivo","Helvetica Neue",Arial,sans-serif; --mono:"JetBrains Mono",ui-monospace,Menlo,monospace;
+}
+@media (prefers-color-scheme: dark){ :root:not([data-theme="light"]){
+  --bg:#101318; --panel:#181c23; --ink:#eef0f4; --muted:#9aa3b2;
+  --accent:#6e95ff; --accent-ink:#0b1020; --accent-soft:#1f2a45; --good:#45c07a; --bad:#ff6b5e;
+  --key-w:#f4f2ea; --key-b:#0b0d10; --border:#2b313c; color-scheme:dark } }
+:root[data-theme="dark"]{
+  --bg:#101318; --panel:#181c23; --ink:#eef0f4; --muted:#9aa3b2;
+  --accent:#6e95ff; --accent-ink:#0b1020; --accent-soft:#1f2a45; --good:#45c07a; --bad:#ff6b5e;
+  --key-w:#f4f2ea; --key-b:#0b0d10; --border:#2b313c; color-scheme:dark }
+*{box-sizing:border-box} [hidden]{display:none!important}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--display);font-size:15px;
+  padding:20px max(16px,env(safe-area-inset-right,0px)) 20px max(16px,env(safe-area-inset-left,0px))}
+.wrap{max-width:900px;margin:0 auto;display:flex;flex-direction:column;gap:14px}
+h1{font-weight:800;font-size:30px;letter-spacing:-.02em;margin:0} h1 em{font-style:normal;color:var(--accent)}
+.byline{font-weight:600;margin:2px 0 0} .byline a{color:inherit} .sub{color:var(--muted);font-size:13px;margin:4px 0 0}
+.row{display:flex;gap:8px;flex-wrap:wrap}
+.pick button,.seg button,.btn{font:inherit;font-weight:600;border:1px solid var(--border);background:var(--panel);color:var(--ink);border-radius:12px;padding:10px 14px;cursor:pointer;min-height:44px}
+.pick button{flex:1;min-width:120px;padding:10px 8px;display:flex;flex-direction:column;align-items:center;gap:2px}
+.pick button b{font-family:var(--mono);font-size:15px} .pick button span{font-size:12px;color:var(--muted);font-weight:400}
+.pick button[aria-pressed="true"],.seg button[aria-pressed="true"]{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+.pick button[aria-pressed="true"] span{color:var(--accent-ink)}
+.seg{display:flex;gap:8px} .seg button{flex:1}
+.card{position:relative;background:var(--panel);border:1px solid var(--border);border-radius:18px;padding:16px;display:flex;flex-direction:column;gap:14px}
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+.stats b{font-family:var(--mono);font-size:22px;display:block} .stats span{font-size:11px;letter-spacing:.12em;color:var(--muted);text-transform:uppercase}
+.clock{display:flex;align-items:center;gap:10px;font-family:var(--mono)} .bar{flex:1;height:8px;background:var(--accent-soft);border-radius:8px;overflow:hidden} .bar i{display:block;height:100%;background:var(--accent);width:100%}
+.prompt{text-align:center;font-size:20px;font-weight:600;min-height:56px;display:flex;align-items:center;justify-content:center;gap:10px}
+.prompt .big{font-family:var(--mono);font-size:40px;font-weight:700;color:var(--accent)}
+.fb{text-align:center;min-height:22px;font-size:14px;color:var(--muted)} .fb.good{color:var(--good)} .fb.bad{color:var(--bad)}
+.pianoScroll{overflow-x:auto;-webkit-overflow-scrolling:touch;border-radius:10px;scrollbar-width:thin}
+@media (pointer:coarse){.pianoScroll{scrollbar-width:none}.pianoScroll::-webkit-scrollbar{display:none}}
+/* more keys off-screen: a fade and an arrow on that side */
+.pianoWrap{position:relative}.pianoWrap::before,.pianoWrap::after{content:"";position:absolute;top:0;bottom:0;width:34px;z-index:4;pointer-events:none;opacity:0;transition:opacity .2s;display:flex;align-items:center;justify-content:center;font:700 20px var(--f-body,system-ui);color:#fff}
+.pianoWrap::before{left:0;content:"‹";border-radius:10px 0 0 10px;background:linear-gradient(90deg,rgba(0,0,0,.55),transparent)}
+.pianoWrap::after{right:0;content:"›";border-radius:0 10px 10px 0;background:linear-gradient(270deg,rgba(0,0,0,.55),transparent)}
+.pianoWrap.l::before,.pianoWrap.r::after{opacity:1}
+.swipe{margin:6px 0 0;text-align:center;font-size:12px;color:var(--muted)}
+.piano{position:relative;height:170px;display:flex;user-select:none;-webkit-user-select:none;touch-action:manipulation}
+.piano .w{flex:1;min-width:0;background:var(--key-w);border:1px solid #9aa0aa;border-radius:0 0 8px 8px;margin-right:-1px;padding:0 0 8px;display:flex;align-items:flex-end;justify-content:center;font-family:var(--mono);font-size:10px;color:#8a909b;cursor:pointer}
+.piano .w.mc{color:var(--accent);font-weight:700;font-size:9px;line-height:1.1;text-align:center}
+.piano .b{position:absolute;top:0;height:60%;background:var(--key-b);border:1px solid #000;border-radius:0 0 6px 6px;z-index:2;padding:0;cursor:pointer}
+.piano button.glow{background:var(--glow)!important;box-shadow:0 0 0 3px color-mix(in srgb,var(--glow) 45%,transparent) inset}
+.piano button.hit,.piano button.show{background:var(--good)!important;color:#fff}
+.piano button.miss{background:var(--bad)!important;color:#fff}
+.pad{display:grid;grid-template-columns:repeat(7,1fr);gap:8px}
+.pad button{font:inherit;font-family:var(--mono);font-weight:700;font-size:20px;min-height:52px;border-radius:12px;border:1px solid var(--border);background:var(--panel);color:var(--ink);cursor:pointer}
+.pad.blk{grid-template-columns:repeat(5,1fr)} .pad.blk button{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;line-height:1.05;font-size:15px;background:var(--key-b);color:#fff;border-color:#000}
+.pad button.hit{background:var(--good);color:#fff} .pad button.miss{background:var(--bad);color:#fff}
+.actions{display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap} .btn.primary{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+.tip{color:var(--muted);font-size:12px;text-align:center;margin:0}
+.results{position:absolute;inset:0;background:var(--panel);border-radius:18px;padding:22px;display:flex;flex-direction:column;gap:12px;z-index:5;overflow:auto}
+.results h2{margin:0} .results .score{font-family:var(--mono);font-size:44px;font-weight:700} .results .score small{font-size:14px;color:var(--muted)}
+.rgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px} .rgrid b{font-family:var(--mono);font-size:22px;display:block} .rgrid span{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.1em}
+.miss span{display:inline-block;margin:3px 6px 0 0;padding:4px 8px;border-radius:8px;background:var(--accent-soft);font-family:var(--mono);font-size:13px}
+.stamp{font-size:12px;color:var(--muted)}
+details{background:var(--panel);border:1px solid var(--border);border-radius:14px;padding:12px 14px} summary{font-weight:700;cursor:pointer;margin:-12px -14px;padding:12px 14px;border-radius:14px} details[open] summary{margin-bottom:0}
+details label{display:flex;gap:8px;align-items:center;margin-top:10px}
+.appver{text-align:center;font-size:11px;opacity:.6;margin:6px 0 0;font-family:var(--mono)}
+@media (max-width:560px){ .stats b{font-size:18px} .pad button{font-size:17px;min-height:48px} .pick button{min-width:46%} }
+/* ---- CHMA design system (Studio Gear dark / Pocket Synth light) ---- */
+:root:root:root{--bg:var(--c-page);--panel:var(--c-key);--ink:var(--c-ink);--muted:var(--c-mut);--accent:var(--c-sel);--accent-ink:var(--c-sel-ink);
+  --accent-soft:color-mix(in srgb,var(--c-sel) 16%,transparent);--good:var(--c-ok);--bad:var(--c-bad);--border:var(--c-key-b);--display:var(--f-body);--mono:var(--f-num)}
+body{background:var(--c-page);font-family:var(--f-body)}
+.wrap{background:var(--c-panel);border-radius:var(--r-card);box-shadow:var(--shadow-card);padding:0 16px 18px;overflow:hidden}
+.chma-headwrap{margin:0 -16px}
+h1{font-family:var(--f-title);font-weight:700;font-size:30px;letter-spacing:-.01em} h1 em{color:var(--c-act)}
+.pick button,.seg button,.btn,.pad button{background:var(--c-key);border-color:var(--c-key-b);color:var(--c-ink);box-shadow:0 3px 0 var(--c-key-sh);transition:transform .05s,box-shadow .05s}
+.pick button:active,.seg button:active,.btn:active,.pad button:active{transform:translateY(2px);box-shadow:0 1px 0 var(--c-key-sh)}
+.pick button[aria-pressed="true"],.seg button[aria-pressed="true"]{background:var(--c-sel);border-color:var(--c-sel);color:var(--c-sel-ink)}
+.pick button[aria-pressed="true"] span{color:var(--c-sel-ink)}
+.btn.primary{background:var(--c-act);border-color:var(--c-act);color:var(--c-act-ink);box-shadow:0 3px 0 var(--c-act-sh)}
+.btn.primary:active{box-shadow:0 1px 0 var(--c-act-sh)}
+.pad.blk button{background:#1b1d22;border-color:#000;color:#fff;box-shadow:0 3px 0 #000}
+.pad button.hit{background:var(--c-ok);border-color:var(--c-ok);color:#fff} .pad button.miss{background:var(--c-bad);border-color:var(--c-bad);color:#fff}
+.card{background:var(--c-panel2);border-color:var(--c-line)}
+.stats{background:var(--c-lcd);border:1px solid var(--c-lcd-b);border-radius:14px;box-shadow:inset 0 2px 8px rgba(0,0,0,.55);padding:10px 12px}
+.stats b{color:var(--c-led);text-shadow:var(--c-led-glow)} .stats span{color:#9aa3b2}
+.clock b{color:var(--c-ink)} .bar{background:var(--c-lcd)} .bar i{background:var(--c-act)}
+.prompt .big{color:var(--c-act)}
+.piano .w.mc{color:var(--c-sel)} .piano .w.glow{color:#1b1c1f}
+details{background:var(--c-panel2);border-color:var(--c-line)}
+input[type=checkbox]{accent-color:var(--c-act)}
+.results{background:var(--c-panel2)}
+.results h2{font-family:var(--f-title);font-weight:700}
+.results .score{color:var(--c-led);text-shadow:var(--c-led-glow);background:var(--c-lcd);border:1px solid var(--c-lcd-b);border-radius:14px;box-shadow:inset 0 2px 8px rgba(0,0,0,.55);padding:12px 16px}
+.results .score small{color:#9aa3b2;text-shadow:none}
+.rgrid div{background:var(--c-lcd);border-radius:10px;padding:10px} .rgrid b{color:var(--c-led);text-shadow:var(--c-led-glow)} .rgrid span{color:#9aa3b2}
+.miss span{background:var(--c-key);border:1px solid var(--c-key-b)}
+.appver{opacity:1;color:var(--c-mut);margin-top:2px}
+@media (max-width:560px){.card{padding:14px 12px}.stats{padding:10px}.stats span{letter-spacing:.06em}}
+/* phones: no double-tap zoom or grey flash when a kid taps fast; action buttons share the row instead of a ragged wrap */
+button,summary,label{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
+button{-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
+.actions .btn{flex:1 1 auto}
+@media (max-width:400px){.pad{gap:6px}.stats span{font-size:10px;letter-spacing:.02em}}
+@media (max-width:360px){.stats{grid-template-columns:repeat(4,auto);justify-content:space-between;gap:6px}.stats span{font-size:9.5px;letter-spacing:0}.results{padding:18px 14px}.rgrid{grid-template-columns:repeat(3,minmax(0,1fr));gap:6px}.rgrid span{font-size:9.5px;letter-spacing:.02em}}
+button:focus-visible,summary:focus-visible,input:focus-visible{outline:3px solid var(--c-sel);outline-offset:2px}
+/* ---- Challenge mode: round pills, target meter, round splash, TARGET HIT stamp (same rules as the other studio apps) ---- */
+.arcbar{display:flex;justify-content:center;gap:8px;align-items:center;font-family:var(--mono);font-weight:700;font-size:13px;letter-spacing:.04em;flex-wrap:wrap}
+.arcbar .pill{border:1px solid var(--c-lcd-b);border-radius:999px;padding:4px 10px;background:var(--c-lcd);color:var(--c-led);text-shadow:var(--c-led-glow)}
+.arcbar .need.met{background:var(--c-ok);border-color:var(--c-ok);color:#fff;text-shadow:none}
+.arcbar .fire{color:#ff8a1f;border-color:#ff8a1f;text-shadow:none;animation:pulse 1s ease-in-out infinite}
+@keyframes pulse{50%{transform:scale(1.12)}}
+.arcmeter{position:relative;height:18px;border-radius:999px;background:var(--c-lcd);overflow:hidden}
+.arcmeter i{position:absolute;left:0;top:0;bottom:0;width:0;background:var(--c-act);border-radius:999px;transition:width .25s ease,background .25s}
+.arcmeter b{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-family:var(--mono);font-size:11px;font-weight:700;letter-spacing:.14em;color:#fff;opacity:0;transition:opacity .2s;text-shadow:0 1px 2px rgba(0,0,0,.35)}
+.arcmeter.hit i{background:var(--good);transition:width .25s ease,background 0s} .arcmeter.hit b{opacity:1}
+.arcmeter.flash{animation:hitflash .7s ease-out}
+@keyframes hitflash{0%{box-shadow:0 0 0 0 color-mix(in srgb,var(--good) 70%,transparent)}100%{box-shadow:0 0 0 14px transparent}}
+.clock.fire b{color:#ff8a1f} .clock.fire .bar i{background:#ff8a1f}
+.bar i{transition:width 1s linear}
+.card.met{border-color:var(--good);box-shadow:0 0 0 2px var(--good),0 0 28px color-mix(in srgb,var(--good) 35%,transparent)}
+.arcsplash{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;background:radial-gradient(circle at 50% 45%,color-mix(in srgb,var(--c-act) 28%,var(--c-panel2)) 0%,var(--c-panel2) 70%);border-radius:18px;z-index:4;text-align:center;padding:20px;overflow:hidden}
+.arcsplash .pre{font-family:var(--mono);font-size:13px;letter-spacing:.14em;color:var(--good);font-weight:700;min-height:16px}
+.arcsplash b{font-family:var(--f-title);font-weight:700;font-size:40px;line-height:1}
+.arcsplash span{font-size:15px;color:var(--muted);max-width:34em}
+.arcsplash.go .pre{animation:fadeup .35s .05s both}
+.arcsplash.go b{animation:swoop .75s .25s cubic-bezier(.2,1.4,.3,1) both}
+.arcsplash.go span{animation:fadeup .4s .75s both}
+.arcsplash .boom{position:absolute;left:50%;top:46%;width:24px;height:24px;margin:-12px;border-radius:50%;border:5px solid var(--c-act);opacity:0;pointer-events:none}
+.arcsplash.go .boom{animation:boom .85s .2s ease-out}
+.arcsplash .pc{position:absolute;left:50%;top:46%;width:8px;height:14px;border-radius:2px;opacity:0;pointer-events:none}
+.arcsplash.go .pc{animation:pc 1.1s .22s cubic-bezier(.15,.8,.3,1) forwards}
+@keyframes swoop{0%{opacity:0;transform:translateX(130%) skewX(-28deg) scale(.6)}60%{opacity:1;transform:translateX(-6%) skewX(8deg) scale(1.1)}100%{opacity:1;transform:none}}
+@keyframes fadeup{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+@keyframes boom{0%{opacity:.95;transform:scale(.2)}100%{opacity:0;transform:scale(24)}}
+@keyframes pc{0%{opacity:1;transform:translate(0,0) rotate(0)}100%{opacity:0;transform:translate(var(--dx),var(--dy)) rotate(var(--r))}}
+.hitstamp{position:absolute;left:50%;top:40%;z-index:6;pointer-events:none;font-family:var(--f-title);font-weight:700;font-size:42px;line-height:1;color:#fff;background:var(--good);padding:12px 24px;border-radius:14px;box-shadow:0 10px 40px color-mix(in srgb,var(--good) 60%,transparent);letter-spacing:.03em;opacity:0;white-space:nowrap;transform:translate(-50%,-50%)}
+.hitstamp.go{animation:stamp 1.7s cubic-bezier(.2,1.5,.4,1) forwards}
+@keyframes stamp{0%{opacity:0;transform:translate(-50%,-50%) scale(2.8) rotate(-14deg)}16%{opacity:1;transform:translate(-50%,-50%) scale(1) rotate(-6deg)}75%{opacity:1;transform:translate(-50%,-50%) scale(1) rotate(-6deg)}100%{opacity:0;transform:translate(-50%,-50%) scale(.7) rotate(-6deg)}}
+.why{font-weight:600}
+@media (max-width:400px){.arcbar{font-size:11.5px;gap:6px}.arcbar .pill{padding:3px 8px}.arcsplash b{font-size:34px}.arcsplash span{font-size:14px}.hitstamp{font-size:32px;padding:10px 18px}}
+@media (prefers-reduced-motion:reduce){.arcsplash.go *,.hitstamp.go{animation-duration:.01s!important;animation-delay:0s!important}.arcbar .fire,.arcmeter.flash{animation:none!important}.bar i,.arcmeter i{transition:none}}
+/* ---- Layout 2026-11-12: setup left, play card + action bar right (desktop); compact setup + fixed bottom action bar (phone/tablet) ---- */
+.cols{display:flex;flex-direction:column;gap:16px}
+.setup,.play{display:flex;flex-direction:column;gap:16px;min-width:0}
+.sect{display:flex;flex-direction:column;gap:8px}
+.lbl{font:700 14px var(--f-body);letter-spacing:.08em;text-transform:uppercase;color:var(--c-mut)}
+.sub{font-size:14px}
+.pick button span{font-size:14px}
+.stats span{font-size:14px;letter-spacing:.06em}
+.tip{font-size:14px;text-align:left;line-height:1.45}
+details.how p{margin:10px 0 0}
+.swipe,.stamp,.miss span,.arcbar{font-size:14px}
+.arcmeter{height:22px}.arcmeter b{font-size:14px}
+.rgrid span{font-size:14px;letter-spacing:.04em}
+.piano .w{font-size:14px}.piano .w.mc{font-size:12px}
+.appver,.chma-ver{font-size:14px}
+/* results sheet: takes the card's place at its full height (it covered the card before; now nothing is cut off on short screens) */
+.card.showres>:not(.results){display:none!important}.card.showres .results{position:static;padding:4px;overflow:visible;background:none}
+.arcrow{display:flex;align-items:center;gap:8px 16px;flex-wrap:wrap}.arcrow .arcbar{flex:none;justify-content:flex-start}.arcrow .clock{flex:1 1 160px}
+.actbar .actions{flex-wrap:nowrap}.actbar .btn{min-height:52px;font-size:16px}
+.actbar .btn.primary{flex:2 1 0}.actbar .btn:not(.primary){flex:1 1 0}
+@media (min-width:900px){
+  body{padding:12px 24px}
+  .wrap{max-width:1180px;padding:0 16px 16px;gap:12px}
+  .cols{display:grid;grid-template-columns:minmax(280px,340px) minmax(0,1fr);gap:16px;align-items:start}
+  .setup{gap:16px}
+  .pick{flex-direction:column;flex-wrap:nowrap;gap:8px}
+  .pick button{min-width:0;flex:none;display:grid;grid-template-columns:34px 1fr;grid-template-rows:auto auto;column-gap:10px;row-gap:0;align-items:center;justify-items:start;text-align:left;padding:8px 12px}
+  .pick button b{grid-row:1 / span 2}
+  .card{padding:16px;gap:12px}
+  .prompt{min-height:44px}
+  .piano{height:clamp(120px,19vh,170px)}
+  .stats{padding:8px 12px}.stats b{font-size:20px}
+  .arcmeter{height:18px}
+  .appver{text-align:left;margin:0}
+}
+@media (max-width:899px){
+  body{padding:8px max(12px,env(safe-area-inset-right,0px)) 16px max(12px,env(safe-area-inset-left,0px))}
+  .wrap{gap:12px;padding:0 12px 16px}
+  .chma-headwrap{margin:0 -12px}
+  .cols,.setup{gap:12px}
+  .setup{display:contents}
+  .setup header{order:1}.s-level{order:2}.s-game{order:3}.play{order:4}.how{order:5}.setup details:not(.how){order:6}.setup .appver{order:7}
+  .wrap{position:relative}
+  .setup header{position:absolute;top:17px;right:12px;height:40px;display:flex;align-items:center}
+  h1{font-size:24px;line-height:1}
+  .chma-ver,.sub,.lbl{display:none}
+  body.running .s-level,body.running .s-game{display:none}
+  .pick{flex-wrap:nowrap;overflow-x:auto;gap:8px;margin:0 -12px;padding:2px 12px 6px;scroll-snap-type:x proximity;scrollbar-width:none;-webkit-overflow-scrolling:touch}
+  .pick::-webkit-scrollbar{display:none}
+  .pick button{flex:0 0 auto;min-width:0;width:auto;min-height:48px;padding:5px 14px;scroll-snap-align:start;gap:0;font-size:14px;line-height:1.25;display:block;text-align:left}
+  .pick button b{font-size:14px;display:inline;margin-right:6px}.pick button span{display:block}
+  .seg button{min-height:44px;padding:8px 10px}
+  .card{padding:12px;gap:10px}
+  .stats{padding:8px 10px}.stats b{font-size:18px}.stats span{font-size:14px;letter-spacing:0;text-transform:none}
+  .prompt{min-height:40px;font-size:18px}.prompt .big{font-size:32px}
+  .piano{height:clamp(96px,calc(100vh - 570px),170px);height:clamp(96px,calc(100svh - 570px),170px)}
+  .fb{min-height:20px}
+  .pad button{min-height:44px}
+}
+/* phones (and short tablets): the action row is a fixed bar at the bottom, clear of the home indicator */
+@media (max-width:599px),(max-width:899px) and (max-height:899px){
+  body{padding-bottom:calc(76px + env(safe-area-inset-bottom,0px))}
+  .actbar{position:fixed;left:0;right:0;bottom:0;z-index:30;background:var(--c-panel);border-top:1px solid var(--c-line);box-shadow:0 -8px 24px rgba(0,0,0,.18);
+    padding:8px max(12px,env(safe-area-inset-right,0px)) calc(8px + env(safe-area-inset-bottom,0px)) max(12px,env(safe-area-inset-left,0px))}
+  .actbar .btn{min-height:46px}
+  .actbar .actions{max-width:640px;margin:0 auto}
+}
+/* ---- Ear Trainer additions ---- */
+.seg.ex button{display:flex;flex-direction:column;align-items:center;gap:2px;line-height:1.15}
+.seg.ex button span{font-size:14px;font-weight:400;opacity:.85}
+.prompt{flex-direction:column;gap:4px;font-size:18px;line-height:1.3}
+.prompt b.nm{font-family:var(--f-num);color:var(--c-act);font-size:24px}
+.prompt small{font-size:14px;color:var(--c-mut);font-weight:500}
+.legend{display:flex;gap:14px;justify-content:center;font-size:14px;color:var(--c-mut);flex-wrap:wrap}
+.legend i{display:inline-block;width:12px;height:12px;border-radius:3px;margin-right:6px;vertical-align:-1px}
+.legend .lr{background:var(--c-sel)} .legend .lm{background:var(--c-ok)} .legend .lx{background:var(--c-bad)}
+.piano .w{position:relative}
+.piano button.ref{background:var(--c-sel)!important;color:#fff!important;border-color:var(--c-sel)}
+.piano button.ans{background:var(--c-ok)!important;color:#fff!important}
+.piano button.miss{background:var(--c-bad)!important;color:#fff!important}
+.piano button.pend{background:var(--c-warn)!important;color:#1b1c1f!important}
+.piano button.dim{opacity:1}
+.piano .tag{position:absolute;left:0;right:0;top:6px;text-align:center;font:700 14px var(--f-num);color:inherit;pointer-events:none}
+.piano .b .tag{top:auto;bottom:6px;color:#fff}
+.fb{font-size:15px;line-height:1.45;min-height:44px;color:var(--c-ink)}
+.fb .ok{color:var(--c-ok);font-weight:700} .fb .no{color:var(--c-bad);font-weight:700}
+.fb .cue{display:block;color:var(--c-mut);font-size:14px;margin-top:2px}
+.fb .pair{font:inherit;font-weight:600;font-size:14px;margin-left:6px;min-height:44px;padding:0 12px;border-radius:10px;border:1px solid var(--c-key-b);background:var(--c-key);color:var(--c-ink);box-shadow:0 2px 0 var(--c-key-sh);cursor:pointer}
+#pad{display:grid;gap:8px}
+#pad button{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;line-height:1.1;font-size:19px;min-height:52px;padding:4px 2px}
+#pad button small{font:500 14px var(--f-body);opacity:.85}
+#pad button.hit{background:var(--c-ok);border-color:var(--c-ok);color:#fff} #pad button.miss{background:var(--c-bad);border-color:var(--c-bad);color:#fff}
+#pad2 button{display:flex;flex-direction:column;align-items:center;justify-content:center;line-height:1.05;font-size:15px}
+.cues{font-size:14px;color:var(--c-mut);border-top:1px solid var(--c-line);padding-top:8px}
+.cues b{color:var(--c-ink)} .cues ul{margin:4px 0 0;padding-left:18px} .cues li{margin:2px 0}
+.arcrow .arcbar{flex:1 1 auto;flex-wrap:wrap;min-width:0;justify-content:center}
+.actbar .btn:disabled{opacity:.45;cursor:default}
+.actbar .btn .sh{display:none}
+.lifeline{font-size:14px;color:var(--c-mut);margin:0}
+.credit{font-size:14px;color:var(--c-mut);margin:0;line-height:1.4}
+.credit a{color:inherit}
+.seg.ex i{font-style:normal}.seg.ex .shx{display:none}
+summary{min-height:44px;display:flex;align-items:center;box-sizing:border-box}
+.setrow{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-top:10px}
+.setrow .seg{flex:1 1 auto} .setrow .seg button{min-height:44px;padding:6px 10px}
+select{font:inherit;font-size:15px;min-height:44px;border-radius:10px;border:1px solid var(--c-key-b);background:var(--c-key);color:var(--c-ink);padding:0 10px}
+details label{font-size:15px;min-height:32px}
+details .note{font-size:14px;color:var(--c-mut);margin:8px 0 0}
+@media (min-width:900px){
+  .seg.ex{flex-direction:column}
+  .seg.ex button{flex-direction:row;justify-content:flex-start;gap:10px;text-align:left;padding:10px 14px}
+  .piano{height:clamp(120px,22vh,170px)}
+}
+@media (max-width:899px){
+  .setup header{order:1}.s-ex{order:2}.s-level{order:3}.s-game{order:4}.play{order:5}.how{order:6}.setup details:not(.how){order:7}.setup .appver{order:8}.setup .credit{order:9}.setup .lifeline{display:none}
+  body.running .s-ex{display:none}
+  .seg.ex button span,.seg.ex .lgx{display:none} .seg.ex .shx{display:inline}
+  .seg.ex button{min-height:44px}
+  .legend{display:none}
+}
+@media (max-width:599px){
+  .actbar .btn .lg{display:none} .actbar .btn .sh{display:inline}
+  .actbar .btn{font-size:15px;padding:8px 6px}
+  .card.padmode:not(.answered) .pianoWrap,.card.padmode:not(.answered) .swipe{display:none}
+  .card.padmode.answered #padWrap,.card.padmode.answered .cues{display:none}
+  .card.kbmode .piano{height:clamp(100px,calc(100svh - 560px),170px)}
+  .piano{height:clamp(90px,calc(100svh - 580px),170px)}
+  .swipe{display:none!important}
+  .card{gap:8px}
+  .stats div{display:flex;align-items:baseline;gap:5px;justify-content:center}.stats b{display:inline}.stats span{font-size:14px}
+  .prompt{min-height:0;font-size:17px}.prompt small{font-size:14px}
+  #pad button small{display:none}
+  .fb{font-size:14px}
+  .stats{padding:6px 10px}.stats b{font-size:17px}
+  .prompt b.nm{font-size:20px}
+}
+</style></head>
+<body>
+<div class="wrap">
+  <div data-chma-head></div>
+  <div class="cols">
+  <section class="setup">
+  <header>
+    <h1>Ear <em>Trainer</em></h1>
+    <p class="sub">Relative pitch: hear a note you know, then work out the mystery note by its distance.</p>
+  </header>
+
+  <div class="sect s-ex"><span class="lbl" aria-hidden="true">Exercise</span>
+  <div class="seg ex" id="exSeg" role="group" aria-label="Exercise">
+    <button data-ex="1"><b><i class="lgx">Mystery note</i><i class="shx">Note</i></b><span>Reference, then name the note</span></button>
+    <button data-ex="2"><b><i class="lgx">Scale degree</i><i class="shx">Degree</i></b><span>I – IV – V – I, then the degree</span></button>
+    <button data-ex="3"><b>Interval</b><span>Two notes, name the distance</span></button>
+  </div>
+  <p class="lifeline" id="lifeLine"></p></div>
+
+  <div class="sect s-level"><span class="lbl" aria-hidden="true">Level</span>
+  <div class="row pick" id="levels" role="group" aria-label="Level"></div></div>
+
+  <div class="sect s-game"><span class="lbl" aria-hidden="true">Mode</span>
+  <div class="seg" id="modeSeg" role="group" aria-label="Mode"><button data-m="single">Single tries</button><button data-m="chal">Challenge</button></div></div>
+
+  <details class="how"><summary>How it works</summary>
+    <p class="tip"><b>Relative pitch</b> means you hear one note you know (the reference), then work out the next note by how far away it is. You don't need perfect pitch for this. You need distance.</p>
+    <p class="tip"><b>Mystery note:</b> the app says "This is C" and plays it, then plays a mystery note. Tap it on the keyboard (or on the note names, in Settings). Levels 7 and 8 change the reference, so you can't just memorize C.</p>
+    <p class="tip"><b>Scale degree:</b> the app plays I – IV – V – I to set the key, then one note. Name its number in the scale: 1 is home (do), 5 is sol. Level 5 is a minor key (i – iv – V – i).</p>
+    <p class="tip"><b>Interval:</b> two notes, name the distance. m = minor, M = major, P = perfect, TT = tritone (6 half steps), P8 = octave.</p>
+    <p class="tip"><b>Single tries:</b> one question at a time. Replay the reference or the mystery as often as you like, then press Next. <b>Challenge:</b> 5 rounds of 8 questions and a bonus round. Round 1 is the warm-up that sets your targets; each round's points count up from 0. Right answer = 1 point, right within 3 seconds = 2. One replay of each per question, one try, no second chances.</p>
+  </details>
+  <details id="settingsBox"><summary>Settings</summary>
+    <div class="setrow"><span>Mystery note: answer with</span><div class="seg" id="ansSeg" role="group" aria-label="Answer with"><button data-a="kb">Keyboard</button><button data-a="names">Note names</button></div></div>
+    <label><input type="checkbox" id="cadOn"> Mystery note: play I – IV – V – I in C before the reference</label>
+    <label><input type="checkbox" id="solfOn"> Scale degree: show solfège (do, re, mi) on the buttons</label>
+    <label><input type="checkbox" id="keyChg" checked> Scale degree: new key every question (off = always C major, or A minor)</label>
+    <div class="setrow"><label for="dirSel" style="margin:0">Intervals play</label><select id="dirSel"><option value="up">Up (low note first)</option><option value="down">Down (high note first)</option><option value="both">Up or down</option><option value="harm">Together (harmonic)</option></select></div>
+    <label><input type="checkbox" id="cueOn"> Interval: song cues (short text hints)</label>
+    <label><input type="checkbox" id="labelsOn" checked> Letter names on the keys</label>
+    <label><input type="checkbox" id="retryOn"> Second try on a miss (Single tries only)</label>
+    <label><input type="checkbox" id="hypeOn" checked> Music on round screens</label>
+    <p class="note">Play-it-on-your-piano (microphone) answers are not in this version.</p>
+  </details>
+  <p class="appver" id="appVer">Ear Trainer · Version 2026-11-12.1</p>
+  <p class="credit">Piano: Salamander Grand Piano V3 by Alexander Holm (<a href="https://creativecommons.org/licenses/by/3.0/" target="_blank" rel="noopener">CC BY 3.0</a>), retuned by Markus Fiedler, via sfzinstruments. Song cues name public-domain or traditional tunes; no recordings are used.</p>
+  </section>
+
+  <section class="play">
+  <div class="card" id="card">
+    <div class="stats">
+      <div><b id="sPts">0</b><span>Points</span></div><div><b id="sPct">–</b><span>Accuracy</span></div>
+      <div><b id="sStreak">0</b><span>Streak</span></div><div><b id="sBest">0</b><span>Best</span></div>
+    </div>
+    <div class="arcrow" id="arcRow" hidden><div class="arcbar" id="arcbar"><span class="pill" id="arcRound">ROUND 1</span><span class="pill need" id="arcNeed">SCORE 0</span><span class="pill" id="arcQ">Q 1 / 8</span><span class="pill fire" id="arcFire" hidden>BONUS 2X</span></div></div>
+    <div class="arcmeter" id="arcMeter" hidden><i id="arcFill"></i><b id="arcHit">TARGET HIT</b></div>
+    <div class="prompt" id="prompt" aria-live="polite"></div>
+    <div class="pianoWrap" id="pianoWrap"><div class="pianoScroll" id="pianoScroll"><div class="piano" id="piano"></div></div></div><p class="swipe" id="swipe" hidden>Swipe the keyboard to see more keys</p>
+    <div class="legend" id="legend"><span><i class="lr"></i>Reference</span><span><i class="lm"></i>Mystery note</span><span><i class="lx"></i>Your miss</span></div>
+    <div class="fb" id="fb" aria-live="polite"></div>
+    <div id="padWrap"><div id="pad"></div><div id="pad2" class="pad blk" style="margin-top:8px" hidden></div></div>
+    <div class="cues" id="cues" hidden></div>
+
+    <div class="arcsplash" id="arcSplash" hidden><div class="boom"></div><div id="arcPcs"></div><div class="pre" id="arcSplashP"></div><b id="arcSplashT">ROUND 1</b><span id="arcSplashS"></span></div><div class="hitstamp" id="hitStamp" aria-hidden="true">TARGET HIT!</div>
+
+    <div class="results" id="results" hidden>
+      <h2 id="rTitle" tabindex="-1">Challenge over</h2>
+      <div class="score" id="rScore"></div>
+      <div class="rgrid"><div><b id="rPct">0%</b><span>Accuracy</span></div><div><b id="rTotal">0</b><span>Questions</span></div><div><b id="rBest">0</b><span>Best streak</span></div></div>
+      <div><b>Missed most</b><div class="miss" id="rMiss"></div></div>
+      <div class="why" id="rWhy"></div><div class="stamp" id="rStamp"></div>
+      <p class="tip">Screenshot this screen and send it to your Instructor.</p>
+      <div class="actions"><button class="btn" id="closeBtn">Back to single tries</button><button class="btn primary" id="againBtn">Challenge again</button></div>
+    </div>
+  </div>
+  <div class="actbar" id="actbar"><div class="actions">
+    <button class="btn" id="refBtn" disabled><span class="lg">Play reference again</span><span class="sh">↻ Reference</span></button>
+    <button class="btn" id="mysBtn" disabled><span class="lg">Play mystery again</span><span class="sh">↻ Mystery</span></button>
+    <button class="btn primary" id="goBtn">Play</button></div></div>
+  </section>
+  </div>
+</div>
+
+<script>
+(()=>{
+'use strict';
+const $=id=>document.getElementById(id);
+const FAST=/[?&]fast=1/.test(location.search), SP=FAST?0.12:1;   // fast=1: test runs only (shorter gaps)
+const store={get(k,d){try{const v=localStorage.getItem("et-"+k);return v==null?d:JSON.parse(v)}catch(e){return d}},set(k,v){try{localStorage.setItem("et-"+k,JSON.stringify(v))}catch(e){}}};
+const mod=(a,n)=>((a%n)+n)%n, rnd=n=>Math.floor(Math.random()*n), pick=a=>a[rnd(a.length)];
+
+// ================= THEORY =================
+// Letters, natural pitch classes, accidentals. A spelled note = {l: letter index 0-6 (C..B), a: accidental -2..2}.
+const LET="CDEFGAB", NAT=[0,2,4,5,7,9,11], ACC={"-2":"𝄫","-1":"♭","0":"","1":"♯","2":"𝄪"};
+const BLACK=[1,3,6,8,10], isBlack=m=>BLACK.includes(mod(m,12));
+const SH=["C","C♯","D","D♯","E","F","F♯","G","G♯","A","A♯","B"], FL={1:"D♭",3:"E♭",6:"G♭",8:"A♭",10:"B♭"};
+const keyName=pc=>isBlack(pc)?SH[pc]+" / "+FL[pc]:SH[pc];
+const spName=s=>LET[s.l]+ACC[s.a];
+const spOct=(s,m)=>Math.floor((m-s.a-NAT[s.l])/12)-1;            // scientific-pitch octave of a spelled note (B♯3 = C4's key, C♭5 = B4's key)
+const spFull=(s,m)=>spName(s)+spOct(s,m);
+// usual spellings for a reference on each pitch class (first = preferred, second = enharmonic fallback)
+const REFSP=[[[0,0]],[[1,-1],[0,1]],[[1,0]],[[2,-1],[1,1]],[[2,0]],[[3,0]],[[3,1],[4,-1]],[[4,0]],[[5,-1],[4,1]],[[5,0]],[[6,-1],[5,1]],[[6,0]]].map(a=>a.map(([l,x])=>({l,a:x})));
+// intervals by half steps: generic number(s) and names. 6 half steps = tritone, spelled as an augmented 4th or a diminished 5th.
+const IV=[{n:[1],sh:"P1",nm:"unison"},{n:[2],sh:"m2",nm:"minor 2nd"},{n:[2],sh:"M2",nm:"major 2nd"},{n:[3],sh:"m3",nm:"minor 3rd"},{n:[3],sh:"M3",nm:"major 3rd"},
+  {n:[4],sh:"P4",nm:"perfect 4th"},{n:[4,5],sh:"TT",nm:"tritone"},{n:[5],sh:"P5",nm:"perfect 5th"},{n:[6],sh:"m6",nm:"minor 6th"},{n:[6],sh:"M6",nm:"major 6th"},
+  {n:[7],sh:"m7",nm:"minor 7th"},{n:[7],sh:"M7",nm:"major 7th"},{n:[8],sh:"P8",nm:"octave"}];
+function ivName(s,n){ s=Math.abs(s); if(s===6) return n===5?"tritone (diminished 5th)":"tritone (augmented 4th)"; if(s===12) return "octave (perfect 8th)"; return IV[s].nm }
+// spell the note `semis` half steps from a spelled reference (letter distance follows the interval number)
+function spellFrom(ref,refM,semis){ const s=Math.abs(semis), d=semis<0?-1:1, pc=mod(refM+semis,12); let best=null;
+  for(const n of IV[s].n){ const l=mod(ref.l+d*(n-1),7); let a=mod(pc-NAT[l],12); if(a>6) a-=12; if(!best||Math.abs(a)<Math.abs(best.a)) best={l,a,n} } return best }
+// choose the reference spelling that keeps every answer at a single sharp or flat at most
+function refSpell(refM,semisList){ const c=REFSP[mod(refM,12)]; let best=c[0], bs=99;
+  for(const r of c){ const sc=Math.max(0,...semisList.map(x=>Math.abs(spellFrom(r,refM,x).a)))*10+Math.abs(r.a); if(sc<bs){ bs=sc; best=r } } return best }
+// scale degree of a spelled note against a major-scale tonic (letter distance + how far it is from the major-scale note)
+function degreeOf(t,tM,s,m){ const d=mod(s.l-t.l,7), exp=mod(tM+NAT[d],12); let alt=mod(m-exp,12); if(alt>6) alt-=12; return (alt<0?"♭".repeat(-alt):alt>0?"♯".repeat(alt):"")+(d+1) }
+const SOLF={"1":"do","♯1":"di","♭2":"ra","2":"re","♯2":"ri","♭3":"me","3":"mi","4":"fa","♯4":"fi","♭5":"se","5":"sol","♯5":"si","♭6":"le","6":"la","♭7":"te","7":"ti"};
+const DEG_SEMI={"1":0,"♭2":1,"2":2,"♭3":3,"3":4,"4":5,"♯4":6,"5":7,"♭6":8,"6":9,"♭7":10,"7":11};
+const ORD=n=>n+(n===1?"st":n===2?"nd":n===3?"rd":"th");
+
+// ================= EXERCISES AND LEVELS =================
+const range=(a,b,f)=>{const o=[];for(let m=a;m<=b;m++) if(!f||f(m)) o.push(m);return o};
+const diat=m=>NAT.includes(mod(m,12));
+const EXS={
+ 1:{name:"Mystery note",levels:[
+  {name:"Triad tones",sub:"E, G or high C, above C",pool:[64,67,72],dir:"up"},
+  {name:"Five notes",sub:"C D E F G",pool:[60,62,64,65,67],dir:"up"},
+  {name:"Major scale",sub:"One octave up from C",pool:range(60,72,diat),dir:"up"},
+  {name:"Up and down",sub:"Scale above and below C",pool:range(48,72,diat),dir:"both"},
+  {name:"Chromatic",sub:"All 12, one octave up",pool:range(60,72),dir:"up"},
+  {name:"Chromatic",sub:"Two octaves around C",pool:range(48,72),dir:"both"},
+  {name:"Any reference",sub:"Not always C",rand:true},
+  {name:"Two-note tune",sub:"Any reference, 2 notes",rand:true,two:true}]},
+ 2:{name:"Scale degree",levels:[
+  {name:"Do, mi, sol",sub:"Degrees 1, 3, 5",deg:["1","3","5"]},
+  {name:"First five",sub:"Degrees 1 to 5",deg:["1","2","3","4","5"]},
+  {name:"Whole scale",sub:"Degrees 1 to 7",deg:["1","2","3","4","5","6","7"]},
+  {name:"Chromatic",sub:"♭3, ♭7 and friends",deg:["1","♭2","2","♭3","3","4","♯4","5","♭6","6","♭7","7"]},
+  {name:"Minor key",sub:"i – iv – V – i",deg:["1","2","♭3","4","5","♭6","♭7"],minor:true}]},
+ 3:{name:"Interval",levels:[
+  {name:"P5 and P8",sub:"5ths and octaves",iv:[7,12]},
+  {name:"Add 3rds",sub:"M3 and m3",iv:[3,4,7,12]},
+  {name:"Add P4",sub:"Perfect 4th",iv:[3,4,5,7,12]},
+  {name:"Add 2nds",sub:"M2 and m2",iv:[1,2,3,4,5,7,12]},
+  {name:"Add 6ths, 7ths",sub:"M6 m6 M7 m7",iv:[1,2,3,4,5,7,8,9,10,11,12]},
+  {name:"Add tritone",sub:"All 12 intervals",iv:[1,2,3,4,5,6,7,8,9,10,11,12]}]}};
+const MAJ_KEYS=[[0,0,0],[7,4,0],[2,1,0],[9,5,0],[5,3,0],[10,6,-1],[3,2,-1]], MIN_KEYS=[[9,5,0],[4,2,0],[2,1,0],[7,4,0],[0,0,0]];   // [pc, letter, accidental]
+const CAD_MAJ=[[-12,0,4,7],[-7,0,5,9],[-5,-1,2,7],[-12,0,4,7]], CAD_MIN=[[-12,0,3,7],[-7,0,5,8],[-5,-1,2,7],[-12,0,3,7]];   // I IV V I / i iv V i (V uses the raised 7th)
+const C4={l:0,a:0};
+// song cues: short text only, public-domain or traditional tunes, or plain descriptions
+const CUE={1:["Two notes almost touching: creepy, rubbing.","Für Elise (Beethoven): the first two notes."],
+ 2:["Frère Jacques (traditional): the first two notes.","Mary Had a Little Lamb (traditional): the first two notes."],
+ 3:["Greensleeves (traditional): the first two notes.","This Old Man (traditional): \"This old\"."],
+ 4:["When the Saints Go Marching In (traditional): \"Oh when\".","Swing Low, Sweet Chariot (spiritual): \"Swing low\"."],
+ 5:["Here Comes the Bride (Wagner): \"Here comes\".","Eine kleine Nachtmusik (Mozart): the first two notes."],
+ 6:["Tense and unstable: half an octave, it wants to slide somewhere.","Tense and unstable: half an octave, it wants to slide somewhere."],
+ 7:["Twinkle Twinkle Little Star: the first \"twinkle\" up to the second.","Twinkle Twinkle backwards: the second \"twinkle\" down to the first."],
+ 8:["The Entertainer (Scott Joplin): the leap up after the three quick pickup notes.","A wide, sighing drop: the minor 6th up, turned upside down."],
+ 9:["My Bonnie Lies Over the Ocean (traditional): \"My Bon-\".","A wide, sweet drop: the major 6th up, turned upside down."],
+ 10:["An octave minus a whole step: open and bluesy.","An octave drop that stops a whole step short."],
+ 11:["An octave minus a half step: almost home, and it itches.","An octave drop that stops a half step short."],
+ 12:["Somewhere Over the Rainbow: \"Some-where\" (song title only).","Same letter name, the second one is the low twin."]};
+
+// question generator (pure: also used by the automated tests)
+function gen(ex,lv,opt){ opt=opt||{}; const L=EXS[ex].levels[lv-1];
+  if(ex===1){
+    if(!L.rand){ const m=pick(L.pool), s=m-60, sp=spellFrom(C4,60,s); return {ex,lv,ref:60,refSp:C4,notes:[m],sps:[sp],semis:[s],win:L.dir==="up"?[60,84]:[48,72]} }
+    let ref,notes,semis,refSp,sps,tries=0; do{ ref=54+rnd(12); const k=L.two?2:1; notes=[]; let last=null;
+    for(let i=0;i<k;i++){ let m,t=0; do{ m=ref-12+rnd(25) }while((m===last||(i===0&&k===2&&m===ref))&&t++<30); notes.push(m); last=m }
+    semis=notes.map(m=>m-ref); refSp=refSpell(ref,semis); sps=semis.map(s=>spellFrom(refSp,ref,s)) }while(sps.some(x=>Math.abs(x.a)>1)&&tries++<60);   // re-roll: one reference spelling must keep every answer at one sharp or flat
+    return {ex,lv,ref,refSp,notes,sps:semis.map(s=>spellFrom(refSp,ref,s)),semis,win:[ref-12,ref+12]} }
+  if(ex===2){ const K=L.minor?MIN_KEYS:MAJ_KEYS, kk=opt.keyChg===false?K[0]:pick(K), pc=kk[0], T=55+mod(pc-55,12), tSp={l:kk[1],a:kk[2]};
+    const deg=pick(L.deg), s=DEG_SEMI[deg], m=T+s, num=+deg.replace(/[♭♯]/g,""), l=mod(tSp.l+num-1,7); let a=mod(m-NAT[l],12); if(a>6) a-=12;
+    const lo=T-mod(T,12); return {ex,lv,ref:T,refSp:tSp,minor:!!L.minor,deg,notes:[m],sps:[{l,a}],semis:[s],win:[lo,lo+24]} }
+  // ex 3
+  const s=pick(L.iv), dir=opt.dir||"up", harm=dir==="harm", d=dir==="down"?-1:dir==="both"?(Math.random()<.5?-1:1):1;
+  const ref=d<0?60+rnd(12):53+rnd(12), m=ref+d*s, refSp=refSpell(ref,[d*s]), sp=spellFrom(refSp,ref,d*s), lo=Math.min(ref,m)-mod(Math.min(ref,m),12);
+  return {ex,lv,ref,refSp,notes:[m],sps:[sp],semis:[d*s],harm,ivs:s,win:[lo,lo+24]} }
+
+// ================= SOUND: Salamander grand samples (shared with Modal Metronome) =================
+const SAMP=range(33,96).filter(m=>(m-33)%3===0), LAYER=11;   // every minor third, one velocity layer (played at 80 of 127)
+const SAL_TUNE=[10,13,11,-3,-9,-9,-11,-7,-4,0,-6,-3,-3,-6,-3,0,-4,-8,-8,-5,-7,-8,-12,-13,-12,-17,-17,-27,-38,-38];   // cents, from Modal Metronome
+const sUrl=n=>new URL("../drum-machine/keys/grand/"+n+"_v"+LAYER+".mp3",location.href).href;
+async function cFetch(u){ try{ if(window.caches){ const c=await caches.open("mm-keys-v1"); const hit=await c.match(u); if(hit) return await hit.arrayBuffer(); const r=await fetch(u); if(r.ok){ try{ await c.put(u,r.clone()) }catch(e){} } return await r.arrayBuffer() } }catch(e){} return await (await fetch(u)).arrayBuffer() }
+const raw={}; SAMP.forEach(n=>{ raw[n]=cFetch(sUrl(n)).catch(()=>null) });   // download starts now; decoding waits for the first tap
+let ac=null, out=null, buf={}, loadP=null, voices=[];
+function AC(){ if(!ac){ try{ if(navigator.audioSession) navigator.audioSession.type="playback" }catch(e){}
+    ac=new (window.AudioContext||window.webkitAudioContext)();
+    const cmp=ac.createDynamicsCompressor(); cmp.threshold.value=-12; cmp.knee.value=8; cmp.ratio.value=3; cmp.attack.value=0.004; cmp.release.value=0.2;
+    out=ac.createGain(); out.gain.value=0.9; out.connect(cmp); cmp.connect(ac.destination);
+    try{ const b=ac.createBuffer(1,1,22050), s=ac.createBufferSource(); s.buffer=b; s.connect(ac.destination); s.start(0) }catch(e){} }   // iOS unlock
+  if(ac.state!=="running") ac.resume().catch(()=>{}); return ac }
+function loadSamples(){ if(loadP) return loadP; AC(); let done=0;
+  loadP=Promise.all(SAMP.map(async n=>{ try{ const ab=await raw[n]; if(ab) buf[n]=await new Promise((res,rej)=>{ const p=ac.decodeAudioData(ab.slice(0),res,rej); if(p&&p.then) p.then(res,rej) }) }catch(e){} done++; if(!buf._ok) loadingMsg(done/SAMP.length) })).then(()=>{ buf._ok=true });
+  return loadP }
+function loadingMsg(p){ if(p<1&&phase==="loading") $("prompt").innerHTML=`Loading the piano… ${Math.round(p*100)}%` }
+// one note: nearest sample, retuned; 4 ms fade in and an exponential release, so nothing clicks
+function note(m,t,dur,vel){ if(!ac) return; vel=vel==null?0.8:vel;
+  const n=SAMP.reduce((p,c)=>Math.abs(c-m)<Math.abs(p-m)?c:p), b=buf[n], g=ac.createGain(), rel=m<48?0.22:m<72?0.15:0.11, pk=0.62*vel;
+  g.gain.setValueAtTime(0,t); g.gain.linearRampToValueAtTime(pk,t+0.004); g.gain.setValueAtTime(pk,t+dur); g.gain.setTargetAtTime(0,t+dur,rel); g.connect(out);
+  let src;
+  if(b){ src=ac.createBufferSource(); src.buffer=b; src.playbackRate.value=Math.pow(2,((m-n)*100+(SAL_TUNE[(n-21)/3]||0))/1200); src.connect(g); src.start(t); src.stop(Math.min(t+dur+rel*8,t+b.duration/src.playbackRate.value)) }
+  else { src=ac.createOscillator(); src.type="triangle"; src.frequency.value=440*Math.pow(2,(m-69)/12); src.connect(g); src.start(t); src.stop(t+dur+rel*8) }   // fallback if a sample failed
+  voices.push({g,src,end:t+dur+rel*8}) }
+function hush(){ if(!ac) return; const t=ac.currentTime; voices.forEach(v=>{ if(v.end<t) return; try{ const p=v.g.gain; if(p.cancelAndHoldAtTime) p.cancelAndHoldAtTime(t); else { p.cancelScheduledValues(t); p.setValueAtTime(p.value,t) } p.setTargetAtTime(0,t,0.025); v.src.stop(t+0.25) }catch(e){} }); voices=[] }
+// a sequence: [{at seconds, ms:[midi...], d seconds, v}] -> scheduled together; returns its length in seconds
+function playSeq(ev){ AC(); hush(); const t0=ac.currentTime+0.08; let len=0; ev.forEach(e=>{ e.ms.forEach(m=>note(m,t0+e.at,e.d,e.v)); len=Math.max(len,e.at+e.d) }); return len }
+
+// ================= STATE =================
+let ex=+store.get("ex",1), level=+store.get("lv"+ex,1), gmode=store.get("mode","single"), ansMode=store.get("ans","kb");
+if(![1,2,3].includes(ex)) ex=1; if(!(level>=1&&level<=EXS[ex].levels.length)) level=1; if(gmode!=="chal") gmode="single"; if(ansMode!=="names") ansMode="kb";
+let q=null, phase="idle", timers=[], st=null, arc=null, splashTok=0;
+const life=(()=>{ const d=store.get("life",{}); [1,2,3].forEach(k=>{ const o=d[k]||{}; d[k]={n:+o.n||0,ok:+o.ok||0,streak:+o.streak||0,best:+o.best||0} }); return d })();
+const later=(fn,ms)=>{ const t=setTimeout(fn,ms); timers.push(t); return t }, clearTimers=()=>{ timers.forEach(clearTimeout); timers=[] };
+const L=()=>EXS[ex].levels[level-1];
+const opts=()=>({keyChg:$("keyChg").checked,dir:$("dirSel").value});
+const padMode=()=>ex!==1||ansMode==="names";
+
+// ================= KEYBOARD =================
+let win=[0,0];
+function buildPiano(lo,hi){ while(isBlack(lo)) lo--; while(isBlack(hi)) hi++; win=[lo,hi]; const el=$("piano"); el.innerHTML="";
+  const whites=range(lo,hi,m=>!isBlack(m)), n=whites.length, w=100/n; el.style.minWidth=(n*(innerWidth<600?38:44))+"px";
+  whites.forEach((m,i)=>{ const b=document.createElement("button"); b.className="w"; b.dataset.midi=m; b.setAttribute("aria-label",SH[mod(m,12)]+(Math.floor(m/12)-1)); keyLabel(b,m); b.addEventListener("click",()=>keyTap(m)); el.appendChild(b);
+    if(isBlack(m+1)&&m+1<hi){ const k=document.createElement("button"); k.className="b"; k.dataset.midi=m+1; k.style.width=(w*0.6)+"%"; k.style.left=((i+1)*w-w*0.3)+"%";
+      k.setAttribute("aria-label",`${SH[mod(m+1,12)]}${Math.floor((m+1)/12)-1} / ${FL[mod(m+1,12)]}${Math.floor((m+1)/12)-1}`); k.addEventListener("click",()=>keyTap(m+1)); el.appendChild(k) } });
+  const kbAns=ex===1&&ansMode==="kb"; el.querySelectorAll("button").forEach(b=>{ b.tabIndex=kbAns?0:-1 }) }
+function keyLabel(b,m){ const t=b.querySelector(".tag"); b.textContent=$("labelsOn").checked?(mod(m,12)===0?"C"+(Math.floor(m/12)-1):SH[mod(m,12)]):(m===60?"C4":""); if(t) b.appendChild(t) }
+const keyEl=m=>$("piano").querySelector(`[data-midi="${m}"]`);
+function mark(m,cls,tag){ const k=keyEl(m); if(!k) return; k.classList.add(cls); if(tag!=null){ let t=k.querySelector(".tag"); if(!t){ t=document.createElement("span"); t.className="tag"; k.appendChild(t) } t.textContent=tag } }
+function clearMarks(){ $("piano").querySelectorAll("button").forEach(b=>{ b.classList.remove("ref","ans","miss","pend"); const t=b.querySelector(".tag"); if(t) t.remove() }) }
+function centerOn(a,b,instant){ const sc=$("pianoScroll"), ka=keyEl(a), kb=keyEl(b==null?a:b); if(!ka||!kb||sc.scrollWidth<=sc.clientWidth+2) return edges();
+  const x=(ka.offsetLeft+kb.offsetLeft+kb.offsetWidth)/2-sc.clientWidth/2; try{ sc.scrollTo({left:x,behavior:instant?"auto":"smooth"}) }catch(e){ sc.scrollLeft=x } setTimeout(edges,400) }
+function edges(){ const sc=$("pianoScroll"), w=$("pianoWrap"), more=sc.scrollWidth>sc.clientWidth+2;
+  w.classList.toggle("l",more&&sc.scrollLeft>4); w.classList.toggle("r",more&&sc.scrollLeft<sc.scrollWidth-sc.clientWidth-4); $("swipe").hidden=!more||padMode()&&!$("card").classList.contains("answered")&&innerWidth<600;
+  $("swipe").textContent=window.matchMedia&&matchMedia("(pointer:coarse)").matches?"Swipe the keyboard to see more keys":"Scroll the keyboard sideways to see more keys" }
+$("pianoScroll").addEventListener("scroll",edges,{passive:true}); addEventListener("resize",edges);
+function keyTap(m){ AC(); if(ex===1&&ansMode==="kb"&&phase==="answer") return answer(m,keyEl(m));
+  if(phase==="done"||phase==="idle"){ if(!loadP) loadSamples(); playSeq([{at:0,ms:[m],d:0.9}]) } }
+
+// ================= ANSWER PAD =================
+function buildPad(){ const p=$("pad"), p2=$("pad2"); p.innerHTML=""; p2.innerHTML=""; p2.hidden=true; p.className=""; const lv=L();
+  $("card").classList.toggle("padmode",padMode()); $("card").classList.toggle("kbmode",!padMode()); $("padWrap").hidden=!padMode();
+  const add=(el,html,val,aria)=>{ const b=document.createElement("button"); b.className="chma-key"; b.innerHTML=html; b.dataset.v=val; if(aria) b.setAttribute("aria-label",aria); b.addEventListener("click",()=>answer(val,b)); el.appendChild(b); return b };
+  let n=0;
+  if(ex===1&&ansMode==="names"){ const pcs=lv.rand?range(0,11):[...new Set(lv.pool.map(m=>mod(m,12)))].sort((a,b)=>a-b), wh=pcs.filter(x=>!isBlack(x)), bl=pcs.filter(isBlack);
+    wh.forEach(pc=>add(p,`<b>${SH[pc]}</b>`,pc)); n=wh.length; p.style.gridTemplateColumns=`repeat(${Math.max(3,n)},1fr)`;
+    if(bl.length){ p2.hidden=false; bl.forEach(pc=>add(p2,`<span>${SH[pc]}</span><span>${FL[pc]}</span>`,pc,keyName(pc))) } }
+  else if(ex===2){ lv.deg.forEach(d=>add(p,`<b>${d}</b>${$("solfOn").checked?`<small>${SOLF[d]}</small>`:""}`,d,"Scale degree "+d+" ("+SOLF[d]+")")); n=lv.deg.length; p.style.gridTemplateColumns=`repeat(${n>7?6:Math.max(3,n)},1fr)` }
+  else if(ex===3){ lv.iv.forEach(s=>add(p,`<b>${IV[s].sh}</b><small>${s===12?"octave":IV[s].nm}</small>`,s,ivName(s))); n=lv.iv.length; p.style.gridTemplateColumns=`repeat(${n>7?6:Math.max(2,n)},1fr)` }
+  cueSheet() }
+function cueSheet(){ const c=$("cues"); if(ex!==3||!$("cueOn").checked){ c.hidden=true; return } const dir=$("dirSel").value, di=dir==="down"?1:0;
+  c.hidden=false; c.innerHTML=`<b>Song cues</b> (${dir==="down"?"going down":dir==="both"?"up / down":dir==="harm"?"together: think of them going up":"going up"})<ul>`+L().iv.map(s=>`<li><b>${IV[s].sh}</b>: ${dir==="both"?CUE[s][0]+" / "+CUE[s][1]:CUE[s][di]}</li>`).join("")+"</ul>" }
+const padBtn=v=>[...document.querySelectorAll("#padWrap button")].find(b=>b.dataset.v===String(v));
+
+// ================= QUESTIONS =================
+function dist(s,n){ const a=Math.abs(s), hs=a===1?"1 half step":a+" half steps"; return s===0?"the same note (unison)":s>0?`up ${hs} = ${ivName(s,n)}`:`down ${hs} = ${ivName(s,n)} below` }
+function refText(){ if(ex===2) return `Listen: <b class="nm">${q.minor?"i – iv – V – i":"I – IV – V – I"}</b> <small>in ${spName(q.refSp)} ${q.minor?"minor":"major"}</small>`;
+  if(ex===3) return q.harm?"Two notes together…":`Note 1… <small>(the reference)</small>`;
+  return `This is <b class="nm">${spName(q.refSp)}</b>.` }
+function askText(){ const lv=L();
+  if(ex===1){ const how=ansMode==="kb"?"Tap the key.":"Tap its name."; if(lv.two) return `Which two notes, in order? <small>${how}</small>`;
+    return `Which note was it? <small>${lv.dir==="up"?`Higher than ${spName(q.refSp)}, or the same. `:lv.dir==="both"?`Higher or lower than ${spName(q.refSp)}. `:""}${how}</small>` }
+  if(ex===2) return `Which scale degree? <small>Key of ${spName(q.refSp)} ${q.minor?"minor":"major"}</small>`;
+  return `Which interval? <small>${q.harm?"Played together":q.semis[0]>0?"Going up":"Going down"}</small>` }
+// the audio for a question, or one part of it
+function seqFor(part){ const ev=[]; let mysAt=0;
+  const cad=(at,cads)=>{ const C=cads||(q.minor?CAD_MIN:CAD_MAJ); C.forEach((ch,i)=>ev.push({at:at+i*0.8*SP,ms:ch.map(x=>q.ref+x),d:i===3?1.1:0.72,v:0.6})); return at+3.2*SP+0.9*SP };
+  if(ex===1){ let t=0; if(part==="all"&&$("cadOn").checked&&!L().rand) t=cad(0,CAD_MAJ);
+    if(part!=="mys"){ ev.push({at:t,ms:[q.ref],d:1.0}); t+=1.5*SP }
+    if(part!=="ref"){ mysAt=t; q.notes.forEach((m,i)=>{ ev.push({at:t,ms:[m],d:i===q.notes.length-1?1.2:0.75}); if(i<q.notes.length-1) t+=0.85*SP }); }
+    return {ev,mysAt:part==="ref"?null:mysAt,lastAt:t} }
+  if(ex===2){ let t=0; if(part!=="mys") t=cad(0); if(part!=="ref"){ mysAt=t; ev.push({at:t,ms:[q.notes[0]],d:1.4}) } return {ev,mysAt:part==="ref"?null:mysAt,lastAt:t} }
+  if(q.harm){ if(part==="ref"){ ev.push({at:0,ms:[q.ref],d:1.0}); return {ev,mysAt:null} } if(part==="mys"){ ev.push({at:0,ms:[q.notes[0]],d:1.0}); return {ev,mysAt:0,lastAt:0} }
+    ev.push({at:0,ms:[q.ref,q.notes[0]],d:1.8}); return {ev,mysAt:0,lastAt:0} }
+  if(part!=="mys") ev.push({at:0,ms:[q.ref],d:0.9}); if(part!=="ref"){ mysAt=part==="mys"?0:1.0*SP; ev.push({at:mysAt,ms:[q.notes[0]],d:1.3}) }
+  return {ev,mysAt:part==="ref"?null:mysAt,lastAt:mysAt} }
+function play(part){ clearTimers(); const {ev,mysAt,lastAt}=seqFor(part); playSeq(ev); const first=part==="all";
+  if(first){ phase="playing"; $("prompt").innerHTML=refText(); btns();
+    later(()=>{ if(!q) return; if(ex===3&&!q.harm) $("prompt").innerHTML="Note 2… <small>(the mystery note)</small>"; else if(ex!==3) $("prompt").innerHTML=`Now the mystery note${q.notes.length>1?"s":""}…`; phase="answer"; q.mysAt=performance.now()+((lastAt||0)-(mysAt||0))*1000; btns() },(mysAt||0)*1000+80);
+    later(()=>{ if(q&&phase==="answer") $("prompt").innerHTML=askText() },((lastAt||0)+0.6*SP)*1000+80) } }
+function newQ(){ clearTimers(); hush(); q=gen(ex,level,opts()); q.taps=[]; q.tried=false; q.rep={ref:0,mys:0};
+  $("card").classList.remove("answered"); buildPiano(q.win[0],q.win[1]); clearMarks(); mark(q.ref,"ref"); $("fb").innerHTML="";
+  document.querySelectorAll("#padWrap button").forEach(b=>b.classList.remove("hit","miss"));
+  requestAnimationFrame(()=>centerOn(Math.min(q.ref,...(ex===1&&!L().rand?L().pool:q.notes)),Math.max(q.ref,...(ex===1&&!L().rand?L().pool:q.notes)),true));
+  play("all") }
+async function start(){ AC(); if(!buf._ok){ phase="loading"; btns(); loadingMsg(0); await loadSamples() } newQ() }
+
+function valName(v){ if(ex===1) return ansMode==="kb"?SH[mod(v,12)]+(Math.floor(v/12)-1):keyName(v); if(ex===2) return v; return IV[v].sh+" ("+ivName(v)+")" }
+function answer(v,btn){ if(!q||phase!=="answer") return;
+  if(ex===1){ const i=q.taps.length, want=q.notes[i], ok=ansMode==="kb"?v===want:v===mod(want,12); q.taps.push({v,ok});
+    if(q.notes.length>1&&i<q.notes.length-1){ if(ansMode==="kb") mark(v,"pend",String(i+1)); else if(btn){ btn.classList.add("hit"); setTimeout(()=>btn.classList.remove("hit"),250) } $("fb").innerHTML=`Note 1: ${valName(v)}. Now note 2.`; return } }
+  const ok=ex===1?q.taps.every(t=>t.ok):ex===2?v===q.deg:v===q.ivs;
+  const first=!q.tried;
+  if(first){ st.total++; const lf=life[ex]; lf.n++; if(ok){ const fast=arc&&performance.now()-q.mysAt<=3000, x=(arc&&arc.bonus?2:1)*(arc?(fast?2:1):1); st.pts+=x; q.got=x; st.correct++; st.streak++; st.best=Math.max(st.best,st.streak); lf.ok++; lf.streak++; lf.best=Math.max(lf.best,lf.streak) }
+    else { st.streak=0; lf.streak=0; const k=missKey(); st.miss[k]=(st.miss[k]||0)+1 } store.set("life",life) }
+  if(!ok&&first&&gmode==="single"&&!arc&&$("retryOn").checked){ q.tried=true; if(btn) btn.classList.add("miss"); if(ex===1&&ansMode==="kb") q.taps.forEach(t=>mark(t.v,"miss")); render();
+    $("fb").innerHTML=`<span class="no">Not ${ex===1?q.taps.map(t=>valName(t.v)).join(", then "):valName(v)}.</span> Listen again and try once more.`; q.taps=[]; setTimeout(()=>{ if(phase==="answer"){ clearMarks(); mark(q.ref,"ref"); document.querySelectorAll("#padWrap button.miss").forEach(b=>b.classList.remove("miss")) } },700); return }
+  finish(ok,v,btn) }
+function missKey(){ if(ex===1) return q.semis.map(s=>s===0?"unison":(s>0?"up ":"down ")+IV[Math.abs(s)].sh).join(" + "); if(ex===2) return "degree "+q.deg; return IV[q.ivs].sh+(q.harm?" together":q.semis[0]>0?" up":" down") }
+function explain(){ const R=spFull(q.refSp,q.ref);
+  if(ex===1){ return q.notes.map((m,i)=>{ const sp=q.sps[i], s=q.semis[i], dg=degreeOf(q.refSp,q.ref,sp,m), en=spName(sp)!==SH[mod(m,12)]&&spName(sp)!==FL[mod(m,12)]?` (the ${keyName(mod(m,12))} key)`:"";
+      return `${q.notes.length>1?`Note ${i+1}: `:""}<b>${spFull(sp,m)}</b>${en}: ${dist(s,sp.n)}. Scale degree ${dg} (${SOLF[dg]||"–"}) in ${spName(q.refSp)} major.` }).join("<br>") }
+  if(ex===2){ const sp=q.sps[0], s=q.semis[0]; return `<b>${spName(sp)}</b> is scale degree ${q.deg} (${SOLF[q.deg]}) in ${spName(q.refSp)} ${q.minor?"minor":"major"}${s?`: ${dist(s,sp.n)} from ${spName(q.refSp)}.`:": home, the tonic."}` }
+  const sp=q.sps[0], s=q.semis[0], n=sp.n; return `${R} ${q.harm?"with":s>0?"up to":"down to"} <b>${spFull(sp,q.notes[0])}</b>: ${Math.abs(s)===1?"1 half step":Math.abs(s)+" half steps"} = <b>${ivName(s,n)}</b>.` }
+function pairSeq(){ const ev=[{at:0,ms:[q.ref],d:0.9}]; if(ex===3&&q.harm){ ev.push({at:1.1,ms:[q.notes[0]],d:0.9},{at:2.3,ms:[q.ref,q.notes[0]],d:1.4}); return ev } q.notes.forEach((m,i)=>ev.push({at:1.1+i*0.9,ms:[m],d:i===q.notes.length-1?1.2:0.8})); return ev }
+function finish(ok,v,btn){ phase="done"; clearTimers(); $("card").classList.add("answered"); clearMarks(); mark(q.ref,"ref");
+  q.notes.forEach((m,i)=>mark(m,"ans",q.notes.length>1?String(i+1):null));
+  if(!ok){ if(ex===1&&ansMode==="kb") q.taps.forEach(t=>{ if(!t.ok) mark(t.v,"miss") }); else if(btn) btn.classList.add("miss") }
+  if(ex===1&&ansMode==="names") q.notes.forEach(m=>{ const b=padBtn(mod(m,12)); if(b) b.classList.add("hit") }); else if(ex!==1){ const b=padBtn(ex===2?q.deg:q.ivs); if(b) b.classList.add("hit") }
+  const cue=ex===3&&$("cueOn").checked?`<span class="cue">Song cue: ${CUE[q.ivs][q.semis[0]<0?1:0]}</span>`:"";
+  const head=ok?`<span class="ok">✓ ${q.tried?"There it is.":"Yes!"}${q.got>1?` +${q.got}`:""}</span> `:`<span class="no">✗ ${ex===1?"You played "+q.taps.map(t=>valName(t.v)).join(", then "):"That was "+valName(v)}.</span> `;
+  $("fb").innerHTML=head+explain()+cue+(arc?"":` <button class="pair" id="pairBtn">▶ Hear the pair</button>`);
+  const pb=$("pairBtn"); if(pb) pb.addEventListener("click",()=>{ AC(); playSeq(pairSeq()) });
+  centerOn(Math.min(q.ref,...q.notes),Math.max(q.ref,...q.notes)); render(); btns();
+  if(arc){ arc.qn++; arcBar(); later(arcNext,FAST?250:2300) } }
+
+// ================= SCORE + BUTTONS =================
+function resetScore(){ st={pts:0,correct:0,total:0,streak:0,best:0,miss:{}}; render() }
+function render(){ if(arc) arcBar(); $("sPts").textContent=st.pts; $("sPct").textContent=st.total?Math.round(100*st.correct/st.total)+"%":"–"; $("sStreak").textContent=life[ex].streak; $("sBest").textContent=life[ex].best;
+  const lf=life[ex]; $("lifeLine").textContent=lf.n?`All time on this exercise: ${lf.n} answered · ${Math.round(100*lf.ok/lf.n)}% · best streak ${lf.best}`:"" }
+function btns(){ const cap=arc?1:Infinity, can=q&&(phase==="answer"||phase==="done"&&!arc);
+  const rl=ex===2?["Play cadence again","↻ Cadence","↻ Key"]:["Play reference again","↻ Reference","↻ Ref"], ml=ex===1&&q&&q.notes.length>1?["Play mystery notes again","↻ Mystery","↻ Mys"]:["Play mystery again","↻ Mystery","↻ Mys"];
+  const lab=(b,l,k)=>{ const left=arc&&q?cap-q.rep[k]:null; b.querySelector(".lg").textContent=l[0]+(left!=null?` (${left} left)`:""); b.querySelector(".sh").textContent=left!=null?l[2]+` (${left})`:l[1] };
+  lab($("refBtn"),rl,"ref"); lab($("mysBtn"),ml,"mys");
+  $("refBtn").disabled=!can||(q&&q.rep.ref>=cap); $("mysBtn").disabled=!can||(q&&q.rep.mys>=cap);
+  const g=$("goBtn"); g.disabled=phase==="loading";
+  g.textContent=gmode==="chal"?(arc?"Stop":"Start Challenge"):(phase==="idle"||phase==="loading"?"Play":"Next ▶") }
+function replay(k){ if(!q||!(phase==="answer"||phase==="done")) return; if(arc&&q.rep[k]>=1) return; q.rep[k]++; AC(); playSeq(seqFor(k).ev); btns() }
+$("refBtn").addEventListener("click",()=>replay("ref")); $("mysBtn").addEventListener("click",()=>replay("mys"));
+$("goBtn").addEventListener("click",()=>{ AC(); if(gmode==="chal"){ if(arc){ stopChallenge(); idle() } else arcStart(); return } start() });
+
+// ================= CHALLENGE (same shape as the other studio apps; rounds are 8 questions instead of 30 seconds) =================
+const QN=8; let hitShown=false;
+function hypePlay(ms){ try{ if(window.chmaHype&&$("hypeOn").checked) chmaHype.play(ms,{ctx:AC(),round:arc?arc.round:1,bonus:!!(arc&&arc.bonus),enabled:true,micSafe:false}) }catch(e){} }
+function hypeStop(f){ try{ window.chmaHype&&chmaHype.stop(f) }catch(e){} }
+function chime(){ if(!ac) return; const t=ac.currentTime+0.02; [72,76,79,84].forEach((m,i)=>note(m,t+i*0.09,0.25,0.5)) }
+function whoosh(){ try{ AC(); const t=ac.currentTime+0.15, len=0.7, sr=ac.sampleRate, b=ac.createBuffer(1,Math.floor(sr*len),sr), d=b.getChannelData(0); for(let k=0;k<d.length;k++) d[k]=Math.random()*2-1;
+  const src=ac.createBufferSource(), bp=ac.createBiquadFilter(), g=ac.createGain(); src.buffer=b; bp.type="bandpass"; bp.Q.value=0.9; bp.frequency.setValueAtTime(350,t); bp.frequency.exponentialRampToValueAtTime(2600,t+0.38); bp.frequency.exponentialRampToValueAtTime(900,t+len);
+  g.gain.setValueAtTime(0.0001,t); g.gain.exponentialRampToValueAtTime(0.3,t+0.3); g.gain.exponentialRampToValueAtTime(0.0001,t+len); src.connect(bp); bp.connect(g); g.connect(ac.destination); src.start(t); src.stop(t+len+0.05) }catch(e){} }
+function arcUI(on){ $("arcRow").hidden=!on; $("arcMeter").hidden=!on; document.body.classList.toggle("running",on); if(!on){ $("card").classList.remove("met"); $("arcMeter").classList.remove("hit","flash") } btns() }
+function arcBar(){ if(!arc) return; $("arcQ").textContent=`Q ${Math.min(QN,arc.qn+(phase==="done"?0:1))} / ${QN}`; $("arcFire").hidden=!arc.bonus;
+  const rp=st.pts-arc.start;
+  if(arc.warm){ $("arcRound").textContent="ROUND 1 · WARM-UP"; $("arcNeed").textContent=`${rp} POINTS`; $("arcNeed").classList.remove("met"); $("arcFill").style.width=(100*arc.qn/QN)+"%"; $("arcMeter").classList.remove("hit"); return }
+  const rn=arc.need, hit=rp>=rn; $("arcRound").textContent=arc.bonus?"BONUS ROUND":`ROUND ${arc.round} OF 5`; $("arcNeed").textContent=(hit?"✓ ":"")+`${rp} / ${rn}`; $("arcNeed").classList.toggle("met",hit);
+  const m=$("arcMeter"); $("arcFill").style.width=Math.min(100,rp/rn*100)+"%"; $("arcHit").textContent=arc.bonus?"✓ BONUS TARGET HIT":"✓ TARGET HIT";
+  if(hit&&!arc.hit){ arc.hit=true; m.classList.remove("flash"); void m.offsetWidth; m.classList.add("flash"); const hs=$("hitStamp"); hs.classList.remove("go"); void hs.offsetWidth; hs.classList.add("go"); chime(); $("card").classList.add("met") }
+  m.classList.toggle("hit",hit) }
+function arcSplash(t,sub,then,pre){ const ms=FAST?1600:Math.max(4500,2500+String(sub||"").length*30); clearTimers(); hush(); phase="splash"; $("arcSplashT").textContent=t; $("arcSplashS").textContent=sub; $("arcSplashP").textContent=pre||""; const sp=$("arcSplash"); sp.hidden=false; $("card").classList.remove("met");
+  const pcs=$("arcPcs"); pcs.innerHTML=""; const cols=["var(--c-sel)","var(--c-ok)","#ff8a1f","#ffd23f"]; for(let i=0;i<22;i++){ const a=Math.random()*Math.PI*2,d=110+Math.random()*170,e=document.createElement("i"); e.className="pc"; e.style.cssText=`background:${cols[i%4]};--dx:${Math.cos(a)*d}px;--dy:${Math.sin(a)*d}px;--r:${Math.random()*720-360}deg`; pcs.appendChild(e) }
+  sp.classList.remove("go"); void sp.offsetWidth; sp.classList.add("go"); whoosh(); hypePlay(ms); btns();
+  const tok=++splashTok, t0=performance.now(), go=()=>{ if(tok!==splashTok) return; splashTok++; hypeStop(120); sp.onclick=null; sp.hidden=true; if(arc) setTimeout(()=>{ if(arc&&tok+1===splashTok) then() },FAST?50:350) };
+  sp.onclick=()=>{ if(performance.now()-t0>900) go() }; let hint=sp.querySelector(".tapgo"); if(!hint){ hint=document.createElement("small"); hint.className="tapgo"; hint.style.cssText="display:block;margin-top:14px;opacity:.7;font-size:14px"; hint.textContent="Tap to start"; sp.appendChild(hint) } setTimeout(go,ms) }
+function arcStart(){ stopChallenge(); resetScore(); sheet(false); arc={round:1,warm:true,bonus:false,qn:0,start:0,need:0,inc:[]}; arcUI(true); render();
+  if(!loadP) loadSamples();
+  arcSplash("ROUND 1",`Warm-up: 8 questions. Your score sets your targets. Right = 1 point, right within 3 seconds = 2. One replay each, one try.`,arcRound,"CHALLENGE MODE") }
+function arcRound(){ arc.qn=0; arc.hit=false; arc.start=st.pts; arcBar(); (buf._ok?Promise.resolve():loadSamples()).then(()=>{ if(arc) newQ() }) }
+function arcNext(){ if(!arc) return; const got=st.pts-arc.start, left=QN-arc.qn, per=2*(arc.bonus?2:1);
+  if(arc.qn>=QN||(!arc.warm&&!arc.bonus&&got+left*per<arc.need)) return arcRoundEnd(); newQ() }
+function arcRoundEnd(){ clearTimers(); phase="splash"; const got=st.pts-arc.start;
+  if(arc.bonus) return arcFinish(true,arc.need,got);
+  if(arc.warm){ const B=Math.max(4,got), RAMP=[0,0,1,1.1,1.2,1.3], FLOOR=[0,0,6,7,8,9]; arc.inc=[got];
+    for(let r=2;r<=5;r++) arc.inc[r-1]=Math.min(14,Math.max(FLOOR[r],Math.round(B*RAMP[r]),r>2?arc.inc[r-2]+1:0));
+    arc.warm=false; arc.round=2; arc.need=arc.inc[1]; arcBar();
+    return arcSplash("ROUND 2",`Target this round: ${arc.need} points in 8 questions. Fresh count from 0.`,arcRound,`WARM-UP DONE · YOUR BASELINE ${got}`) }
+  if(got<arc.need) return arcFinish(false,arc.need,got);
+  if(arc.round===5){ arc.bonus=true; arc.need=Math.min(28,Math.max(arc.inc[4]+1,Math.round(got*1.05))); arcBar();
+    return arcSplash("BONUS ROUND",`Every point counts double. Target: ${arc.need} points in 8 questions.`,arcRound,"ROUND 5 CLEARED ✓") }
+  const cleared=arc.round; arc.round++; arc.inc[arc.round-1]=Math.min(15,Math.max(arc.inc[arc.round-1],Math.round(got*1.05),arc.inc[arc.round-2]+1)); arc.need=arc.inc[arc.round-1]; arcBar();
+  arcSplash(`ROUND ${arc.round}`,`Target this round: ${arc.need} points in 8 questions. Fresh count from 0.`,arcRound,`ROUND ${cleared} CLEARED ✓`) }
+function sheet(on){ $("results").hidden=!on; [...$("card").children].forEach(c=>{ if(c!==$("results")) c.inert=on }); $("actbar").inert=on; $("actbar").hidden=on }
+function arcFinish(won,need,got){ const reached=arc.bonus?"Bonus round":`Round ${arc.round}`, failed=arc.round, key=`arcbest-${ex}-${level}`, prev=Math.max(0,Math.floor(+store.get(key,0)||0)), best=Math.max(prev,st.pts), isNew=st.pts>0&&st.pts>prev; store.set(key,best);
+  splashTok++; hypeStop(120); clearTimers(); arc=null; arcUI(false); phase="idle"; q=null;
+  $("rTitle").textContent=won?"Challenge cleared!":"Challenge over";
+  $("rWhy").textContent=won?(got>=need?`All 5 rounds cleared and the bonus target hit (${got} / ${need}).`:`All 5 rounds cleared. Bonus target was ${need}; you had ${got}.`):`Round ${failed} target was ${need}. You had ${got}. Hit the target within 8 questions to unlock Round ${failed+1}.`;
+  const pct=st.total?Math.round(100*st.correct/st.total):0; $("rScore").innerHTML=`${st.pts} <small>points · ${reached}${isNew?" · new high score":""}</small>`; $("rPct").textContent=pct+"%"; $("rTotal").textContent=st.total; $("rBest").textContent=st.best;
+  const miss=Object.entries(st.miss).sort((a,b)=>b[1]-a[1]).slice(0,5); $("rMiss").innerHTML=miss.length?miss.map(([k,v])=>`<span>${k} ×${v}</span>`).join(""):"<span>None. Clean run.</span>";
+  const d=new Date(), lv=L(); $("rStamp").textContent=`CHALLENGE MODE · High score ${best} · Ear Trainer · ${EXS[ex].name} · Level ${level} · ${lv.name} (${lv.sub}) · ${d.toLocaleDateString(undefined,{weekday:"short",month:"short",day:"numeric"})} ${d.toLocaleTimeString([],{hour:"numeric",minute:"2-digit"})}`;
+  sheet(true); $("results").scrollTop=0; try{ $("rTitle").focus({preventScroll:true}) }catch(e){} }
+function stopChallenge(){ splashTok++; hypeStop(120); clearTimers(); hush(); $("arcSplash").hidden=true; const was=!!arc; arc=null; arcUI(false); if(was){ resetScore(); phase="idle"; q=null } }
+
+// ================= SETUP + WIRING =================
+function idle(){ clearTimers(); hush(); q=null; phase="idle"; $("card").classList.remove("answered"); const lv=L();
+  if(ex===1&&!lv.rand&&lv.dir==="up") buildPiano(60,84); else buildPiano(48,72); clearMarks(); if(ex===1&&!lv.rand) mark(60,"ref");
+  $("fb").innerHTML=""; document.querySelectorAll("#padWrap button").forEach(b=>b.classList.remove("hit","miss"));
+  $("prompt").innerHTML=gmode==="chal"?`Challenge: 5 rounds of 8 questions, then a bonus round. <small>Press Start Challenge.</small>`:`${EXS[ex].name} · Level ${level}: ${lv.name} <small>Press Play to hear the first question.</small>`;
+  requestAnimationFrame(()=>centerOn(60,72,true)); btns() }
+function setup(){ stopChallenge(); sheet(false);
+  document.querySelectorAll("#exSeg button").forEach(b=>b.setAttribute("aria-pressed",String(+b.dataset.ex===ex)));
+  document.querySelectorAll("#modeSeg button").forEach(b=>b.setAttribute("aria-pressed",String(b.dataset.m===gmode)));
+  document.querySelectorAll("#ansSeg button").forEach(b=>b.setAttribute("aria-pressed",String(b.dataset.a===ansMode)));
+  const lv=$("levels"); lv.innerHTML=""; EXS[ex].levels.forEach((x,i)=>{ const b=document.createElement("button"); b.innerHTML=`<b>L${i+1}</b>${x.name}<span>${x.sub}</span>`; b.setAttribute("aria-pressed",String(i+1===level)); b.addEventListener("click",()=>{ level=i+1; store.set("lv"+ex,level); setup() }); lv.appendChild(b) });
+  requestAnimationFrame(()=>{ const on=lv.querySelector('[aria-pressed="true"]'); if(on&&lv.scrollWidth>lv.clientWidth) lv.scrollLeft=on.offsetLeft-12 });
+  buildPad(); resetScore(); idle() }
+document.querySelectorAll("#exSeg button").forEach(b=>b.addEventListener("click",()=>{ ex=+b.dataset.ex; store.set("ex",ex); level=+store.get("lv"+ex,1); if(!(level>=1&&level<=EXS[ex].levels.length)) level=1; setup() }));
+document.querySelectorAll("#modeSeg button").forEach(b=>b.addEventListener("click",()=>{ gmode=b.dataset.m; store.set("mode",gmode); setup() }));
+document.querySelectorAll("#ansSeg button").forEach(b=>b.addEventListener("click",()=>{ ansMode=b.dataset.a; store.set("ans",ansMode); if(ex===1) setup(); else document.querySelectorAll("#ansSeg button").forEach(x=>x.setAttribute("aria-pressed",String(x.dataset.a===ansMode))) }));
+["cadOn","solfOn","keyChg","cueOn","labelsOn","retryOn","hypeOn"].forEach(id=>{ $(id).checked=!!store.get(id,$(id).checked); $(id).addEventListener("change",()=>{ store.set(id,$(id).checked);
+  if(id==="labelsOn") $("piano").querySelectorAll(".w").forEach(b=>keyLabel(b,+b.dataset.midi));
+  if(id==="solfOn"&&ex===2) buildPad(); if(id==="cueOn") cueSheet(); if(id==="hypeOn"&&!$(id).checked) hypeStop(120) }) });
+{ const v=store.get("dirSel","up"); if(["up","down","both","harm"].includes(v)) $("dirSel").value=v; $("dirSel").addEventListener("change",()=>{ store.set("dirSel",$("dirSel").value); cueSheet() }) }
+$("againBtn").addEventListener("click",arcStart);
+$("closeBtn").addEventListener("click",()=>{ sheet(false); gmode="single"; store.set("mode",gmode); setup() });
+document.addEventListener("visibilitychange",()=>{ if(document.hidden){ hypeStop(60); hush() } else if(ac&&ac.state!=="running") ac.resume().catch(()=>{}) });
+// keyboard shortcuts: Space/Enter = Play/Next (single tries), R = reference again, M = mystery again
+document.addEventListener("keydown",e=>{ if(/INPUT|SELECT|TEXTAREA/.test(e.target.tagName)||e.metaKey||e.ctrlKey||e.altKey||e.repeat) return; const k=e.key.toLowerCase();
+  if(k==="r") replay("ref"); else if(k==="m") replay("mys"); else if((k==="n")&&gmode==="single") $("goBtn").click() });
+setup();
+window.__ear={state:()=>({ex,level,gmode,ansMode,phase,q:q?JSON.parse(JSON.stringify(q)):null,arc:arc?JSON.parse(JSON.stringify(arc)):null,st:st?{...st,miss:{...st.miss}}:null,life:JSON.parse(JSON.stringify(life)),splash:!$("arcSplash").hidden,results:!$("results").hidden,samples:Object.keys(buf).filter(k=>k!=="_ok").length}),
+  gen,EXS,IV,ivName,spName,spellFrom,degreeOf,DEG_SEMI,answer:(v)=>answer(v,ex===1&&ansMode==="kb"?keyEl(v):padBtn(v))};   // test hook
+})();
+</script>
+</body></html>
