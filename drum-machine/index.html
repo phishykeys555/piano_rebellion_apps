@@ -225,6 +225,10 @@ input[type=range]:active::-moz-range-thumb{transform:scale(1.12)}
 #mv::-moz-range-track{height:8px;background:linear-gradient(90deg,transparent 0 var(--p,50%),var(--dim) var(--p,50%) 100%),linear-gradient(90deg,var(--c-bad),var(--mvy) 50%,var(--c-ok))}
 #mv::-webkit-slider-thumb{margin-top:calc(4px - var(--th) / 2)}
 </style>
+<style>/* 2026-11-11.23: grid velocity levels */
+.c.on.lv4{opacity:1;box-shadow:inset 0 0 0 3px rgba(255,255,255,.85),0 0 9px color-mix(in srgb,var(--c-sel,#e8412c) 60%,transparent)}.c.on.lv3{opacity:1}.c.on.lv2{opacity:.8;box-shadow:inset 0 4px 0 var(--c-panel2,#2a2c31),inset 0 -4px 0 var(--c-panel2,#2a2c31)}.c.ghost.lv1{opacity:.6;box-shadow:inset 0 8px 0 var(--c-panel2,#2a2c31),inset 0 -8px 0 var(--c-panel2,#2a2c31)}
+.gvleg{display:inline-flex;align-items:center;gap:4px;font-size:12px;color:var(--mut);flex-wrap:wrap}.gvleg .c{display:inline-block;width:18px;height:18px;min-width:18px;border-radius:4px;margin-left:6px}.gvleg .c.on.lv4{box-shadow:inset 0 0 0 2px rgba(255,255,255,.85)}.gvleg .c.on.lv2{box-shadow:inset 0 0 0 3px var(--c-panel2,#2a2c31)}.gvleg .c.ghost.lv1{box-shadow:inset 0 0 0 5px var(--c-panel2,#2a2c31)}
+</style>
 <style>/* 2026-11-11.15: preset export / import */
 .psio{margin-top:2px}.psxm{font-size:12px;color:var(--c-mut);line-height:1.45;white-space:pre-line}.psxm:empty{display:none}
 .psq{border:1px solid var(--c-line);background:var(--c-panel);border-radius:12px;padding:10px 12px;margin:6px 0;font-size:13px}
@@ -280,6 +284,8 @@ button .ic{width:1.2em;height:1.2em}
 <optgroup label="Traditional Jazz"><option value="jazz">Jazz Swing – Ride Cymbal</option><option value="twofeel">Jazz Swing – Two-Feel (kick on 1 &amp; 3)</option><option value="bebop">Bebop – Ride + Comping</option><option value="uptempo">Up-Tempo Swing (ride + hat only)</option><option value="bigband">Big Band – Four on the Floor</option><option value="jballad">Jazz Ballad – Soft Swing</option><option value="snapswing">Finger-Snap Swing (2 &amp; 4)</option><option value="jwaltz">Jazz Waltz (3/4 swing)</option><option value="nola2beat">New Orleans Two-Beat (Baby Dodds, woodblock)</option><option value="basie">Kansas City Hi-Hat Swing (Papa Jo Jones)</option></optgroup>
 <optgroup label="Blues / Shuffle"><option value="shuffle">Blues Shuffle (triplet swing)</option><option value="texas">Texas Shuffle (snare ghosts)</option><option value="halfshuf">Half-Time Shuffle (Purdie / Rosanna)</option><option value="slowblues">Slow Blues 12/8</option></optgroup>
 <optgroup label="Jam Band"><option value="jbcow">Cow Funk (Phish)</option><option value="jbdead">Two-Beat Ride Groove (Grateful Dead)</option><option value="jbshuf">Southern 12/8 Shuffle (Allman Brothers)</option><option value="jbwhip">11/8 Intro (Whipping Post, 3+3+3+2)</option></optgroup>
+<optgroup label="James Brown"><option value="jb_funky_drummer">Funky Drummer (Clyde Stubblefield)</option><option value="jb_cold_sweat">Cold Sweat (Clyde Stubblefield)</option><option value="jb_sex_machine">Get Up (I Feel Like Being a) Sex Machine (John &quot;Jabo&quot; Starks)</option><option value="jb_soul_power">Soul Power (John &quot;Jabo&quot; Starks)</option><option value="jb_payback">The Payback – Main groove (John &quot;Jabo&quot; Starks)</option><option value="jb_payback_intro">The Payback – Intro (John &quot;Jabo&quot; Starks)</option></optgroup><optgroup label="Steely Dan / Yacht Rock"><option value="sd_home_at_last">Home at Last (Bernard Purdie)</option><option value="sd_peg_verse">Peg – Verse (Rick Marotta)</option><option value="sd_peg_chorus">Peg – Chorus (Rick Marotta)</option><option value="sd_josie_verse">Josie (Jim Keltner)</option><option value="toto_rosanna">Rosanna (Jeff Porcaro)</option><option value="toto_hold_the_line">Hold the Line (Jeff Porcaro)</option><option value="toto_africa">Africa (Jeff Porcaro)</option></optgroup><optgroup label="Led Zeppelin"><option value="lz_levee">When the Levee Breaks (John Bonham)</option><option value="lz_immigrant_song">Immigrant Song (John Bonham)</option><option value="lz_black_dog">Black Dog (John Bonham)</option><option value="lz_good_times_bad_times">Good Times Bad Times (John Bonham)</option></optgroup><optgroup label="Prog"><option value="rush_tom_sawyer">Tom Sawyer (Neil Peart)</option><option value="gen_lamb">The Lamb Lies Down on Broadway (Phil Collins)</option><option value="gen_follow_you">Follow You Follow Me (Phil Collins)</option><option value="gen_invisible_touch">Invisible Touch (Phil Collins)</option></optgroup><optgroup label="Phish"><option value="ph_stash_jam">Stash, jam – Fishman (approx.)</option><option value="ph_limb_by_limb">Limb by Limb – Fishman (approx.)</option></optgroup><optgroup label="Grateful Dead"><option value="gd_shakedown">Shakedown Street – Kreutzmann/Hart (approx.)</option><option value="gd_nfa">Not Fade Away – Kreutzmann/Hart (approx.)</option></optgroup><optgroup label="Frank Zappa"><option value="fz_yellow_snow_74">Don’t Eat the Yellow Snow, 7/4 – Humphrey (approx.)</option><option value="fz_yellow_snow_78">Don’t Eat the Yellow Snow, 7/8 – Humphrey (approx.)</option><option value="fz_central_scrutinizer">The Central Scrutinizer – Colaiuta (approx.)</option></optgroup>
+<optgroup label="Brushes"><option value="brballad">Jazz Ballad – Brushes, stir the pot (50–76 BPM)</option><option value="brmed">Medium Swing – Brushes, sweep + taps on 2 and 4 (110–170 BPM)</option><option value="brfast">Up-Tempo Swing – Brushes, side to side (180–280 BPM)</option><option value="brwaltz">Jazz Waltz – Brushes, one circle a bar (3/4, 120–190 BPM)</option><option value="brbossa">Bossa Nova – Brushes (110–150 BPM)</option><option value="brpop">Pop / Folk Ballad – Brushes (60–88 BPM)</option><option value="brtrain">Country Train Beat – Brushes (100–150 BPM)</option><option value="brshuf">Blues Shuffle – Brushes (80–120 BPM)</option></optgroup>
 <optgroup label="Prog / Odd Time"><option value="p54swing">5/4 Swing (Take Five, Brubeck)</option><option value="p54rock">5/4 Rock (Mission: Impossible)</option><option value="p74">7/4 Rock (Money, Pink Floyd)</option><option value="p78">7/8 Prog (2+2+3; beat = 8th note)</option><option value="p98">9/8 (Blue Rondo à la Turk, 2+2+2+3; beat = 8th note)</option></optgroup>
 <optgroup label="Other"><option value="percjam">Percussion Only – Latin Jam</option><option value="shakeronly">Percussion Only – Shaker + Tambourine</option><option value="bluerondo">Blue Rondo – 9/8 click, accents 12 12 12 123</option><option value="click">Metronome – Kick every beat</option><option value="click8">Metronome – 8th note grid</option><option value="click16">Metronome – 16th note grid</option><option value="clear">Clear (build your own)</option></optgroup>
 </select></label>
@@ -293,9 +299,10 @@ button .ic{width:1.2em;height:1.2em}
 </div>
 <div class="row adv">
 <label title="Delays the off-beat notes. 50% = straight, ~67% = triplet swing">Swing <input type="range" id="sw" data-s min="50" max="75" step="1" value="50" style="width:90px"><span id="swt" style="min-width:58px">Straight</span></label>
-<label title="Where the drummer sits on the beat. Auto = the real pocket for this groove: backbeat a hair behind, hats leading, ghost notes floating, jazz swing that straightens as the tempo climbs.">Pocket <select id="pkt" data-s><option value="auto" selected>Auto (real feel for this groove)</option><option value="back">Laid back (behind the beat)</option><option value="top">On top (pushing)</option><option value="machine">Machine (dead straight)</option></select></label><label title="Real drummers play ghost notes at different strengths: softest right after the backbeat, loudest leading into it.">Ghost notes <select id="gdyn" data-s><option value="real" selected>4 levels (real)</option><option value="flat">As written (flat)</option></select></label><label title="Soft snare drags and buzz rolls leading into the backbeat, built from real stick bounces.">Snare rolls <select id="groll" data-s><option value="off" selected>Off</option><option value="drag">Drags into 2 and 4</option><option value="buzz">Buzz roll into 4 (every 2 bars)</option><option value="mix">Subtle mix (drags + an occasional buzz)</option></select></label><label title="Adds tiny random timing and volume differences on top of the pocket">Humanize <input type="range" id="hu" data-s min="0" max="100" value="30" style="width:90px"></label>
+<label title="Where the drummer sits on the beat. Auto = the real pocket for this groove: backbeat a hair behind, hats leading, ghost notes floating, jazz swing that straightens as the tempo climbs.">Pocket <select id="pkt" data-s><option value="auto" selected>Auto (real feel for this groove)</option><option value="back">Laid back (behind the beat)</option><option value="top">On top (pushing)</option><option value="machine">Machine (dead straight)</option></select></label><label title="Real drummers play ghost notes at different strengths: softest right after the backbeat, loudest leading into it.">Ghost notes <select id="gdyn" data-s><option value="real" selected>4 levels (real)</option><option value="flat">As written (flat)</option></select></label><label title="How often soft snare rolls show up: drags, ruffs and short buzzes under the groove, softer than the ghost notes.">Snare rolls <select id="groll" data-s><option value="off" selected>Off</option><option value="sprinkle">Sprinkle (now and then)</option><option value="some">Some (about one a bar)</option><option value="lots">Lots (busy ghost-note feel)</option></select></label><label title="Which rolls the drummer reaches for.">Roll type <select id="grst" data-s><option value="mix" selected>Natural mix</option><option value="drag">Stick strokes</option><option value="buzz">Buzz / press</option></select></label><label title="Adds tiny random timing and volume differences on top of the pocket">Humanize <input type="range" id="hu" data-s min="0" max="100" value="30" style="width:90px"></label>
 <label><input type="checkbox" id="crash" data-s> Crash every 4 bars</label>
 </div>
+<div class="hint" id="gnote" hidden></div>
 <div class="hint vch"><span id="vchs">Want the groove to switch between a verse and a chorus?</span> <button type="button" id="vcgo">Verse / Chorus is in the Song tab</button></div>
 <div class="row rsrow"><button id="reset" title="Back to the starting settings. Your practice log and presets stay."><span data-ic="reset"></span>Reset all settings</button></div></div>
 
@@ -347,24 +354,24 @@ button .ic{width:1.2em;height:1.2em}
 <div class="sec"><h4>Keys</h4>
 <div class="row">
 <label><input type="checkbox" id="kon" data-s> Keys on</label>
-<label>Sound <select id="ksnd" data-s><optgroup label="Pianos"><option value="piano" selected>Grand piano (Yamaha C5, Salamander, 4 layers)</option><option value="upright">Upright piano (Kawai, living room, 3 layers)</option></optgroup><optgroup label="Electric pianos"><option value="fmep">FM electric piano (80s DX7 style, 3 layers)</option><option value="rhodes">Rhodes electric piano (basic)</option></optgroup><optgroup label="Organs"><option value="organ">Drawbar organ (jazz / gospel)</option><option value="rockorgan">Rock organ</option></optgroup><optgroup label="Pads and strings"><option value="sweeppad">Sweep pad (sampled)</option><option value="strings">Synth strings</option><option value="pad">Synth pad (warm analog)</option><option value="padbright">Synth pad (bright, airy)</option></optgroup></select></label>
-<label title="How the keys play the chords. Auto picks a feel that matches the groove.">Comping <select id="kcomp" data-s><option value="auto" selected>Auto (matches groove)</option><option value="sustain">Sustained (hold the chord)</option><option value="pop">Pop (long and short, pushes)</option><option value="charleston">Jazz comping (Charleston, space, pushes)</option><option value="funk">Funk (16th stabs and holds)</option><option value="quarters">Quarter-note pulse (varied lengths)</option><option value="ballad">Ballad (chord then broken)</option></select></label>
+<label>Sound <select id="ksnd" data-s><option value="auto" selected>Auto (best for the groove)</option><optgroup label="Pianos"><option value="piano">Grand piano (Yamaha C5, Salamander, 6 layers)</option><option value="upright">Upright piano (Kawai, living room, 3 layers)</option></optgroup><optgroup label="Electric pianos"><option value="rhodes">Tine electric piano (Rhodes style, 4 layers)</option><option value="wurli">Wurlitzer electric piano (EP200, 4 layers)</option><option value="fmep">FM electric piano (80s DX7 style)</option></optgroup><optgroup label="Organs"><option value="organ">Tonewheel organ (drawbars + Leslie, jazz / gospel)</option><option value="rockorgan">Rock organ (overdriven, fast Leslie)</option></optgroup><optgroup label="Pads and strings"><option value="sweeppad">Sweep pad (sampled)</option><option value="strings">Synth strings</option><option value="pad">Synth pad (warm analog)</option><option value="padbright">Synth pad (bright, airy)</option></optgroup></select></label>
+<label title="How the keys play the chords. Auto picks a feel that matches the groove.">Comping <select id="kcomp" data-s><option value="auto" selected>Auto (matches groove)</option><option value="sustain">Sustained (hold the chord)</option><option value="pop">Pop (long and short, pushes)</option><option value="charleston">Jazz comping (Charleston, space, pushes)</option><option value="funk">Funk (16th stabs and holds)</option><option value="quarters">Quarter-note pulse (varied lengths)</option><option value="ballad">Ballad (rolled, pedal, broken chords)</option><option value="bossa">Bossa nova</option><option value="soul">Neo-soul (laid back, 9ths)</option><option value="gospel">Gospel / blues (shouts, octaves)</option><option value="reggae">Reggae skank (2 and 4)</option><option value="waltz">Waltz (oom-pah-pah)</option></select></label>
 <label title="Pop / rock: three-note triads. Jazz: 3rd, 5th, 7th and 9th, no root (the bass has it).">Voicing <select id="kvoice" data-s><option value="auto" selected>Auto (jazz grooves get the 7th chords of the key)</option><option value="triad">Triads</option><option value="seventh">7th chords</option><option value="rootless">Jazz rootless (3-5-7-9)</option></select></label>
-<label>Volume <input type="range" id="kv" data-s min="0" max="100" value="60" style="width:100px"></label>
+<label>Volume <input type="range" id="kv" data-s min="0" max="100" value="60" style="width:100px"></label><span id="kst" role="status" style="font-size:12px;color:var(--mut)"></span>
 </div>
 <p class="adv" style="margin:6px 0 0;font-size:12px;opacity:.75">Keys follow the same parent key, mode and chord progression as the bass line. Voicings move to the closest notes, the way a real player keeps their hand in one spot.</p>
 </div>
 
 <div class="sec adv"><h4>Drum sounds</h4>
 <div class="row">
-<label>Kit <select id="kit" data-s><option value="jazzbop">Blonde Bop – jazz kit, 18" kick (5 layers)</option><option value="hotrods">Blonde Bop – Hot Rods, soft and quiet (5 layers)</option><option value="bpearl" selected>Black Pearl – studio rock/pop (5 layers)</option><option value="zep">Vintage Ludwig 26" – big room (Zeppelin)</option><option value="acoustic">Acoustic Studio (classic)</option><option value="pearl">Pearl Studio (recorded)</option><option value="linn">LinnDrum 80s (recorded)</option><option value="cr78">CR-78 Vintage (recorded)</option><option value="e808">Electronic – 808</option><option value="e909">Electronic – 909</option><option value="trap">Trap</option><option value="house">House / Dance</option><option value="hybrid">Hybrid (acoustic + 808 sub)</option><option value="lofi">Lo-Fi</option></select></label>
+<label>Kit <select id="kit" data-s><option value="jazzbop">Blonde Bop – jazz kit, 18" kick (5 layers)</option><option value="hotrods">Blonde Bop – Hot Rods, soft and quiet (5 layers)</option><option value="bpearl" selected>Black Pearl – studio rock/pop (5 layers)</option><option value="zep">Vintage Ludwig 26" – big room (Zeppelin)</option><option value="acoustic">Acoustic Studio (classic)</option><option value="pearl">Pearl Studio (recorded)</option><option value="linn">LinnDrum 80s (recorded)</option><option value="cr78">CR-78 Vintage (recorded)</option><option value="e808">Electronic – 808</option><option value="e909">Electronic – 909</option><option value="trap">Trap</option><option value="house">House / Dance</option><option value="hybrid">Hybrid (acoustic + 808 sub)</option><option value="lofi">Lo-Fi</option><option value="brushes">Brushes – jazz kit played with brushes (taps, slaps, sweeps)</option></select></label>
 <label>Kick <select id="kk" data-s><option value="bb">Blonde Bop jazz kick (5 layers)</option><option value="bh">Blonde Bop jazz kick, Hot Rods (5 layers)</option><option value="bp" selected>Black Pearl 22" (5 layers)</option><option value="rz">Ludwig 26" vintage (5 layers)</option><option value="ac">Acoustic</option><option value="tight">Acoustic – Tight / Punchy</option><option value="deep">Acoustic – Deep / Boomy</option><option value="pearl">Pearl Studio</option><option value="linn">LinnDrum</option><option value="cr78">CR-78</option><option value="k808">808 Boom</option><option value="sub">808 Long Sub</option><option value="trap">Trap 808 (distorted)</option><option value="k909">909 Punch</option><option value="house">House Kick</option><option value="lofi">Lo-Fi Dusty Kick</option></select></label>
-<label>Snare <select id="sn" data-s><option value="bb">Blonde Bop jazz snare (5 layers)</option><option value="bh">Blonde Bop jazz snare, Hot Rods (5 layers)</option><option value="bp" selected>Black Pearl (5 layers)</option><option value="rz">Porkpie vintage (5 layers)</option><option value="ac">Acoustic</option><option value="tight">Acoustic – Tight / Cracking</option><option value="fat">Acoustic – Fat / Low</option><option value="pearl2">Pearl Studio – Bright</option><option value="pearl3">Pearl Studio – Fat</option><option value="rim">Rimshot</option><option value="linn">LinnDrum</option><option value="cr78">CR-78</option><option value="s808">808 Snare</option><option value="s909">909 Snare</option><option value="trap">Trap Snare + Clap</option><option value="clap">Electro Clap</option><option value="lclap">LinnDrum Clap</option><option value="snap">Finger Snap</option><option value="lofi">Lo-Fi Snare</option></select></label>
+<label>Snare <select id="sn" data-s><option value="bb">Blonde Bop jazz snare (5 layers)</option><option value="bh">Blonde Bop jazz snare, Hot Rods (5 layers)</option><option value="bp" selected>Black Pearl (5 layers)</option><option value="rz">Porkpie vintage (5 layers)</option><option value="ac">Acoustic</option><option value="tight">Acoustic – Tight / Cracking</option><option value="fat">Acoustic – Fat / Low</option><option value="pearl2">Pearl Studio – Bright</option><option value="pearl3">Pearl Studio – Fat</option><option value="rim">Rimshot</option><option value="linn">LinnDrum</option><option value="cr78">CR-78</option><option value="s808">808 Snare</option><option value="s909">909 Snare</option><option value="trap">Trap Snare + Clap</option><option value="clap">Electro Clap</option><option value="lclap">LinnDrum Clap</option><option value="snap">Finger Snap</option><option value="lofi">Lo-Fi Snare</option><option value="br">Brushes (taps and slaps, 6 layers)</option></select></label>
 </div>
 <div class="row">
-<label>Ride <select id="rv" data-s><option value="zil" selected>Zildjian A 24 (recorded)</option><option value="bb">Jazz ride, Blonde Bop (recorded)</option><option value="bh">Jazz ride, Hot Rods (recorded)</option><option value="sab">Sabian AAX 20, bright (recorded)</option><option value="soft">Soft (recorded)</option><option value="bright">Bright (recorded)</option><option value="linn">LinnDrum</option><option value="classic">Classic (old)</option></select></label>
-<label>Hats <select id="hh" data-s><option value="studio" selected>Studio (Sabian, recorded)</option><option value="bb">Jazz hats, Blonde Bop (recorded)</option><option value="bh">Jazz hats, Hot Rods (recorded)</option><option value="ac">Acoustic</option><option value="linn">LinnDrum</option><option value="cr78">CR-78</option><option value="h808">808 Hats</option><option value="h909">909 Hats</option><option value="lofi">Lo-Fi Hats</option></select></label><label title="Tight = closed and choked. Loose = the hats a little open, sloshy.">Hat feel <select id="hfeel" data-s><option value="t">Tight</option><option value="n" selected>Normal</option><option value="l">Loose</option></select></label><label title="Tight = damped, higher crack. Open = lower, fatter, more ring.">Snare feel <select id="sfeel" data-s><option value="t">Tight</option><option value="n" selected>Normal</option><option value="l">Open / fat</option></select></label><label title="Tight = short, punchy, damped. Boomy = lower and longer.">Kick feel <select id="kfeel" data-s><option value="t">Tight</option><option value="n" selected>Normal</option><option value="l">Boomy</option></select></label>
-<label>Toms <select id="tm" data-s><option value="bb">Blonde Bop jazz toms (5 layers)</option><option value="bh">Blonde Bop jazz toms, Hot Rods (5 layers)</option><option value="bp" selected>Black Pearl 12/13/16 (5 layers)</option><option value="rz">Ludwig 14/16/18 vintage (5 layers)</option><option value="pearl">Pearl Studio (recorded)</option><option value="linn">LinnDrum</option><option value="e808">808 toms (electronic, tuned to key)</option><option value="synth">Synth</option></select></label>
+<label>Ride <select id="rv" data-s><option value="zil" selected>Zildjian A 24 (recorded)</option><option value="bb">Jazz ride, Blonde Bop (recorded)</option><option value="bh">Jazz ride, Hot Rods (recorded)</option><option value="sab">Sabian AAX 20, bright (recorded)</option><option value="soft">Soft (recorded)</option><option value="bright">Bright (recorded)</option><option value="linn">LinnDrum</option><option value="classic">Classic (old)</option><option value="br">Brush on the ride (recorded)</option></select></label>
+<label>Hats <select id="hh" data-s><option value="studio" selected>Studio (Sabian, recorded)</option><option value="bb">Jazz hats, Blonde Bop (recorded)</option><option value="bh">Jazz hats, Hot Rods (recorded)</option><option value="ac">Acoustic</option><option value="linn">LinnDrum</option><option value="cr78">CR-78</option><option value="h808">808 Hats</option><option value="h909">909 Hats</option><option value="lofi">Lo-Fi Hats</option><option value="br">Brushes on the hats (recorded)</option></select></label><label title="Tight = closed and choked. Loose = the hats a little open, sloshy.">Hat feel <select id="hfeel" data-s><option value="t">Tight</option><option value="n" selected>Normal</option><option value="l">Loose</option></select></label><label title="Tight = damped, higher crack. Open = lower, fatter, more ring.">Snare feel <select id="sfeel" data-s><option value="t">Tight</option><option value="n" selected>Normal</option><option value="l">Open / fat</option></select></label><label title="Tight = short, punchy, damped. Boomy = lower and longer.">Kick feel <select id="kfeel" data-s><option value="t">Tight</option><option value="n" selected>Normal</option><option value="l">Boomy</option></select></label>
+<label>Toms <select id="tm" data-s><option value="bb">Blonde Bop jazz toms (5 layers)</option><option value="bh">Blonde Bop jazz toms, Hot Rods (5 layers)</option><option value="bp" selected>Black Pearl 12/13/16 (5 layers)</option><option value="rz">Ludwig 14/16/18 vintage (5 layers)</option><option value="pearl">Pearl Studio (recorded)</option><option value="linn">LinnDrum</option><option value="e808">808 toms (electronic, tuned to key)</option><option value="synth">Synth</option><option value="br">Brushes on the toms (recorded)</option></select></label>
 <label>Percussion <select id="pc" data-s><option value="smp" selected>Recorded</option><option value="syn">Synth</option></select></label>
 <label title="Plate reverb amount">Room <input type="range" id="room" data-s min="0" max="100" value="15" style="width:80px"></label>
 </div></div>
@@ -381,6 +388,8 @@ button .ic{width:1.2em;height:1.2em}
 <optgroup label="Traditional Jazz"><option value="jazz">Jazz Swing – Ride Cymbal</option><option value="twofeel">Jazz Swing – Two-Feel (kick on 1 &amp; 3)</option><option value="bebop">Bebop – Ride + Comping</option><option value="uptempo">Up-Tempo Swing (ride + hat only)</option><option value="bigband">Big Band – Four on the Floor</option><option value="jballad">Jazz Ballad – Soft Swing</option><option value="snapswing">Finger-Snap Swing (2 &amp; 4)</option><option value="jwaltz">Jazz Waltz (3/4 swing)</option><option value="nola2beat">New Orleans Two-Beat (Baby Dodds, woodblock)</option><option value="basie">Kansas City Hi-Hat Swing (Papa Jo Jones)</option></optgroup>
 <optgroup label="Blues / Shuffle"><option value="shuffle">Blues Shuffle (triplet swing)</option><option value="texas">Texas Shuffle (snare ghosts)</option><option value="halfshuf">Half-Time Shuffle (Purdie / Rosanna)</option><option value="slowblues">Slow Blues 12/8</option></optgroup>
 <optgroup label="Jam Band"><option value="jbcow">Cow Funk (Phish)</option><option value="jbdead">Two-Beat Ride Groove (Grateful Dead)</option><option value="jbshuf">Southern 12/8 Shuffle (Allman Brothers)</option><option value="jbwhip">11/8 Intro (Whipping Post, 3+3+3+2)</option></optgroup>
+<optgroup label="James Brown"><option value="jb_funky_drummer">Funky Drummer (Clyde Stubblefield)</option><option value="jb_cold_sweat">Cold Sweat (Clyde Stubblefield)</option><option value="jb_sex_machine">Get Up (I Feel Like Being a) Sex Machine (John &quot;Jabo&quot; Starks)</option><option value="jb_soul_power">Soul Power (John &quot;Jabo&quot; Starks)</option><option value="jb_payback">The Payback – Main groove (John &quot;Jabo&quot; Starks)</option><option value="jb_payback_intro">The Payback – Intro (John &quot;Jabo&quot; Starks)</option></optgroup><optgroup label="Steely Dan / Yacht Rock"><option value="sd_home_at_last">Home at Last (Bernard Purdie)</option><option value="sd_peg_verse">Peg – Verse (Rick Marotta)</option><option value="sd_peg_chorus">Peg – Chorus (Rick Marotta)</option><option value="sd_josie_verse">Josie (Jim Keltner)</option><option value="toto_rosanna">Rosanna (Jeff Porcaro)</option><option value="toto_hold_the_line">Hold the Line (Jeff Porcaro)</option><option value="toto_africa">Africa (Jeff Porcaro)</option></optgroup><optgroup label="Led Zeppelin"><option value="lz_levee">When the Levee Breaks (John Bonham)</option><option value="lz_immigrant_song">Immigrant Song (John Bonham)</option><option value="lz_black_dog">Black Dog (John Bonham)</option><option value="lz_good_times_bad_times">Good Times Bad Times (John Bonham)</option></optgroup><optgroup label="Prog"><option value="rush_tom_sawyer">Tom Sawyer (Neil Peart)</option><option value="gen_lamb">The Lamb Lies Down on Broadway (Phil Collins)</option><option value="gen_follow_you">Follow You Follow Me (Phil Collins)</option><option value="gen_invisible_touch">Invisible Touch (Phil Collins)</option></optgroup><optgroup label="Phish"><option value="ph_stash_jam">Stash, jam – Fishman (approx.)</option><option value="ph_limb_by_limb">Limb by Limb – Fishman (approx.)</option></optgroup><optgroup label="Grateful Dead"><option value="gd_shakedown">Shakedown Street – Kreutzmann/Hart (approx.)</option><option value="gd_nfa">Not Fade Away – Kreutzmann/Hart (approx.)</option></optgroup><optgroup label="Frank Zappa"><option value="fz_yellow_snow_74">Don’t Eat the Yellow Snow, 7/4 – Humphrey (approx.)</option><option value="fz_yellow_snow_78">Don’t Eat the Yellow Snow, 7/8 – Humphrey (approx.)</option><option value="fz_central_scrutinizer">The Central Scrutinizer – Colaiuta (approx.)</option></optgroup>
+<optgroup label="Brushes"><option value="brballad">Jazz Ballad – Brushes, stir the pot (50–76 BPM)</option><option value="brmed">Medium Swing – Brushes, sweep + taps on 2 and 4 (110–170 BPM)</option><option value="brfast">Up-Tempo Swing – Brushes, side to side (180–280 BPM)</option><option value="brwaltz">Jazz Waltz – Brushes, one circle a bar (3/4, 120–190 BPM)</option><option value="brbossa">Bossa Nova – Brushes (110–150 BPM)</option><option value="brpop">Pop / Folk Ballad – Brushes (60–88 BPM)</option><option value="brtrain">Country Train Beat – Brushes (100–150 BPM)</option><option value="brshuf">Blues Shuffle – Brushes (80–120 BPM)</option></optgroup>
 <optgroup label="Prog / Odd Time"><option value="p54swing">5/4 Swing (Take Five, Brubeck)</option><option value="p54rock">5/4 Rock (Mission: Impossible)</option><option value="p74">7/4 Rock (Money, Pink Floyd)</option><option value="p78">7/8 Prog (2+2+3; beat = 8th note)</option><option value="p98">9/8 (Blue Rondo à la Turk, 2+2+2+3; beat = 8th note)</option></optgroup>
 </select></label><label><select id="ab" data-s><option>2</option><option>4</option><option selected>8</option><option>16</option></select> bars</label>
 <label>Chorus <select id="ac" data-s>
@@ -392,6 +401,8 @@ button .ic{width:1.2em;height:1.2em}
 <optgroup label="Traditional Jazz"><option value="jazz">Jazz Swing – Ride Cymbal</option><option value="twofeel">Jazz Swing – Two-Feel (kick on 1 &amp; 3)</option><option value="bebop">Bebop – Ride + Comping</option><option value="uptempo">Up-Tempo Swing (ride + hat only)</option><option value="bigband">Big Band – Four on the Floor</option><option value="jballad">Jazz Ballad – Soft Swing</option><option value="snapswing">Finger-Snap Swing (2 &amp; 4)</option><option value="jwaltz">Jazz Waltz (3/4 swing)</option><option value="nola2beat">New Orleans Two-Beat (Baby Dodds, woodblock)</option><option value="basie">Kansas City Hi-Hat Swing (Papa Jo Jones)</option></optgroup>
 <optgroup label="Blues / Shuffle"><option value="shuffle">Blues Shuffle (triplet swing)</option><option value="texas">Texas Shuffle (snare ghosts)</option><option value="halfshuf">Half-Time Shuffle (Purdie / Rosanna)</option><option value="slowblues">Slow Blues 12/8</option></optgroup>
 <optgroup label="Jam Band"><option value="jbcow">Cow Funk (Phish)</option><option value="jbdead">Two-Beat Ride Groove (Grateful Dead)</option><option value="jbshuf">Southern 12/8 Shuffle (Allman Brothers)</option><option value="jbwhip">11/8 Intro (Whipping Post, 3+3+3+2)</option></optgroup>
+<optgroup label="James Brown"><option value="jb_funky_drummer">Funky Drummer (Clyde Stubblefield)</option><option value="jb_cold_sweat">Cold Sweat (Clyde Stubblefield)</option><option value="jb_sex_machine">Get Up (I Feel Like Being a) Sex Machine (John &quot;Jabo&quot; Starks)</option><option value="jb_soul_power">Soul Power (John &quot;Jabo&quot; Starks)</option><option value="jb_payback">The Payback – Main groove (John &quot;Jabo&quot; Starks)</option><option value="jb_payback_intro">The Payback – Intro (John &quot;Jabo&quot; Starks)</option></optgroup><optgroup label="Steely Dan / Yacht Rock"><option value="sd_home_at_last">Home at Last (Bernard Purdie)</option><option value="sd_peg_verse">Peg – Verse (Rick Marotta)</option><option value="sd_peg_chorus">Peg – Chorus (Rick Marotta)</option><option value="sd_josie_verse">Josie (Jim Keltner)</option><option value="toto_rosanna">Rosanna (Jeff Porcaro)</option><option value="toto_hold_the_line">Hold the Line (Jeff Porcaro)</option><option value="toto_africa">Africa (Jeff Porcaro)</option></optgroup><optgroup label="Led Zeppelin"><option value="lz_levee">When the Levee Breaks (John Bonham)</option><option value="lz_immigrant_song">Immigrant Song (John Bonham)</option><option value="lz_black_dog">Black Dog (John Bonham)</option><option value="lz_good_times_bad_times">Good Times Bad Times (John Bonham)</option></optgroup><optgroup label="Prog"><option value="rush_tom_sawyer">Tom Sawyer (Neil Peart)</option><option value="gen_lamb">The Lamb Lies Down on Broadway (Phil Collins)</option><option value="gen_follow_you">Follow You Follow Me (Phil Collins)</option><option value="gen_invisible_touch">Invisible Touch (Phil Collins)</option></optgroup><optgroup label="Phish"><option value="ph_stash_jam">Stash, jam – Fishman (approx.)</option><option value="ph_limb_by_limb">Limb by Limb – Fishman (approx.)</option></optgroup><optgroup label="Grateful Dead"><option value="gd_shakedown">Shakedown Street – Kreutzmann/Hart (approx.)</option><option value="gd_nfa">Not Fade Away – Kreutzmann/Hart (approx.)</option></optgroup><optgroup label="Frank Zappa"><option value="fz_yellow_snow_74">Don’t Eat the Yellow Snow, 7/4 – Humphrey (approx.)</option><option value="fz_yellow_snow_78">Don’t Eat the Yellow Snow, 7/8 – Humphrey (approx.)</option><option value="fz_central_scrutinizer">The Central Scrutinizer – Colaiuta (approx.)</option></optgroup>
+<optgroup label="Brushes"><option value="brballad">Jazz Ballad – Brushes, stir the pot (50–76 BPM)</option><option value="brmed">Medium Swing – Brushes, sweep + taps on 2 and 4 (110–170 BPM)</option><option value="brfast">Up-Tempo Swing – Brushes, side to side (180–280 BPM)</option><option value="brwaltz">Jazz Waltz – Brushes, one circle a bar (3/4, 120–190 BPM)</option><option value="brbossa">Bossa Nova – Brushes (110–150 BPM)</option><option value="brpop">Pop / Folk Ballad – Brushes (60–88 BPM)</option><option value="brtrain">Country Train Beat – Brushes (100–150 BPM)</option><option value="brshuf">Blues Shuffle – Brushes (80–120 BPM)</option></optgroup>
 <optgroup label="Prog / Odd Time"><option value="p54swing">5/4 Swing (Take Five, Brubeck)</option><option value="p54rock">5/4 Rock (Mission: Impossible)</option><option value="p74">7/4 Rock (Money, Pink Floyd)</option><option value="p78">7/8 Prog (2+2+3; beat = 8th note)</option><option value="p98">9/8 (Blue Rondo à la Turk, 2+2+2+3; beat = 8th note)</option></optgroup>
 </select></label><label><select id="cb" data-s><option>2</option><option>4</option><option selected>8</option><option>16</option></select> bars</label>
 </div>
@@ -411,15 +422,16 @@ button .ic{width:1.2em;height:1.2em}
 
 <div class="sec adv"><h4>Pattern</h4>
 <label style="margin-bottom:4px"><input type="checkbox" id="showall" data-s> Show all drums (otherwise only drums used in this groove)</label>
+<div class="row"><label title="How many strengths a tap on the grid steps through">Grid velocity levels <select id="gvl" data-s><option value="2">2 · normal, ghost</option><option value="3">3 · accent, normal, ghost</option><option value="4" selected>4 · accent, normal, soft, ghost</option></select></label><span class="gvleg" aria-hidden="true"><i class="c on lv4"></i>accent <i class="c on lv3"></i>normal <i class="c on lv2"></i>soft <i class="c ghost lv1"></i>ghost</span></div>
 <div class="grid" id="g"></div>
-<div class="hint">Tap a square to add a hit, again for a soft (ghost) hit, again to remove. On a phone, swipe the pattern sideways to see every beat. Click a drum name to hear it. Keys: Space play/stop · <span data-ic="left:Left arrow"></span>/<span data-ic="right:Right arrow"></span> ±1 BPM · <span data-ic="up:Up arrow"></span>/<span data-ic="down:Down arrow"></span> ±5 BPM · F fill · T tap.</div>
+<div class="hint">Tap a square to add a hit, tap again for the next softer level (accent, normal, soft, ghost with 4 levels), once more to clear it. On a phone, swipe the pattern sideways to see every beat. Click a drum name to hear it. Keys: Space play/stop · <span data-ic="left:Left arrow"></span>/<span data-ic="right:Right arrow"></span> ±1 BPM · <span data-ic="up:Up arrow"></span>/<span data-ic="down:Down arrow"></span> ±5 BPM · F fill · T tap.</div>
 </div>
 
 <div class="sec"><h4>Practice log</h4>
 <div class="log" id="log"></div>
 <div class="row" style="margin-top:6px"><button id="rset"><span data-ic="reset"></span>Reset settings (keeps your practice log and presets)</button><button id="logclr" class="adv">Clear log</button></div>
 </div>
-<details class="credit adv"><summary>Credits</summary>Black Pearl, vintage Ludwig and Blonde Bop jazz kits: AVL Drumkits by Glen MacArthur (CC BY-SA). Fingered, flatwound and picked electric basses: GeneralUser GS by S. Christian Collins (free for any use). Studio slap bass: FluidR3 GM by Frank Wen (MIT), 3 velocity layers, rendered per note. Upright jazz bass, bowed upright and Rhodes electric piano: FluidR3 GM by Frank Wen (MIT), 3 velocity layers, rendered per note. Grand piano: Salamander Grand Piano V3 by Alexander Holm (CC BY 3.0), 4 of its 16 velocity layers. Upright piano, FM electric piano, drawbar and rock organs, sweep pad and synth strings: FreePats (CC0). Old Squier set: Karoryfer Growlybass (Squier Jazz Bass) and D. Smolken's 1958 Rubner double bass, via sfzinstruments (CC0). 80s FM Lately Bass and analog synth basses: FreePats (CC0). Recorded samples: LinnDrum LM-2 and Roland CR-78, incl. the LinnDrum sidestick and CR-78 rim (public domain); side stick, Tight, Fat and Rimshot snares: AVL Drumkits by Glen MacArthur (CC BY-SA 4.0: SideStick, Pearl Snare, Pearl Snare 2 and its edge hit); Pearl Master Studio kit (incl. ride &amp; bell) by enoe (CC BY 3.0); studio hi-hats and Zildjian / Sabian rides from AVL Drumkits by Glen MacArthur (CC BY-SA 4.0); EMT 140 plate reverb impulse by Greg Hopkins (CC BY), via oramics/sampled. Fingered and picked bass: Andrea Biasior’s Yamaha RBX via FreePats (CC0). Electric upright: Karoryfer Ergo by D. Smolken (CC0). Slap &amp; fretless: MusyngKite SoundFont (CC BY-SA 3.0); synth bass: FluidR3 GM by Frank Wen (CC BY 3.0); both via gleitz/midi-js-soundfonts.</details>
+<details class="credit adv"><summary>Credits</summary>Black Pearl, vintage Ludwig and Blonde Bop jazz kits: AVL Drumkits by Glen MacArthur (CC BY-SA). Song grooves (James Brown, Steely Dan / Yacht Rock, Led Zeppelin, Prog): drum patterns only, read from published lessons and notation by Roland Articles, Stanton Moore, bonedo.de, VirtualDrumming.com, Drumeo, Todd Bishop, Ted Shideler, FunkyDrummer.com, Drummer Cafe, MusicRadar and Ethan Hein; each one played at its record tempo. Phish, Grateful Dead and Frank Zappa grooves (2026-11-11.25) are approximate, labeled so, and are not exact transcriptions: built from the recordings and from drummer and fan analysis by Bill Carbone (Stash), Ashley Baier (Limb by Limb transcription), Todd Bishop / Cruise Ship Drummer (Ralph Humphrey, Don&#8217;t Eat the Yellow Snow; Vinnie Colaiuta, The Central Scrutinizer), Wikipedia (Shakedown Street, the Bo Diddley beat); each carries a confidence level. Brush kit (snare taps, slaps and stirs, hats, toms, brushed ride): Swirly Drums by Karoryfer Samples (CC0), via sfzinstruments; brush kick: the Blonde Bop jazz kick (AVL Drumkits, CC BY-SA). Fingered, flatwound and picked electric basses: GeneralUser GS by S. Christian Collins (free for any use). Studio slap bass: FluidR3 GM by Frank Wen (MIT), 3 velocity layers, rendered per note. Upright jazz bass, bowed upright and Rhodes electric piano: FluidR3 GM by Frank Wen (MIT), 3 velocity layers, rendered per note. Grand piano: Salamander Grand Piano V3 by Alexander Holm (CC BY 3.0), 6 of its 16 velocity layers, retuned by Markus Fiedler, via sfzinstruments. Tine electric piano: GeneralUser GS 2.0.3 by S. Christian Collins (free for any use, including commercial), rendered per note. Wurlitzer electric piano: Greg Sullivan's EP200 (CC BY 3.0), via sfzinstruments. Tonewheel and rock organs: synthesized in this app (drawbars, key click, percussion, Leslie). Upright piano, FM electric piano, drawbar and rock organs, sweep pad and synth strings: FreePats (CC0). Old Squier set: Karoryfer Growlybass (Squier Jazz Bass) and D. Smolken's 1958 Rubner double bass, via sfzinstruments (CC0). 80s FM Lately Bass and analog synth basses: FreePats (CC0). Recorded samples: LinnDrum LM-2 and Roland CR-78, incl. the LinnDrum sidestick and CR-78 rim (public domain); side stick, Tight, Fat and Rimshot snares: AVL Drumkits by Glen MacArthur (CC BY-SA 4.0: SideStick, Pearl Snare, Pearl Snare 2 and its edge hit); Pearl Master Studio kit (incl. ride &amp; bell) by enoe (CC BY 3.0); studio hi-hats and Zildjian / Sabian rides from AVL Drumkits by Glen MacArthur (CC BY-SA 4.0); EMT 140 plate reverb impulse by Greg Hopkins (CC BY), via oramics/sampled. Fingered and picked bass: Andrea Biasior’s Yamaha RBX via FreePats (CC0). Electric upright: Karoryfer Ergo by D. Smolken (CC0). Slap &amp; fretless: MusyngKite SoundFont (CC BY-SA 3.0); synth bass: FluidR3 GM by Frank Wen (CC BY 3.0); both via gleitz/midi-js-soundfonts.</details>
 </div>
 <script>/* 2026-11-11.18: one icon set for the whole app (no emoji). 24x24 grid, 2px round strokes in currentColor so the icons follow the theme;
    the medals are solid metal discs with a ribbon and a 1 / 2 / 3, readable at 16 px in both themes. mmIcon(name, label): label = meaningful (role img), none = decorative. */
@@ -465,7 +477,7 @@ const P={
  ballad:{b:4,s:4,h:{42:[[0,.8],[2,.6],[4,.8],[6,.6],[8,.8],[10,.6],[12,.8],[14,.6]],36:[0,[7,.55],[10,.7]],37:[4,12]}},
  shuffle:{b:4,s:3,h:{42:[0,2,3,5,6,8,9,11],36:[0,6,8],38:[3,9]}},
  funk:{b:4,s:4,h:{42:[0,2,4,6,8,10,12],46:[14],36:[0,3,8,10],38:[4,12,[7,.35],[9,.35],[15,.35]]}},
- bossa:{b:8,s:2,h:{42:[0,[1,.55],2,[3,.55],4,[5,.55],6,[7,.55],8,[9,.55],10,[11,.55],12,[13,.55],14,[15,.55]],36:[0,[3,.65],4,[7,.65],8,[11,.65],12,[15,.65]],37:[0,3,6,10,13]}},
+ bossa:{b:8,s:2,bars:2,h:{42:[0,[1,.55],2,[3,.55],4,[5,.55],6,[7,.55],8,[9,.55],10,[11,.55],12,[13,.55],14,[15,.55]],36:[0,[3,.65],4,[7,.65],8,[11,.65],12,[15,.65]],37:[0,3,6,10,13]}},
  samba:{b:2,s:4,h:{42:[0,1,2,3,4,5,6,7],36:[0,3,4,7],37:[2,5]}},
  sixeight:{b:2,s:3,h:{42:[0,1,2,3,4,5],36:[0],38:[3]}},
  waltz:{b:3,s:2,h:{42:[0,2,4],36:[0],38:[2,4]}},
@@ -487,7 +499,7 @@ const P={
  p74:{b:7,s:2,h:{42:[0,[1,0.75],2,[3,0.75],4,[5,0.75],6,[7,0.75],8,[9,0.75],10,[11,0.75],12,[13,0.75]],36:[0,[6,0.75],8],38:[4,10]}},
  p78:{b:7,s:2,h:{42:[0,[2,0.75],4,[6,0.75],8,[10,0.75],[12,0.75]],36:[0,8],38:[4,10]}},
  p98:{b:9,s:2,h:{42:[0,[2,0.75],4,[6,0.75],8,[10,0.75],12,[14,0.75],[16,0.75]],36:[0,8],38:[4,12]}},
- fjb:{b:4,s:4,h:{42:[0,[1,0.75],2,[3,0.75],4,[5,0.75],6,8,[9,0.75],10,[11,0.75],12,[13,0.75],14,[15,0.75]],46:[[7,0.75]],38:[4,[7,0.35],[9,0.35],[11,0.35],12,[15,0.35]],36:[0,2,10,13]}},
+ fjb:{b:4,s:4,h:{42:[0,[1,0.75],2,[3,0.75],4,[5,0.75],6,8,[9,0.75],10,[11,0.75],12,14,[15,0.75]],46:[[7,0.75],[13,0.75]],38:[4,[7,0.35],[9,0.35],[11,0.35],12,[15,0.35]],36:[0,2,10,13]}},
  fone:{b:4,s:4,h:{42:[0,[1,0.35],[2,0.75],[3,0.35],4,[5,0.35],[6,0.75],[7,0.35],8,[9,0.35],[10,0.75],[11,0.35],12,[13,0.35],[14,0.75],[15,0.35]],38:[4,12],36:[0,6,8],54:[[4,0.75],[12,0.75]]}},
  ftop:{b:4,s:4,h:{42:[[1,0.75],[3,0.75],[7,0.75],[9,0.75],[11,0.75],[15,0.75]],38:[4,[7,0.35],[10,0.35],12,[15,0.35]],36:[0,2,[6,0.75],8,[14,0.75]],46:[[14,0.75]]}},
  fmeters:{b:4,s:4,h:{42:[0,[2,0.75],4,[6,0.75],8,[10,0.75],12,[14,0.75]],38:[[2,0.35],4,[6,0.35],[8,0.35],[10,0.35],12,[14,0.35]],36:[0,3,7,9]}},
@@ -523,8 +535,8 @@ const P={
  fhalf:{b:4,s:4,h:{42:[0,[1,.4],[2,.7],[3,.4],4,[5,.4],[6,.7],[7,.4],8,[9,.4],[10,.7],[11,.4],12,[13,.4],[14,.7],[15,.4]],36:[0,[3,.8],10,[11,.55]],38:[8,[2,.22],[5,.25],[11,.25],[13,.22],[15,.3]]}},
  baiao:{b:2,s:4,h:{36:[0,[3,.85],[6,.45]],37:[[2,.55],[6,.55]],82:[[0,.45],[1,.3],[2,.8],[3,.3],[4,.45],[5,.3],[6,.8],[7,.3]]}},
  chacha:{b:4,s:2,h:{56:[0,[2,.65],[4,.85],[6,.65]],73:[0,[2,.55],[3,.55],4,[6,.55],[7,.55]],36:[[0,.55],[4,.5]],37:[[2,.5],[6,.5]],63:[[2,.45],[3,.35]],64:[[6,.85],[7,.85]]}},
- salsa:{b:8,s:2,h:{75:[2,4,8,11,14],56:[0,[2,.6],[4,.8],[6,.6],8,[10,.6],[12,.8],[14,.6]],63:[[0,.3],[1,.3],[2,.8],[3,.3],[4,.3],[5,.3],[8,.3],[9,.3],[10,.8],[11,.3],[12,.3],[13,.3]],64:[[6,.85],[7,.85],[14,.85],[15,.85]],36:[[3,.55],[6,.65],[11,.9],[14,.65]]}},
- songo:{b:8,s:2,h:{42:[0,[1,.55],2,[3,.55],4,[5,.55],6,[7,.55],8,[9,.55],10,[11,.55],12,[13,.55],14,[15,.55]],37:[2,4,8,11,14],38:[[5,.8],[13,.8],[1,.22],[7,.22],[9,.22],[15,.22]],36:[[6,.7],[11,.95],[14,.7]],64:[[6,.75],[7,.75],[14,.75],[15,.75]]}},
+ salsa:{b:8,s:2,bars:2,h:{75:[2,4,8,11,14],56:[0,[2,.6],[4,.8],[6,.6],8,[10,.6],[12,.8],[14,.6]],63:[[0,.3],[1,.3],[2,.8],[3,.3],[4,.3],[5,.3],[8,.3],[9,.3],[10,.8],[11,.3],[12,.3],[13,.3]],64:[[6,.85],[7,.85],[14,.85],[15,.85]],36:[[3,.55],[6,.65],[11,.9],[14,.65]]}},
+ songo:{b:8,s:2,bars:2,h:{42:[0,[1,.55],2,[3,.55],4,[5,.55],6,[7,.55],8,[9,.55],10,[11,.55],12,[13,.55],14,[15,.55]],37:[2,4,8,11,14],38:[[5,.8],[13,.8],[1,.22],[7,.22],[9,.22],[15,.22]],36:[[6,.7],[11,.95],[14,.7]],64:[[6,.75],[7,.75],[14,.75],[15,.75]]}},
  steppers:{b:4,s:3,h:{42:[0,[2,.6],3,[5,.6],6,[8,.6],9,[11,.6]],36:[0,3,6,9],37:[6]}},
  soca:{b:4,s:4,h:{36:[0,4,8,12],38:[[3,.8],[6,.9],[11,.8],[14,.9]],46:[[2,.75],[6,.75],[10,.75],[14,.75]],42:[[0,.5],[4,.5],[8,.5],[12,.5]],82:[[0,.5],[1,.3],[2,.6],[3,.3],[4,.5],[5,.3],[6,.6],[7,.3],[8,.5],[9,.3],[10,.6],[11,.3],[12,.5],[13,.3],[14,.6],[15,.3]]}},
  maqsum:{b:4,s:2,h:{64:[0,4],36:[[0,.55],[4,.55]],63:[[1,.85],[3,.85],[6,.85]],54:[[0,.55],[1,.3],[2,.45],[3,.3],[4,.55],[5,.3],[6,.45],[7,.3]]}},
@@ -537,10 +549,52 @@ const P={
  mjlatin:{b:4,s:2,h:{51:[0,[1,.65],2,[3,.65],4,[5,.65],6,[7,.65]],37:[[3,.8],[6,.8]],36:[0,[3,.55],4,[7,.55]],44:[[2,.6],[6,.6]]}},
  nola2beat:{b:4,s:3,h:{36:[[0,.85],[6,.85]],38:[[3,.75],[9,.75],[2,.25],[8,.25]],76:[0,[2,.5],3,6,[8,.5],9],54:[[3,.45],[9,.45]]}},
  basie:{b:4,s:3,h:{46:[[0,.8],[6,.8]],42:[3,9,[5,.55],[11,.55]],36:[[0,.3],[3,.3],[6,.3],[9,.3]],38:[[11,.35]]}},
- shakeronly:{b:4,s:4,h:{82:[0,[1,.45],[2,.7],[3,.45],4,[5,.45],[6,.7],[7,.45],8,[9,.45],[10,.7],[11,.45],12,[13,.45],[14,.7],[15,.45]],54:[4,12]}}
+ shakeronly:{b:4,s:4,h:{82:[0,[1,.45],[2,.7],[3,.45],4,[5,.45],[6,.7],[7,.45],8,[9,.45],[10,.7],[11,.45],12,[13,.45],[14,.7],[15,.45]],54:[4,12]}},
+ // Brushes (2026-11-11.21): kit = picks the brush kit, bpm = the tempo it starts at, sws = sweep shape (c circle, s side to side, e figure eight),
+ // gk = ghost taps play exactly as written (brush taps are the time, not ghost notes). 97 = the sweep: each hit lasts until the next one.
+ // Iconic grooves (2026-11-11.24), transcribed from published notation by section (see the credits): exact strengths (gk = ghosts as written),
+ // bpm = the record's tempo, bars = a 2-bar loop shown as 4/4. Velocity: 1 accent, 0.8 normal, 0.55 soft, 0.3 ghost.
+ jb_funky_drummer:{"b":4,"s":4,"sw":54,"h":{"42":[[0,0.8],[1,0.55],[2,0.55],[3,0.55],[4,0.8],[5,0.55],[7,0.55],[8,0.8],[9,0.55],[10,0.55],[11,0.55],[12,0.8],[14,0.55],[15,0.55]],"46":[[6,0.8],[13,0.8]],"38":[4,[7,0.8],[9,0.3],[11,0.3],12],"36":[0,[2,0.8],[10,0.8],[13,0.8]]},"bpm":100,"gk":1,"src":1},
+ jb_cold_sweat:{"b":8,"s":4,"h":{"42":[[0,0.8],[4,0.8],[6,0.55],[8,0.8],[12,0.8],[14,0.55],[16,0.8],[20,0.8],[22,0.55],[24,0.8],[28,0.8],[30,0.55]],"46":[[2,0.8],[10,0.8],[18,0.8],[26,0.8]],"44":[[4,0.8],[12,0.8],[20,0.8],[28,0.8]],"38":[4,[7,0.3],[9,0.3],14,[17,0.3],20,[23,0.3],[25,0.3],28],"36":[[0,0.8],[8,0.8],[10,0.8],[18,0.8],[24,0.8],[26,0.8],[30,0.8]]},"bpm":112,"gk":1,"src":1,"bars":2},
+ jb_sex_machine:{"b":4,"s":4,"h":{"42":[[0,0.8],[4,0.8],[6,0.55],[7,0.55],[8,0.8],[12,0.8],[14,0.55],[15,0.55]],"46":[[2,0.8],[10,0.8]],"44":[[4,0.8],[12,0.8]],"38":[[1,0.3],4,[7,0.3],[9,0.3],12,[15,0.3]],"36":[[0,0.8],[10,0.8]]},"bpm":109,"gk":1,"src":1},
+ jb_soul_power:{"b":4,"s":4,"h":{"42":[[0,0.8],[4,0.8],[6,0.55],[7,0.55],[8,0.8],[12,0.8],[14,0.55],[15,0.55]],"46":[[2,0.8],[10,0.8]],"44":[[4,0.8],[12,0.8]],"38":[[1,0.3],4,[6,0.3],[7,0.3],[9,0.3],12,[14,0.3],[15,0.3]],"36":[[0,0.8],[10,0.8]]},"bpm":105,"gk":1,"src":1},
+ jb_payback:{"b":4,"s":4,"sw":55,"h":{"42":[0,4,8,12],"46":[[2,0.8]],"38":[4,[7,0.3],12],"36":[[0,0.8],[4,0.8],[8,0.8],[12,0.8],[15,0.8]]},"bpm":99,"gk":1,"src":1},
+ jb_payback_intro:{"b":4,"s":4,"sw":55,"h":{"42":[0,4,8,12],"38":[4],"36":[[0,0.8],[4,0.8],[8,0.8],[12,0.8]]},"bpm":99,"gk":1,"src":1},
+ sd_home_at_last:{"b":4,"s":3,"h":{"42":[[0,0.8],[2,0.55],[3,0.8],[5,0.55],6,[8,0.55],[9,0.8],[11,0.55]],"44":[[0,0.8],[3,0.8],[6,0.8],[9,0.8]],"38":[[1,0.3],[4,0.3],6,[10,0.3]],"36":[[0,0.8],[5,0.8],[11,0.8]]},"bpm":125,"gk":1,"src":1},
+ sd_peg_verse:{"b":4,"s":4,"h":{"42":[[2,0.8],[6,0.8],[10,0.8],[11,0.8],[14,0.8],[15,0.8]],"46":[[3,0.8],[7,0.8]],"44":[[4,0.8],[8,0.8]],"38":[[1,0.3],4,[9,0.3],12],"36":[[0,0.8],[10,0.8]]},"bpm":117,"gk":1,"src":1},
+ sd_peg_chorus:{"b":4,"s":4,"h":{"42":[[2,0.8],[6,0.8],[10,0.8],[11,0.8],[14,0.8],[15,0.8]],"46":[[3,0.8],[7,0.8]],"44":[[4,0.8],[8,0.8]],"38":[[1,0.3],4,[9,0.3],12],"36":[[0,0.8],[10,0.8],[14,0.8]]},"bpm":117,"gk":1,"src":1},
+ sd_josie_verse:{"b":4,"s":2,"h":{"42":[[1,0.8],[5,0.8],[7,0.8]],"38":[2,6],"36":[[0,0.8],[4,0.8],[7,0.8]]},"bpm":121,"gk":1,"src":1},
+ toto_rosanna:{"b":8,"s":3,"h":{"42":[0,[2,0.55],3,[5,0.55],6,[8,0.55],9,[11,0.55],12,[14,0.55],15,[17,0.55],18,[20,0.55],21,[23,0.55]],"38":[[1,0.3],[4,0.3],6,[10,0.3],[13,0.3],[16,0.3],18,[22,0.3]],"36":[[0,0.8],[5,0.8],[9,0.8],[14,0.8],[23,0.8]]},"bpm":172,"gk":1,"src":1,"bars":2},
+ toto_hold_the_line:{"b":8,"s":3,"h":{"42":[[0,0.8],[1,0.55],[2,0.55],[3,0.8],[4,0.55],[5,0.55],[6,0.8],[7,0.55],[8,0.55],[9,0.8],[10,0.55],[11,0.55],[12,0.8],[13,0.55],[14,0.55],[15,0.8],[16,0.55],[17,0.55],[18,0.8],[19,0.55],[20,0.55],[21,0.8],[22,0.55]],"46":[[23,0.8]],"38":[3,9,15,21],"36":[[0,0.8],[5,0.8],[6,0.8],[8,0.8],[11,0.8],[12,0.8],[17,0.8],[18,0.8],[20,0.8],[22,0.8]]},"bpm":97,"gk":1,"src":1,"bars":2},
+ toto_africa:{"b":4,"s":4,"h":{"42":[0,[1,0.55],[2,0.55],[3,0.55],4,[5,0.55],[6,0.55],[7,0.55],8,[9,0.55],[10,0.55],[11,0.55],12,[13,0.55],[14,0.55],[15,0.55]],"38":[4,12],"36":[[0,0.8],[3,0.8],[4,0.8],[8,0.8],[11,0.8],[12,0.8]]},"bpm":92,"gk":1,"src":1},
+ lz_levee:{"b":4,"s":4,"h":{"42":[[0,0.8],[2,0.55],[4,0.8],[6,0.55],[8,0.8],[10,0.55],[12,0.8],[14,0.55]],"38":[4,12],"36":[0,[7,0.8],[10,0.8],[11,0.8]]},"bpm":71,"gk":1,"src":1},
+ lz_immigrant_song:{"b":4,"s":4,"h":{"42":[[0,0.8],[2,0.55],[4,0.8],[6,0.55],[8,0.8],[10,0.55],[12,0.8],[14,0.55]],"38":[4,[7,0.3],12,[15,0.3]],"36":[[0,0.8],[2,0.8],[3,0.8],[5,0.8],[8,0.8],[10,0.8],[11,0.8],[13,0.8]]},"bpm":113,"gk":1,"src":1},
+ lz_black_dog:{"b":8,"s":4,"h":{"42":[[0,0.8],[2,0.8],[4,0.8],[6,0.8],[8,0.8],[10,0.8],[12,0.8],[14,0.8],[16,0.8],[18,0.8],[20,0.8],[22,0.8],[24,0.8],[26,0.8],[28,0.8],[30,0.8]],"38":[4,12,17,21,28],"50":[[5,0.8],[13,0.8],[29,0.8]],"36":[[2,0.8],[7,0.8],[10,0.8],[15,0.8],[18,0.8],[19,0.8],[22,0.8],[23,0.8],[26,0.8],[31,0.8]]},"bpm":81,"gk":1,"src":1,"bars":2},
+ lz_good_times_bad_times:{"b":8,"s":4,"h":{"42":[[0,0.8],[2,0.8],[4,0.8],[6,0.8],[8,0.8],[10,0.8],[12,0.8],[14,0.8],[16,0.8],[18,0.8],[20,0.8],[22,0.8],[23,0.8],[24,0.8],[25,0.8],[26,0.8],[28,0.8],[30,0.8]],"38":[[4,0.8],[5,0.8],[12,0.8],[13,0.8],[20,0.8],[22,0.8]],"50":[[28,0.8]],"47":[[30,0.8]],"36":[[0,0.8],[2,0.8],[7,0.8],[9,0.8],[10,0.8],[11,0.8],[15,0.8],[16,0.8],[18,0.8],[23,0.8],[25,0.8],[27,0.8]]},"bpm":94,"gk":1,"src":1,"bars":2},
+ rush_tom_sawyer:{"b":8,"s":4,"h":{"49":[0],"42":[[1,0.55],[2,0.55],[3,0.55],[4,0.8],[5,0.55],[6,0.55],[7,0.55],[8,0.8],[9,0.55],[10,0.55],[11,0.55],[12,0.8],[13,0.55],[14,0.55],[15,0.55],[16,0.8],[17,0.55],[18,0.55],[19,0.55],[20,0.8],[21,0.55],[22,0.55],[23,0.55],[24,0.8],[25,0.55],[26,0.55],[27,0.55],[28,0.8],[30,0.55],[31,0.55]],"46":[[29,0.8]],"44":[[30,0.8]],"38":[4,12,20,28],"36":[0,[10,0.8],16,[27,0.8],[29,0.8]]},"bpm":88,"gk":1,"src":1,"bars":2},
+ gen_lamb:{"b":8,"s":4,"h":{"42":[0,[2,0.55],4,[6,0.55],8,[10,0.55],12,[14,0.55],16,[18,0.55],20,[22,0.55],24,[26,0.55],28,[30,0.55]],"38":[4,12,[15,0.3],[17,0.3],[18,0.3],20,28],"36":[[0,0.8],[3,0.8],[6,0.8],[10,0.8],[16,0.8],[19,0.8],[22,0.8],[26,0.8]]},"bpm":117,"gk":1,"src":1,"bars":2},
+ gen_follow_you:{"b":8,"s":4,"h":{"42":[0,[1,0.8],[4,0.8],6,[7,0.55],[8,0.8],[9,0.55],10,[12,0.8],14,[16,0.8],[18,0.8],19,[20,0.8],[22,0.8],23,[24,0.8],[26,0.8],27,[28,0.8],30],"46":[[2,0.8]],"38":[0,4,9,12,20,[23,0.55],25,28],"36":[[0,0.8],[4,0.8],[8,0.8],[12,0.8],[16,0.8],[20,0.8],[24,0.8],[27,0.8]]},"bpm":93,"gk":1,"src":1,"bars":2},
+ gen_invisible_touch:{"b":8,"s":2,"h":{"42":[0,[1,0.55],2,[3,0.55],[4,0.8],[5,0.55],6,[7,0.55],8,[9,0.55],10,[11,0.55],[12,0.8],[13,0.55],14,[15,0.55]],"38":[2,6,10,14],"36":[[0,0.8],[2,0.8],[7,0.8],[8,0.8],[10,0.8],[13,0.8],[15,0.8]]},"bpm":131,"gk":1,"src":1,"bars":2},
+ // Jam-band and prog grooves (2026-11-11.25), APPROXIMATE: built from the recordings, drummer/fan analysis and a few fan transcriptions (see the credits).
+ // nt = what makes it sound right, cf = confidence (high/medium/low), ts = time-signature menu entry for 2-bar odd meters.
+ ph_stash_jam:{"b":4,"s":4,"h":{"46":[[1,0.55],[3,0.55],[5,0.55],[7,0.55],[9,0.55],[11,0.55],[13,0.55],[15,0.55]],"44":[[0,0.55],[2,0.55],[4,0.55],[6,0.55],[8,0.55],[10,0.55],[12,0.55],[14,0.55]],"36":[[0,0.8]]},"bpm":128,"nt":"The jam's hi-hat ostinato: the foot closes the hat on every 8th, the hand lifts it open on the e and a, so foot and hand make straight 16ths. No backbeat on purpose: the jam simmers instead of grooving. Kick on 1 only; Fishman's kick and ride-bell ostinatos were not readable, so they are left out. Tempo is an estimate.","cf":"low","gk":1,"src":1},
+ ph_limb_by_limb:{"b":12,"s":2,"h":{"51":[[0,0.8],[2,0.8],[4,0.8],[8,0.8],[10,0.8],[14,0.8],[16,0.8],[18,0.8],[20,0.8]],"42":[[2,0.8],[4,0.8],[5,0.8],[7,0.8],[9,0.8],[11,0.8],[12,0.8],[14,0.8],[16,0.8],[17,0.8],[21,0.8]],"46":[[23,0.8]],"50":[[6,0.8],[12,0.8],[17,0.8]],"38":[0,19,22],"36":[[0,0.8],[20,0.8],[23,0.8]],"44":[[0,0.8]]},"bpm":276,"ts":"6/8x2","nt":"Two bars of 6/8 in 16ths, counted in 8th notes (276 = dotted quarter about 92; the record may be faster, and the app tops out at 280). Ride and hand hi-hat trade the 16ths while snare and high tom answer each other, like several percussionists folded onto one kit; the second bar ends on an open hat. From Ashley Baier's transcription, played as written.","cf":"medium","gk":1,"src":1,"bars":2},
+ gd_shakedown:{"b":4,"s":4,"h":{"46":[[2,0.8],[6,0.8],[10,0.8],[14,0.8]],"44":[[0,0.55],[4,0.55],[8,0.55],[12,0.55]],"38":[4,12],"36":[[0,0.8],[4,0.8],[8,0.8],[12,0.8]]},"bpm":112,"nt":"The disco tune: four-on-the-floor kick and the off-beat lift-and-close hi-hat (open on every &, foot closes it on the beat), backbeat on 2 and 4. The kick and hat are documented; the backbeat and the tempo are by ear, and the two drummers' extra percussion is left out.","cf":"low","gk":1,"src":1},
+ gd_nfa:{"b":4,"s":4,"h":{"43":[0,[3,0.8],[6,0.8],[10,0.8],[12,0.8]],"36":[[0,0.8],[3,0.8],[6,0.8],[10,0.8],[12,0.8]],"42":[[0,0.55],[2,0.55],[4,0.55],[6,0.55],[8,0.55],[10,0.55],[12,0.55],[14,0.55]],"38":[4,12]},"bpm":114,"nt":"The Bo Diddley beat (the 3-2 clave squeezed into one bar: 1, a of 1, & of 2, & of 3, 4) pounded on floor tom and kick, with 8th hats and a backbeat on top. The cell is documented; which drummer plays what, the backbeat and the tempo are by ear.","cf":"low","gk":1,"src":1},
+ fz_yellow_snow_74:{"b":7,"s":2,"h":{"42":[[0,0.8],[4,0.8],[8,0.8],[12,0.8]],"36":[[0,0.8],[8,0.8]],"38":[4,12,13]},"bpm":138,"nt":"Rock in 7, half-time: 2+2+3 quarter notes, kick on 1 and 5, snare on 3 and a double on 7 and its &. From Todd Bishop's transcription of the Apostrophe (') take, played as written; the tempo is an estimate.","cf":"medium","gk":1,"src":1},
+ fz_yellow_snow_78:{"b":7,"s":4,"h":{"42":[[0,0.8],[1,0.8],[2,0.8],[3,0.8],[5,0.8],[6,0.8],[7,0.8],[8,0.8],[9,0.8],[10,0.8],[11,0.8],[13,0.8],[14,0.8],[15,0.8],[16,0.8],[17,0.8],[19,0.8],[20,0.8],[21,0.8],[22,0.8],[23,0.8],[24,0.8],[25,0.8]],"38":[4,12,18,26,27],"36":[[0,0.8],[8,0.8],[10,0.8],[14,0.8],[17,0.8],[22,0.8],[24,0.8]]},"bpm":69,"ts":"7/8x2","nt":"The 7/8 bars: a 16th-note rock feel grouped 2+2+3 eighths, two bars, the second ending on a snare double. Same pulse as the 7/4 (the 8th here = the quarter there), so 69 here matches 138. From Todd Bishop's transcription, played as written.","cf":"medium","gk":1,"src":1,"bars":2},
+ fz_central_scrutinizer:{"b":8,"s":4,"h":{"42":[[0,1],[1,0.8],[2,0.8],[3,0.8],[4,1],[5,0.8],[6,0.8],[7,0.8],[10,0.8],[11,0.8],[12,1],[13,0.8],[14,0.8],[15,0.8],[16,1],[17,0.8],[18,0.8],[19,0.8],[20,1],[21,0.8],[22,0.8],[23,0.8],[26,0.8],[27,0.8],[28,1],[29,0.8]],"46":[[8,0.8],[24,0.8],[30,0.8]],"38":[4,20],"50":[[6,0.8],[22,0.8]],"47":[[12,0.8],[28,0.8]],"36":[[0,0.8],[2,0.8],[3,0.8],[5,0.8],[7,0.8],[8,0.8],[11,0.8],[12,0.8],[15,0.8],[16,0.8],[19,0.8],[21,0.8],[23,0.8],[27,0.8],[28,0.8],[30,0.8]]},"bpm":100,"nt":"Joe's Garage opener: busy 16th hats with accents on 1, 2 and 4, an open hat on 3, a single snare on 2 and the high and mid toms standing in for the other backbeats; the kick moves around beats 1, 3 and 4. Bar 1 is the main vamp, bar 2 the variation Vinnie keeps coming back to. From Todd Bishop's transcription; tempo is an estimate.","cf":"medium","gk":1,"src":1,"bars":2},
+ brballad:{b:4,s:3,kit:'brushes',bpm:60,sws:'c',gk:1,h:{97:[[0,.7],[6,.66]],38:[[3,.42],[9,.42],[11,.24]],44:[[3,.7],[9,.7]],36:[[0,.22],[6,.2]]}},
+ brmed:{b:4,s:3,kit:'brushes',bpm:132,sws:'c',gk:1,h:{97:[[0,.62],[3,.58],[6,.62],[9,.58]],38:[[0,.5],[3,.72],[5,.36],[6,.5],[9,.72],[11,.36]],44:[[3,.75],[9,.75]],36:[[0,.2],[3,.18],[6,.2],[9,.18]]}},
+ brfast:{b:4,s:3,kit:'brushes',bpm:220,sws:'s',gk:1,h:{97:[[0,.55],[3,.5],[6,.55],[9,.5]],38:[[0,.48],[3,.7],[5,.3],[6,.48],[9,.7],[11,.3]],44:[[3,.75],[9,.75]]}},
+ brwaltz:{b:3,s:3,kit:'brushes',bpm:150,sws:'c',gk:1,h:{97:[[0,.66]],38:[[0,.5],[3,.62],[5,.36],[6,.62]],44:[[3,.7],[6,.7]],36:[[0,.28]]}},
+ brbossa:{b:8,s:2,kit:'brushes',bpm:132,sws:'s',gk:1,h:{97:[[0,.5],[2,.45],[4,.5],[6,.45],[8,.5],[10,.45],[12,.5],[14,.45]],38:[[0,.55],[3,.55],[6,.55],[10,.55],[13,.55]],36:[[0,.5],[3,.35],[4,.5],[7,.35],[8,.5],[11,.35],[12,.5],[15,.35]],44:[[2,.6],[6,.6],[10,.6],[14,.6]]}},
+ brpop:{b:4,s:4,kit:'brushes',bpm:72,sws:'c',gk:1,h:{97:[[0,.55],[8,.55]],38:[[4,.95],[12,.95],[14,.28]],36:[[0,.75],[10,.6]],44:[[4,.5],[12,.5]]}},
+ brtrain:{b:4,s:4,kit:'brushes',bpm:120,gk:1,h:{38:[[0,.4],[1,.3],[2,.45],[3,.3],[4,.92],[5,.3],[6,.45],[7,.3],[8,.4],[9,.3],[10,.45],[11,.3],[12,.92],[13,.3],[14,.45],[15,.3]],36:[[0,.7],[8,.7]],44:[[4,.5],[12,.5]]}},
+ brshuf:{b:4,s:3,kit:'brushes',bpm:96,sws:'c',gk:1,h:{97:[[0,.55],[3,.55],[6,.55],[9,.55]],38:[[0,.42],[2,.3],[3,.85],[5,.3],[6,.42],[8,.3],[9,.85],[11,.3]],36:[[0,.45],[6,.45]],44:[[3,.6],[9,.6]]}}
 };
-const ROWS=[[49,'Crash'],[51,'Ride'],[53,'Ride Bell'],[46,'Open Hi-Hat'],[42,'Closed Hi-Hat'],[44,'Pedal Hi-Hat'],[38,'Snare'],[37,'Side Stick'],[39,'Hand Clap'],[99,'Finger Snap'],[36,'Kick'],[35,'808 Bass'],[50,'High Tom'],[47,'Mid Tom'],[43,'Floor Tom'],[82,'Shaker'],[54,'Tambourine'],[56,'Cowbell'],[75,'Claves'],[76,'Woodblock'],[60,'Bongo High'],[61,'Bongo Low'],[73,'Guiro'],[63,'Conga High'],[64,'Conga Low']];
-const VOL={49:.7,51:.55,53:.6,46:.55,42:.6,44:.6,38:.9,37:.8,39:.8,99:.75,36:1,35:.9,50:.85,47:.85,43:.9,82:.6,54:.6,56:.5,75:.6,76:.6,60:.7,61:.75,73:.55,63:.8,64:.85};
+const ROWS=[[49,'Crash'],[51,'Ride'],[53,'Ride Bell'],[46,'Open Hi-Hat'],[42,'Closed Hi-Hat'],[44,'Pedal Hi-Hat'],[38,'Snare'],[37,'Side Stick'],[97,'Brush Sweep'],[39,'Hand Clap'],[99,'Finger Snap'],[36,'Kick'],[35,'808 Bass'],[50,'High Tom'],[47,'Mid Tom'],[43,'Floor Tom'],[82,'Shaker'],[54,'Tambourine'],[56,'Cowbell'],[75,'Claves'],[76,'Woodblock'],[60,'Bongo High'],[61,'Bongo Low'],[73,'Guiro'],[63,'Conga High'],[64,'Conga Low']];
+const VOL={97:.9,49:.7,51:.55,53:.6,46:.55,42:.6,44:.6,38:.9,37:.8,39:.8,99:.75,36:1,35:.9,50:.85,47:.85,43:.9,82:.6,54:.6,56:.5,75:.6,76:.6,60:.7,61:.75,73:.55,63:.8,64:.85};
 const rowVol={};ROWS.forEach(([n])=>rowVol[n]=1);
 let ctx=null,buf={},master=null,out=null,bpm=80,beats=4,sub=2,playing=false,next=0,timer=null,q=[],openHat=null,grid={},cells={},restoring=true;
 const $=id=>document.getElementById(id),s=$('s'),v=$('v'),m=$('m'),p=$('p'),g=$('g');
@@ -630,7 +684,7 @@ async function applyDev(){const id=$('dev').value;try{
  else if(ctx.setSinkId)await ctx.setSinkId(id)}catch(e){status('Device not allowed here: '+e.message+' (using system default)')}}
 async function listDevs(){try{if(!navigator.mediaDevices||!navigator.mediaDevices.enumerateDevices)return;const ds=(await navigator.mediaDevices.enumerateDevices()).filter(d=>d.kind==='audiooutput');
  const sel=$('dev'),cur=sel.value;sel.innerHTML='<option value="">System default</option>';ds.forEach((d,i)=>{if(d.deviceId==='default'||!d.deviceId)return;const o=document.createElement('option');o.value=d.deviceId;o.textContent=d.label||('Output '+(i+1));sel.appendChild(o)});{const want=cur||savedDev;sel.value=[...sel.options].some(o=>o.value===want)?want:''}}catch(e){}}
-let curFill=[],forceBar=-1;const KITROWS=new Set([49,51,46,42,44,38,37,39,99,36,35,50,47,43]);
+let curFill=[],forceBar=-1;const KITROWS=new Set([49,51,46,42,44,38,37,97,39,99,36,35,50,47,43]);
 function fillBeats(){return Math.min(beats,1+Math.floor(+$('fa').value/100*beats*0.999))}
 function fatUI(){const a=+$('fa').value,b=fillBeats();$('fat').textContent=(a<25?'Light':a<50?'Medium':a<75?'Big':'Huge')+' · '+b+' beat'+(b>1?'s':'')}
 // Fills: hand-written phrases a drummer would actually play, by groove family, instead of random hits.
@@ -652,7 +706,7 @@ const FILLS={
  shuffle:{1:{lo:['S.S','..S'],hi:['SSS','HMF']},
        2:{lo:['S.S H.F','S.. S.S'],hi:['SSS HMF','SSH HMF','SsS SSS']},
        4:{lo:['S.S S.S H.H F.F','... S.S S.S SSS'],hi:['SSS SSS HHH FFF','SSS HHH MMM FFF','SsS SsS HHM MFF']}}};
-const FAM={jbcow:'funk',mjfunk:'funk',fjb:'funk',fone:'funk',ftop:'funk',fmeters:'funk',fvulf:'funk',mjbroken:'jazz',p54swing:'jazz',funk:'funk',neosoul:'funk',boombap:'funk',afrobeat:'funk',dembow:'funk',trap808:'funk',
+const FAM={jb_funky_drummer:'funk',jb_cold_sweat:'funk',jb_sex_machine:'funk',jb_soul_power:'funk',jb_payback:'funk',jb_payback_intro:'funk',sd_peg_verse:'funk',sd_peg_chorus:'funk',brballad:'jazz',brmed:'jazz',brfast:'jazz',brwaltz:'jazz',brbossa:'latin',brshuf:'shuffle',jbcow:'funk',mjfunk:'funk',fjb:'funk',fone:'funk',ftop:'funk',fmeters:'funk',fvulf:'funk',mjbroken:'jazz',p54swing:'jazz',funk:'funk',neosoul:'funk',boombap:'funk',afrobeat:'funk',dembow:'funk',trap808:'funk',
  bossa:'latin',samba:'latin',tumbao:'latin',baiao:'latin',chacha:'latin',salsa:'latin',songo:'latin',soca:'latin',mjlatin:'latin',fgogo:'funk',fminn:'funk',fhalf:'funk',secondline:'funk',mjdilla:'funk',mjdnb:'funk',
  mjelvin:'jazz',mjtony:'jazz',nola2beat:'jazz',basie:'jazz',steppers:'shuffle',
  jazz:'jazz',ride:'jazz',bebop:'jazz',uptempo:'jazz',bigband:'jazz',twofeel:'jazz',jballad:'jazz',jwaltz:'jazz',snapswing:'jazz',
@@ -674,7 +728,7 @@ function genFill0(len){const A=+$('fa').value/100,sty=$('fs').value,n=steps(),ev
  beatsArr.forEach((b,bi)=>[...b].forEach((ch,j)=>{if(ch==='.')return;
    if(!tri&&swing>52&&j%2===1)return;              // swung 8th grooves: keep fills on the 8ths
    const pos=(bi*R+j)*sub/R,k=Math.floor(pos),o=pos-k;if(k>=len)return;
-   const prog=(bi*R+j+1)/total,base=0.62+0.38*prog,lo=ch===ch.toLowerCase()&&ch!=='.';
+   const prog=(bi*R+j+1)/total,base=(0.6+0.4*prog)*(j===0?1:0.86)*(bi*R+j+1===total?1.1:1),lo=ch===ch.toLowerCase()&&ch!=='.'; // builds through the fill, the start of each beat leads, the last note lands
    const U=ch.toUpperCase();let voices=U==='S'?[38]:U==='H'?[50]:U==='M'?[47]:U==='F'?[43]:U==='K'?[36]:U==='B'?[43,36]:[];
    if(sty==='snare')voices=voices.map(x=>x===36?36:38);
    if(sty==='toms')voices=voices.map(x=>x===38?(prog<1/3?50:prog<2/3?47:43):x);
@@ -696,7 +750,7 @@ Object.assign(SNARE,{pearl2:(t,a)=>smp('p_sn2',t,a),pearl3:(t,a)=>smp('p_sn3',t,
 Object.assign(HAT,{linn:{42:(t,a)=>smp('l_hh',t,a),44:(t,a)=>smp('l_hh',t,a*0.6,0.92,6000),46:(t,a)=>smp('l_oh',t,a)},
  cr78:{42:(t,a)=>smp('c_hh',t,a*1.1),44:(t,a)=>smp('c_hh',t,a*0.7,0.9,6000),46:(t,a)=>smp('l_oh',t,a*0.8,1.1,8000)}});
 const TOMV={pearl:{50:(t,a)=>smp('p_tom1',t,a),47:(t,a)=>smp('p_tom2',t,a),43:(t,a)=>smp('p_tom3',t,a)},linn:{50:(t,a)=>smp('l_tomh',t,a),47:(t,a)=>smp('l_tomm',t,a),43:(t,a)=>smp('l_toml',t,a)},e808:TOM808,synth:null};
-const KITS={bpearl:['bp','bp','studio','bp'],jazzbop:['bb','bb','bb','bb'],hotrods:['bh','bh','bh','bh'],zep:['rz','rz','studio','rz'],acoustic:['ac','ac','studio','pearl'],pearl:['pearl','pearl2','studio','pearl'],linn:['linn','linn','linn','linn'],cr78:['cr78','cr78','cr78','pearl'],e808:['k808','s808','h808','pearl'],e909:['k909','s909','h909','pearl'],trap:['trap','trap','h808','pearl'],house:['house','clap','h909','pearl'],hybrid:['sub','rim','studio','pearl'],lofi:['lofi','lofi','lofi','pearl']};
+const KITS={brushes:['bb','br','br','br'],bpearl:['bp','bp','studio','bp'],jazzbop:['bb','bb','bb','bb'],hotrods:['bh','bh','bh','bh'],zep:['rz','rz','studio','rz'],acoustic:['ac','ac','studio','pearl'],pearl:['pearl','pearl2','studio','pearl'],linn:['linn','linn','linn','linn'],cr78:['cr78','cr78','cr78','pearl'],e808:['k808','s808','h808','pearl'],e909:['k909','s909','h909','pearl'],trap:['trap','trap','h808','pearl'],house:['house','clap','h909','pearl'],hybrid:['sub','rim','studio','pearl'],lofi:['lofi','lofi','lofi','pearl']};
 KITROWS.add(53);
 // ride: velocity-shaped recorded ride (soft = darker + gentler), bell for accents
 // Studio cymbals: AVL Drumkits (Sabian Rock hats, Zildjian A 24 and Sabian AAX 20 rides), several velocity layers each.
@@ -748,11 +802,47 @@ function sdvEvents(m,i,t,base,dt){if(m==='none')return [];if(m==='off'){const v=
  else if(D%sub===0){const r=D/sub;for(let k=0;k<r;k++)ev.push([k?base+k*dt/r:t,on&&!k?1:0.7])}
  else if(on){for(let k=0;k<D;k++)ev.push([base+k*dt*sub/D,k?0.7:1])}
  return ev}
-function bellAt(i){const m=$('rb').value;if(m==='off')return false;const on=i%sub===0,bt=Math.floor(i/sub);
+function bellAt(i){const m=$('rb').value;if(m==='off'||(cur&&cur.src))return false; // written grooves keep their ride as written (2026-11-11.25)
+ const on=i%sub===0,bt=Math.floor(i/sub);
  if(m==='beats')return on;if(m==='one')return on&&bt===0;if(m==='24')return on&&bt%2===1;if(m==='and')return sub>1&&i%sub===Math.floor(sub/2);return false}
 ['bb','bh'].forEach(k=>{RIDE[k]=(t,a)=>cymHit(k,'ride',51,t,a,1.7)||RIDE.zil(t,a);
  HAT[k]={42:(t,a)=>cymHit(k,'hat',42,t,a,1.15)||HAT.studio[42](t,a),44:(t,a)=>cymHit(k,'hatp',44,t,a,1.2)||HAT.studio[44](t,a),46:(t,a)=>cymHit(k,'hato',46,t,a,1.1)||HAT.studio[46](t,a)}});
-function altVoice(n){if(n==51){const r=RIDE[$('rv').value];return r&&(buf.p_ride1||buf.av_rz4)?r:null}if(n==53)return buf.p_ride2?BELL:null;if(n==37){const k=stickKit($('sn').value);return (t,a)=>kitHit(k,37,t,a)||(k!=='ss'?kitHit('ss',37,t,a):null)}if(n==36)return KICK[$('kk').value];if(n==38)return SNARE[$('sn').value];
+// ===== Brushes (2026-11-11.21): a real brush kit, played the way jazz drummers play it =====
+// Snare taps (6 layers x 3 round-robins), slaps (the brush pressed into the head, 3 x 2), edge ticks, closed and foot hats, toms, a brushed ride (5 x 2)
+// and the sustained stirs (3 dynamic levels x 2): Swirly Drums by Karoryfer Samples (CC0), close mics mixed to mono.
+// Kick: the Blonde Bop 18" jazz kick (felt beater, AVL Drumkits, CC BY-SA). Fetched only when brushes are picked.
+const BR={dir:'kits/br/',g:{sn:[6,3],sl:[3,2],ed:[3,2],st:[3,2],rd:[5,2],hc:[4,2],hf:[3,2],th:[4,1],tm:[4,1],tf:[4,1]},gain:{sn:1.7,sl:1.5,ed:1.6,rd:2.3,hc:1.2,hf:0.8,th:2.2,tm:2.4,tf:2.4},st:[2.4,1.6,1.2]};
+let brBuf=null,brLoading=null;const brRR={};
+function loadBrush(){if(brBuf)return Promise.resolve(brBuf);if(brLoading||!ctx)return brLoading||Promise.resolve();brLoading=(async()=>{const out={},fs=[];for(const k in BR.g){const [L,R]=BR.g[k];for(let l=1;l<=L;l++)for(let r=1;r<=R;r++)fs.push(k+'_'+l+'_'+r)}
+ await Promise.all(fs.map(async f=>{try{const ab=await cFetch(new URL(BR.dir+f+'.mp3',location.href).href);out[f]=await new Promise((res,rej)=>{const p=ctx.decodeAudioData(ab,res,rej);if(p&&p.then)p.then(res,rej)})}catch(e){}}));brBuf=out;status('Brushes loaded');return out})();return brLoading}
+function brushUsed(){return ['sn','hh','tm','rv'].some(id=>$(id).value==='br')||(grid[97]||[]).some(x=>x>0)}
+// one brush stroke: the layer follows how hard it is played, a different take each time (round-robin), level fine-tuned inside the layer
+function brushHit(grp,t,a,vel){if(!brBuf){loadBrush();return null}const [L,R]=BR.g[grp],v=Math.max(0.02,Math.min(1,vel)),li=Math.max(1,Math.min(L,Math.ceil(v*L)));brRR[grp]=((brRR[grp]||0)%R)+1;
+ const b=brBuf[grp+'_'+li+'_'+brRR[grp]]||brBuf[grp+'_'+li+'_1'];if(!b)return null;const nom=(li-0.5)/L,src=ctx.createBufferSource(),gn=ctx.createGain();src.buffer=b;src.playbackRate.value=(0.99+Math.random()*0.02)*ARTRATE;
+ gn.gain.value=BR.gain[grp]*(a/v)*Math.pow(v/nom,0.6);src.connect(gn);gn.connect(master);src.start(t);return gn}
+// the snare: taps, and a slap (brush pressed flat into the head) on the hardest strokes
+SNARE.br=(t,a)=>{const v=velOf(38,a);return v>=0.86?brushHit('sl',t,a,0.45+(v-0.86)*4):brushHit('sn',t,a,v/0.86)};
+HAT.br={42:(t,a)=>brushHit('hc',t,a,velOf(42,a)),44:(t,a)=>brushHit('hf',t,a,velOf(44,a)),46:(t,a)=>HAT.bb[46](t,a)};
+TOMV.br={50:(t,a)=>brushHit('th',t,a,velOf(50,a)),47:(t,a)=>brushHit('tm',t,a,velOf(47,a)),43:(t,a)=>brushHit('tf',t,a,velOf(43,a))};
+RIDE.br=(t,a)=>brushHit('rd',t,a,velOf(51,a))||RIDE.zil(t,a);
+// The sweep: a long stir recording, started at a random place so no two turns are the same, shaped turn by turn.
+// c = circle ("stir the pot"): loudest where the brush crosses the near side, at the start of each turn. s = side to side: swells across,
+// eases off where it turns around. e = figure eight: two swells a turn. Each turn overlaps the next by 30 ms with equal-power fades, so the
+// sweep is one continuous sound that follows the tempo. The tone opens up as the brush speeds up (brighter in the swell).
+function brushSweep(t,dur,vel,shape){if(!ctx||!rowVol[97])return;if(!brBuf){loadBrush();return}
+ const a=VOL[97]*rowVol[97]*vel,li=vel<0.45?1:vel<0.75?2:3;brRR.st=((brRR.st||0)%2)+1;const b=brBuf['st_'+li+'_'+brRR.st];if(!b)return;
+ const X=0.03,len=dur+X,src=ctx.createBufferSource(),g=ctx.createGain(),f=ctx.createBiquadFilter();src.buffer=b;
+ const off=0.15+Math.random()*Math.max(0,b.duration-len-0.4);f.type='lowpass';f.Q.value=0.5;
+ const N=Math.max(24,Math.ceil(len*150)),cv=new Float32Array(N),fc=new Float32Array(N),turns=shape==='e'?2:1,lvl=a*BR.st[li-1];
+ for(let k=0;k<N;k++){const tt=k/(N-1)*len,ph=Math.min(1,tt/dur);let e;
+  if(shape==='s')e=0.4+0.6*Math.pow(Math.sin(Math.PI*ph),0.8);else if(shape==='e')e=0.55+0.45*Math.abs(Math.cos(Math.PI*turns*ph));else e=0.6+0.4*Math.cos(2*Math.PI*ph);
+  const fd=Math.max(0,Math.min(1,tt/X,(len-tt)/X));e*=Math.sin(Math.PI/2*fd);cv[k]=e*lvl;fc[k]=1800+4200*e}
+ g.gain.setValueCurveAtTime(cv,t,len);f.frequency.setValueCurveAtTime(fc,t,len);src.connect(f);f.connect(g);g.connect(master);src.start(t,off);src.stop(t+len+0.02)}
+// a sweep hit on the grid lasts until the next one (the next turn), or until the fill takes the hands
+function sweepAt(i,t,val){const n=steps(),r=grid[97]||[];let j=-1;for(let k=i+1;k<n;k++)if(r[k]>0){j=k;break}if(j<0){for(let k=0;k<=i;k++)if(r[k]>0){j=k+n;break}}
+ let st=j-i;if(fillBar){const fs=n-fillBeats()*sub+fillFirst;if(i<fs&&i+st>fs)st=fs-i}const shape=(P[curName]&&P[curName].sws)||'c';brushSweep(t,st*60/bpm/sub,val,shape)}
+
+function altVoice(n){if(n==51){const r=RIDE[$('rv').value];return r&&(buf.p_ride1||buf.av_rz4)?r:null}if(n==53)return buf.p_ride2?BELL:null;if(n==37&&$('sn').value==='br')return (t,a)=>brushHit('ed',t,a,velOf(37,a));if(n==37){const k=stickKit($('sn').value);return (t,a)=>kitHit(k,37,t,a)||(k!=='ss'?kitHit('ss',37,t,a):null)}if(n==36)return KICK[$('kk').value];if(n==38)return SNARE[$('sn').value];
  if(n==42||n==44||n==46){const h=HAT[$('hh').value];return h&&h[n]}
  if(n==50||n==47||n==43){const tv=TOMV[$('tm').value];return tv&&tv[n]}
  if(PERC[n]&&$('pc').value==='smp'&&buf[PERC[n]])return (t,a)=>smp(PERC[n],t,a);
@@ -768,7 +858,26 @@ const PK={pocket:{sn:6,gh:3,kk:0,kr:2,hh:-2,hs:0,acc:[1,.72,.5],mv:1},funk:{sn:5
  machine:{sn:0,gh:0,kk:0,kr:0,hh:0,hs:0,acc:[1,1,1]}};
 const PKG={};[['funk','fjb ftop fmeters funk jbcow mjfunk fone afrobeat fgogo fhalf secondline'],['tight','fminn mjdnb soca fvulf p54rock p74 p78 p98 jbwhip mjstraight popsnap popshaker disco dembow'],['dilla','neosoul boombap mjdilla'],
  ['jazz','mjelvin mjtony nola2beat basie jazz ride bebop uptempo bigband twofeel jballad jwaltz snapswing mjbroken p54swing mjafro'],['shuffle','shuffle texas halfshuf slowblues sixeight jbshuf swing8'],
- ['latin','bossa samba tumbao percjam shakeronly baiao chacha salsa songo maqsum saidi mjlatin'],['reggae','onedrop steppers'],['jam','jbdead'],['machine','click click8 click16 trap808 clear']].forEach(([k,v])=>v.split(' ').forEach(g=>PKG[g]=k));
+ ['jazz','brballad brmed brfast brwaltz'],['shuffle','brshuf'],['funk','jb_funky_drummer jb_cold_sweat jb_sex_machine jb_soul_power jb_payback jb_payback_intro'],['shuffle','sd_home_at_last toto_rosanna toto_hold_the_line'],['reggae','lz_levee'],['latin','brbossa bossa samba tumbao percjam shakeronly baiao chacha salsa songo maqsum saidi mjlatin'],['reggae','onedrop steppers'],['jam','jbdead'],['machine','click click8 click16 trap808 clear']].forEach(([k,v])=>v.split(' ').forEach(g=>PKG[g]=k));
+// ===== Groove dynamics (2026-11-11.24): every groove played with real strengths, the way a drummer plays it =====
+// Applied once to the grooves' plain hits (a hit written without a strength); anything a groove already sets (ghosts, shaped hats,
+// the transcribed grooves, the brush grooves) stays exactly as written. Levels: 1 accent, 0.8 normal, 0.55 soft, 0.3 ghost.
+// Time-keeping cymbals: quarter notes normal, the in-betweens soft (straight 8ths and one-hand 16ths alike); jazz ride: 2 and 4
+// accented, 1 and 3 normal, the skip note soft; shuffle hats: the beat normal, the "let" soft. Snare: backbeats accented, other
+// full strokes normal. Kick: 1 and 3 full, 2 and 4 and the syncopations normal (dance grooves keep four even kicks). Hand
+// percussion: on the beat normal, between soft, tambourine on 2 and 4 accented. Crashes and toms are left as written.
+const DYN_SKIP=new Set(['click','click8','click16','clear','bluerondo']);
+function voiceGroove(name,g){if(g.gk||g.src||DYN_SKIP.has(name))return;const s=g.s,fam=PKG[name]||'pocket',even=/disco|pop$|bigband|steppers|dembow|soca/.test(name);
+ for(const k in g.h){const n=+k;g.h[k]=g.h[k].map(e=>{const st=Array.isArray(e)?e[0]:e,v=Array.isArray(e)?e[1]:1;if(v!==1)return e;
+  const pos=st%s,bt=Math.floor(st/s),on=pos===0,bb=on&&bt%2===1;let w=1;
+  if(n===42||n===51||n===53){if(s===3&&fam==='jazz'&&n!==42)w=on?(bb?1:.8):.55;else w=on?.8:.55}
+  else if(n===46||n===44)w=.8;
+  else if(n===38||n===37||n===39||n===99)w=bb?1:.8;
+  else if(n===36||n===35)w=on&&(bt%2===0||even)?1:.8;
+  else if(n===54)w=bb?1:on?.8:.55;
+  else if(n===82||n===56||n===75||n===76||n===73||n===60||n===61||n===63||n===64)w=on?.8:.55;
+  return w===1?e:[st,w]})}}
+for(const nm in P)voiceGroove(nm,P[nm]);
 const SNR=new Set([38,39,37,99]),KKR=new Set([36,35]),CYM=new Set([42,46,44,51,53,82,54,56]);
 let pkMove={lift:false,gAdd:-1,gDrop:-1};
 function pocketNow(){const m=$('pkt')?$('pkt').value:'auto';if(m==='machine')return PK.machine;const b=PK[PKG[curName]||'pocket'];
@@ -782,8 +891,8 @@ function pocketHit(k,i,val){const pk=pocketNow();if(pk===PK.machine)return [0,1]
  if(SNR.has(k))ms=val<0.5?pk.gh:pk.sn;else if(KKR.has(k))ms=pk.kk+(Math.random()-.5)*2*pk.kr;
  else if(CYM.has(k)){ms=pk.hh;const cls=sub===4?(i%4===0?0:i%2===0?1:2):sub===2?(i%2?1:0):sub===3?(i%3===0?0:i%3===2?1:2):0;
   if(sub===4&&cls===2)ms+=pk.hs;else if(sub===2&&cls===1)ms+=pk.hs*0.5;
-  if(val>=0.99)vm=pk.acc[cls];
-  if(pk.jz&&sub===3&&i%3===2&&(k===51||k===42||k===53)){const ratio=Math.max(0.56,Math.min(0.72,0.70-(bpm-60)*0.00064));ms+=(ratio-2/3)*beatDur*1000;if(val>=0.99)vm=0.62}
+  if(val>=0.99&&!cur.gk)vm=pk.acc[cls]; // written strengths (transcribed and brush grooves) are played as written
+  if(pk.jz&&sub===3&&i%3===2&&(k===51||k===42||k===53)){const ratio=Math.max(0.56,Math.min(0.72,0.70-(bpm-60)*0.00064));ms+=(ratio-2/3)*beatDur*1000;if(val>=0.99&&!cur.gk)vm=0.62}
   if(pk.jz&&k===51&&i%sub===0)vm*=(Math.floor(i/sub)%2?1.08:0.93);
   if(barN%4===3)vm*=1.05}
  if(SNR.has(k)&&val>=0.5&&i%sub===0&&Math.floor(i/sub)===beats-1)vm*=1.04;
@@ -792,7 +901,7 @@ function volG(x){x=+x;return x<=0?0:Math.pow(10,(-45+45*x/100)/20)}
 // Feel controls: how the drummer plays each piece. Tight = damped and short, loose/boomy = open and ringing.
 let ARTRATE=1;
 function artOf(n){const id=n==36||n==35?'kfeel':n==38?'sfeel':n==42?'hfeel':null;return id&&$(id)?$(id).value:'n'}
-function hit(n,t,vel){if(!ctx||!rowVol[n])return;const a=VOL[n]*rowVol[n]*vel;const art=artOf(n);
+function hit(n,t,vel,o){if(!ctx||!rowVol[n])return;const a=VOL[n]*rowVol[n]*vel;const art=artOf(n);
  ARTRATE=art==='n'?1:n==38?(art==='t'?1.04:0.93):n==36?(art==='t'?1.03:0.92):1;
  if(n==42&&art==='l'){const h=HAT[$('hh').value],o=h&&h[46]?h[46](t,a*0.3):(buf[46]?smp(46,t,a*0.3):null);if(o&&o.gain){o.gain.setTargetAtTime(0,t+0.13,0.045)}}
  if((n==42||n==44)&&openHat){try{openHat.gain.cancelScheduledValues(t);openHat.gain.setTargetAtTime(0,t,0.015)}catch(e){};openHat=null}
@@ -800,6 +909,8 @@ function hit(n,t,vel){if(!ctx||!rowVol[n])return;const a=VOL[n]*rowVol[n]*vel;co
  if(alt)gg=alt(t,a);else if(!buf[n]){SYN[n]&&SYN[n](t,a);return}else gg=smp(n,t,a,1,vel<0.6?3800:0);
  ARTRATE=1;
  if(gg&&gg.gain&&art==='t'){const [h,tc]=n==42?[0.028,0.012]:n==38?[0.06,0.03]:n==36?[0.09,0.03]:[9,1];if(h<9)gg.gain.setTargetAtTime(0,t+h,tc)}
+ // roll strokes: a short decay, and on the layered kits (one sample for every hit under 0.3) the gain follows the stroke, so a roll sits under the ghost notes
+ if(o&&gg&&gg.gain){if(o.roll&&n==38&&DKIT[$('sn').value])gg.gain.value*=Math.min(1,vel/0.13);if(o.dec)gg.gain.setTargetAtTime(0,t+o.dec,o.dec*0.35)}
  if(n==46&&gg)openHat=gg}
 function clickV(t,acc){sweep(t,'sine',acc?1900:1300,acc?1800:1200,0.01,0.06,envTo(t,acc?0.6:0.42,0.05,comp))}
 // ===== grooves & grid =====
@@ -811,22 +922,32 @@ function fill(){const n=steps(),len=cur.b*cur.s;grid={};ROWS.forEach(([k])=>grid
  draw()}
 function setSwing(x){x=+x;if(!isFinite(x))x=50;x=Math.max(50,Math.min(75,x));swing=x/100;$('sw').value=x;swUI()}
 function swUI(){const x=+$('sw').value,tri=sub===3;$('sw').disabled=tri;$('swt').textContent=tri?'Triplet grid':x<=50?'Straight':(x>=66&&x<=67)?x+'% (triplet)':x+'%'}
-function preset(name){if(!Object.prototype.hasOwnProperty.call(P,name))name='rock';curName=name;cur=P[name];beats=cur.b;sub=cur.s;$('b').value=beats;$('sub').value=sub;setSwing(cur.sw||50);fill();if(window.tsUI)tsUI()}
+// Approximate grooves carry a note on what makes them sound right and a confidence level (2026-11-11.25).
+function gNote(){const e=$('gnote');if(!e)return;const g=P[curName];if(g&&g.nt){e.textContent='Approximate groove, '+(g.cf||'low')+' confidence: '+g.nt;e.hidden=false}else{e.textContent='';e.hidden=true}}
+function preset(name){if(!Object.prototype.hasOwnProperty.call(P,name))name='rock';curName=name;cur=P[name];beats=cur.b;sub=cur.s;$('b').value=beats;$('sub').value=sub;setSwing(cur.sw||50);fill();if(window.tsUI)tsUI();gNote()}
 const SUBL={2:['','&'],3:['','&','a'],4:['','e','&','a']};
 // Pattern grid for keyboard and screen readers: one Tab stop, arrow keys move, Space or Enter cycles hit / ghost / off.
-function cellLbl(name,i,val){return name+', beat '+(Math.floor(i/sub)+1)+(i%sub?' '+SUBL[sub][i%sub]:'')+': '+(val>=1?'hit':val>0?'ghost':'off')}
+// Grid velocity levels (2026-11-11.23): 4 = accent / normal / soft / ghost, 3 = accent / normal / ghost, 2 = normal / ghost (the old hit / ghost).
+// A tap steps down through the levels and then clears; a groove's own in-between strengths are shown at their nearest level and play exactly as written.
+const GLV={4:[1,.8,.55,.3],3:[1,.8,.3],2:[1,.35]};
+function glv(){return GLV[$('gvl')?$('gvl').value:4]||GLV[4]}
+function lvIdx(v,L){let b=0;for(let k=1;k<L.length;k++)if(Math.abs(L[k]-v)<Math.abs(L[b]-v))b=k;return b}
+function lvName(v){if(!(v>0))return 'off';const L=glv(),k=lvIdx(v,L);return (L.length===2?['normal','ghost']:L.length===3?['accent','normal','ghost']:['accent','normal','soft','ghost'])[k]}
+const LVCLS={accent:' on lv4',normal:' on lv3',soft:' on lv2',ghost:' ghost lv1'};
+function nextLv(x){const L=glv();if(!(x>0))return L[0];const k=lvIdx(x,L);return k+1<L.length?L[k+1]:0}
+function cellLbl(name,i,val){const L=glv(),exact=val>0&&!L.some(x=>Math.abs(x-val)<0.005);return name+', beat '+(Math.floor(i/sub)+1)+(i%sub?' '+SUBL[sub][i%sub]:'')+': '+lvName(val)+(exact?' ('+Math.round(val*100)+'%)':'')}
 g.addEventListener('keydown',e=>{const c=e.target;if(!c.classList||!c.classList.contains('c'))return;const ks=visRows().map(x=>String(x[0])).filter(x=>cells[x]),r=ks.indexOf(c.dataset.k),i=+c.dataset.i;let nr=r,ni=i;
  if(e.key==='ArrowRight')ni++;else if(e.key==='ArrowLeft')ni--;else if(e.key==='ArrowDown')nr++;else if(e.key==='ArrowUp')nr--;else if(e.key==='Home')ni=0;else if(e.key==='End')ni=cells[ks[r]].length-1;
  else if(e.key===' '||e.key==='Enter'){e.preventDefault();e.stopPropagation();if(!e.repeat)c.click();return}else return;
  e.preventDefault();e.stopPropagation();nr=Math.max(0,Math.min(ks.length-1,nr));const row=cells[ks[nr]];ni=Math.max(0,Math.min(row.length-1,ni));const t=row[ni];if(t&&t!==c){c.tabIndex=-1;t.tabIndex=0;t.focus()}});
-function cls(val,i){return 'c'+(i%sub?'':' down')+(val>=1?' on':val>0?' ghost':'')}
+function cls(val,i){return 'c'+(i%sub?'':' down')+(val>0?LVCLS[lvName(val)]:'')}
 function visRows(){if($('showall').checked)return ROWS;const r=ROWS.filter(([n])=>grid[n]&&grid[n].some(x=>x>0));return r.length?r:ROWS}
 function draw(){g.innerHTML='';cells={};const n=steps();g.style.gridTemplateColumns=matchMedia('(max-width:620px)').matches?'74px 60px repeat('+n+',44px)':'auto 64px repeat('+n+',minmax(14px,1fr))';
  g.appendChild(document.createElement('div'));g.appendChild(document.createElement('div'));
  for(let i=0;i<n;i++){const h=document.createElement('div');h.className='hd';h.textContent=i%sub?SUBL[sub][i%sub]:(i/sub+1);g.appendChild(h)}
  visRows().forEach(([k,name])=>{const l=document.createElement('div');l.className='lab';l.textContent=name.replace(/-/g,'\u2011');l.onclick=async()=>{await init();hit(k,ctx.currentTime+0.01,1)};g.appendChild(l);
   const r=document.createElement('input');r.type='range';r.min=0;r.max=150;r.value=rowVol[k]*100;r.className='rv';r.title=name+' volume';r.oninput=()=>{rowVol[k]=r.value/100};g.appendChild(r);
-  cells[k]=[];for(let i=0;i<n;i++){const c=document.createElement('div');c.className=cls(grid[k][i],i);c.setAttribute('role','button');c.tabIndex=-1;c.dataset.k=k;c.dataset.i=i;c.setAttribute('aria-label',cellLbl(name,i,grid[k][i]));c.onclick=()=>{const x=grid[k][i];grid[k][i]=x>=1?.35:x>0?0:1;c.className=cls(grid[k][i],i);c.setAttribute('aria-label',cellLbl(name,i,grid[k][i]));save()};g.appendChild(c);cells[k].push(c)}});
+  cells[k]=[];for(let i=0;i<n;i++){const c=document.createElement('div');c.className=cls(grid[k][i],i);c.setAttribute('role','button');c.tabIndex=-1;c.dataset.k=k;c.dataset.i=i;c.setAttribute('aria-label',cellLbl(name,i,grid[k][i]));c.onclick=()=>{grid[k][i]=nextLv(grid[k][i]);c.className=cls(grid[k][i],i);c.setAttribute('aria-label',cellLbl(name,i,grid[k][i]));save()};g.appendChild(c);cells[k].push(c)}});
  {const f0=g.querySelector('.c');if(f0)f0.tabIndex=0}
  const d=$('dots');d.innerHTML='';for(let b=0;b<beats;b++){const e=document.createElement('div');e.className='dot';d.appendChild(e)}}
 // Tempo medals (SVG, see mmIcons): 260+ trophy, 190+ gold "1", 120+ silver "2", below that bronze "3".
@@ -850,8 +971,8 @@ let tonicNow=0,tonicName='C',parentName='C';
 const qualOf=(deg)=>{const t3=mod12(MAJ[(deg+2)%7]-MAJ[deg]),t5=mod12(MAJ[(deg+4)%7]-MAJ[deg]),t7=mod12(MAJ[(deg+6)%7]-MAJ[deg]);return{q:t3===4?'maj':t5===6?'dim':'min',s7:t7===11?'maj7':(t3===4?'7':t5===6?'m7b5':'m7')}};
 const rnText=(acc,deg,q,sv)=>{const up=q==='maj'||q==='aug',num=up?ROM[deg]:ROM[deg].toLowerCase();
  return acc+num+(q==='aug'?'+':'')+(q==='dim'?(sv==='m7'?'ø7':sv==='dim7'?'°7':'°'):(sv==='maj7'?(q==='min'?'(maj7)':'maj7'):sv==='add9'?'add9':sv==='6'?'6':sv?'7':''))};
-function jazzHarm(){const v=$('kvoice')?$('kvoice').value:'auto';return v==='seventh'||v==='rootless'||(v==='auto'&&/jazz|swing|bebop|basie|twofeel|uptempo|bigband|jwaltz|mjelvin|mjtony|mjbroken|mjstraight|nola|jballad|swing8|snapswing|bossa|mjlatin/.test(curName||''))}
-function parseProg(){const txt=$('prog').value==='custom'?$('cprog').value:$('prog').value;
+function jazzHarm(){const v=$('kvoice')?$('kvoice').value:'auto';return v==='seventh'||v==='rootless'||(v==='auto'&&/jazz|swing|bebop|basie|twofeel|uptempo|bigband|jwaltz|mjelvin|mjtony|mjbroken|mjstraight|nola|jballad|swing8|snapswing|bossa|mjlatin|brballad|brmed|brfast|brwaltz|brbossa/.test(curName||''))}
+function parseProg(over,plain){const txt=over!=null?over:$('prog').value==='custom'?$('cprog').value:$('prog').value;
  const toks=txt.replace(/[|,–—]+/g,' ').replace(/\s-\s/g,' ').trim().split(/\s+/).filter(Boolean);
  const kp=keyPc();let flat=['F','A#','D#','G#','C#'].includes($('key').value);
  const pn=(flat?FLAT:SHARP)[kp],pli=LTR.indexOf(pn[0]);parentName=pn;
@@ -882,19 +1003,58 @@ function parseProg(){const txt=$('prog').value==='custom'?$('cprog').value:$('pr
  // Imaj7 ii7 iii7 IVmaj7 V7 vi7 viiø7 (in C: Cmaj7 Dm7 Em7 Fmaj7 G7 Am7 Bø7). Bass and keys both use it.
  // The V chord is only a dominant 7 when it does a dominant's job: resolving to I, or as the mode's own color (Dorian's IV7, Mixolydian's I7).
  // Otherwise (Aeolian / pop loops, V going to IV or vi) it is add9: G B D A, no F. Chords typed with a 7 are left as written.
- if(jazzHarm())res.forEach((c,k)=>{if(!(c.dia&&c.deg>=0&&!c.sev))return;const d=qualOf(c.deg);let sv=d.s7==='m7b5'?'m7':d.s7;
+ if(jazzHarm()&&!plain)res.forEach((c,k)=>{if(!(c.dia&&c.deg>=0&&!c.sev))return;const d=qualOf(c.deg);let sv=d.s7==='m7b5'?'m7':d.s7;
   if(sv==='7'){const nx=res[(k+1)%res.length],resolves=nx&&nx.deg===0&&modeNow==='ionian',modal=modeNow==='dorian'||modeNow==='mixolydian';if(!resolves&&!modal)sv='add9'}
   c.sev=sv;c.rn=rnText('',c.deg,c.q,c.sev)});
  res.forEach(c=>c.label=(c.name||(flat?FLAT:SHARP)[c.pc])+(c.q==='min'?'m':c.q==='aug'?'+':'')+(c.q==='dim'?(c.sev==='m7'?'ø7':c.sev==='dim7'?'°7':'°'):(c.sev==='maj7'?(c.q==='min'?'(maj7)':'maj7'):c.sev==='add9'?'add9':c.sev==='6'?'6':c.sev?'7':'')));
+ // numerals from the mode's own 1 (D Dorian: Dm = i, G = IV), shown next to the chord when a mode is playing
+ if(MODEDEG[modeNow]!=null&&MODELIST.includes(modeNow))res.forEach(c=>{if(c.deg>=0&&c.dia){const d=(c.deg-MODEDEG[modeNow]+7)%7,acc=mod12(c.pc-tonicNow)-MAJ[d];c.mrn=rnText(acc<0?'♭':acc>0?'♯':'',d,c.q,c.sev)}});
  return res}
 function modeLine(){const d=MODEDEG[modeNow];if(d==null)return tonicName+' '+(MODEN[modeNow]||'');
- return tonicName+' '+MODEN[modeNow].replace(' (major)','').replace(' (minor)','')+(d===0?' · the 1 of '+parentName:' · on the '+NUMW[d]+' of '+parentName+' major')}
+ return tonicName+' '+MODEN[modeNow].replace(' (major)','').replace(' (minor)','')+' · parent '+parentName+' major'+(modeNow==='locrian'?' · Locrian rarely resolves: the i chord is diminished, so it keeps pulling away':'')}
+// ===== Mode-aware progressions (2026-11-11.22) =====
+// Each mode gets its own progressions, written in Roman numerals from the MODE's own 1 (D Dorian: i = Dm, IV = G), each one built on the
+// mode's characteristic chord. Every chord is diatonic to the parent key; the 7th-degree chord is half-diminished (ø7), never °7.
+// Internally a progression is still stored in parent-key numerals (D Dorian i - IV = "ii V" in C), so saved presets, pattern codes and song
+// links keep working, and the bass and keys read the same chords. A token "7" means the chord's own diatonic 7th (maj7, 7, m7 or ø7).
+const MODE_PROGS={
+ ionian:[['I V vi IV','pop'],['I vi IV V','50s'],['I IV V IV','rock'],['I IV vi V',''],['ii7 V7 Imaj7 Imaj7','ii – V – I, jazz'],['I7 I7 I7 I7 IV7 IV7 I7 I7 V7 IV7 I7 V7','12-bar blues','blues'],['I','one chord (vamp)']],
+ dorian:[['i IV i IV','i – IV vamp'],['i7 IV7','Oye Como Va'],['i bVII IV i',''],['i ii IV IV',''],['i ii bIII IV','']],
+ phrygian:[['i bII','Spanish'],['i bII bIII bII',''],['i bII i bvii','']],
+ lydian:[['I II','dreamy'],['I II vii I',''],['I7 II I7 II','maj7 vamp']],
+ mixolydian:[['I bVII IV I','Sweet Child-style rock'],['I bVII I I',''],['I v bVII I',''],['I v IV I',''],['I bVII IV IV','Sweet Home Alabama']],
+ aeolian:[['i bVI bVII i','epic'],['i iv bVII bIII',''],['i bVI bIII bVII','minor pop'],['i bVII bVI bVII',''],['i v bVI bVII',''],['i iv v i','']],
+ locrian:[['i7 bII7','rarely resolves'],['i° bII','dark metal vamp, rarely resolves']]};
+// scales outside the seven modes keep their own (written in parent numerals)
+const OTHER_PROGS={harmonic:[['vi ii III vi','Harmonic minor (6): vi – ii – III – vi'],['vi V IV III','Andalusian (6): vi – V – IV – III, major III']],phrdom:[['III IV ii III','Phrygian dominant (3): III – IV – ii – III']]};
+const MODEAS={majpent:'ionian',minpent:'aeolian',blues:'aeolian',melodic:'aeolian'};
+// modal token -> parent-key token. d = the degree counted from the mode's 1.
+function modalToParent(md,tok){const m=tok.match(/^(b|#)?(VII|VI|IV|V|III|II|I|vii|vi|iv|v|iii|ii|i)(°|7)?$/);if(!m)return null;const d=ROM.indexOf(m[2].toUpperCase()),pd=(MODEDEG[md]+d)%7,q=qualOf(pd);
+ const num=q.q==='maj'?ROM[pd]:ROM[pd].toLowerCase();return num+(m[3]==='7'?(q.q==='dim'?'ø7':q.q==='min'?'7':q.s7==='maj7'?'maj7':'7'):q.q==='dim'?'°':'')}
+// modal numerals as shown: the accidental and the case come from the chord itself, measured from the mode's 1 (checks the hand-written list)
+function modalRN(md,ptok){const p=ptok.match(/^(VII|VI|IV|V|III|II|I|vii|vi|iv|v|iii|ii|i)(ø7|°|maj7|7)?$/);if(!p)return ptok;const pd=ROM.indexOf(p[1].toUpperCase()),d=(pd-MODEDEG[md]+7)%7,q=qualOf(pd);
+ const iv=mod12(MAJ[pd]-MAJ[MODEDEG[md]]),acc=iv-MAJ[d],a=acc<0?'♭':acc>0?'♯':'',n=q.q==='maj'?ROM[d]:ROM[d].toLowerCase(),sv=p[2]||'';
+ return a+n+(q.q==='dim'?(sv==='ø7'?'ø7':'°'):sv==='maj7'?'maj7':sv==='7'?'7':'')}
+function progsFor(md){if(MODE_PROGS[md])return MODE_PROGS[md].map(([t,nm,fl])=>{const pt=t.split(' ').map(x=>md==='ionian'?x:modalToParent(md,x)).join(' ');return {v:pt,md,nm,fl,rn:pt.split(' ').map(x=>md==='ionian'?x.replace(/^(I|IV)7$/,'$17'):modalRN(md,x))}});
+ if(OTHER_PROGS[md])return OTHER_PROGS[md].map(([v,nm])=>({v,md,nm,raw:1}));return []}
+const MODELIST=['ionian','dorian','phrygian','lydian','mixolydian','aeolian','locrian'];
+// chord letters for a progression in the current parent key, without touching what is playing
+function progLetters(v){const keep=$('prog').value,kc=$('cprog').value;let out='';try{const o=document.createElement('option');o.value=v;}catch(e){}
+ const res=parseProg(v,true);out=res.map(c=>c.label).join(' – ');parseProg();return out}
+// The Chords menu: only the progressions of the chosen mode (Auto shows them all, grouped by mode).
+function buildProgMenu(){const sel=$('prog');if(!sel)return;const cur=sel.value,md=$('md').value;const show=md==='auto'?MODELIST.concat(['harmonic','phrdom']):[MODEAS[md]||md];
+ let h='';for(const m of show){const L=progsFor(m);if(!L.length)continue;const grp=m==='ionian'?'1 · Ionian (major)':MODEN[m]?(MODEDEG[m]!=null&&MODELIST.includes(m)?(MODEDEG[m]+1)+' · '+MODEN[m]:MODEN[m]):m;
+  h+='<optgroup label="'+esc(grp)+'">'+L.map(o=>'<option value="'+esc(o.v)+'"'+(m!=='ionian'?' data-md="'+m+'"':'')+'>'+esc(o.raw?o.nm:(o.rn.join(' – ')+' · '+progLetters(o.v)+(o.nm?' ('+o.nm+')':'')))+'</option>').join('')+'</optgroup>'}
+ h+='<option value="custom">Custom…</option>';sel.innerHTML=h;if([...sel.options].some(o=>o.value===cur))sel.value=cur}
+// A saved setting whose progression does not belong to its mode gets that mode's first progression (custom ones are kept).
+function fitProg(want){const md=$('md').value,sel=$('prog');if(want!=null&&want!==sel.value&&want!=='custom'){const L=md==='auto'?[]:progsFor(MODEAS[md]||md);sel.value=L.length?L[0].v:'I V vi IV';if(!sel.value)sel.selectedIndex=0;return true}
+ if(md==='auto'||sel.value==='custom')return false;const L=progsFor(MODEAS[md]||md);if(!L.length||L.some(o=>o.v===sel.value))return false;sel.value=L[0].v;return true}
 const bassRoot=pc=>28+mod12(pc-4); // E1..D#2
 const third=c=>(c.q==='maj'||c.q==='aug')?4:3,fifth=c=>c.q==='dim'?6:c.q==='aug'?8:7,sev7=c=>c.sev==='maj7'?11:c.sev==='dim7'?9:10;
 function scStep(m,dir){for(let k=1;k<=12;k++){const x=m+dir*k;if(bassScale.includes(mod12(x)))return x}return m+dir}
 function rng(a){return function(){a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296}}
 let bassSeed=Math.floor(Math.random()*1e6);
-const AUTO={jbcow:'cowfunk',jbdead:'melodic',jbshuf:'boogie',jbwhip:'prog',mjstraight:'modalvamp',mjbroken:'broken',mjfunk:'vulf',mjafro:'afro68',p54swing:'walk',p54rock:'prog',p74:'prog',p78:'prog',p98:'prog',fjb:'jbfunk',fone:'bootsy',fgogo:'funk',fminn:'funk',fhalf:'meters',baiao:'baiao',chacha:'chacha',salsa:'tumbao',songo:'tumbao',steppers:'reggae',soca:'roots8',maqsum:'kick',saidi:'kick',secondline:'kick',mjdilla:'neosoul',mjdnb:'modalvamp',mjelvin:'walk',mjtony:'walk',mjlatin:'bossa',nola2beat:'twofeel',basie:'walk',ftop:'tower',fmeters:'meters',fvulf:'vulf',jazz:'walk',twofeel:'twofeel',bebop:'walk',uptempo:'walk',bigband:'walk',jballad:'twofeel',jwaltz:'walk',snapswing:'walk',funk:'funk',neosoul:'neosoul',afrobeat:'afrobeat',disco:'octave',pop:'octave',trap808:'trap',bossa:'bossa',samba:'samba',tumbao:'tumbao',onedrop:'reggae',ballad:'root',half:'root',slowblues:'boogie',shuffle:'boogie',texas:'boogie',train:'boogie',halfshuf:'boogie',waltz:'rootfifth',sixeight:'rootfifth',punk:'roots8',motown:'jamerson',swing8:'roots8',popshaker:'roots8',click:'root',click8:'root',click16:'root'};
+const AUTO={jb_funky_drummer:'jbfunk',jb_cold_sweat:'jbfunk',jb_sex_machine:'jbfunk',jb_soul_power:'jbfunk',jb_payback:'jbfunk',jb_payback_intro:'jbfunk',sd_peg_verse:'funk',sd_peg_chorus:'funk',toto_africa:'kick',brballad:'twofeel',brmed:'walk',brfast:'walk',brwaltz:'walk',brbossa:'bossa',brpop:'root',brtrain:'boogie',brshuf:'boogie',jbcow:'cowfunk',jbdead:'melodic',jbshuf:'boogie',jbwhip:'prog',mjstraight:'modalvamp',mjbroken:'broken',mjfunk:'vulf',mjafro:'afro68',p54swing:'walk',p54rock:'prog',p74:'prog',p78:'prog',p98:'prog',fjb:'jbfunk',fone:'bootsy',fgogo:'funk',fminn:'funk',fhalf:'meters',baiao:'baiao',chacha:'chacha',salsa:'tumbao',songo:'tumbao',steppers:'reggae',soca:'roots8',maqsum:'kick',saidi:'kick',secondline:'kick',mjdilla:'neosoul',mjdnb:'modalvamp',mjelvin:'walk',mjtony:'walk',mjlatin:'bossa',nola2beat:'twofeel',basie:'walk',ftop:'tower',fmeters:'meters',fvulf:'vulf',jazz:'walk',twofeel:'twofeel',bebop:'walk',uptempo:'walk',bigband:'walk',jballad:'twofeel',jwaltz:'walk',snapswing:'walk',funk:'funk',neosoul:'neosoul',afrobeat:'afrobeat',disco:'octave',pop:'octave',trap808:'trap',bossa:'bossa',samba:'samba',tumbao:'tumbao',onedrop:'reggae',ballad:'root',half:'root',slowblues:'boogie',shuffle:'boogie',texas:'boogie',train:'boogie',halfshuf:'boogie',waltz:'rootfifth',sixeight:'rootfifth',punk:'roots8',motown:'jamerson',swing8:'roots8',popshaker:'roots8',click:'root',click8:'root',click16:'root'};
 // "Change it up": a fresh bass line every N bars; Surprise also changes the feel (within styles that suit the groove) and how busy it is
 let surStyle=null,surV=null;
 const SUR_OK={kick:['kick','roots8','rootfifth','octave'],roots8:['roots8','kick','rootfifth','octave'],rootfifth:['rootfifth','kick','roots8'],octave:['octave','roots8','kick'],root:['root','rootfifth','kick'],funk:['funk','octave','kick']};
@@ -1148,50 +1308,186 @@ function applyTone(){if(!bassStrip)return;const T=TONES[$('btone').value]||TONES
 function shaperCurve(k){const c=new Float32Array(2048);for(let i=0;i<2048;i++){const x=i/1023.5-1;c[i]=Math.tanh(k*x)/Math.tanh(k)}return c}
 let bassBus=null,lastBassM=null;
 let keysBus=null,keysEv=[],keysLast=64;
-// ===== Keys comping (Rhodes): voicings from the same chords as the bass, voice-led, rhythm by groove =====
-const KJAZZ=/jazz|swing|bebop|basie|twofeel|uptempo|bigband|jwaltz|mjelvin|mjtony|mjbroken|mjstraight|nola|shuffle|texas|slowblues|halfshuf|jballad|swing8|snapswing|bossa|mjlatin/;
-function keysStyle(){const v=$('kcomp').value;if(v!=='auto')return v;const g=curName||'';
- if(/waltz|sixeight/.test(g))return 'waltzk';if(/jballad|ballad|slowblues|half$/.test(g))return 'ballad';
- if(/^f|funk|disco|jb|neosoul|motown|gogo|minn|dilla|afro/.test(g))return 'funk';if(KJAZZ.test(g))return 'charleston';return 'pop'}
-function keysVoicing(ch){let v=$('kvoice').value;if(v==='auto')v=KJAZZ.test(curName||'')?'rootless':'triad';
- const cs=chordScale(ch),r=ch.pc,add=ch.sev==='add9'||ch.sev==='6',col=ch.sev==='6'?cs[5]:cs[1],iv=v==='triad'?[0,cs[2],cs[4]]:add?(v==='seventh'?[0,cs[2],cs[4],col]:[cs[2],cs[4],col]):v==='seventh'?[0,cs[2],cs[4],cs[6]]:[cs[2],cs[4],cs[6],cs[1]===1?(ch.q==='maj'?cs[5]:cs[3]):cs[1]],pcs=iv.map(x=>mod12(r+x));
- // try each note on the bottom, stack the rest upward inside an octave, keep it in the middle of the keyboard, pick the one closest to the last chord
- let best=null,bd=1e9;for(let b=0;b<pcs.length;b++)for(let base=52;base<=66;base++){if(mod12(base)!==pcs[b])continue;const ms=[base];
-  for(let k=1;k<pcs.length;k++){const pc=pcs[(b+k)%pcs.length];let m=ms[ms.length-1]+1;while(mod12(m)!==pc)m++;ms.push(m)}
-  if(ms[ms.length-1]>79)continue;const avg=ms.reduce((a,c)=>a+c,0)/ms.length,d=Math.abs(avg-keysLast)+Math.abs(avg-64)*0.25;if(d<bd){bd=d;best=ms}}
- best=best||pcs.map(pc=>60+pc);keysLast=best.reduce((a,c)=>a+c,0)/best.length;return best}
-// Comping phrase library: [beat, length in beats, strength, 'p' = push (plays the NEXT chord early, the next bar's downbeat is tied)]
-// Mixes long holds, short stabs, rests and anticipations, the way a real player comps.
-const KLIB={
- pop:[[[0,2,.72],[2.5,1.5,.6]],[[0,1,.7],[1.5,.35,.55],[2,2,.62]],[[0,.4,.7],[.5,.35,.5],[1.5,1,.6],[3,.35,.55],[3.5,.5,.62,'p']],[[0,3.5,.68],[3.5,.5,.6,'p']],
-  [[0,.5,.7],[1,.5,.55],[2,.5,.62],[2.75,1.25,.58]],[[1,1,.6],[2.5,1.5,.6]],[[0,1.5,.7],[1.5,.4,.58],[2.5,.4,.55],[3,1,.6]],[[0,.3,.72],[.75,1.25,.6],[2.5,.3,.6],[3,1,.58]]],
- charleston:[[[0,.4,.68],[1.5,1.5,.58]],[[1.5,.35,.6],[3.5,.5,.6,'p']],[[0,2.5,.6]],[[.5,.3,.55],[2,.3,.6],[3.5,.6,.62,'p']],[[1,.3,.58],[2.5,1.2,.6]],
-  [[0,.35,.65],[2.5,.35,.6],[3.5,.5,.6,'p']],[[1.5,2,.6]],[[0,.6,.66],[1.5,.3,.55],[2.5,.3,.58]],[]],
- funk:[[[0,.25,.82],[.75,.25,.58],[1.5,.25,.72],[2.5,.25,.78],[3.25,.25,.6]],[[0,.2,.8],[1.75,.2,.6],[2,.2,.72],[3.5,.3,.65]],
-  [[.5,.2,.7],[1.25,.2,.6],[2.5,.2,.75],[3,.5,.6],[3.75,.25,.6,'p']],[[0,1,.7],[2.5,.25,.65],[2.75,.25,.6],[3.5,.25,.7]],
-  [[0,.25,.78],[1,.25,.6],[1.75,.5,.66],[3,.25,.7],[3.5,.25,.6]],[[.75,.25,.66],[1.5,.25,.6],[2.25,.25,.7],[3.25,.5,.62]]],
- sustain:[[[0,4,.62]],[[0,3,.62],[3,1,.5]],[[0,2,.6],[2,2,.55]],[[0,3.5,.6],[3.5,.5,.55,'p']]],
- quarters:[[[0,.9,.68],[1,.9,.56],[2,.9,.62],[3,.9,.56]],[[0,.5,.68],[1,.5,.56],[2,.5,.62],[3,.5,.56]],[[0,1.8,.66],[2,.9,.6],[3,.9,.56]]],
- ballad:[[[0,4,.6]],[[0,2,.6],[2,2,.52]],[[0,3,.6],[3,1,.5]]],
- waltzk:[[[1,.9,.55],[2,.9,.52]],[[0,.5,.6],[1,.4,.5],[2,1,.52]],[[1,2,.55]]]};
-// half-bar cells (two chords in one bar): two beats each
+// ===== Keys (2026-11-11.20): played like a session keyboardist, on real instruments =====
+// Sounds. Grand: Salamander Grand Piano V3 (Yamaha C5, Alexander Holm, CC BY 3.0), 6 of its 16 velocity layers, every minor third
+// A1-C7, Markus Fiedler's retuning, dry 44.1 kHz. Tine EP: GeneralUser GS 2.0.3 "Tine Electric Piano" (S. Christian Collins), 4 velocity
+// layers rendered dry every minor third. Wurlitzer: Greg Sullivan's EP200 (CC BY 3.0), 4 layers. Organ: a tonewheel organ built here
+// (9 drawbars, key click, percussion, Leslie with horn and drum rotors), so nothing loops and nothing aliases.
+// Every sampled set loads only when it is picked (or picked by Auto), with a progress line under the Keys sound menu.
+const R3=(a,b)=>{const o=[];for(let m=a;m<=b;m+=3)o.push(m);return o};
+const SAL_TUNE=[10,13,11,-3,-9,-9,-11,-7,-4,0,-6,-3,-3,-6,-3,0,-4,-8,-8,-5,-7,-8,-12,-13,-12,-17,-17,-27,-38,-38]; // cents, A0..C8 in minor thirds
+const WURLI=[[1,[[33,35,33,"a1pp",-5,-3.2],[36,38,33,"a1pp",-5,-3.5],[39,47,44,"ab2pp",-8,-4.2],[48,53,51,"eb3pp",-10,-4.7],[54,59,56,"ab3pp",-12,-5.5],[60,62,61,"db4pp",-2,-5.2],[63,68,67,"g4pp",-2,-5.2],[69,74,73,"db5pp",-5,-5.4],[75,80,79,"g5mp",-8,-5.4],[81,89,85,"db6mp",6,-5.6],[90,96,92,"ab6mp",2,-5.7]]],[38,[[33,35,33,"a1mp",-5,-3.8],[36,41,40,"e2mp",-4,-4.2],[42,47,45,"a2mp",-2,-4.7],[48,53,51,"eb3mp",-9,-5.1],[54,59,56,"ab3mp",-8,-5.3],[60,62,61,"db4mp",4,-5.3],[63,68,66,"gb4mp",7,-5.4],[69,71,71,"b4mp",-5,-5.2],[72,74,73,"db5mp",3,-5.4],[75,80,79,"g5mp",-8,-5.4],[81,89,85,"db6mp",6,-5.6],[90,96,92,"ab6mp",2,-5.7]]],[66,[[33,35,33,"a1f",-5,-4.7],[36,38,36,"c2f",-7,-5.0],[39,44,41,"f2f",-6,-4.7],[45,50,47,"b2f",-8,-5.0],[51,53,52,"e3f",-4,-4.7],[54,59,56,"ab3f",-11,-4.8],[60,65,61,"db4f",-2,-4.8],[66,71,68,"ab4f",0,-5.0],[72,77,73,"db5f",3,-6.0],[78,80,79,"g5f",-7,-5.9],[81,89,85,"db6f",0,-5.9],[90,96,92,"ab6f",0,-5.9]]],[90,[[33,35,33,"a1ff",-5,-5.3],[36,38,36,"c2ff",-7,-5.3],[39,44,41,"f2ff",-6,-5.4],[45,50,47,"b2ff",-8,-5.4],[51,53,52,"e3ff",-2,-5.4],[54,59,56,"ab3ff",-8,-5.4],[60,62,61,"db4ff",2,-5.4],[63,65,64,"e4ff",-3,-5.4],[66,68,67,"g4ff",3,-5.4],[69,77,73,"db5ff",-1,-3.5],[78,80,79,"g5ff",-7,-4.9],[81,89,85,"db6f",0,-5.5],[90,96,92,"ab6f",0,-6.0]]]];
+// layers: [file tag, the velocity it was played at (0-127)]; rel = damper time by register (s); tone = channel EQ [low cut, low-mid dB, high shelf dB]
+const KSET={
+ piano:{what:'Grand piano',dir:'keys/grand/',notes:R3(33,96),layers:[[2,30],[5,46],[8,62],[11,80],[13,98],[16,120]],file:(n,l)=>n+'_v'+l,tune:n=>SAL_TUNE[(n-21)/3]||0,gain:1.5,rel:m=>m<48?0.2:m<72?0.13:0.09,tone:[55,-2,-1.5],trem:0},
+ rhodes:{what:'Tine electric piano',dir:'keys/tine/',notes:R3(40,91),layers:[[36,36],[64,64],[92,92],[124,124]],file:(n,l)=>n+'_'+l,gain:1.25,rel:()=>0.11,tone:[70,-1.5,0.5],trem:0.32},
+ wurli:{what:'Wurlitzer',dir:'keys/wurli/',regions:WURLI,gain:1.35,rel:()=>0.08,tone:[80,-2,-1],trem:0.12}};
+const kBuf={},kLoading={};
+function kFiles(K){if(K.regions){const s=new Set();K.regions.forEach(L=>L[1].forEach(r=>s.add(r[3])));return [...s]}return K.notes.flatMap(n=>K.layers.map(L=>K.file(n,L[0])))}
+// Cache API first (the sample sets survive a reload and work offline once heard), then the network.
+async function cFetch(u){try{if(window.caches){const c=await caches.open('mm-keys-v1');const hit=await c.match(u);if(hit)return await hit.arrayBuffer();const r=await fetch(u);if(r.ok){try{await c.put(u,r.clone())}catch(e){}}return await r.arrayBuffer()}}catch(e){}return await (await fetch(u)).arrayBuffer()}
+function kLoadUI(name,p){const e=$('kst');if(!e)return;e.textContent=p>=1||p<0?'':'Loading '+((KSET[name]||{}).what||'sound').toLowerCase()+'… '+Math.round(p*100)+'%'}
+async function loadKeys(name){const K=KSET[name];if(!K||!ctx)return;if(kBuf[name])return kBuf[name];if(kLoading[name])return kLoading[name];
+ kLoading[name]=(async()=>{const fs=kFiles(K),out={};let done=0;kLoadUI(name,0);
+  await Promise.all(fs.map(async f=>{try{const ab=await cFetch(new URL(K.dir+f+'.mp3',location.href).href);out[f]=await new Promise((res,rej)=>{const pr=ctx.decodeAudioData(ab,res,rej);if(pr&&pr.then)pr.then(res,rej)})}catch(e){}if(++done%6===0)kLoadUI(name,done/fs.length)}));
+  kBuf[name]=out;kLoadUI(name,1);status(K.what+' loaded');return out})();return kLoading[name]}
+function keysLoad(name){if(ORG[name]||!name)return Promise.resolve();if(KSET[name])return loadKeys(name);if(LIB[name])return loadLib(name);return Promise.resolve()}
+// ----- the keys channel: tremolo (EPs) or organ drive + Leslie, then low cut, low-mid dip, high shelf, gentle compressor, plate send
+let keysChain=null;
+function buildKeysChain(dest,rev){const C=ctx,K={};K.inp=C.createGain();K.inp.gain.value=0.8;K.org=C.createGain();K.org.gain.value=0.8;
+ const hp=C.createBiquadFilter(),mud=C.createBiquadFilter(),hs=C.createBiquadFilter(),cmp=C.createDynamicsCompressor(),mk=C.createGain(),send=C.createGain();
+ hp.type='highpass';hp.Q.value=0.6;mud.type='peaking';mud.frequency.value=320;mud.Q.value=0.9;hs.type='highshelf';hs.frequency.value=7500;
+ cmp.threshold.value=-20;cmp.ratio.value=2;cmp.attack.value=0.015;cmp.release.value=0.25;cmp.knee.value=10;mk.gain.value=0.8;send.gain.value=0.5;
+ hp.connect(mud);mud.connect(hs);hs.connect(cmp);cmp.connect(mk);mk.connect(dest);mk.connect(send);send.connect(rev);Object.assign(K,{hp,mud,hs,send});
+ // EP tremolo: the Rhodes suitcase autopan
+ if(C.createStereoPanner){const pn=C.createStereoPanner(),lfo=C.createOscillator(),dep=C.createGain();lfo.frequency.value=4.3;dep.gain.value=0;lfo.connect(dep);dep.connect(pn.pan);lfo.start();K.inp.connect(pn);pn.connect(hp);K.trem=dep}else K.inp.connect(hp);
+ // organ: overdrive (rock organ) into a two-rotor Leslie. Horn above 800 Hz, drum below; each rotor moves the sound (Doppler) and its level, left against right.
+ const pre=C.createGain(),drv=C.createWaveShaper(),post=C.createGain();drv.oversample='4x';K.org.connect(pre);pre.connect(drv);drv.connect(post);Object.assign(K,{pre,drv,post});
+ const lo=C.createBiquadFilter(),hi=C.createBiquadFilter();lo.type='lowpass';hi.type='highpass';lo.frequency.value=hi.frequency.value=800;post.connect(lo);post.connect(hi);
+ const mg=C.createChannelMerger(2);K.rot=[];
+ [[hi,0.83,0.00028,0.32],[lo,0.67,0.00012,0.16]].forEach(([src,rate,dd,ad],ri)=>{const o=C.createOscillator();o.frequency.value=rate;o.start();K.rot.push(o);
+  [1,-1].forEach((sg,ch)=>{const d=C.createDelay(0.02),g=C.createGain(),dg=C.createGain(),ag=C.createGain();d.delayTime.value=0.003;g.gain.value=1-ad*0.5;dg.gain.value=dd*sg;ag.gain.value=ad*0.5*sg;
+   o.connect(dg);dg.connect(d.delayTime);o.connect(ag);ag.connect(g.gain);src.connect(d);d.connect(g);g.connect(mg,0,ch)})});
+ mg.connect(hp);keysChain=K;keysTone(keysSound(),C.currentTime);return K.inp}
+function keysTone(kv,t){const K=keysChain;if(!K)return;const S=KSET[kv],org=ORG[kv],T=S?S.tone:org?[45,-1.5,-3]:[60,-1,-1];
+ K.hp.frequency.setValueAtTime(T[0],t);K.mud.gain.setValueAtTime(T[1],t);K.hs.gain.setValueAtTime(T[2],t);if(K.trem)K.trem.gain.setValueAtTime(S?S.trem:0,t);
+ const dr=org&&org.drive;K.pre.gain.setValueAtTime(dr?2.6:1,t);K.drv.curve=dr?shaperCurve(1.6):null;K.post.gain.setValueAtTime(dr?0.55:1,t)}
+// Leslie speed: chorale (slow) or tremolo (fast). The horn gets there in about a second, the heavy drum takes longer.
+function setLeslie(fast,t){const K=keysChain;if(!K||!K.rot)return;K.rot[0].frequency.setTargetAtTime(fast?6.7:0.83,t,fast?0.35:0.9);K.rot[1].frequency.setTargetAtTime(fast?5.8:0.67,t,fast?1.1:1.8)}
+// ----- tonewheel organ: footages 16' 5 1/3' 8' 4' 2 2/3' 2' 1 3/5' 1 1/3' 1' = harmonics 1/2 3/2 1 2 3 4 5 6 8 of the note; each drawbar step = 3 dB
+const ORG={organ:{db:[8,8,8,0,0,0,0,0,0],perc:3,drive:0,fast:0},rockorgan:{db:[8,8,8,8,0,0,0,0,0],perc:0,drive:1,fast:1}};
+const orgW={};
+function orgWave(name){const c=orgW[name];if(c&&c.c===ctx)return c.w;const H=[1,3,2,4,6,8,10,12,16],re=new Float32Array(17),im=new Float32Array(17);ORG[name].db.forEach((x,k)=>{if(x>0)im[H[k]]+=Math.pow(10,-3*(8-x)/20)});
+ const w=ctx.createPeriodicWave(re,im,{disableNormalization:true});orgW[name]={c:ctx,w};return w}
+let orgLastEnd=0;
+function organNote(name,t,m,vel,end,a){const R=ORG[name],f=440*Math.pow(2,(m-69)/12),o=ctx.createOscillator(),g=ctx.createGain(),lvl=0.042*a*(0.82+0.18*vel);
+ o.setPeriodicWave(orgWave(name));o.frequency.value=f/2;o.detune.value=(Math.random()-.5)*3;
+ g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(lvl,t+0.005);g.gain.setValueAtTime(lvl,end);g.gain.linearRampToValueAtTime(0,end+0.01);o.connect(g);g.connect(keysChain.org);o.start(t);o.stop(end+0.05);
+ // key click: the contacts closing, a few ms of filtered noise at the start
+ if(noise){const n=ctx.createBufferSource(),bp=ctx.createBiquadFilter(),cg=ctx.createGain();n.buffer=noise;bp.type='bandpass';bp.frequency.value=1800+m*25;bp.Q.value=0.9;
+  cg.gain.setValueAtTime(0.01*a,t);cg.gain.exponentialRampToValueAtTime(0.0002,t+0.006);n.connect(bp);bp.connect(cg);cg.connect(keysChain.org);n.start(t,Math.random()*1.5);n.stop(t+0.01)}
+ // percussion (single trigger: only when the hands come off the keys between chords)
+ if(R.perc&&t>orgLastEnd+0.02){const p=ctx.createOscillator(),pg=ctx.createGain();p.type='sine';p.frequency.value=f*R.perc;
+  pg.gain.setValueAtTime(0.0001,t);pg.gain.exponentialRampToValueAtTime(0.022*a,t+0.004);pg.gain.setTargetAtTime(0.0001,t+0.01,0.18);p.connect(pg);pg.connect(keysChain.org);p.start(t);p.stop(t+1.2)}
+ return end}
+// ----- sampled keys: one voice per key (a restruck note damps the old one, like a real string), damper release by register
+const kVoice={};
+function sampleNote(name,t,m,vel,end,a){const K=KSET[name],B=kBuf[name];if(!B){loadKeys(name);return false}
+ let b,cents,adj=1;
+ if(K.regions){const v=vel*127;let lay=K.regions[0];for(const L of K.regions)if(v>=L[0])lay=L;const rs=lay[1],r=rs.find(r=>m>=r[0]&&m<=r[1])||(m<rs[0][0]?rs[0]:rs[rs.length-1]);b=B[r[3]];cents=r[4]+(m-r[2])*100;adj=Math.pow(10,r[5]/20)*1.6*Math.pow(Math.max(0.05,vel),1.1)*1.5}
+ else{const n=K.notes.reduce((p,c)=>Math.abs(c-m)<Math.abs(p-m)?c:p);let L=K.layers[0];for(const x of K.layers)if(Math.abs(x[1]-vel*127)<Math.abs(L[1]-vel*127))L=x;
+  b=B[K.file(n,L[0])];cents=(m-n)*100+(K.tune?K.tune(n):0);adj=Math.max(0.78,Math.min(1.25,Math.pow(Math.max(1,vel*127)/L[1],0.6)))}
+ if(!b)return false;
+ const old=kVoice[m];if(old&&old.end>t){try{old.g.gain.cancelScheduledValues(t);old.g.gain.setTargetAtTime(0,t,0.035);old.s.stop(t+0.3)}catch(e){}}
+ const s=ctx.createBufferSource(),g=ctx.createGain(),pk=K.gain*adj*a,rel=K.rel(m);s.buffer=b;s.playbackRate.value=Math.pow(2,cents/1200);
+ g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(pk,t+0.003);g.gain.setValueAtTime(pk,end);g.gain.setTargetAtTime(0,end,rel);
+ s.connect(g);g.connect(keysBus);s.start(t);s.stop(Math.min(end+rel*8,t+b.duration/s.playbackRate.value+0.05));kVoice[m]={g,s,end:end+rel*3};return true}
+// ----- which sound and which style
+const KJAZZ=/jazz|swing|bebop|basie|twofeel|uptempo|bigband|jwaltz|mjelvin|mjtony|mjbroken|mjstraight|nola|shuffle|texas|slowblues|halfshuf|jballad|swing8|snapswing|bossa|mjlatin|brballad|brmed|brfast|brwaltz|brbossa|brshuf/;
+function keysStyle(){const v=$('kcomp').value;if(v!=='auto')return v;const g=curName||'';const BS={brballad:'ballad',brpop:'ballad',brmed:'charleston',brfast:'charleston',brwaltz:'charleston',brbossa:'bossa',brshuf:'gospel',brtrain:'pop'};if(BS[g])return BS[g];
+ if(g==='waltz')return 'waltz';if(/jballad|^ballad$|^half$|sixeight/.test(g))return 'ballad';if(/slowblues|shuffle|texas|halfshuf|jbshuf/.test(g))return 'gospel';
+ if(/bossa|mjlatin|samba|baiao/.test(g))return 'bossa';if(/onedrop|steppers/.test(g))return 'reggae';if(/neosoul|mjdilla/.test(g))return 'soul';
+ if(/^f|funk|disco|jb|motown|gogo|minn|afro/.test(g))return 'funk';if(KJAZZ.test(g))return 'charleston';return 'pop'}
+// Auto sound: grand piano for pop, ballads, jazz and Latin; tine EP for neo-soul and funk; tonewheel organ for gospel and the blues shuffles.
+function keysSound(){const v=$('ksnd')?$('ksnd').value:'piano';if(v!=='auto')return v;const st=keysStyle();return st==='gospel'?'organ':st==='soul'||st==='funk'?'rhodes':'piano'}
+// style feel: ped = sustain pedal (change on the chord), lag = ms behind the beat, roll = ms between the notes of a chord (bottom up),
+// fam = voicing family, cells = one bar each; a cell hit = [beat, length in beats, strength, flags]  flags: l = left hand only, r = right hand only,
+// p = push (plays the next chord early, tied over the bar), a = accent
+const KSTY={
+ pop:{ped:1,lag:2,roll:6,fam:'pop',cells:[
+  [[0,2,.66,'l'],[0,.5,.68,'r'],[.5,.5,.5,'r'],[1,.5,.58,'r'],[1.5,.5,.5,'r'],[2,2,.6,'l'],[2,.5,.64,'r'],[2.5,.5,.5,'r'],[3,.5,.58,'r'],[3.5,.5,.6,'rp']],
+  [[0,4,.64,'l'],[0,1.5,.68,'r'],[1.5,1,.58,'r'],[2.5,.5,.52,'r'],[3,1,.6,'r']],
+  [[0,2,.68],[2,1.5,.6],[3.5,.5,.68,'pa']],
+  [[0,4,.62,'l'],[0,.9,.66,'r'],[1,.9,.5,'r'],[2,.9,.6,'r'],[3,.9,.52,'r']],
+  [[0,1.5,.66,'l'],[1.5,2.5,.58,'l'],[0,1,.66,'r'],[1.5,.5,.54,'r'],[2,2,.6,'r']],
+  [[0,3.5,.66],[3.5,.5,.64,'pa']]]},
+ ballad:{ped:1,lag:12,roll:30,fam:'pop',cells:[
+  [[0,4,.6,'l'],[0,4,.56,'r']],
+  [[0,4,.6,'l'],[0,2,.56,'r'],[2,2,.48,'r']],
+  [[0,2,.6,'l'],[2,2,.5,'l'],[0,4,.56,'r']],
+  [[0,4,.6,'l'],[.5,3.5,.52,'r']]],arp:1},
+ charleston:{ped:0,lag:9,roll:4,fam:'jazz3',cells:[
+  [[0,.45,.66],[1.5,1.2,.6,'a']],[[1.5,.4,.62],[3.5,.6,.68,'pa']],[[0,2.4,.58]],[[.5,.35,.55],[2,.35,.6],[3.5,.6,.68,'pa']],
+  [[1,.35,.58],[2.5,1.2,.62,'a']],[[0,.4,.64],[2.5,.4,.62],[3.5,.6,.68,'pa']],[[1.5,2,.6]],[[0,.6,.64],[1.5,.35,.55],[2.5,.35,.58]],[[2,.4,.6]],[]]},
+ bossa:{ped:0,lag:4,roll:5,fam:'jazz4',cells:[[[0,.8,.6],[1.5,.6,.55],[3,.8,.58]],[[.5,.6,.55],[2,.8,.6],[3.5,.6,.62,'p']],[[0,1.4,.6],[1.5,.5,.52],[2.5,.5,.55],[3.5,.6,.6,'p']]],pairs:1},
+ funk:{ped:0,lag:-2,roll:2,fam:'funk',cells:[
+  [[0,.25,.8,'a'],[.75,.25,.56],[1.5,.25,.7],[2.5,.25,.76,'a'],[3.25,.25,.58]],[[0,.2,.8,'a'],[1.75,.2,.58],[2,.2,.72],[3.5,.3,.64]],
+  [[.5,.2,.7],[1.25,.2,.58],[2.5,.2,.75,'a'],[3,.5,.6],[3.75,.25,.66,'p']],[[0,1,.7],[2.5,.25,.64],[2.75,.25,.58],[3.5,.25,.7]],
+  [[0,.25,.78,'a'],[1,.25,.58],[1.75,.5,.66],[3,.25,.7],[3.5,.25,.6]],[[.75,.25,.66],[1.5,.25,.58],[2.25,.25,.7],[3.25,.5,.62]]]},
+ soul:{ped:1,lag:18,roll:14,fam:'soul',cells:[
+  [[0,2.5,.6],[2.5,1.5,.54]],[[0,1.5,.62],[1.75,.5,.5,'r'],[2.5,1.5,.56]],[[0,4,.6,'l'],[0,1,.6,'r'],[1.5,.5,.48,'r'],[2,2,.56,'r']],[[0,3.5,.6],[3.5,.5,.6,'p']]]},
+ gospel:{ped:1,lag:5,roll:7,fam:'soul',cells:[
+  [[0,1,.68,'l'],[0,1,.66,'r'],[1.5,.5,.58,'r'],[2,1,.68,'l'],[2,1,.64,'r'],[3,.5,.58,'r'],[3.5,.5,.7,'rpa']],
+  [[0,.5,.66,'l'],[1,.5,.62,'l'],[2,.5,.66,'l'],[3,.5,.62,'l'],[.5,.4,.66,'ra'],[1.5,.4,.6,'r'],[2.5,.4,.66,'ra'],[3.5,.4,.64,'r']],
+  [[0,4,.64,'l'],[0,2,.62,'r'],[2,1.5,.58,'r'],[3.5,.5,.68,'rpa']],
+  [[0,2,.66],[2,1,.62],[3,1,.6]]],shout:1},
+ reggae:{ped:0,lag:6,roll:3,fam:'pop',cells:[[[1,.3,.62,'r'],[3,.3,.62,'r']],[[1,.3,.62,'r'],[1.5,.2,.45,'r'],[3,.3,.62,'r']],[[1,.3,.6,'r'],[3,.3,.64,'r'],[3.5,.2,.44,'r']]]},
+ waltz:{ped:0,lag:3,roll:4,fam:'pop',cells:[[[0,1,.64,'l'],[1,.7,.5,'r'],[2,.7,.5,'r']],[[0,1,.64,'l'],[1,.5,.52,'r'],[2,1,.5,'r']],[[0,3,.6,'l'],[1,1.8,.5,'r']]]},
+ sustain:{ped:1,lag:0,roll:10,fam:'pop',cells:[[[0,4,.62]],[[0,3,.62],[3,1,.5]],[[0,2,.6],[2,2,.55]],[[0,3.5,.6],[3.5,.5,.55,'p']]]},
+ quarters:{ped:0,lag:2,roll:4,fam:'pop',cells:[[[0,.9,.68],[1,.9,.54],[2,.9,.62],[3,.9,.54]],[[0,.5,.68],[1,.5,.54],[2,.5,.62],[3,.5,.54]],[[0,1.8,.66],[2,.9,.6],[3,.9,.54]]]}};
+// half-bar cells (two chords in one bar)
 const KHALF=[[[0,1.5,.66]],[[0,.4,.7],[1,1,.6]],[[.5,1.5,.6]],[[0,.4,.68],[1.5,.5,.6]],[[0,2,.62]]];
-let keysPrev=-1,keysTied=false;
-function genKeys(){if(!$('kon').checked){keysTied=false;return []}const isPad=/^(pad|sweeppad|strings)/.test($('ksnd').value),n=steps(),st=isPad?'sustain':keysStyle(),ev=[],H=+$('hu').value/100,len=x=>x*(1+(Math.random()-.5)*0.2*H);
- const pick=(arr)=>{let k,t=0;do{k=Math.floor(Math.random()*arr.length)}while(arr.length>1&&k===keysPrev&&t++<10);keysPrev=k;return arr[k]};
+// ----- voicings by the book
+// Low-interval limits: no 2nds or 3rds below E-flat 3, no 4ths or tritones below B-flat 2, no 6ths or 7ths below F2, no 5ths below B-flat 1.
+function lilOK(ms){for(let i=1;i<ms.length;i++){const lo=ms[i-1],iv=ms[i]-lo;if(iv<=0)return false;if(iv<=4&&lo<51)return false;if(iv<=6&&lo<46)return false;if(iv===7&&lo<34)return false;if(iv>7&&iv<12&&lo<41)return false}return true}
+// chord member -> semitones above the root, from the chord's own scale (the mode it lives in): 9 / 11 / 13 only where they are not avoid notes
+function cTone(ch,k){const cs=chordScale(ch),dom=ch.sev==='7'||(ch.q==='maj'&&cs[6]===10);
+ if(k===1)return 0;if(k===3)return third(ch);if(k===5)return fifth(ch);
+ if(k===7)return ch.sev==='maj7'?11:ch.sev==='dim7'?9:ch.sev==='7'||ch.sev==='m7'?10:ch.sev==='6'?9:ch.q==='dim'?cs[6]:cs[6]===11||cs[6]===10?cs[6]:10;
+ if(k===9){const n=cs[1];return n===1&&!dom?null:n+12}
+ if(k===11){const n=cs[3];if(ch.q==='maj'&&n===5)return null;return n+12}
+ if(k===13){const n=cs[5];if(ch.q!=='maj'&&n===8)return null;if(ch.q==='dim')return null;return n+12}return 0}
+const tn=(ch,ks)=>ks.map(k=>{const x=cTone(ch,k);return x==null?(k===9?12:k===13?fifth(ch)+12:k===11?fifth(ch)+12:0):x});
+// place a stack of chord members (pitch classes from the bottom up, each above the last) so the lowest note is in [lo,hi0] and the top under top
+function stack(ch,ivs,lo,hi0,top){const out=[];for(let base=lo;base<=hi0;base++){if(mod12(base-ch.pc)!==mod12(ivs[0]))continue;const ms=[base];
+  for(let k=1;k<ivs.length;k++){let m=ms[k-1]+1;while(mod12(m-ch.pc)!==mod12(ivs[k]))m++;ms.push(m)}if(ms[ms.length-1]<=top&&lilOK(ms))out.push(ms)}return out}
+let kPrev=null,kPrevL=null;
+const vlCost=(a,b)=>{if(!b)return 0;let c=0;const n=Math.min(a.length,b.length);for(let i=0;i<n;i++)c+=Math.abs(a[i]-b[i]);const top=Math.abs(a[a.length-1]-b[b.length-1]);return c+top*0.8+Math.abs(a.length-b.length)*3};
+function keysVoice(ch,fam,R){const has7=ch.sev&&ch.sev!=='add9'&&ch.sev!=='6',add=ch.sev==='add9'?9:ch.sev==='6'?13:0,bassOn=$('bon').checked;let rh=[],lh=[];
+ if(fam==='pop'||fam==='pop7'){const ks=[1,3,5].concat(has7||fam==='pop7'?[7]:[]).concat(add?[add]:[]),pcs=tn(ch,ks);let cands=[];
+  for(let r=0;r<pcs.length;r++){const rot=pcs.slice(r).concat(pcs.slice(0,r));cands=cands.concat(stack(ch,rot,55,67,79))}
+  if(pcs.length===3)cands=cands.concat(stack(ch,[pcs[0],pcs[2],pcs[1]],55,62,79)); // spread: root-5-3
+  rh=pick(cands,kPrev,R,67);const rl=bassOn?43:36;lh=[pick(stack(ch,[0],rl,rl+11,rl+11),kPrevL,R,rl+5)[0]];if(lh[0]+7<rh[0]-2&&R()<0.7)lh.push(lh[0]+7)}
+ else if(fam==='jazz3'||fam==='jazz4'){const dom=ch.sev==='7'||(ch.q==='maj'&&chordScale(ch)[6]===10),four=fam==='jazz4';let A,B;
+  if(four){A=dom?tn(ch,[3,13,7,9]):tn(ch,[3,5,7,9]);B=dom?tn(ch,[7,9,3,13]):tn(ch,[7,9,3,5])}else{A=tn(ch,[3,7,9]);B=dom?tn(ch,[7,3,13]):tn(ch,[7,3,5])}
+  rh=pick(stack(ch,A,51,62,four?74:72).concat(stack(ch,B,51,62,four?74:72)),kPrev,R,60);if(!bassOn)lh=[pick(stack(ch,[0],36,47,47),kPrevL,R,41)[0]]}
+ else if(fam==='soul'){const dom=ch.sev==='7'||(ch.q==='maj'&&chordScale(ch)[6]===10);const opts=ch.q==='min'?[tn(ch,[3,5,7,9]),tn(ch,[7,9,3,5]),tn(ch,[7,9,3,11])]:dom?[tn(ch,[3,13,7,9]),tn(ch,[7,9,3,13])]:ch.q==='dim'?[tn(ch,[3,5,7,11])]:[tn(ch,[3,5,7,9]),tn(ch,[5,7,9,3])];
+  lh=pick(bassOn?stack(ch,tn(ch,[1,7]),41,50,58).concat(stack(ch,tn(ch,[7,3]),46,52,60)):stack(ch,tn(ch,[1,7]),36,47,58),kPrevL,R,48);const lt=lh.length?lh[lh.length-1]:0;
+  let c=[];opts.forEach(o=>c=c.concat(stack(ch,o,55,67,81)));c=c.filter(ms=>ms[0]>lt+1&&lilOK([lt||0].concat(ms).filter(x=>x)));rh=pick(c,kPrev,R,66);if(!rh.length)lh=[]}
+ else{const dom=ch.sev==='7'||(ch.q==='maj'&&chordScale(ch)[6]===10);const opts=dom?[tn(ch,[3,13,9]),tn(ch,[7,9,3])]:ch.q==='min'?[tn(ch,[7,9,3]),tn(ch,[3,5,7])]:[tn(ch,[3,5,9]),tn(ch,[5,7,9])];
+  let c=[];opts.forEach(o=>c=c.concat(stack(ch,o,60,68,79)));rh=pick(c,kPrev,R,70)} // funk: tight upper-structure stabs, no left hand
+ if(!rh||!rh.length)rh=stack(ch,tn(ch,[1,3,5]),55,66,80)[0]||[60+ch.pc,64+ch.pc,67+ch.pc];
+ kPrev=rh;if(lh&&lh.length&&lh[0]!=null)kPrevL=lh;else lh=[];keysLast=rh.reduce((a,c)=>a+c,0)/rh.length;return {lh,rh}}
+// closest to the last voicing (common tones held, the top voice moves least), kept near the middle; now and then the second-best for variety
+function pick(c,prev,R,center){if(!c.length)return [];const sc=c.map(ms=>[vlCost(ms,prev)+Math.abs(ms.reduce((a,x)=>a+x,0)/ms.length-center)*0.45,ms]).sort((a,b)=>a[0]-b[0]);return (sc.length>1&&R()<0.15?sc[1]:sc[0])[1]}
+// keep the old name for code that previews a voicing
+function keysVoicing(ch){const v=keysVoice(ch,keysFam(),Math.random);return v.lh.concat(v.rh)}
+function keysFam(){const v=$('kvoice').value,sty=keysStyle(),st=KSTY[sty]||KSTY.pop;if(v==='auto'&&sty==='ballad'&&KJAZZ.test(curName||''))return 'jazz4';return v==='triad'?'pop':v==='seventh'?'pop7':v==='rootless'?'jazz4':st.fam}
+let keysPrev=-1,keysTied=false,kRng=null;
+function genKeys(){if(!$('kon').checked){keysTied=false;return []}const kv=keysSound(),isPad=/^(pad|sweeppad|strings)/.test(kv),n=steps(),sty=isPad?'sustain':keysStyle(),S=KSTY[sty]||KSTY.pop,ev=[],H=+$('hu').value/100;
+ keysLoad(kv);if(keysChain&&ctx){keysTone(kv,Math.max(ctx.currentTime,next));if(ORG[kv])setLeslie(ORG[kv].fast||(fillBar&&sty==='gospel')||(S.shout&&bpm>=120),Math.max(ctx.currentTime,next))}
+ if(!kRng||barN===0)kRng=rng((bassSeed*7+13)|0);const R=kRng,fam=keysFam();
+ const pickCell=arr=>{let k,t=0;do{k=Math.floor(R()*arr.length)}while(arr.length>1&&k===keysPrev&&t++<10);keysPrev=k;return arr[k]};
  const segs=halfAt?[[0,halfAt,chordNow,chordB],[halfAt,n,chordB,chordC]]:[[0,n,chordNow,chordNext]];
- const tiedIn=keysTied;keysTied=false;
- for(const [a,b,ch,nx] of segs){if(!ch)continue;const ms=keysVoicing(ch);
-  let pat=isPad?[[0,99,.6]]:halfAt?pick(KHALF):pick(KLIB[st]||KLIB.pop);
-  if(st==='ballad'&&!halfAt){const shape=Math.floor(Math.random()*4);ev.push({s:a,d:b-a,ms,v:.6}); // hold the chord, then one of: quarter arpeggio, 8th arpeggio, a restrike on 3, or just let it ring
-   const arp=[ms[0],ms[1]||ms[0],ms[ms.length-1],ms[1]||ms[0],ms[0]+12,ms[ms.length-1],ms[1]||ms[0],ms[0]];const cnt=shape===0?4:shape===1?8:0;
-   for(let k=1;k<cnt;k++){const s2=a+Math.round(k*(b-a)/cnt);if(s2<b)ev.push({s:s2,d:Math.max(1,Math.round((b-a)/cnt)),ms:[arp[k%arp.length]+12],v:.38+Math.random()*.08})}
-   if(shape===2){const s2=a+Math.round((b-a)/2);ev.push({s:s2,d:b-s2,ms,v:.48})}continue}
-  if(isPad){if(!halfAt){const bpc=Math.max(1,+$('bpc').value);if(barN%bpc!==0)continue;ev.push({s:0,d:n*bpc,ms,v:.6,push:1})}else ev.push({s:a,d:b-a,ms,v:.6,push:1});continue} // a pad holds each chord for its whole length (all its bars)
-  for(const [pb,pd,pv,fl] of pat){const s=a+Math.round(pb*sub);if(s>=b)continue;if(tiedIn&&s===0)continue; // the last bar pushed into this chord already
-   const d=Math.max(1,Math.min(b-s,Math.round(len(pd)*sub)));
-   if(fl==='p'&&nx&&b===n){const nms=keysVoicing(nx);ev.push({s,d:Math.max(d,Math.round(sub*1.5)),ms:nms,v:pv,push:1});keysTied=true}
-   else ev.push({s,d,ms,v:pv*(0.92+Math.random()*0.16)})}}
+ const tiedIn=keysTied;keysTied=false;const bpc=Math.max(1,+$('bpc').value),holds=!halfAt&&bpc>1&&barN%bpc!==bpc-1; // the chord carries on into the next bar
+ const dt=60/bpm/sub;
+ for(const [a,b,ch,nx] of segs){if(!ch)continue;const V=keysVoice(ch,fam,R);
+  if(isPad){if(!halfAt){if(barN%bpc!==0)continue;ev.push({s:0,d:n*bpc,ms:V.lh.concat(V.rh),v:.6,push:1})}else ev.push({s:a,d:b-a,ms:V.lh.concat(V.rh),v:.6,push:1});continue}
+  let cells=halfAt?pickCell(KHALF):S.pairs?S.cells[(barN%2===0?0:1)+(R()<0.3?1:0)]||S.cells[0]:pickCell(S.cells);
+  if(beats<4)cells=cells.filter(c=>c[0]<beats);
+  // a bar of the progression: every hit gets its hand, its length (or the pedal), its strength and its feel
+  for(const [pb,pd,pv,fl0] of cells){const fl=fl0||'',s=a+Math.round(pb*sub);if(s>=b)continue;if(tiedIn&&s===a&&a===0&&!fl.includes('l'))continue;
+   let v=pv*(0.94+R()*0.12)*(fl.includes('a')?1.12:1);const push=fl.includes('p')&&nx&&b===n;const VV=push?keysVoice(nx,fam,R):V;
+   let ms=fl.includes('l')?VV.lh:fl.includes('r')?VV.rh:VV.lh.concat(VV.rh);if(!ms.length)continue;
+   let d=Math.max(1,Math.min(b-s+(push?sub*1.5:0),Math.round(pd*sub*(1+(R()-.5)*0.2*H))));let tail=0;
+   if(S.ped){if(push){d=n-s+sub;tail=0.05}else{d=b-s;tail=holds&&b===n?60/bpm:0.06}} // the pedal holds to the chord change (and over the bar line when the chord stays)
+   if(push){v*=1.1;keysTied=true}
+   // per-note strength: the top voice sings, inner voices sit back, the left hand under the right
+   const nL=fl.includes('r')?0:VV.lh.length,vs=ms.map((m,k)=>(k<nL?0.86:k===ms.length-1?1.08:0.9)*(0.95+R()*0.1));
+   ev.push({s,d,ms,v,vs,push:push?1:0,tail,roll:(S.roll+(sty==='ballad'&&!fl.includes('r')?R()*12:0))/1000,lag:(S.lag+(R()-.5)*(4+6*H))/1000,st:sty})}
+  // ballad: after the held chord, the right hand breaks it up now and then (pedal down)
+  if(S.arp&&!halfAt&&R()<0.45){const top=V.rh,arp=[top[0],top[1]||top[0],top[top.length-1],top[1]||top[0]].map(x=>x+12>79?x:x+12),cnt=R()<0.5?4:8;
+   for(let k=2;k<cnt;k++){const s2=a+Math.round(k*(b-a)/cnt);if(s2<b)ev.push({s:s2,d:b-s2,ms:[arp[k%arp.length]],v:.4+R()*.08,vs:[1],tail:0.06,roll:0,lag:S.lag/1000,st:sty})}}}
  return ev}
 // Synth pad: three detuned saws per note, slow filter swell, soft attack, long release, spread left/right
 function synthPad(t,ms,dur,vel,a,bright){const C=ctx,g=C.createGain(),f=C.createBiquadFilter(),att=0.35,rel=1.4,end=t+Math.max(0.3,dur),pk=0.11*a*(0.6+0.4*vel)/Math.sqrt(ms.length);
@@ -1199,8 +1495,13 @@ function synthPad(t,ms,dur,vel,a,bright){const C=ctx,g=C.createGain(),f=C.create
  g.gain.setValueAtTime(0.0001,t);g.gain.linearRampToValueAtTime(pk,t+att);g.gain.setValueAtTime(pk,end);g.gain.setTargetAtTime(0.0001,end,rel/3);f.connect(g);g.connect(keysBus);
  ms.forEach((m,k)=>{const fr=440*Math.pow(2,(m-69)/12);[-7,0,7].forEach((ct,j)=>{const o=C.createOscillator(),pn=C.createStereoPanner?C.createStereoPanner():null;o.type=j===1&&!bright?'triangle':'sawtooth';o.frequency.value=fr;o.detune.value=ct+(Math.random()-.5)*3;
   if(pn){pn.pan.value=(j-1)*0.55;o.connect(pn);pn.connect(f)}else o.connect(f);o.start(t);o.stop(end+rel*2)})})}
-function keysChord(t,ms,dur,vel){if(!keysBus)return;const a=+$('kv').value/100;if(a<=0)return;const kv=$('ksnd').value;if(kv==='pad'||kv==='padbright'){synthPad(t,ms,dur,vel,a,kv==='padbright');return}const ks=LIB[kv]?kv:'piano';if(!libBuf[LIB[ks].dir]){loadLib(ks);return}
- ms.forEach((m,i)=>libNote(ks,t+i*0.007,m,dur,Math.min(1,vel*(i===ms.length-1?1.08:0.95)),a,keysBus))}
+// One chord (or one hand): rolled from the bottom, laid back by the style, each note at its own strength, released by the pedal or the fingers
+function keysChord(t,ms,dur,vel,e){if(!keysBus)return;const a=+$('kv').value/100;if(a<=0)return;const kv=keysSound();
+ if(kv==='pad'||kv==='padbright'){synthPad(t,ms,dur,vel,a,kv==='padbright');return}
+ const roll=e&&e.roll||0.007,lag=e&&e.lag||0,tail=e&&e.tail||0;t=Math.max(ctx.currentTime,t+lag);const end0=t+Math.max(0.08,dur)+tail;
+ ms.forEach((m,i)=>{const tt=t+i*roll+(Math.random()-.5)*0.003,v=Math.max(0.05,Math.min(1,vel*(e&&e.vs?e.vs[i]:1))),end=Math.max(tt+0.08,end0);
+  if(ORG[kv])organNote(kv,tt,m,v,end,a);else if(KSET[kv])sampleNote(kv,tt,m,v,end,a);else{const ks=LIB[kv]?kv:'upright';libNote(ks,tt,m,end-tt,v,a,keysBus)}});
+ if(ORG[kv])orgLastEnd=end0}
 
 function bassNote(t,mi,dur,vel,glide){if(!ctx||!bassBus)return;let ty=$('bt').value;const a=vel*(+$('bv').value/100);if(a<=0)return;
  while(mi>52)mi-=12;while(mi<26)mi+=12;const end=t+Math.max(0.06,dur);
@@ -1230,7 +1531,7 @@ async function init(force){if(xBusy&&!force)return new Promise(()=>{}); // expor
  ctx=new (window.AudioContext||window.webkitAudioContext)({latencyHint:'playback'});ctx.resume().catch(()=>{});{const C=ctx;C.addEventListener('statechange',()=>{if(ctx===C&&playing&&C.state!=='running')$('blm').textContent='Sound paused by the device. Tap anywhere to bring it back.'})}out=ctx.createGain();out.gain.value=volG($('mv').value);
  comp=ctx.createDynamicsCompressor();comp.threshold.value=-10;comp.ratio.value=3;const lim=ctx.createDynamicsCompressor();lim.threshold.value=-6;lim.knee.value=0;lim.ratio.value=20;lim.attack.value=0.001;lim.release.value=0.12;const trim=ctx.createGain();trim.gain.value=0.85;comp.connect(trim);trim.connect(lim);lim.connect(out);
  master=ctx.createGain();master.connect(comp);revSend=ctx.createGain();revSend.gain.value=$('room').value/100*0.5;master.connect(revSend);
- bassBus=ctx.createGain();bassBus.gain.value=0.9;bassBus.connect(buildStrip(comp));keysBus=ctx.createGain();keysBus.gain.value=0.8;keysBus.connect(comp);{const ks=ctx.createGain();ks.gain.value=0.7;keysBus.connect(ks);ks.connect(revSend)}if($('kon').checked&&LIB[$('ksnd').value])loadLib($('ksnd').value);if(LIB[$('bt').value])loadLib($('bt').value);['kk','sn','tm'].forEach(id=>{if(DKIT[$(id).value])loadKit($(id).value)});snKits().forEach(loadKit);
+ bassBus=ctx.createGain();bassBus.gain.value=0.9;bassBus.connect(buildStrip(comp));keysBus=buildKeysChain(comp,revSend);if($('kon').checked)keysLoad(keysSound());if(LIB[$('bt').value])loadLib($('bt').value);['kk','sn','tm'].forEach(id=>{if(DKIT[$(id).value])loadKit($(id).value)});snKits().forEach(loadKit);if(brushUsed())loadBrush();
  route();listDevs();
  noise=ctx.createBuffer(1,ctx.sampleRate*2,ctx.sampleRate);{const d=noise.getChannelData(0);for(let i=0;i<d.length;i++)d[i]=Math.random()*2-1}
  let ok=0;await Promise.all(Object.entries(SAMPLES).map(async([k,u])=>{try{buf[k]=await decodeB64(u);ok++}catch(e){}}));sampleCount=ok;
@@ -1258,7 +1559,7 @@ function barStart(){isCount=cin>0;if(isCount)return;pocketBar();
  const dm=$('do').value;muted=dm==='1of4'?barN%4==3:dm==='2of8'?barN%8>=6:dm==='rand'?(barN>=2&&!muted&&Math.random()<0.25):false;
  crashNow=prevFill&&$('fc').checked&&!muted;
  const fe=+$('fe').value;fillBar=!muted&&((fe>0&&(barN+1)%fe==0)||barN===forceBar||secEnd);
- if(fillBar)curFill=genFill(fillBeats()*sub);prevFill=fillBar;
+ if(fillBar)curFill=genFill(fillBeats()*sub);prevFill=fillBar;planRolls();
  if($('bon').checked)bassAuto();
  const prog=parseProg(),bpc=+$('bpc').value;
  if(bpc<1){ // half a bar per chord: two chords in every bar, the change lands on the middle beat
@@ -1277,14 +1578,49 @@ function ghostLevel(i,val){if($('gdyn').value==='flat')return val;const n=steps(
  if(isBB((i-1+n)%n)||isBB((i-2+n)%n)&&sub===4)L=0;else if(isBB((i+1)%n))L=3;else L=(i%sub===Math.floor(sub/2))?2:1;
  if(+$('hu').value>0&&Math.random()<0.22)L=Math.max(0,Math.min(3,L+(Math.random()<0.5?-1:1)));
  return GH[L]*(0.94+Math.random()*0.12)}
-// One stroke = the stick hit plus its natural bounces (each softer, closer together), slightly loose in time like real hands.
-function strokeBounces(t,v,nb){let tt=t,gap=0.019+Math.random()*0.004,vv=v;for(let b=0;b<=nb;b++){hit(38,tt+(Math.random()-.5)*0.003,Math.max(0.05,vv));tt+=gap;gap*=0.86;vv*=0.52+Math.random()*0.1}}
-function drag(tBB){const g=Math.min(0.034,60/bpm/8);strokeBounces(tBB-2*g-0.004,0.13+Math.random()*0.03,0);strokeBounces(tBB-g-0.002,0.18+Math.random()*0.03,0)}
-function buzz(tBB){const len=Math.min(60/bpm/2,Math.max(0.12,60/bpm/4)),k=Math.max(4,Math.round(len/0.055));
- for(let j=0;j<k;j++){const tt=tBB-len+j*(len/k)+(j%2?0.004:0),v=0.07+0.15*(j/(k-1));strokeBounces(tt,v,2+(Math.random()<0.4?1:0))}}
-function rollAt(i,t){const m=$('groll').value;if(m==='off'||!isBB(i))return;const lastBB=Math.floor(i/sub)===beats-1||(beats===4&&i/sub===3);
- if(m==='drag'){if(Math.random()<0.5)drag(t)}else if(m==='buzz'){if(lastBB&&barN%2===1)buzz(t)}
- else if(m==='mix'){const r=Math.random();if(lastBB&&barN%4===3&&r<0.7)buzz(t);else if(r<0.25)drag(t)}}
+// ===== Snare rolls (2026-11-11.19): ghost-level embellishments, the way a drummer plays them =====
+// Vocabulary: the drag (two grace strokes as one bounce), 3- and 4-stroke ruffs (single grace strokes), the 5-stroke roll,
+// short buzz / press rolls (every stroke buzzed), and now and then a 7- or 9-stroke roll into a backbeat or a fill.
+// Placement: just before the backbeat, or onto the e / a of a beat (with a soft primary stroke). Never on top of the backbeat.
+// Level: grace strokes sit below the softest ghost note (0.12). Only a roll into a fill crescendos.
+// Rate: strokes evenly spaced at sextuplets, 32nds or 32nd sextuplets, whichever is closest to 65 ms at this tempo
+// (triplet and swung grooves stay on the triplet rates). Amount = how many rolls a bar: Sprinkle ~1 in 4 bars, Some ~1, Lots ~2.
+const RAMT={off:0,sprinkle:1,some:2,lots:3};
+const ROLLMAP={drag:['some','drag'],buzz:['sprinkle','buzz'],mix:['some','mix']}; // #groll values before 11.19 -> [amount, roll type]
+function migrateRoll(c){if(c&&ROLLMAP[c.groll]){const [a,t]=ROLLMAP[c.groll];c.groll=a;if(c.grst==null)c.grst=t}}
+// g = grace strokes before the primary, d = played as doubles (diddles), bz = buzzed strokes, w = weight in the natural mix
+const RKIND={drag:{g:2,d:1,w:30},ruff3:{g:2,w:18},ruff4:{g:3,w:10},five:{g:4,d:1,w:14},press:{g:3,bz:1,w:12},buzz:{g:5,bz:1,w:9},seven:{g:6,d:1,w:4},nine:{g:8,d:1,w:3}};
+const RTYPE={mix:['drag','ruff3','ruff4','five','press','buzz','seven','nine'],drag:['drag','ruff3','ruff4','five','seven','nine'],buzz:['press','buzz']};
+function rollRate(){const bt=60/bpm,c=(sub===3||swing>0.52)?[6,12]:[6,8,12];let best=c[0];for(const k of c)if(Math.abs(bt/k-0.065)<Math.abs(bt/best-0.065))best=k;return best} // strokes per beat
+let rollPlan=[];
+function planRolls(){rollPlan=[];const amt=RAMT[$('groll').value]||0;if(!amt||isCount||muted)return;
+ const n=steps(),per=rollRate(),rs=sub/per,sn=grid[38]||[],ty=RTYPE[$('grst').value]||RTYPE.mix;
+ const fl=fillBar?fillBeats()*sub:0;let fillAt=n;if(fillBar){const f=n-fl+fillFirst;if(f<n){const e=curFill[fillFirst]||[];fillAt=f+(e.length?Math.min(...e.map(x=>x.o||0)):0)}}
+ const hits=[];for(let i=0;i<n;i++)if(sn[i]>0&&!(pkMove.gDrop===i&&!cur.gk))hits.push(i);if(pkMove.gAdd>=0&&!cur.gk&&!(sn[pkMove.gAdd]>0))hits.push(pkMove.gAdd); // the pocket's own added ghost counts as a hit
+ const tri=sub===3||swing>0.52,parts=tri?[1/3,2/3]:[0.25,0.75],cand=[];
+ for(let i=0;i<n;i++)if(isBB(i)&&sn[i]>=0.5&&i<fillAt-0.01)cand.push({tg:i,bb:1,w:Math.floor(i/sub)===beats-1?3:2});
+ for(let b=0;b<beats;b++)parts.forEach(p=>{const tg=(b+p)*sub;if(tg>=fillAt-0.3*sub)return;if(hits.some(h=>Math.abs(h-tg)<0.05&&sn[h]>=0.5))return;cand.push({tg,bb:0,w:1})});
+ // room before the target: strokes stop short of the previous snare hit, and never land on it
+ const stp=60/bpm/sub,mA=Math.max(0.3,0.045/stp),mB=Math.max(0.3,0.075/stp); // stay 45 ms clear of the hit before a stroke and 75 ms (the buzz) before the next one
+ const room=tg=>{let g=0;for(let k=1;k<=8;k++){const p=tg-k*rs;if(p<0.02)break;if(hits.some(h=>h<tg-0.05&&h>p-mA&&h<p+mB))break;g=k}return g};
+ const pickKind=(maxG,bb)=>{const ok=ty.filter(k=>RKIND[k].g<=maxG&&(bb||RKIND[k].g<=4));let W=0;ok.forEach(k=>W+=RKIND[k].w*(bb||RKIND[k].g<=2?1:0.5));let r=Math.random()*W;for(const k of ok){r-=RKIND[k].w*(bb||RKIND[k].g<=2?1:0.5);if(r<=0)return k}return ok[0]};
+ const r0=Math.random();let cnt=amt===1?(r0<0.28?1:0):amt===2?(r0<0.2?0:r0<0.85?1:2):(r0<0.3?1:r0<0.85?2:3);
+ const used=[];const free=(a,b)=>used.every(([x,y])=>b<x-0.2||a>y+0.2);
+ // into a fill: now and then a 7- or 9-stroke roll that crescendos into the first note of the fill
+ if(fillBar&&fillAt<n&&Math.random()<[0,0.3,0.45,0.6][amt]){const g=Math.min(room(fillAt),ty.includes('nine')&&Math.random()<0.4?8:6);if(g>=4){addRoll(fillAt,ty.includes('seven')?(g>=8?'nine':g>=6?'seven':'five'):'buzz',g,1,0);used.push([fillAt-g*rs,fillAt]);cnt=Math.max(0,cnt-1)}}
+ while(cnt-->0&&cand.length){let W=0;cand.forEach(c=>W+=c.w);let r=Math.random()*W,ci=0;for(;ci<cand.length;ci++){r-=cand[ci].w;if(r<=0)break}const c=cand.splice(Math.min(ci,cand.length-1),1)[0];
+  const maxG=room(c.tg);if(maxG<2)continue;const kind=pickKind(maxG,c.bb);if(!kind)continue;const g=Math.min(maxG,RKIND[kind].g);if(!free(c.tg-g*rs,c.tg))continue;
+  addRoll(c.tg,kind,g,0,!c.bb&&!hits.some(h=>Math.abs(h-c.tg)<0.05));used.push([c.tg-g*rs,c.tg])}
+ function addRoll(tg,kind,g,cresc,prim){const K=RKIND[kind],base=0.065+Math.random()*0.02,k0=rollPlan.length;
+  for(let k=g;k>=1;k--){const j=g-k;let v=cresc?0.06+0.26*(j/(g)):base*(1+(Math.random()-.5)*0.2);if(K.d&&j%2===1&&!cresc)v*=0.8;rollPlan.push({p:tg-k*rs,tg,v:Math.min(0.34,v),bz:K.bz?1:0,kind})}
+  if(prim)rollPlan.push({p:tg,tg,v:0.15+Math.random()*0.05,bz:0,kind,prim:1})}
+ rollPlan.sort((a,b)=>a.p-b.p)}
+// one roll stroke, anchored to its target: same swing and pocket as the note it leads into, plus a little looseness of the hands
+function rollStroke(e,t0,dt,now){const swOff=(sub!==3&&Number.isInteger(e.tg)&&e.tg%2===1)?(swing-.5)*2*dt:0,po=pocketHit(38,Math.round(e.tg)%steps(),e.prim?0.2:1)[0],H=+$('hu').value/100;
+ const t=t0+(e.p-Math.floor(e.p))*dt+swOff+po+(Math.random()-.5)*2*(0.0015+0.003*H);
+ if(!e.bz){hit(38,Math.max(now,t),e.v,{roll:e.kind,dec:e.prim?0:0.09});return}
+ // a buzz stroke: the stick pressed into the head, 3 to 5 quick bounces that die away, short decay on each
+ const tTg=t0+(e.tg-Math.floor(e.p))*dt+swOff+po-0.028,nb=3+Math.floor(Math.random()*3),gap=Math.min(0.022,dt*(sub/rollRate())/nb);let vv=e.v,tt=t;for(let b=0;b<nb;b++){if(b&&tt>tTg)break;hit(38,Math.max(now,tt),Math.max(0.03,vv),{roll:e.kind,dec:0.035});tt+=gap*(1-b*0.06);vv*=0.68}}
 // iPad/iPhone: when the page is hidden or another app takes the screen, the browser slows timers.
 // So: a worker clock (keeps ticking when main-thread timers are throttled), a lookahead that grows when ticks arrive late
 // or the page is hidden, and if we fell behind anyway we skip ahead cleanly instead of firing a burst of late notes.
@@ -1303,15 +1639,15 @@ function sched(h){if(typeof h!=='number'&&ctx){const nowT=performance.now(),gap=
    const fIdx=i-(n-fl),fillOn=inFill&&fIdx>=fillFirst,fHere=fillOn&&curFill[fIdx]&&curFill[fIdx].length>0;
    if(fillOn&&i%sub===0&&!(grid[44]&&grid[44].some(v=>v>0)))hit(44,Math.max(now,t),0.42); // hi-hat foot keeps time under the fill
    const sdvM=$('sdv').value,sdvOn=sdvM!=='groove';
-   ROWS.forEach(([k])=>{if(fillOn&&KITROWS.has(k)&&k!==44&&!((k==36||k==35)&&!fHere))return;if(sdvOn&&(k==42||k==51||k==46))return;let val=grid[k]&&grid[k][i];if(!inFill&&k==38){if(pkMove.gAdd===i&&!val)val=0.3;if(pkMove.gDrop===i)val=0;if(val>0&&val<0.5)val=ghostLevel(i,val)}if(val){let kk=k;if(k==42)kk=SUBK[$('cy').value]||42;if(kk==42&&pkMove.lift===i&&!inFill)kk=46;if(kk==51&&bellAt(i))kk=53;const [po,pv]=pocketHit(kk,i,val),acc=pocketNow()===PK.machine&&(kk==42||kk==51)?(i%sub?0.65:1):1;hit(kk,Math.max(now,t+po+hj()),Math.min(1.3,val*acc*pv*hv()))}});
+   ROWS.forEach(([k])=>{if(fillOn&&KITROWS.has(k)&&k!==44&&!((k==36||k==35)&&!fHere))return;if(sdvOn&&(k==42||k==51||k==46))return;let val=grid[k]&&grid[k][i];if(k==97){if(val)sweepAt(i,Math.max(now,next),val*hv());return}if(!inFill&&k==38){if(!cur.gk){if(pkMove.gAdd===i&&!val)val=0.3;if(pkMove.gDrop===i)val=0}if(val>0&&val<0.5&&!cur.gk)val=ghostLevel(i,val)}if(val){let kk=k;if(k==42)kk=SUBK[$('cy').value]||42;if(kk==42&&pkMove.lift===i&&!inFill&&!cur.gk)kk=46;if(kk==51&&bellAt(i))kk=53;const [po,pv]=pocketHit(kk,i,val),acc=pocketNow()===PK.machine&&(kk==42||kk==51)?(i%sub?0.65:1):1;hit(kk,Math.max(now,t+po+hj()),Math.min(1.3,val*acc*pv*hv()))}});
    if(sdvOn){let kk=SUBK[$('cy').value]||42;if(!(fillOn&&KITROWS.has(kk))){if(kk==51&&bellAt(i))kk=53;for(const [tt,sv] of sdvEvents(sdvM,i,t,next,dt))hit(kk,Math.max(now,tt+hj()),sv*hv())}}
    if(i===0){const fbv=$('fb').value;if(fbv==='beep')clickV(Math.max(now,t),true);else if(FBK[fbv])hit(FBK[fbv],Math.max(now,t),1)}
    if(fillOn)for(const e of (curFill[fIdx]||[]))hit(e.n,Math.max(now,t+(e.o||0)*dt+hj()),e.v*hv());
-   {const j=i+sub;if(j<n&&!(fillBar&&j>=n-fl)&&grid[38]&&grid[38][j]>=0.5)rollAt(j,next+sub*dt)} // look one beat ahead so the roll starts before the backbeat
+   if(rollPlan.length&&!fillOn)for(const e of rollPlan)if(Math.floor(e.p)===i&&!(inFill&&e.p-(n-fl)>=fillFirst))rollStroke(e,next,dt,now);
    if(i===0&&crashNow&&!grid[49][0]){hit(49,next,0.95);if(!grid[36][0]&&!grid[35][0])hit(36,next,0.9)}
    else if(i===0&&$('crash').checked&&barN%4==0&&!grid[49][0])hit(49,next,0.9);
    for(const e of bassEv)if(e.s===i)bassNote(Math.max(now,t+hj()*0.5),e.m,e.d*dt,e.v*hv(),e.g);
-   for(const e of keysEv)if(e.s===i)keysChord(Math.max(now,t+hj()*0.6),e.ms,e.d*dt*(e.push?1:0.97),e.v*hv())}}
+   for(const e of keysEv)if(e.s===i)keysChord(Math.max(now,t+hj()*0.3),e.ms,e.d*dt*(e.push||e.tail?1:0.97),e.v*hv(),e)}}
  q.push(item);next+=dt;pos++;if(pos>=n){pos=0;if(isCount)cin--;else{barN++;trMsg=''}}}}
 function anim(){if(!playing)return;const now=ctx.currentTime;let e=null,eb=null;while(q.length&&q[0].t<=now){e=q.shift();if(e.b>=0)eb=e}
  if(e){for(const k in cells)cells[k].forEach((c,j)=>c.classList.toggle('now',j==e.i&&!e.cnt));
@@ -1324,29 +1660,29 @@ function blUI(e){let h='';
  if(e.cnt)h='<span class="tag cnt">COUNT-IN</span>'+e.cnt+(e.cb>1?' <small style="font-weight:500">('+e.cb+' bars left)</small>':'');
  else{if(e.sec)h+='<span class="tag sec">'+e.sec+'</span>';if(e.mu)h+='<span class="tag mute">DROP-OUT</span>'+mmIcon('hush')+' Keep going!';else if(e.f)h+='<span class="tag">FILL</span>';if(e.tr)h+=' '+esc(e.tr).replace(/\{(\w+)\}/g,(x,n)=>mmIcon(n))}
  $('blm').innerHTML=h||'&nbsp;';
- $('chord').innerHTML=e.ch&&($('bon').checked||$('kon').checked)?esc(e.ch.label)+(e.ch.rn?' <small>'+esc(e.ch.rn)+'</small>':'')+' <small style="color:var(--acc,#ffb020)">· '+esc(chordMode(e.ch))+'</small>'+(e.nx?' <small>'+mmIcon('right','then')+' '+esc(e.nx.label)+'</small>':''):''}
+ $('chord').innerHTML=e.ch&&($('bon').checked||$('kon').checked)?esc(e.ch.label)+((e.ch.mrn&&modeNow!=='ionian'?e.ch.mrn:e.ch.rn)?' <small>'+esc(e.ch.mrn&&modeNow!=='ionian'?e.ch.mrn:e.ch.rn)+'</small>':'')+' <small style="color:var(--acc,#ffb020)">· '+esc(chordMode(e.ch))+'</small>'+(e.nx?' <small>'+mmIcon('right','then')+' '+esc(e.nx.label)+'</small>':''):''}
 // The mode to play over a chord: its number in the parent key (vi = Aeolian), or by chord quality when it's borrowed
 const MODENAME={ionian:'Ionian',dorian:'Dorian',phrygian:'Phrygian',lydian:'Lydian',mixolydian:'Mixolydian',aeolian:'Aeolian',locrian:'Locrian',phrdom:'Phrygian dominant'};
 function chordMode(ch){const nm=ch.name||'';if(ch.dia&&ch.deg>=0)return nm+' '+MODENAME[DEGMODE[ch.deg]];
  /* outside the key: same chord scale the bass and keys play (see majMode) */ return nm+' '+(ch.q==='dim'?(ch.sev==='dim7'?'diminished (whole-half)':'Locrian'):ch.q==='min'?'Dorian':ch.q==='aug'?'Lydian augmented':MODENAME[majMode(ch)])}
-function chordPreview(){if(playing)return;if(!$('bon').checked&&!$('kon').checked){$('chord').innerHTML='';return}const pr=parseProg();$('chord').innerHTML='<small>'+pr.map(c=>esc(c.label)).join(' – ')+(pr.every(c=>c.rn)?' · '+pr.map(c=>esc(c.rn)).join(' – '):'')+'<br>'+esc(modeLine())+'</small>'}
+function chordPreview(){if(playing)return;if(!$('bon').checked&&!$('kon').checked){$('chord').innerHTML='';return}const pr=parseProg(),modal=modeNow!=='ionian'&&pr.every(c=>c.mrn);$('chord').innerHTML='<small>'+pr.map(c=>esc(c.label)).join(' – ')+(modal?' · '+pr.map(c=>esc(c.mrn)).join(' – ')+' <span style="opacity:.7">(in '+esc(parentName)+': '+pr.map(c=>esc(c.rn)).join(' – ')+')</span>':pr.every(c=>c.rn)?' · '+pr.map(c=>esc(c.rn)).join(' – '):'')+'<br>'+esc(modeLine())+'</small>'}
 
 // ===== Export: render the current settings offline (faster than real time) and encode an MP3 =====
 function loadScript(u){return new Promise((res,rej)=>{if(window.lamejs)return res();const sc=document.createElement('script');sc.src=u;sc.onload=res;sc.onerror=()=>{sc.remove();rej(new Error('the MP3 maker could not load. Check your internet connection and tap Export again.'))};document.head.appendChild(sc)})}
 async function exportMp3(){const mins=+$('xlen').value,secs=mins*60,SR=44100,xst=$('xst'),btn=$('xbtn');btn.disabled=true;xBusy=true;
  try{xst.textContent='Loading sounds…';await init(true);if(playing)stop();
-  if(LIB[$('bt').value])await loadLib($('bt').value);if($('kon').checked&&LIB[$('ksnd').value])await loadLib($('ksnd').value);for(const id of ['kk','sn','tm'])if(DKIT[$(id).value])await loadKit($(id).value);for(const k of snKits())await loadKit(k);
+  if(LIB[$('bt').value])await loadLib($('bt').value);if($('kon').checked){const g0=curName,gs=[curName].concat($('arr').checked?[$('av').value,$('ac').value]:[]);for(const g of gs){curName=g;await keysLoad(keysSound())}curName=g0}for(const id of ['kk','sn','tm'])if(DKIT[$(id).value])await loadKit($(id).value);for(const k of snKits())await loadKit(k);if(brushUsed()||$('arr').checked&&[$('av').value,$('ac').value].some(g=>P[g]&&P[g].kit==='brushes'))await loadBrush();
   await loadScript('https://cdnjs.cloudflare.com/ajax/libs/lamejs/1.2.1/lame.min.js');
-  const keep={ctx,out,comp,master,revSend,bassBus,bassStrip,keysBus,conv,openHat},keepBpm=bpm;
+  const keep={ctx,out,comp,master,revSend,bassBus,bassStrip,keysBus,keysChain,conv,openHat},keepBpm=bpm;
   const oc=new OfflineAudioContext(2,SR*secs,SR);ctx=oc;
   out=oc.createGain();out.gain.value=1;out.connect(oc.destination);
   comp=oc.createDynamicsCompressor();comp.threshold.value=-10;comp.ratio.value=3;const lim=oc.createDynamicsCompressor();lim.threshold.value=-6;lim.knee.value=0;lim.ratio.value=20;lim.attack.value=0.001;lim.release.value=0.12;const trim=oc.createGain();trim.gain.value=0.85;comp.connect(trim);trim.connect(lim);lim.connect(out);
   master=oc.createGain();master.connect(comp);revSend=oc.createGain();revSend.gain.value=$('room').value/100*0.5;master.connect(revSend);
-  bassBus=oc.createGain();bassBus.gain.value=0.9;bassBus.connect(buildStrip(comp));keysBus=oc.createGain();keysBus.gain.value=0.8;keysBus.connect(comp);{const ks=oc.createGain();ks.gain.value=0.7;keysBus.connect(ks);ks.connect(revSend)}conv=oc.createConvolver();conv.buffer=buf.ir_plate||makeIR(1.6);revSend.connect(conv);conv.connect(comp);openHat=null;
+  bassBus=oc.createGain();bassBus.gain.value=0.9;bassBus.connect(buildStrip(comp));keysBus=buildKeysChain(comp,revSend);conv=oc.createConvolver();conv.buffer=buf.ir_plate||makeIR(1.6);revSend.connect(conv);conv.connect(comp);openHat=null;
   pos=0;barN=0;surStyle=null;surV=null;cin=+$('ci').value;muted=false;prevFill=false;fillBar=false;forceBar=-1;secName='';lastBassM=null;bassPrevM=null;bassPlan=null;bassRun=0;bassLastCk='';trMsg='';q=[];next=0.05;
   xst.textContent='Building '+mins+' min…';sched(secs-0.05);q=[];
   xst.textContent='Rendering… 0%';for(let tt=5;tt<secs;tt+=5)oc.suspend(tt).then(()=>{xst.textContent='Rendering… '+Math.round(100*tt/secs)+'%';oc.resume()});const b=await oc.startRendering();
-  ctx=keep.ctx;setBpm(keepBpm);barsAtBpm=0;out=keep.out;comp=keep.comp;master=keep.master;revSend=keep.revSend;bassBus=keep.bassBus;bassStrip=keep.bassStrip;keysBus=keep.keysBus;conv=keep.conv;openHat=keep.openHat;applyTone();out.gain.value=volG($('mv').value);revSend.gain.value=$('room').value/100*0.5;
+  ctx=keep.ctx;setBpm(keepBpm);barsAtBpm=0;out=keep.out;comp=keep.comp;master=keep.master;revSend=keep.revSend;bassBus=keep.bassBus;bassStrip=keep.bassStrip;keysBus=keep.keysBus;keysChain=keep.keysChain;conv=keep.conv;openHat=keep.openHat;applyTone();out.gain.value=volG($('mv').value);revSend.gain.value=$('room').value/100*0.5;
   // normalize to -1 dBFS, 1.5 s fade at the end
   const L=b.getChannelData(0),Rr=b.getChannelData(1),n=L.length;let pk=0;for(let i=0;i<n;i++){pk=Math.max(pk,Math.abs(L[i]),Math.abs(Rr[i]))}
   const g=pk>0?0.89/pk:1,fade=Math.floor(SR*1.5),toI=(x,i)=>{let v=x*g*(i>n-fade?(n-i)/fade:1);v=Math.max(-1,Math.min(1,v));return v<0?v*32768:v*32767};
@@ -1382,11 +1718,11 @@ function stopClock(){if(clockW)clockW.postMessage(0);if(timer){clearInterval(tim
 // Background tab (reading music in another tab or app): Safari can pause timers for many seconds, so while hidden we
 // queue about a minute of music ahead. Coming back, we hand over at the next barline: the queued audio fades out on
 // the old buses right at the bar and the scheduler picks up from that bar on fresh buses, so new settings apply at once.
-function swapBuses(T){if(!ctx||!master)return;const now=ctx.currentTime,old=[master,bassBus,keysBus];T=Math.max(now+0.01,T);
+function swapBuses(T){if(!ctx||!master)return;const now=ctx.currentTime,old=[master,bassBus,keysBus].concat(keysChain?[keysChain.org]:[]);T=Math.max(now+0.01,T);
  old.forEach(g=>{const v=g.gain.value;g.gain.cancelScheduledValues(0);g.gain.setValueAtTime(v,Math.max(now,T-0.008));g.gain.linearRampToValueAtTime(0,T)});
  master=ctx.createGain();master.connect(comp);master.connect(revSend);
  bassBus=ctx.createGain();bassBus.gain.value=0.9;bassBus.connect(buildStrip(comp));
- keysBus=ctx.createGain();keysBus.gain.value=0.8;keysBus.connect(comp);{const ks=ctx.createGain();ks.gain.value=0.7;keysBus.connect(ks);ks.connect(revSend)}
+ keysBus=buildKeysChain(comp,revSend);
  openHat=null;setTimeout(()=>old.forEach(g=>{try{g.disconnect()}catch(e){}}),(T-now)*1000+400)}
 function handover(){if(!ctx||!playing)return;const lim=ctx.currentTime+0.2;if(next<=lim+1)return;
  const it=q.find(e=>e.t>lim&&e.st);if(!it)return;
@@ -1469,8 +1805,9 @@ function legacyKey(c){if(!c)return;if(PROG2[c.prog])c.prog=PROG2[c.prog];const o
 function setSel(e,val){if([...e.options].some(o=>o.value==val))e.value=val}
 // Never throws: the state is cleaned first, and anything that still goes wrong leaves the page as it is (returns false).
 function applyState(st){try{const cs=cleanState(st);return cs?applyState0(cs):false}catch(e){console.warn('Settings partly skipped',e);return false}finally{restoring=false}}
-function applyState0(st){if(!st||!st.c)return false;restoring=true;const c=st.c;if(c.bt==='growly')c.bt='jbass';if(c.bt==='slap')c.bt='gslap';if(c.bt==='upright')c.bt='gupright';if(PROG2[c.prog])c.prog=PROG2[c.prog];if(!st.av){if(c.hh==='ac')c.hh='studio';if(c.rv==='soft')c.rv='zil'}if(!st.fl&&(c.hu==null||+c.hu===0))c.hu='30';if(!st.vt&&c.mv!=null){const v=+c.mv;c.mv=String(v<=0?0:Math.max(1,Math.min(100,Math.round(100*(1+20*Math.log10(v/100)/45)))))}if(!st.bj){if(c.bt==='finger')c.bt='jbass';if(c.bt==='upright')c.bt='dbass'}if(!st.kt&&(c.kit==='acoustic'||!c.kit)){c.kit='bpearl';c.kk='bp';c.sn='bp';c.tm='bp'}if(!st.pk)legacyKey(c);
+function applyState0(st){if(!st||!st.c)return false;restoring=true;const c=st.c;if(c.bt==='growly')c.bt='jbass';if(c.bt==='slap')c.bt='gslap';if(c.bt==='upright')c.bt='gupright';if(PROG2[c.prog])c.prog=PROG2[c.prog];migrateRoll(c);if(!st.av){if(c.hh==='ac')c.hh='studio';if(c.rv==='soft')c.rv='zil'}if(!st.fl&&(c.hu==null||+c.hu===0))c.hu='30';if(!st.vt&&c.mv!=null){const v=+c.mv;c.mv=String(v<=0?0:Math.max(1,Math.min(100,Math.round(100*(1+20*Math.log10(v/100)/45)))))}if(!st.bj){if(c.bt==='finger')c.bt='jbass';if(c.bt==='upright')c.bt='dbass'}if(!st.kt&&(c.kit==='acoustic'||!c.kit)){c.kit='bpearl';c.kk='bp';c.sn='bp';c.tm='bp'}if(!st.pk)legacyKey(c);
  for(const id in c){const e=$(id);if(!e)continue;if(e.type==='checkbox')e.checked=!!c[id];else if(e.tagName==='SELECT')setSel(e,c[id]);else e.value=c[id]}
+ buildProgMenu();if(c.prog!=null)setSel($('prog'),c.prog);fitProg(c.prog);
  preset(P[c.pre]?c.pre:'rock');$('pre').value=curName;
  let nb=+c.b||beats,ns=+c.sub||sub;if(!(nb>=2&&nb<=12&&nb%1===0))nb=beats;if(![2,3,4].includes(ns))ns=sub;if(nb!==beats||ns!==sub){beats=nb;sub=ns;$('b').value=beats;$('sub').value=sub;fill()}if(window.tsUI)tsUI();
  // The saved time signature wins when it fits the beats (5/8 and 7/8 count the same beats as 5/4 and 7/4 but group them differently).
@@ -1481,7 +1818,7 @@ function applyState0(st){if(!st||!st.c)return false;restoring=true;const c=st.c;
  if(!st.tm2&&$('tm').value!=='linn')$('tm').value='pearl';
  if(st.seed)bassSeed=st.seed;if(st.dev!=null)savedDev=st.dev;
  setBpm(st.bpm||80);uiRefresh();draw();restoring=false;return true}
-function uiRefresh(){if(window.mmRng)document.querySelectorAll('input[type=range]').forEach(mmRng);fatUI();swUI();if(window.mmVcUI)mmVcUI();$('mvt').textContent=$('mv').value+'%';$('cpl').style.display=$('prog').value==='custom'?'':'none';$('beat').classList.toggle('big',$('bigl').checked);
+function uiRefresh(){if(typeof gvlPrev!=='undefined')gvlPrev=$('gvl').value;if(window.mmRng)document.querySelectorAll('input[type=range]').forEach(mmRng);fatUI();swUI();if(window.mmVcUI)mmVcUI();$('mvt').textContent=$('mv').value+'%';$('cpl').style.display=$('prog').value==='custom'?'':'none';$('beat').classList.toggle('big',$('bigl').checked);
  if(out&&!xBusy)out.gain.setTargetAtTime(volG($('mv').value),ctx.currentTime,0.02);if(revSend&&!xBusy)revSend.gain.setTargetAtTime($('room').value/100*0.5,ctx.currentTime,0.05);chordPreview()}
 addEventListener('pagehide',()=>{if(saveT&&!restoring){clearTimeout(saveT);try{store.setItem(SKEY,JSON.stringify(getState(true)))}catch(e){}}});
 function save(){if(restoring)return;clearTimeout(saveT);saveT=setTimeout(()=>{try{store.setItem(SKEY,JSON.stringify(getState(true)));$('sv').innerHTML=store.mem?'Settings kept until reload':mmIcon('check')+'Settings saved'}catch(e){$('sv').textContent='Saving not available here'}},300)}
@@ -1489,12 +1826,13 @@ function save(){if(restoring)return;clearTimeout(saveT);saveT=setTimeout(()=>{tr
 // key = the major PARENT key. Links without pk=1 are older: their key was the mode's own starting note and is converted.
 // Any control id works. Used only until the student changes something; Reset goes back to the link's settings.
 function applyParams(){const sp=new URLSearchParams(location.search);if(![...sp.keys()].length)return false;restoring=true;if(sp.get('bass')==='1'&&$('bon'))$('bon').checked=true;
- if(PROG2[sp.get('prog')])sp.set('prog',PROG2[sp.get('prog')]);if(!sp.get('pk')){const c={key:sp.get('key'),md:sp.get('md'),prog:sp.get('prog')};legacyKey(c);if(c.key)sp.set('key',c.key);if(c.prog)sp.set('prog',c.prog)}
- preset(sp.get('pre')&&P[sp.get('pre')]?sp.get('pre'):'rock');$('pre').value=curName;
+ if(PROG2[sp.get('prog')])sp.set('prog',PROG2[sp.get('prog')]);if(ROLLMAP[sp.get('groll')]){const c={groll:sp.get('groll'),grst:sp.get('grst')};if(c.grst==null)delete c.grst;migrateRoll(c);sp.set('groll',c.groll);sp.set('grst',c.grst)}if(!sp.get('pk')){const c={key:sp.get('key'),md:sp.get('md'),prog:sp.get('prog')};legacyKey(c);if(c.key)sp.set('key',c.key);if(c.prog)sp.set('prog',c.prog)}
+ preset(sp.get('pre')&&P[sp.get('pre')]?sp.get('pre'):'rock');$('pre').value=curName;if(P[curName].kit&&!sp.get('kit')){$('kit').value=P[curName].kit;$('kit').onchange({target:$('kit')})}
  sp.forEach((val,k)=>{if(k==='pre'||k==='bpm'||k==='view'||k==='pk')return;const e=$(k);if(!e||!e.hasAttribute('data-s'))return;
   if(e.type==='checkbox')e.checked=val==='1'||val==='true';else if(e.tagName==='SELECT')setSel(e,val);else e.value=val});
+ buildProgMenu();if(sp.get('prog'))setSel($('prog'),sp.get('prog'));fitProg(sp.get('prog'));
  if(sp.get('sw'))setSwing(+sp.get('sw'));
- setBpm(+sp.get('bpm')||80);uiRefresh();draw();restoring=false;$('sv').innerHTML=mmIcon('check')+'Song settings loaded';return true}
+ setBpm(+sp.get('bpm')||P[curName].bpm||80);uiRefresh();draw();restoring=false;$('sv').innerHTML=mmIcon('check')+'Song settings loaded';return true}
 /* A song page link sets the groove and tempo; saved changes on this device win after that. When they differ from the song, offer a one-tap way back. */
 function songBtn(){try{const sp=new URLSearchParams(location.search),ks=[...sp.keys()].filter(k=>k!=='_v'&&k!=='_r'&&k!=='dm');if(!ks.length)return;const want=+sp.get('bpm')||80,wp=sp.get('pre');if(bpm===want&&(!wp||$('pre').value===wp))return;let b=$('songBack');if(!b){b=document.createElement('button');b.id='songBack';b.type='button';b.style.cssText='margin:6px 0 0;font-size:12px;padding:6px 10px';const anchor=$('fnow')&&$('fnow').parentNode;(anchor&&anchor.parentNode?anchor.parentNode.insertBefore(b,anchor.nextSibling):document.body.prepend(b));b.onclick=()=>{if(typeof playing!=='undefined'&&playing&&$('p'))$('p').click();try{store.removeItem(SKEY)}catch(e){}applyParams();save();b.remove()}}const pn=wp&&$('pre').querySelector('option[value="'+wp+'"]');b.innerHTML=mmIcon('reset')+esc('Back to this song\'s settings ('+(pn?pn.textContent.replace(/\s*\(.*\)$/,'')+' · ':'')+want+' BPM)')}catch(e){}}
 function restore(){const st=readStore(SKEY);
@@ -1531,29 +1869,36 @@ p.onclick=async()=>{if(playing){stop();return}if(xBusy){start();return}p.disable
 s.oninput=e=>setBpm(+e.target.value);
 $('mv').oninput=e=>{$('mvt').textContent=e.target.value+'%';if(out&&!xBusy)out.gain.setTargetAtTime(volG(e.target.value),ctx.currentTime,0.02)};
 [['d5',-5],['d1',-1],['u1',1],['u5',5]].forEach(([id,n])=>$(id).onclick=()=>setBpm(bpm+n));
-$('pre').onchange=e=>{if($('arr').checked){$('arr').checked=false;$('arr').dispatchEvent(new Event('change',{bubbles:true}));trMsg='Verse / Chorus off: playing your groove'}preset(e.target.value);pos=0};
+$('pre').onchange=e=>{if($('arr').checked){$('arr').checked=false;$('arr').dispatchEvent(new Event('change',{bubbles:true}));trMsg='Verse / Chorus off: playing your groove'}preset(e.target.value);pos=0;grooveKit()};
+// A groove written for a kit (the brush grooves) brings its kit and its tempo along when you pick it.
+let kitBefore=null;
+function grooveKit(noBpm){const g=P[curName];if(!g)return;if(!g.kit){if($('kit').value==='brushes'&&kitBefore&&KITS[kitBefore]){$('kit').value=kitBefore;$('kit').onchange({target:$('kit')});kitBefore=null}if(g.bpm&&!noBpm)setBpm(g.bpm);save();return}if($('kit').value!==g.kit){if($('kit').value!=='brushes')kitBefore=$('kit').value;$('kit').value=g.kit;$('kit').onchange({target:$('kit')})}if(g.bpm&&!noBpm)setBpm(g.bpm);save()}
 $('b').onchange=e=>{beats=+e.target.value;pos=0;fill()};
 // Time signature menu: sets the hidden Beats/Notes. x/4 keeps the groove's 8th or 16th grid; 6/8, 9/8 and 12/8 use triplet beats; the odd x/8 meters count 8th-note beats.
-const TSMAP={'2/4':[2],'3/4':[3],'4/4':[4],'5/4':[5],'6/4':[6],'7/4':[7],'5/8':[5,2],'6/8':[2,3],'7/8':[7,2],'9/8':[3,3],'9/8br':[9,2],'11/8':[11,2],'12/8':[4,3]};
+const TSMAP={'4/4x2':[8,0],'12/8x2':[8,3],'2/4':[2],'3/4':[3],'4/4':[4],'5/4':[5],'6/4':[6],'7/4':[7],'5/8':[5,2],'6/8':[2,3],'7/8':[7,2],'9/8':[3,3],'9/8br':[9,2],'11/8':[11,2],'12/8':[4,3],'7/8x2':[7,4],'6/8x2':[12,2]};
+const TSL={'7/8x2':'7/8 · 2-bar groove','6/8x2':'6/8 · 2-bar groove (beat = 8th note)'};
 const TS8={p78:'7/8',jbwhip:'11/8',p98:'9/8br',bluerondo:'9/8br'};
-window.tsUI=tsUI;function tsUI(){let v;if(sub===3)v={2:'6/8',3:'9/8',4:'12/8'}[beats];else v=TS8[curName]&&TSMAP[TS8[curName]][0]===beats?TS8[curName]:({9:'9/8br',11:'11/8'}[beats]||beats+'/4');
- if(![...$('ts').options].some(o=>o.value===v)){const o=document.createElement('option');o.value=v;o.textContent=v;$('ts').appendChild(o)}$('ts').value=v}
+window.tsUI=tsUI;function tsUI(){let v;const two=beats===8&&P[curName]&&P[curName].bars===2;const pt=P[curName]&&P[curName].ts&&TSMAP[P[curName].ts];if(pt&&pt[0]===beats&&(pt[1]||sub)===sub)v=P[curName].ts;else if(two)v=sub===3?'12/8x2':'4/4x2';else if(sub===3)v={2:'6/8',3:'9/8',4:'12/8'}[beats]||beats*3+'/8';else v=TS8[curName]&&TSMAP[TS8[curName]][0]===beats?TS8[curName]:({9:'9/8br',11:'11/8'}[beats]||beats+'/4');
+ if(![...$('ts').options].some(o=>o.value===v)){const o=document.createElement('option');o.value=v;o.textContent=TSL[v]||v.replace('x2',' · 2-bar groove');$('ts').appendChild(o)}$('ts').value=v}
 $('ts').onchange=e=>{const m=TSMAP[e.target.value];if(!m)return;beats=m[0];sub=m[1]||(sub===4?4:2);$('b').value=beats;$('sub').value=sub;pos=0;swUI();fill();save()};
 $('sub').onchange=e=>{sub=+e.target.value;pos=0;swUI();fill()};
 $('sw').oninput=e=>setSwing(+e.target.value);
 $('fa').addEventListener('input',fatUI);
 $('showall').onchange=()=>draw();
+// fewer levels: every hit moves to the nearest remaining level (never removed); more levels: nothing changes until you tap
+let gvlPrev=$('gvl').value;$('gvl').onchange=()=>{const n=+$('gvl').value;if(n<+gvlPrev){const L=glv();for(const k in grid)grid[k]=grid[k].map(v=>v>0?L[lvIdx(v,L)]:0)}gvlPrev=$('gvl').value;draw();save()};
 $('bigl').onchange=()=>$('beat').classList.toggle('big',$('bigl').checked);
-$('prog').onchange=()=>{const o=$('prog').selectedOptions[0];if(o&&o.dataset.md)$('md').value=o.dataset.md;else if(o&&o.value!=='custom'&&!restoring)$('md').value='auto';save();$('cpl').style.display=$('prog').value==='custom'?'':'none';chordPreview()};
+$('prog').onchange=()=>{const o=$('prog').selectedOptions[0];if(o&&o.dataset.md&&$('md').value!==o.dataset.md){$('md').value=o.dataset.md;buildProgMenu()}save();$('cpl').style.display=$('prog').value==='custom'?'':'none';chordPreview()};
 $('cprog').oninput=chordPreview;$('bon').onchange=chordPreview;
-$('kit').onchange=e=>{const [k,sn,h,tm]=KITS[e.target.value];$('kk').value=k;$('sn').value=sn;$('hh').value=h;$('tm').value=tm;if(ctx){[k,sn,tm,h].forEach(x=>{if(DKIT[x])loadKit(x)});snKits().forEach(loadKit)}};
+$('kit').onchange=e=>{const [k,sn,h,tm]=KITS[e.target.value];$('kk').value=k;$('sn').value=sn;$('hh').value=h;$('tm').value=tm;if(e.target.value==='brushes')$('rv').value='br';else if($('rv').value==='br')$('rv').value='zil';if(ctx&&brushUsed())loadBrush();if(ctx){[k,sn,tm,h].forEach(x=>{if(DKIT[x])loadKit(x)});snKits().forEach(loadKit)}};
+['sn','hh','tm','rv'].forEach(id=>$(id).addEventListener('change',()=>{if(ctx&&brushUsed())loadBrush()}));
 ['kk','sn','tm'].forEach(id=>$(id).addEventListener('change',()=>{if(ctx&&DKIT[$(id).value])loadKit($(id).value);if(ctx&&id==='sn')snKits().forEach(loadKit)}));
 $('room').oninput=e=>{if(revSend&&!xBusy)revSend.gain.setTargetAtTime(e.target.value/100*0.5,ctx.currentTime,0.05)};
 ['kk','sn','hh','tm'].forEach(id=>$(id).addEventListener('change',async()=>{await init();const n=id=='kk'?36:id=='sn'?38:id=='hh'?42:47;hit(n,ctx.currentTime+0.02,1)}));
 const previewBass=async()=>{await init();if(LIB[$('bt').value])await loadLib($('bt').value);bassNote(ctx.currentTime+0.03,bassRoot(keyPc()),0.6,0.9)};
-$('bt').addEventListener('change',previewBass);$('btone').addEventListener('change',()=>{applyTone();previewBass()});$('kon').addEventListener('change',()=>{chordPreview();if($('kon').checked&&ctx&&LIB[$('ksnd').value])loadLib($('ksnd').value)});$('ksnd').addEventListener('change',()=>{if(/^(pad|sweeppad|strings)/.test($('ksnd').value))$('kcomp').value='sustain';if($('kon').checked&&ctx&&LIB[$('ksnd').value])loadLib($('ksnd').value)});
-$('md').addEventListener('change',async()=>{chordPreview();if($('bon').checked){await init();parseProg();const k=tonicNow,seq=MODES[modeNow].concat([12]);seq.forEach((x,i)=>bassNote(ctx.currentTime+0.05+i*0.17,bassRoot(k)+x,0.15,0.85))}});
-$('key').addEventListener('change',async()=>{chordPreview();await init();if($('bon').checked)previewBass();else hit(ELEC.includes($('kk').value)?36:35,ctx.currentTime+0.02,1)});
+$('bt').addEventListener('change',previewBass);$('btone').addEventListener('change',()=>{applyTone();previewBass()});$('kon').addEventListener('change',()=>{chordPreview();if($('kon').checked&&ctx)keysLoad(keysSound())});$('ksnd').addEventListener('change',()=>{if(/^(pad|sweeppad|strings)/.test($('ksnd').value))$('kcomp').value='sustain';if($('kon').checked&&ctx)keysLoad(keysSound())});
+$('md').addEventListener('change',async()=>{buildProgMenu();if(fitProg())save();chordPreview();if($('bon').checked){await init();parseProg();const k=tonicNow,seq=MODES[modeNow].concat([12]);seq.forEach((x,i)=>bassNote(ctx.currentTime+0.05+i*0.17,bassRoot(k)+x,0.15,0.85))}});
+$('key').addEventListener('change',async()=>{buildProgMenu();chordPreview();await init();if($('bon').checked)previewBass();else hit(ELEC.includes($('kk').value)?36:35,ctx.currentTime+0.02,1)});
 $('bnew').onclick=async()=>{bassSeed=Math.floor(Math.random()*1e6);save();$('bnew').innerHTML=mmIcon('dice')+'New line '+mmIcon('check');setTimeout(()=>$('bnew').innerHTML=mmIcon('dice')+'New bass line',900)};
 $('mode').onchange=async()=>{await init();route()};
 $('dev').onchange=async()=>{await init();applyDev()};
@@ -1597,13 +1942,13 @@ document.addEventListener('keydown',e=>{const tg=e.target.tagName,ty=e.target.ty
  else if(k==='ArrowUp'){e.preventDefault();setBpm(bpm+5)}else if(k==='ArrowDown'){e.preventDefault();setBpm(bpm-5)}
  else if(k==='KeyF')fillNow();else if(k==='KeyT')tap()});
 // ===== boot =====
-p.disabled=false;p.innerHTML=mmIcon('play')+'Play';$('av').value='rock';$('ac').value='pop';psUI();restore();uiRefresh();logUI();restoring=false;listDevs();
+buildProgMenu();p.disabled=false;p.innerHTML=mmIcon('play')+'Play';$('av').value='rock';$('ac').value='pop';psUI();restore();uiRefresh();logUI();restoring=false;listDevs();
 {const sp=new URLSearchParams(location.search),dm=sp.get('dm');if(dm){try{applyState(decodeCode(dm));uiRefresh();save()}catch(e){console.error(e)}
   if(sp.get('xp')){setSel($('xlen'),sp.get('xp'));history.replaceState(null,'',location.pathname);$('xst').textContent='Your settings from Notion are loaded. Tap Export to build and save your MP3.';setTimeout(()=>{if(window.mmShowTab)mmShowTab('Export');$('xbtn').scrollIntoView({block:'center'});$('xbtn').focus()},300)}}}
 
-</script><script>(function(){const C=['#e8412c','#f28c28','#f6c33b','#efe6d2'];document.querySelectorAll('.sec>h4').forEach((h,i)=>h.style.setProperty('--band',C[i%4]))})();</script><p class="appver" style="text-align:center;font-size:11px;opacity:.6;margin:18px 0 10px;font-family:ui-monospace,Menlo,monospace">Modal Metronome · Version 2026-11-11.18.1</p>
+</script><script>(function(){const C=['#e8412c','#f28c28','#f6c33b','#efe6d2'];document.querySelectorAll('.sec>h4').forEach((h,i)=>h.style.setProperty('--band',C[i%4]))})();</script><p class="appver" style="text-align:center;font-size:11px;opacity:.6;margin:18px 0 10px;font-family:ui-monospace,Menlo,monospace">Modal Metronome · Version 2026-11-11.25</p>
 <script>/* Setting help: hover the name on a computer, tap it on a phone or iPad */
-(function(){const T={"mv": "Master volume for everything: drums, bass and keys. Saved on this device only, not in presets or links.", "xlen": "How long the MP3 will be. It records the groove, bass, chords, fills and tempo exactly as they are set now, so you can practice with it anywhere.", "ps": "Your saved setups. Pick one to load it. Type a name and tap Save to store everything you have set right now. Presets live on this device and never get erased by Reset.", "pre": "The drum pattern. Each groove is written the way real drummers play that style. Changing it also sets the time signature the groove is written in.", "ts": "Time signature: how many beats are in a bar and what kind. 4/4 = four quarter-note beats. 6/8, 9/8 (3+3+3) and 12/8 = beats split in three. In 5/8, 7/8, 9/8 (2+2+2+3) and 11/8 each beat is one 8th note, so the BPM counts 8ths.", "sdv": "Subdivide: the steady in-between notes that keep time. \"As written\" plays the groove's own hi-hat or ride part. Pick Quarter notes, 8ths, 16ths, Triplets or Off-beats to replace it with a steady pulse. Off = no subdivision at all, just the kick and snare.", "cy": "Subdivide with: the instrument that plays the subdivision. Hi-hat is tight and dry, ride is washy, ride bell cuts through, shaker and tambourine are soft and bright, cowbell, side stick, claves and woodblock are clicky and easy to hear.", "fb": "First beat: adds an extra sound on beat 1 of every bar so you always know where the bar starts. Great for odd meters like 7/8 and 9/8.", "sw": "Swing pushes every second note late. 50% = straight, even notes. About 67% = triplet swing, like jazz and blues shuffles.", "pkt": "Pocket: where the drummer sits on the beat. Auto uses the real feel of the groove: backbeat a hair behind, hats leading. Machine = perfectly on the grid.", "gdyn": "Ghost notes are the very soft snare taps between the backbeats. \"4 levels\" plays them softer or louder depending on where they fall, like a real drummer. Flat = all the same.", "groll": "Adds soft snare drags and buzz rolls leading into the backbeat, built from real stick bounces.", "hu": "Humanize adds tiny random changes in timing and volume so the drums don't sound like a machine. Zero = perfectly even.", "crash": "Plays a crash cymbal on beat 1 every 4 bars to mark the phrase.", "ci": "Count-in: clicks before the band starts so you can come in on time.", "do": "Drop-out: the drums and bass go silent for some bars while you keep playing. When they come back, you find out if you kept the time yourself.", "bigl": "Makes the beat light big and flashes the screen on every beat, so you can see the pulse from across the room.", "tr": "Tempo trainer: speeds the metronome up a little every few bars until it reaches your goal. It never slows down.", "trg": "The tempo the trainer stops at.", "tri": "How many BPM to add each time.", "trb": "How many bars to play before each speed-up.", "fe": "How often the drummer plays a fill (a short drum break) at the end of a phrase.", "fs": "The kind of fill: toms, snare, or a mix.", "fa": "How busy the fill is. Low = short and simple. High = full bar with doubles.", "fc": "Plays a crash on the beat right after every fill, like a drummer landing the fill.", "key": "The major parent key: the \"1\" of the scale. The studio names every mode from its parent major key.", "md": "The mode: which note of the parent key the music sits on. The bass and keys use it for passing notes and voicings.", "prog": "The chord progression the bass and keys play, written in Roman numerals from the parent key.", "bpc": "How long each chord lasts. Normal = one bar. Double time = two chords per bar. Half time = each chord lasts two bars.", "cprog": "Type your own chords, separated by spaces (for example: ii V I vi or Dm7 G7 Cmaj7).", "bon": "Turns the bass player on. The bass follows the chords and the groove.", "bt": "The bass sound: electric, upright, synth and more.", "btone": "Shapes the bass like a mixing engineer: EQ and compression on the bass channel.", "bs": "How the bass plays: root notes, walking lines, pedal tones and more, matched to the style.", "bauto": "Writes a fresh bass line every few bars so it never gets repetitive.", "bvar": "How often the bass adds passing notes, octave jumps and pickups.", "bv": "Bass volume, separate from the drums.", "kon": "Turns the keyboard player on. The keys play the chords in the progression.", "ksnd": "The keyboard sound: piano, electric piano, organ, pads.", "kcomp": "Comping = how the keys play the chords: held, pushed, stabs. Auto matches the groove.", "kvoice": "Voicing = which chord notes the keys play. Pop/rock uses triads. Jazz plays the 3rd, 5th, 7th and 9th and leaves the root to the bass.", "kv": "Keys volume, separate from the drums.", "kit": "Picks the whole drum kit at once. You can still change each drum below.", "kk": "The kick drum sound.", "sn": "The snare drum sound.", "rv": "The ride cymbal sound.", "hh": "The hi-hat sound.", "hfeel": "Tight = closed and choked. Loose = hats a little open and sloshy.", "sfeel": "Tight = damped, higher crack. Open = lower, fatter, more ring.", "kfeel": "Tight = short and punchy. Boomy = lower and longer.", "tm": "The tom sounds used in fills.", "pc": "The percussion sounds: shaker, tambourine, cowbell, congas and more.", "room": "How much room echo (reverb) is on the whole band.", "arr": "Song mode: switches between a verse groove and a chorus groove, so practice feels like a real song.", "av": "The groove for the verse.", "ac": "The groove for the chorus.", "ab": "How many bars the verse lasts.", "cb": "How many bars the chorus lasts.", "mode": "Direct is fastest. Pick Compatibility only if the sound crackles or won't play on your device.", "dev": "Which speaker or headphones the sound plays through.", "showall": "Shows every drum in the pattern grid, not just the drums this groove uses."};
+(function(){const T={"mv": "Master volume for everything: drums, bass and keys. Saved on this device only, not in presets or links.", "xlen": "How long the MP3 will be. It records the groove, bass, chords, fills and tempo exactly as they are set now, so you can practice with it anywhere.", "ps": "Your saved setups. Pick one to load it. Type a name and tap Save to store everything you have set right now. Presets live on this device and never get erased by Reset.", "pre": "The drum pattern. Each groove is written the way real drummers play that style. Changing it also sets the time signature the groove is written in.", "ts": "Time signature: how many beats are in a bar and what kind. 4/4 = four quarter-note beats. 6/8, 9/8 (3+3+3) and 12/8 = beats split in three. In 5/8, 7/8, 9/8 (2+2+2+3) and 11/8 each beat is one 8th note, so the BPM counts 8ths.", "sdv": "Subdivide: the steady in-between notes that keep time. \"As written\" plays the groove's own hi-hat or ride part. Pick Quarter notes, 8ths, 16ths, Triplets or Off-beats to replace it with a steady pulse. Off = no subdivision at all, just the kick and snare.", "cy": "Subdivide with: the instrument that plays the subdivision. Hi-hat is tight and dry, ride is washy, ride bell cuts through, shaker and tambourine are soft and bright, cowbell, side stick, claves and woodblock are clicky and easy to hear.", "fb": "First beat: adds an extra sound on beat 1 of every bar so you always know where the bar starts. Great for odd meters like 7/8 and 9/8.", "sw": "Swing pushes every second note late. 50% = straight, even notes. About 67% = triplet swing, like jazz and blues shuffles.", "pkt": "Pocket: where the drummer sits on the beat. Auto uses the real feel of the groove: backbeat a hair behind, hats leading. Machine = perfectly on the grid.", "gdyn": "Ghost notes are the very soft snare taps between the backbeats. \"4 levels\" plays them softer or louder depending on where they fall, like a real drummer. Flat = all the same.", "groll": "How often soft snare rolls show up: drags, ruffs, 5-stroke and short buzz rolls tucked in before the backbeat or onto the e and a. They sit below the ghost notes. Sprinkle = now and then, Some = about one a bar, Lots = a busy ghost-note feel.", "grst": "Natural mix = what a drummer reaches for: mostly drags and short ruffs, some buzzes, now and then a 7- or 9-stroke roll that builds into a fill. Stick strokes = no buzzes. Buzz and press rolls = only buzzed strokes.", "hu": "Humanize adds tiny random changes in timing and volume so the drums don't sound like a machine. Zero = perfectly even.", "crash": "Plays a crash cymbal on beat 1 every 4 bars to mark the phrase.", "ci": "Count-in: clicks before the band starts so you can come in on time.", "do": "Drop-out: the drums and bass go silent for some bars while you keep playing. When they come back, you find out if you kept the time yourself.", "bigl": "Makes the beat light big and flashes the screen on every beat, so you can see the pulse from across the room.", "tr": "Tempo trainer: speeds the metronome up a little every few bars until it reaches your goal. It never slows down.", "trg": "The tempo the trainer stops at.", "tri": "How many BPM to add each time.", "trb": "How many bars to play before each speed-up.", "fe": "How often the drummer plays a fill (a short drum break) at the end of a phrase.", "fs": "The kind of fill: toms, snare, or a mix.", "fa": "How busy the fill is. Low = short and simple. High = full bar with doubles.", "fc": "Plays a crash on the beat right after every fill, like a drummer landing the fill.", "key": "The major parent key: the \"1\" of the scale. The studio names every mode from its parent major key.", "md": "The mode: which note of the parent key the music sits on. The bass and keys use it for passing notes and voicings.", "prog": "The chord progression the bass and keys play. Pick a mode first: the list then shows only that mode's progressions, in Roman numerals from the mode's own 1 (D Dorian: i – IV = Dm – G), with the letters for your parent key.", "bpc": "How long each chord lasts. Normal = one bar. Double time = two chords per bar. Half time = each chord lasts two bars.", "cprog": "Type your own chords, separated by spaces (for example: ii V I vi or Dm7 G7 Cmaj7).", "bon": "Turns the bass player on. The bass follows the chords and the groove.", "bt": "The bass sound: electric, upright, synth and more.", "btone": "Shapes the bass like a mixing engineer: EQ and compression on the bass channel.", "bs": "How the bass plays: root notes, walking lines, pedal tones and more, matched to the style.", "bauto": "Writes a fresh bass line every few bars so it never gets repetitive.", "bvar": "How often the bass adds passing notes, octave jumps and pickups.", "bv": "Bass volume, separate from the drums.", "kon": "Turns the keyboard player on. The keys play the chords in the progression.", "ksnd": "The keyboard sound. Auto picks what a band would bring: grand piano for pop, ballads, jazz and Latin, a tine electric piano for neo-soul and funk, a tonewheel organ for gospel and blues shuffles. The sampled sounds load the first time you pick them.", "kcomp": "Comping = how the keys play the chords: held, pushed, stabs. Auto matches the groove.", "kvoice": "Voicing = which chord notes the keys play. Pop/rock: the root in the left hand, the triad in the right, moving to the closest notes. Jazz: rootless voicings (3-7-9, 7-3-13) between C3 and A4, the root left to the bass. Neo-soul and gospel add 9ths, 11ths and 13ths from the mode. Nothing muddy: no 3rds below E-flat 3.", "kv": "Keys volume, separate from the drums.", "kit": "Picks the whole drum kit at once. You can still change each drum below.", "kk": "The kick drum sound.", "sn": "The snare drum sound.", "rv": "The ride cymbal sound.", "hh": "The hi-hat sound.", "hfeel": "Tight = closed and choked. Loose = hats a little open and sloshy.", "sfeel": "Tight = damped, higher crack. Open = lower, fatter, more ring.", "kfeel": "Tight = short and punchy. Boomy = lower and longer.", "tm": "The tom sounds used in fills.", "pc": "The percussion sounds: shaker, tambourine, cowbell, congas and more.", "room": "How much room echo (reverb) is on the whole band.", "arr": "Song mode: switches between a verse groove and a chorus groove, so practice feels like a real song.", "av": "The groove for the verse.", "ac": "The groove for the chorus.", "ab": "How many bars the verse lasts.", "cb": "How many bars the chorus lasts.", "mode": "Direct is fastest. Pick Compatibility only if the sound crackles or won't play on your device.", "dev": "Which speaker or headphones the sound plays through.", "showall": "Shows every drum in the pattern grid, not just the drums this groove uses.", "gvl": "How many strengths a grid square can have. 4: accent, normal, soft, ghost. 3: accent, normal, ghost. 2: normal and ghost. Going down snaps every hit to the nearest level that is left; nothing is deleted. The grooves keep their exact strengths until you change them."};
  const tip=document.createElement('div');tip.id='tip';document.body.appendChild(tip);let cur=null;
  function show(el){const r=el.getBoundingClientRect();tip.textContent=el.dataset.tip;tip.style.display='block';const w=tip.offsetWidth,h=tip.offsetHeight;
   let x=Math.min(Math.max(8,r.left),innerWidth-w-8),y=r.bottom+6;if(y+h>innerHeight-8)y=Math.max(8,r.top-h-6);tip.style.left=x+'px';tip.style.top=y+'px';cur=el}
