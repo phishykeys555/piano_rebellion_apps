@@ -247,6 +247,42 @@ button .ic{width:1.2em;height:1.2em}
 .hint .ic{width:1em;height:1em;margin:0 .05em}
 </style>
 
+<style>/* 2026-11-12.1: piano roll for bass and keys, export by times through */
+label[hidden],.row>label[hidden]{display:none!important}
+.prtool{align-items:center}
+.prlane,.prmode{display:inline-flex;gap:4px;flex:none}
+.prlane button,.prmode button{padding:6px 12px;font-size:12px;text-transform:uppercase;letter-spacing:.06em;box-shadow:0 2px 0 var(--c-key-sh)}
+.prlane button.sel,.prmode button.sel{background:var(--c-sel);color:var(--c-sel-ink);border-color:var(--c-sel)}
+.prsc{position:relative;height:360px;overflow:auto;border:1px solid var(--c-line);border-radius:12px;background:var(--c-panel);overscroll-behavior:contain;-webkit-overflow-scrolling:touch;touch-action:pan-x pan-y;user-select:none;-webkit-user-select:none;margin-top:8px}
+.prhead{position:sticky;top:0;z-index:6;display:flex;background:var(--c-panel2);border-bottom:1px solid var(--c-line)}
+.prcorner{position:sticky;left:0;z-index:7;flex:none;width:46px;background:var(--c-panel2);font:700 10px var(--f-body);color:var(--c-mut);text-transform:uppercase;letter-spacing:.08em;display:flex;align-items:flex-end;justify-content:center;padding-bottom:4px;border-right:1px solid var(--c-line)}
+.prtime{position:relative;flex:none;height:40px}
+.prch{position:absolute;top:3px;white-space:nowrap;font:600 12px var(--f-body);color:var(--c-ink);padding:0 6px;border-left:2px solid var(--c-act);line-height:17px}
+.prch b{color:var(--c-act);font-weight:800}
+.prbn{position:absolute;bottom:3px;font:600 10px var(--f-num);color:var(--c-mut);padding-left:3px}.prbn.bar{color:var(--c-ink);font-weight:800}
+.prbody{display:flex;position:relative}
+.prkeys{position:sticky;left:0;z-index:5;flex:none;width:46px;border-right:1px solid #000}
+.prk{display:flex;align-items:center;justify-content:flex-end;padding-right:5px;font:700 10px var(--f-num);border-bottom:1px solid rgba(0,0,0,.2);cursor:pointer}
+.prk.w{background:#efede7;color:#2a2a2a}.prk.b{background:linear-gradient(90deg,#141417 0 64%,#efede7 64%)}.prk.c{border-bottom:1px solid #666}
+.prgrid{position:relative;flex:none;cursor:crosshair}
+.prrow{border-bottom:1px solid color-mix(in srgb,var(--c-ink) 8%,transparent);background:color-mix(in srgb,#000 9%,var(--c-panel2))}
+.prrow.in{background:color-mix(in srgb,var(--c-sel) 9%,var(--c-panel2))}.prrow.ton{background:color-mix(in srgb,var(--c-sel) 24%,var(--c-panel2))}
+.prrow.c{border-bottom-color:color-mix(in srgb,var(--c-ink) 32%,transparent)}
+.prlines{position:absolute;inset:0;pointer-events:none}
+.prchg{position:absolute;top:0;bottom:0;width:2px;background:color-mix(in srgb,var(--c-act) 75%,transparent);pointer-events:none}
+.prn{position:absolute;border-radius:5px;background:var(--c-sel);box-shadow:0 0 6px color-mix(in srgb,var(--c-sel) 45%,transparent),inset 0 -2px 0 rgba(0,0,0,.25);cursor:pointer;z-index:2}
+.prn.lv4{box-shadow:inset 0 0 0 2px rgba(255,255,255,.85),0 0 8px color-mix(in srgb,var(--c-sel) 60%,transparent)}.prn.lv2{opacity:.75}.prn.lv1{opacity:.5}
+.prn.sel{outline:2px solid var(--c-ink);outline-offset:1px;z-index:3}
+.prh{position:absolute;right:0;top:0;bottom:0;width:8px;cursor:ew-resize;touch-action:none;border-radius:0 5px 5px 0}
+.prh:hover{background:rgba(255,255,255,.4)}
+.prknob{position:absolute;top:50%;right:-27px;width:24px;height:24px;margin-top:-12px;border-radius:50%;background:var(--c-warn);border:2px solid var(--c-ink);cursor:ew-resize;touch-action:none;display:flex;align-items:center;justify-content:center;color:#111;z-index:4;box-sizing:border-box}
+.prknob .ic{width:14px;height:14px;top:0;margin:0}
+.prgrid.auto .prn{opacity:.35;filter:grayscale(.7)}
+.prph{position:absolute;top:0;bottom:0;width:2px;background:var(--c-act);box-shadow:0 0 6px var(--c-act);pointer-events:none;z-index:4}
+.prmsg:empty{display:none}
+#xinfo{flex:1 0 100%;margin:0}
+@media (max-width:620px){.prsc{height:340px}.prlane button,.prmode button{min-height:44px;font-size:13px}.prtool>.prlane,.prtool>.prmode{flex:1 1 calc(50% - 8px)}.prlane button,.prmode button{flex:1}.prknob{width:30px;height:30px;margin-top:-15px;right:-33px}}
+</style>
 </head><body><div class="wrap">
 <div data-chma-head></div>
 <h1 class="mmt">Modal <em>Metronome</em></h1>
@@ -260,7 +296,7 @@ button .ic{width:1.2em;height:1.2em}
 <button id="tap" aria-label="Tap tempo">Tap</button><button id="fnow"><span data-ic="drum"></span>Fill now</button>
 <label class="vol"><input type="range" id="mv" aria-label="Master volume" data-s min="0" max="100" value="50"><span id="mvt">50%</span></label>
 </div>
-<div class="row exp"><label title="Renders your current groove, bass, chords, fills and tempo into an MP3 you can keep">Export MP3 <select id="xlen" data-s><option value="2">2 min</option><option value="3" selected>3 min</option><option value="4">4 min</option><option value="5">5 min</option><option value="6">6 min</option><option value="7">7 min</option></select></label><button id="xbtn"><span data-ic="download"></span>Export loop</button><span id="xst" role="status" style="font-size:12px;opacity:.8"></span></div>
+<div class="row exp"><label title="Renders your current groove, bass, chords, fills and tempo into an MP3 you can keep">Length by <select id="xby" data-s><option value="times" selected>Times through</option><option value="mins">Minutes</option></select></label><label id="xtl">Times through <select id="xtimes" data-s><option value="1">1</option><option value="2">2</option><option value="4" selected>4</option><option value="8">8</option><option value="16">16</option></select></label><label id="xml" hidden>Minutes <select id="xlen" data-s><option value="2">2 min</option><option value="3" selected>3 min</option><option value="4">4 min</option><option value="5">5 min</option><option value="6">6 min</option><option value="7">7 min</option></select></label><label><input type="checkbox" id="xci" data-s> Count-in</label><button id="xbtn"><span data-ic="download"></span>Export MP3</button><span id="xst" role="status" style="font-size:12px;opacity:.8"></span><p class="hint" id="xinfo"></p></div>
 
 <div class="sec"><h4>My presets</h4>
 <div class="row">
@@ -344,6 +380,7 @@ button .ic{width:1.2em;height:1.2em}
 <label>Sound <select id="bt" data-s><optgroup label="Studio (multi-layer, loads when picked)"><option value="jbass" selected>Electric Bass – fingered, round (clean studio)</option><option value="jbflat">Electric Bass – flatwound / Motown (dark, short)</option><option value="jbbright">Electric Bass – picked, punchy</option><option value="dbass">Upright Double Bass – pizzicato (1958 Rubner)</option><option value="gupright">Upright Jazz Bass – studio, clear</option><option value="gupwarm">Upright Jazz Bass – gut strings, warm and short</option><option value="garco">Upright Bass – bowed (arco), for ballads</option><option value="gslap">Slap Bass – studio (real multi-layer)</option></optgroup><optgroup label="Recorded"><option value="finger">Electric – Fingered (Yamaha RBX)</option><option value="pick">Electric – Pick (Yamaha RBX)</option><option value="fretless">Fretless</option><option value="lately">80s FM Bass (DX7 "Lately Bass")</option><option value="sb1">Analog Synth Bass (warm)</option><option value="sb2">Analog Synth Bass (punchy)</option></optgroup><optgroup label="Synth"><option value="synth1">Synth Bass (classic)</option><option value="sub808">808 Sub (glide)</option><option value="moog">Moog-Style Fat</option><option value="acid">Acid 303</option><option value="reese">Reese (dark, wide)</option></optgroup></select></label><label title="Shapes the bass like a mixing engineer would: EQ and a compressor on the bass channel">Bass tone <select id="btone" data-s><option value="studio" selected>Studio (round + clear)</option><option value="warm">Warm (dark, Motown)</option><option value="punchy">Punchy (rock / funk)</option><option value="bright">Bright (slap / pop)</option><option value="amp">Vintage amp (grit)</option><option value="flat">Flat (raw)</option></select></label>
 <label>Style <select id="bs" data-s><option value="auto" selected>Auto (matches groove)</option><option value="kick">Follow the Kick</option><option value="root">Long Root Notes</option><option value="roots8">Driving 8ths</option><option value="rootfifth">Root – Fifth</option><option value="octave">Disco Octaves</option><option value="funk">Funk (syncopated)</option><option value="walk">Walking Jazz (approach notes into every chord)</option><option value="twofeel">Jazz Two-Feel (half notes, skips)</option><option value="broken">Modern Jazz Broken Time</option><option value="boogie">Blues Boogie / Shuffle</option><option value="jamerson">Motown (Jamerson chromatics)</option><option value="jbfunk">James Brown (on the One)</option><option value="tower">Tower of Power (16th notes, Rocco)</option><option value="meters">The Meters (sparse)</option><option value="bootsy">Bootsy / P-Funk</option><option value="vulf">Vulfpeck (melodic 16ths)</option><option value="cowfunk">Phish Cow Funk</option><option value="neosoul">Neo-Soul (laid back, slides)</option><option value="afrobeat">Afrobeat Ostinato</option><option value="melodic">Jam Band Melodic (Phil Lesh)</option><option value="prog">Prog Odd-Meter Riff</option><option value="modalvamp">Modal Vamp (So What / McCoy)</option><option value="afro68">Afro 6/8 Ostinato</option><option value="tumbao">Salsa Tumbao (anticipated)</option><option value="samba">Samba (surdo on 2)</option><option value="bossa">Bossa Nova (root, fifth, anticipation)</option><option value="baiao">Baião (Northeast Brazil)</option><option value="chacha">Cha-cha-chá (1, 3, 4 &amp;)</option><option value="reggae">Reggae</option><option value="trap">Trap 808 (glides)</option><option value="arp">Arpeggio</option><option value="modal">Modal Riff (scale runs)</option><option value="pedal">Pedal Tone (drone on key note)</option></select></label>
 </div>
+<div class="row"><label>Part <select id="bmode" data-s><option value="auto" selected>Auto (written for you)</option><option value="manual">Manual (my piano roll)</option></select></label><button type="button" class="prgo" data-l="bass"><span data-ic="piano"></span>Edit in the piano roll</button></div>
 <div class="row adv">
 <label title="Keeps the bass from getting repetitive: writes a fresh bass line every few bars while you play">Change it up <select id="bauto" data-s><option value="0">Off</option><option value="4">New line every 4 bars</option><option value="8" selected>New line every 8 bars</option><option value="16">New line every 16 bars</option><option value="surprise">Surprise me (new line, feel and busyness)</option></select></label>
 <label title="How often the bass adds passing notes, octave jumps and pickups">Variation <input type="range" id="bvar" data-s min="0" max="100" value="35" style="width:90px"></label>
@@ -359,7 +396,27 @@ button .ic{width:1.2em;height:1.2em}
 <label title="Pop / rock: three-note triads. Jazz: 3rd, 5th, 7th and 9th, no root (the bass has it).">Voicing <select id="kvoice" data-s><option value="auto" selected>Auto (jazz grooves get the 7th chords of the key)</option><option value="triad">Triads</option><option value="seventh">7th chords</option><option value="rootless">Jazz rootless (3-5-7-9)</option></select></label>
 <label>Volume <input type="range" id="kv" data-s min="0" max="100" value="60" style="width:100px"></label><span id="kst" role="status" style="font-size:12px;color:var(--mut)"></span>
 </div>
+<div class="row"><label>Part <select id="kmode" data-s><option value="auto" selected>Auto (played for you)</option><option value="manual">Manual (my piano roll)</option></select></label><button type="button" class="prgo" data-l="keys"><span data-ic="piano"></span>Edit in the piano roll</button></div>
 <p class="adv" style="margin:6px 0 0;font-size:12px;opacity:.75">Keys follow the same parent key, mode and chord progression as the bass line. Voicings move to the closest notes, the way a real player keeps their hand in one spot.</p>
+</div>
+
+<div class="sec"><h4>Piano roll</h4>
+<div class="row prtool">
+<div class="prlane" role="group" aria-label="Part to edit"><button type="button" data-l="bass" class="sel" title="Edit the bass line">Bass</button><button type="button" data-l="keys" title="Edit the keys part">Keys</button></div>
+<div class="prmode" role="group" aria-label="What plays"><button type="button" data-m="auto" title="Auto: the app writes this part for you as it plays. Your roll notes stay saved.">Auto</button><button type="button" data-m="manual" title="Manual: this part plays the notes in the roll.">Manual</button></div>
+<label id="rsecl" hidden>Section <select id="rsec"><option value="verse">Verse</option><option value="chorus">Chorus</option><option value="main">Shared (both)</option></select></label>
+<label>Bars <select id="rbars"><option value="1">1</option><option value="2">2</option><option value="4">4</option><option value="8">8</option></select></label>
+</div>
+<div class="row prtool">
+<button type="button" id="rcopy"><span data-ic="copy"></span>Copy auto to roll</button>
+<label><input type="checkbox" id="rlock" data-s checked> Scale lock</label>
+<label id="rchl" hidden><input type="checkbox" id="rchord"> Chord stamp</label>
+<button type="button" id="rundo" disabled><span data-ic="undo"></span>Undo</button>
+<button type="button" id="rclr"><span data-ic="trash"></span>Clear</button>
+</div>
+<div class="hint prmsg" id="rmsg" role="status"></div>
+<div class="prsc" id="prsc" aria-label="Piano roll"></div>
+<div class="hint">Tap an empty square to add a note (you hear it as it goes in). Tap a note to make it softer (accent, normal, soft, ghost), once more to take it out. To make a note longer or shorter, drag its right edge, or on a phone tap the note and drag the round handle. Tap a key on the left to hear it. Swipe the roll sideways and up and down to see it all. Light rows are the notes of the key and mode; the tinted row is the mode's home note. The chords of each bar run across the top.</div>
 </div>
 
 <div class="sec adv"><h4>Drum sounds</h4>
@@ -451,7 +508,11 @@ button .ic{width:1.2em;height:1.2em}
   check:S('M5 12.5l4.5 4.5L19 7.5'),
   flag:S('M5.5 21V4M5.5 4.5h12l-2.5 4 2.5 4h-12'),
   hush:S('M4 9.5h3.5L12 5.5v13l-4.5-4H4z',' stroke-linejoin="round"')+S('M15.5 9.5l5 5M20.5 9.5l-5 5'),
-  right:S('M5 12h14M13 6l6 6-6 6'),left:S('M19 12H5M11 6l-6 6 6 6'),up:S('M12 19V5M6 11l6-6 6 6'),down:S('M12 5v14M6 13l6 6 6-6')};
+  right:S('M5 12h14M13 6l6 6-6 6'),left:S('M19 12H5M11 6l-6 6 6 6'),up:S('M12 19V5M6 11l6-6 6 6'),down:S('M12 5v14M6 13l6 6 6-6'),
+  undo:S('M9 14.5L4 9.5l5-5')+S('M4 9.5h10a5.5 5.5 0 0 1 0 11h-3'),
+  trash:S('M4 7h16M9.5 7V4h5v3M6.5 7l1 13h9l1-13M10 11v5.5M14 11v5.5'),
+  piano:'<rect x="3" y="4" width="18" height="16" rx="2"/>'+S('M8 13v7M12 4v16M16 13v7')+'<path d="M6.5 4h3v9h-3zM14.5 4h3v9h-3z" fill="currentColor" stroke="none"/>',
+  len:S('M3 12h18M7 8l-4 4 4 4M17 8l4 4-4 4')};
  // Medals: fixed metal colours (not the theme), dark numeral strokes, ribbon in the CHMA blue and orange.
  const ribbon='<path d="M5 .6h5l3 7.2-3.8 1.2z" fill="#2f6bff"/><path d="M19 .6h-5l-3 7.2 3.8 1.2z" fill="#ff6a1a"/>';
  const DIG={1:'M10.4 11.9l2.3-1.7v8.6',2:'M9.6 12.1a2.45 2.35 0 0 1 4.9.15c0 1.25-.85 2-1.9 3L9.5 18.8h5.2',3:'M9.7 10.5h4.6l-2.5 3.1c1.6 0 2.8 1 2.8 2.45 0 1.55-1.25 2.75-2.85 2.75-1.05 0-1.9-.4-2.4-1.05'};
@@ -597,6 +658,7 @@ const ROWS=[[49,'Crash'],[51,'Ride'],[53,'Ride Bell'],[46,'Open Hi-Hat'],[42,'Cl
 const VOL={97:.9,49:.7,51:.55,53:.6,46:.55,42:.6,44:.6,38:.9,37:.8,39:.8,99:.75,36:1,35:.9,50:.85,47:.85,43:.9,82:.6,54:.6,56:.5,75:.6,76:.6,60:.7,61:.75,73:.55,63:.8,64:.85};
 const rowVol={};ROWS.forEach(([n])=>rowVol[n]=1);
 let ctx=null,buf={},master=null,out=null,bpm=80,beats=4,sub=2,playing=false,next=0,timer=null,q=[],openHat=null,grid={},cells={},restoring=true;
+var simming=false; // true while the engine runs silently (Copy auto to roll, MP3 length): no drawing, no practice log
 const $=id=>document.getElementById(id),s=$('s'),v=$('v'),m=$('m'),p=$('p'),g=$('g');
 const steps=()=>beats*sub;
 
@@ -942,18 +1004,18 @@ g.addEventListener('keydown',e=>{const c=e.target;if(!c.classList||!c.classList.
  e.preventDefault();e.stopPropagation();nr=Math.max(0,Math.min(ks.length-1,nr));const row=cells[ks[nr]];ni=Math.max(0,Math.min(row.length-1,ni));const t=row[ni];if(t&&t!==c){c.tabIndex=-1;t.tabIndex=0;t.focus()}});
 function cls(val,i){return 'c'+(i%sub?'':' down')+(val>0?LVCLS[lvName(val)]:'')}
 function visRows(){if($('showall').checked)return ROWS;const r=ROWS.filter(([n])=>grid[n]&&grid[n].some(x=>x>0));return r.length?r:ROWS}
-function draw(){g.innerHTML='';cells={};const n=steps();g.style.gridTemplateColumns=matchMedia('(max-width:620px)').matches?'74px 60px repeat('+n+',44px)':'auto 64px repeat('+n+',minmax(14px,1fr))';
+function draw(){if(simming)return;g.innerHTML='';cells={};const n=steps();g.style.gridTemplateColumns=matchMedia('(max-width:620px)').matches?'74px 60px repeat('+n+',44px)':'auto 64px repeat('+n+',minmax(14px,1fr))';
  g.appendChild(document.createElement('div'));g.appendChild(document.createElement('div'));
  for(let i=0;i<n;i++){const h=document.createElement('div');h.className='hd';h.textContent=i%sub?SUBL[sub][i%sub]:(i/sub+1);g.appendChild(h)}
  visRows().forEach(([k,name])=>{const l=document.createElement('div');l.className='lab';l.textContent=name.replace(/-/g,'\u2011');l.onclick=async()=>{await init();hit(k,ctx.currentTime+0.01,1)};g.appendChild(l);
   const r=document.createElement('input');r.type='range';r.min=0;r.max=150;r.value=rowVol[k]*100;r.className='rv';r.title=name+' volume';r.oninput=()=>{rowVol[k]=r.value/100};g.appendChild(r);
   cells[k]=[];for(let i=0;i<n;i++){const c=document.createElement('div');c.className=cls(grid[k][i],i);c.setAttribute('role','button');c.tabIndex=-1;c.dataset.k=k;c.dataset.i=i;c.setAttribute('aria-label',cellLbl(name,i,grid[k][i]));c.onclick=()=>{grid[k][i]=nextLv(grid[k][i]);c.className=cls(grid[k][i],i);c.setAttribute('aria-label',cellLbl(name,i,grid[k][i]));save()};g.appendChild(c);cells[k].push(c)}});
  {const f0=g.querySelector('.c');if(f0)f0.tabIndex=0}
- const d=$('dots');d.innerHTML='';for(let b=0;b<beats;b++){const e=document.createElement('div');e.className='dot';d.appendChild(e)}}
+ const d=$('dots');d.innerHTML='';for(let b=0;b<beats;b++){const e=document.createElement('div');e.className='dot';d.appendChild(e)}if(typeof prSoon==='function')prSoon()}
 // Tempo medals (SVG, see mmIcons): 260+ trophy, 190+ gold "1", 120+ silver "2", below that bronze "3".
 function medalKey(b){return b>=260?'trophy':b>=190?'gold':b>=120?'silver':'bronze'}
 function medal(b){return mmIcon(medalKey(b))}
-function setBpm(x){x=+x;if(!isFinite(x))x=bpm||80;bpm=Math.max(40,Math.min(280,Math.round(x)));s.value=bpm;v.textContent=bpm;v.setAttribute('aria-label','Tempo '+bpm+' BPM. Tap to type a tempo');if(window.mmRng)mmRng(s);m.innerHTML=medal(bpm);save()}
+function setBpm(x){x=+x;if(!isFinite(x))x=bpm||80;bpm=Math.max(40,Math.min(280,Math.round(x)));s.value=bpm;v.textContent=bpm;v.setAttribute('aria-label','Tempo '+bpm+' BPM. Tap to type a tempo');if(window.mmRng)mmRng(s);m.innerHTML=medal(bpm);save();if(!simming&&typeof xInfo==='function')xInfo()}
 // ===== music theory / chords =====
 const SHARP=['C','C♯','D','D♯','E','F','F♯','G','G♯','A','A♯','B'],FLAT=['C','D♭','D','E♭','E','F','G♭','G','A♭','A','B♭','B'];
 const LTR='CDEFGAB',ACCN={'-2':'𝄫','-1':'♭','0':'','1':'♯','2':'𝄪'};const LET={C:0,D:2,E:4,F:5,G:7,A:9,B:11},MAJ=[0,2,4,5,7,9,11],MIN=[0,2,3,5,7,8,10],ROM=['I','II','III','IV','V','VI','VII'];
@@ -1503,8 +1565,8 @@ function keysChord(t,ms,dur,vel,e){if(!keysBus)return;const a=+$('kv').value/100
   if(ORG[kv])organNote(kv,tt,m,v,end,a);else if(KSET[kv])sampleNote(kv,tt,m,v,end,a);else{const ks=LIB[kv]?kv:'upright';libNote(ks,tt,m,end-tt,v,a,keysBus)}});
  if(ORG[kv])orgLastEnd=end0}
 
-function bassNote(t,mi,dur,vel,glide){if(!ctx||!bassBus)return;let ty=$('bt').value;const a=vel*(+$('bv').value/100);if(a<=0)return;
- while(mi>52)mi-=12;while(mi<26)mi+=12;const end=t+Math.max(0.06,dur);
+function bassNote(t,mi,dur,vel,glide,raw){if(!ctx||!bassBus)return;let ty=$('bt').value;const a=vel*(+$('bv').value/100);if(a<=0)return;
+ if(raw){while(mi>67)mi-=12;while(mi<23)mi+=12}else{while(mi>52)mi-=12;while(mi<26)mi+=12}const end=t+Math.max(0.06,dur);
  if(LIB[ty]){if(libNote(ty,t,mi,dur,vel,a)){lastBassM=mi;return}ty=LIB[ty].fb}
  if(BSM[ty]){const [pre,BN]=BSM[ty],sm=BN.reduce((pp,c)=>Math.abs(c-mi)<Math.abs(pp-mi)?c:pp),b=buf[pre+sm],[lpf,rel,gm]=BTONE[ty];
   if(!b){synthBass('moog',t,mi,dur,a,glide);lastBassM=mi;return}
@@ -1568,8 +1630,8 @@ function barStart(){isCount=cin>0;if(isCount)return;pocketBar();
    bassEv=A.filter(e=>e.s<halfAt).map(e=>clip(e,halfAt)).concat(B.filter(e=>e.s<n-halfAt).map(e=>clip({...e,s:e.s+halfAt},n)))}else bassEv=[]}
  else{ halfAt=0;const ci=Math.floor(barN/bpc)%prog.length;chordNow=prog[ci];chordNext=prog[(ci+1)%prog.length];
   bassIB=barN%bpc;bassSpan=beats;bassEv=$('bon').checked?genBass(chordNow,chordNext,barN%bpc==bpc-1,barN%(prog.length*bpc*2)):[];}
- bassEv=guardBass(bassEv);keysEv=genKeys();
- if(bpm===lastBpm)barsAtBpm++;else{lastBpm=bpm;barsAtBpm=1}if(barsAtBpm>=8&&!muted&&!(ctx instanceof OfflineAudioContext))logBest(bpm)}
+ bassEv=guardBass(bassEv);keysEv=genKeys();prBar();
+ if(bpm===lastBpm)barsAtBpm++;else{lastBpm=bpm;barsAtBpm=1}if(barsAtBpm>=8&&!muted&&!simming&&!(ctx instanceof OfflineAudioContext))logBest(bpm)}
 // ===== Ghost-note dynamics and real snare rolls =====
 // Four ghost levels, chosen by where the note sits: softest right after a backbeat, loudest leading into one.
 const GH=[0.12,0.2,0.3,0.42];
@@ -1634,7 +1696,7 @@ function sched(h){if(typeof h!=='number'&&ctx){const nowT=performance.now(),gap=
  const dt=60/bpm/sub,n=steps(),i=pos,t=next+((sub!==3&&i%2)?(swing-.5)*2*dt:0),H=+$('hu').value/100;
  const item={t,i,b:i%sub==0?i/sub:-1};if(snap&&!isCount)item.st=snap;
  if(isCount){if(i%sub==0)clickV(t,i==0);item.cnt=Math.floor(i/sub)+1;item.cb=cin}
- else{const fl=fillBeats()*sub,inFill=fillBar&&i>=n-fl;Object.assign(item,{f:inFill,mu:muted,sec:secName,ch:halfAt&&i>=halfAt?chordB:chordNow,nx:halfAt&&i>=halfAt?chordC:chordNext,tr:trMsg});
+ else{const fl=fillBeats()*sub,inFill=fillBar&&i>=n-fl;Object.assign(item,{f:inFill,mu:muted,sec:secName,ch:halfAt&&i>=halfAt?chordB:chordNow,nx:halfAt&&i>=halfAt?chordC:chordNext,tr:trMsg,sb:rollSbNow,sc:rollSecNow});
   if(!muted){const hj=()=>H?(Math.random()-.5)*0.02*H:0,hv=()=>H?1+(Math.random()-.5)*0.3*H:1,now=ctx.currentTime;
    const fIdx=i-(n-fl),fillOn=inFill&&fIdx>=fillFirst,fHere=fillOn&&curFill[fIdx]&&curFill[fIdx].length>0;
    if(fillOn&&i%sub===0&&!(grid[44]&&grid[44].some(v=>v>0)))hit(44,Math.max(now,t),0.42); // hi-hat foot keeps time under the fill
@@ -1646,11 +1708,13 @@ function sched(h){if(typeof h!=='number'&&ctx){const nowT=performance.now(),gap=
    if(rollPlan.length&&!fillOn)for(const e of rollPlan)if(Math.floor(e.p)===i&&!(inFill&&e.p-(n-fl)>=fillFirst))rollStroke(e,next,dt,now);
    if(i===0&&crashNow&&!grid[49][0]){hit(49,next,0.95);if(!grid[36][0]&&!grid[35][0])hit(36,next,0.9)}
    else if(i===0&&$('crash').checked&&barN%4==0&&!grid[49][0])hit(49,next,0.9);
-   for(const e of bassEv)if(e.s===i)bassNote(Math.max(now,t+hj()*0.5),e.m,e.d*dt,e.v*hv(),e.g);
-   for(const e of keysEv)if(e.s===i)keysChord(Math.max(now,t+hj()*0.3),e.ms,e.d*dt*(e.push||e.tail?1:0.97),e.v*hv(),e)}}
+   if(bassMan){for(const e of bassEvM)if(e.s===i)bassNote(Math.max(now,t+e.o+hj()*0.5),e.m,e.d*dt,e.v*hv(),e.g,1)}
+   else for(const e of bassEv)if(e.s===i)bassNote(Math.max(now,t+hj()*0.5),e.m,e.d*dt,e.v*hv(),e.g);
+   if(keysMan){const gr=keysEvM.filter(e=>e.s===i);if(gr.length)keysPlayNotes(Math.max(now,t+hj()*0.3),gr,dt,hv())}
+   else for(const e of keysEv)if(e.s===i)keysChord(Math.max(now,t+hj()*0.3),e.ms,e.d*dt*(e.push||e.tail?1:0.97),e.v*hv(),e)}}
  q.push(item);next+=dt;pos++;if(pos>=n){pos=0;if(isCount)cin--;else{barN++;trMsg=''}}}}
 function anim(){if(!playing)return;const now=ctx.currentTime;let e=null,eb=null;while(q.length&&q[0].t<=now){e=q.shift();if(e.b>=0)eb=e}
- if(e){for(const k in cells)cells[k].forEach((c,j)=>c.classList.toggle('now',j==e.i&&!e.cnt));
+ if(e){prTick(e);for(const k in cells)cells[k].forEach((c,j)=>c.classList.toggle('now',j==e.i&&!e.cnt));
   if(eb){e=eb;const ds=$('dots').children;for(let j=0;j<ds.length;j++){ds[j].classList.toggle('on',j==e.b);ds[j].classList.toggle('one',j==0)}
    if($('bigl').checked&&now-e.t<0.25){const bt=$('beat');bt.classList.remove('flash','flash1');void bt.offsetWidth;bt.classList.add(e.b==0?'flash1':'flash');clearTimeout(flT);flT=setTimeout(()=>bt.classList.remove('flash','flash1'),110)}
    blUI(e)}}
@@ -1669,30 +1733,34 @@ function chordPreview(){if(playing)return;if(!$('bon').checked&&!$('kon').checke
 
 // ===== Export: render the current settings offline (faster than real time) and encode an MP3 =====
 function loadScript(u){return new Promise((res,rej)=>{if(window.lamejs)return res();const sc=document.createElement('script');sc.src=u;sc.onload=res;sc.onerror=()=>{sc.remove();rej(new Error('the MP3 maker could not load. Check your internet connection and tap Export again.'))};document.head.appendChild(sc)})}
-async function exportMp3(){const mins=+$('xlen').value,secs=mins*60,SR=44100,xst=$('xst'),btn=$('xbtn');btn.disabled=true;xBusy=true;
+async function exportMp3(){const byT=$('xby').value==='times',times=+$('xtimes').value||4,mins=+$('xlen').value,SR=44100,RING=3,xst=$('xst'),btn=$('xbtn');let secs=mins*60;btn.disabled=true;xBusy=true;
  try{xst.textContent='Loading sounds…';await init(true);if(playing)stop();
   if(LIB[$('bt').value])await loadLib($('bt').value);if($('kon').checked){const g0=curName,gs=[curName].concat($('arr').checked?[$('av').value,$('ac').value]:[]);for(const g of gs){curName=g;await keysLoad(keysSound())}curName=g0}for(const id of ['kk','sn','tm'])if(DKIT[$(id).value])await loadKit($(id).value);for(const k of snKits())await loadKit(k);if(brushUsed()||$('arr').checked&&[$('av').value,$('ac').value].some(g=>P[g]&&P[g].kit==='brushes'))await loadBrush();
   await loadScript('https://cdnjs.cloudflare.com/ajax/libs/lamejs/1.2.1/lame.min.js');
+  // times through: the length comes from playing the arrangement through silently first (song sections, tempo trainer and all)
+  const cinB=$('xci').checked?Math.max(1,+$('ci').value||1):0,cinS=cinB*beats*60/bpm;let plan=null;if(byT){plan=exportPlan(times);secs=0.05+cinS+plan.secs+RING}
   const keep={ctx,out,comp,master,revSend,bassBus,bassStrip,keysBus,keysChain,conv,openHat},keepBpm=bpm;
-  const oc=new OfflineAudioContext(2,SR*secs,SR);ctx=oc;
+  const oc=new OfflineAudioContext(2,Math.ceil(SR*secs),SR);ctx=oc;
   out=oc.createGain();out.gain.value=1;out.connect(oc.destination);
   comp=oc.createDynamicsCompressor();comp.threshold.value=-10;comp.ratio.value=3;const lim=oc.createDynamicsCompressor();lim.threshold.value=-6;lim.knee.value=0;lim.ratio.value=20;lim.attack.value=0.001;lim.release.value=0.12;const trim=oc.createGain();trim.gain.value=0.85;comp.connect(trim);trim.connect(lim);lim.connect(out);
   master=oc.createGain();master.connect(comp);revSend=oc.createGain();revSend.gain.value=$('room').value/100*0.5;master.connect(revSend);
   bassBus=oc.createGain();bassBus.gain.value=0.9;bassBus.connect(buildStrip(comp));keysBus=buildKeysChain(comp,revSend);conv=oc.createConvolver();conv.buffer=buf.ir_plate||makeIR(1.6);revSend.connect(conv);conv.connect(comp);openHat=null;
-  pos=0;barN=0;surStyle=null;surV=null;cin=+$('ci').value;muted=false;prevFill=false;fillBar=false;forceBar=-1;secName='';lastBassM=null;bassPrevM=null;bassPlan=null;bassRun=0;bassLastCk='';trMsg='';q=[];next=0.05;
-  xst.textContent='Building '+mins+' min…';sched(secs-0.05);q=[];
+  pos=0;barN=0;surStyle=null;surV=null;cin=cinB;muted=false;prevFill=false;fillBar=false;forceBar=-1;secName='';lastBassM=null;bassPrevM=null;bassPlan=null;bassRun=0;bassLastCk='';trMsg='';q=[];next=0.05;
+  xst.textContent='Building '+(byT?times+' times through':mins+' min')+'…';
+  if(byT){let gd=0;while(!(cin<=0&&barN>=plan.bars&&pos===0)&&gd++<4e6)sched(next+1e-6);q=[];exportEnd(next);window.mmLastExport={secs,bars:plan.bars,pass:plan.pb,music:plan.secs,cin:cinS,end:next,bpm}}
+  else{sched(secs-0.05);q=[];window.mmLastExport={secs,cin:cinS,bpm}}
   xst.textContent='Rendering… 0%';for(let tt=5;tt<secs;tt+=5)oc.suspend(tt).then(()=>{xst.textContent='Rendering… '+Math.round(100*tt/secs)+'%';oc.resume()});const b=await oc.startRendering();
   ctx=keep.ctx;setBpm(keepBpm);barsAtBpm=0;out=keep.out;comp=keep.comp;master=keep.master;revSend=keep.revSend;bassBus=keep.bassBus;bassStrip=keep.bassStrip;keysBus=keep.keysBus;keysChain=keep.keysChain;conv=keep.conv;openHat=keep.openHat;applyTone();out.gain.value=volG($('mv').value);revSend.gain.value=$('room').value/100*0.5;
   // normalize to -1 dBFS, 1.5 s fade at the end
   const L=b.getChannelData(0),Rr=b.getChannelData(1),n=L.length;let pk=0;for(let i=0;i<n;i++){pk=Math.max(pk,Math.abs(L[i]),Math.abs(Rr[i]))}
-  const g=pk>0?0.89/pk:1,fade=Math.floor(SR*1.5),toI=(x,i)=>{let v=x*g*(i>n-fade?(n-i)/fade:1);v=Math.max(-1,Math.min(1,v));return v<0?v*32768:v*32767};
+  const g=pk>0?0.89/pk:1,fade=Math.floor(SR*(byT?1:1.5)),toI=(x,i)=>{let v=x*g*(i>n-fade?(n-i)/fade:1);v=Math.max(-1,Math.min(1,v));return v<0?v*32768:v*32767};
   const enc=new lamejs.Mp3Encoder(2,SR,192),blk=1152,parts=[],li=new Int16Array(blk),ri=new Int16Array(blk);
   for(let i=0;i<n;i+=blk){const m=Math.min(blk,n-i);for(let j=0;j<m;j++){li[j]=toI(L[i+j],i+j);ri[j]=toI(Rr[i+j],i+j)}
    const d=enc.encodeBuffer(m<blk?li.subarray(0,m):li,m<blk?ri.subarray(0,m):ri);if(d.length)parts.push(new Uint8Array(d));
    if(i%(blk*400)===0){xst.textContent='Encoding MP3… '+Math.round(100*i/n)+'%';await new Promise(r=>setTimeout(r,0))}}
   const e=enc.flush();if(e.length)parts.push(new Uint8Array(e));
   const blob=new Blob(parts,{type:'audio/mpeg'}),url=URL.createObjectURL(blob),gname=($('pre').selectedOptions[0]||{}).textContent||curName;
-  const fn=('Modal Metronome - '+gname.replace(/\s*\(.*\)/,'')+' - '+bpm+' BPM - '+mins+' min').replace(/\//g,'-').replace(/[^\w\- ]+/g,'').replace(/\s+/g,' ').trim()+'.mp3';
+  const fn=('Modal Metronome - '+gname.replace(/\s*\(.*\)/,'')+' - '+bpm+' BPM - '+(byT?times+'x through':mins+' min')).replace(/\//g,'-').replace(/[^\w\- ]+/g,'').replace(/\s+/g,' ').trim()+'.mp3';
   // Saving needs a fresh tap (browsers block saves that start after a long render), so offer a Save button
   lastExport={blob,fn,url};
   xst.innerHTML='Ready: '+(blob.size/1048576).toFixed(1)+' MB · <button type="button" id="xsave" class="btn" style="font-weight:800">'+mmIcon('download')+'Save MP3…</button>';
@@ -1733,7 +1801,7 @@ window.addEventListener('focus',wake);['pointerdown','keydown'].forEach(t=>docum
 let starting=null; // one start at a time: a second Space/tap while the sounds load must not start a second loop
 function start(){if(playing)return Promise.resolve();if(xBusy){$('blm').textContent='Building your MP3. Play works again when it is ready.';return Promise.resolve()}return starting||(starting=start0().finally(()=>{starting=null}))}
 async function start0(){await init();if(xBusy||playing)return;playing=true;pos=0;barN=0;surStyle=null;surV=null;cin=+$('ci').value;muted=false;prevFill=false;fillBar=false;forceBar=-1;secName='';lastBassM=null;bassPrevM=null;bassPlan=null;bassRun=0;bassLastCk='';trMsg='';q=[];next=ctx.currentTime+0.08;timer=startClock();sched();cancelAnimationFrame(rafId);anim();p.innerHTML=mmIcon('stop')+'Stop';if(ctx.state!=='running')$('blm').textContent='Sound paused by the device. Tap anywhere to bring it back.';logStart()}
-function stop(){playing=false;stopClock();if(ctx&&master)swapBuses(ctx.currentTime+0.01);q=[];forceBar=-1;document.querySelectorAll('.now').forEach(c=>c.classList.remove('now'));[...$('dots').children].forEach(d=>d.classList.remove('on'));$('blm').innerHTML='Press '+mmIcon('play')+' Play or Space';p.innerHTML=mmIcon('play')+'Play';chordPreview();logStop()}
+function stop(){playing=false;stopClock();prTick(null);if(ctx&&master)swapBuses(ctx.currentTime+0.01);q=[];forceBar=-1;document.querySelectorAll('.now').forEach(c=>c.classList.remove('now'));[...$('dots').children].forEach(d=>d.classList.remove('on'));$('blm').innerHTML='Press '+mmIcon('play')+' Play or Space';p.innerHTML=mmIcon('play')+'Play';chordPreview();logStop()}
 function fillNow(){if(!playing){start().then(()=>{forceBar=0});return}if(isCount){forceBar=0;return}const n=steps(),fl=fillBeats()*sub;
  if(pos<n-fl&&!muted){fillBar=true;curFill=genFill(fl);prevFill=true}else forceBar=barN+1}
 // ===== practice log =====
@@ -1760,7 +1828,8 @@ function logUI(){const L=loadLog(),now=Date.now();let wk=0,streak=0;for(let k=0;
    drumMachine:log          LKEY  { fmt, days:{ "YYYY-MM-DD": seconds }, best:{ <page key>: bpm }, sessions }
    mmTab                          the open tab (this device only).
  STATE = { fmt:1, app:"<version that wrote it>", v:2, pk:1, tm2,av,bj,kt,fl,vt (1 = already migrated, see applyState0),
-           c:{ <control id>: string|number|boolean }, ts in c, bpm:40-280, grid:{ <drum row>:[0..1, ...] }, rowVol:{ <row>:0..2 }, seed, dev? (page settings only) }
+           c:{ <control id>: string|number|boolean }, ts in c, bpm:40-280, grid:{ <drum row>:[0..1, ...] }, rowVol:{ <row>:0..2 }, seed, dev? (page settings only),
+           pr? (from 2026-11-12.1): { bass|keys: { main|verse|chorus: { b, s, bars, k, n:[[step, midi, length, velocity, offset ms?, glide?], ...] } } } }
  .metronome file = { app:"modal-metronome", format:1, exported:"<ISO date>", appVersion, presets:{ "<name>": STATE } }
  Rules every version keeps, older or newer:
    1. Only add fields. Never rename one or change what it means. Bump fmt only for a change an older reader would misread, and add its migration.
@@ -1789,13 +1858,14 @@ function cleanState(st){if(!isObj(st)||!isObj(st.c))return null;const o={};
  const b=+st.bpm;if(typeof st.bpm!=='boolean'&&st.bpm!==''&&st.bpm!=null&&isFinite(b))o.bpm=Math.max(40,Math.min(280,Math.round(b)));
  if(typeof st.seed==='number'&&isFinite(st.seed))o.seed=st.seed;
  if(isObj(st.grid)){o.grid={};for(const k in st.grid){const r=st.grid[k];if(k!=='__proto__'&&Array.isArray(r)&&r.length<=512&&r.every(x=>typeof x==='number'&&isFinite(x)))o.grid[k]=r.map(x=>Math.max(0,Math.min(1,x)))}}
+ if(isObj(st.pr)){const r=cleanPR(st.pr);if(r)o.pr=r}
  if(isObj(st.rowVol)){o.rowVol={};for(const k in st.rowVol){const x=st.rowVol[k];if(k!=='__proto__'&&typeof x==='number'&&isFinite(x))o.rowVol[k]=Math.max(0,Math.min(2,x))}}
  return o}
 // ===== state: save / restore / presets / codes =====
 let saveT=null,savedDevInit='';
 const LOCAL=new Set(['mv','mode']);
 function getState(full){const c={};document.querySelectorAll('[data-s]').forEach(e=>{if(!full&&LOCAL.has(e.id))return;c[e.id]=e.type==='checkbox'?e.checked:e.value});
- const st={fmt:FMT,app:appVer(),v:2,tm2:1,pk:1,av:1,bj:1,kt:1,fl:1,vt:1,c,bpm,grid,rowVol,seed:bassSeed};if(full)st.dev=$('dev').value;return st}
+ const st={fmt:FMT,app:appVer(),v:2,tm2:1,pk:1,av:1,bj:1,kt:1,fl:1,vt:1,c,bpm,grid,rowVol,seed:bassSeed};const pr=prState();if(pr)st.pr=pr;if(full)st.dev=$('dev').value;return st}
 const OLDPROG={'i VI III VII':'vi IV I V','i iv v i':'vi ii iii vi','i VII VI V':'vi V IV III','i IV':'ii7 V7','i ii III IV':'ii iii IV V','i VII IV i':'ii I V ii','i II':'iii IV','i II III II':'iii IV V IV','i vii VI II':'iii IV iii ii','I II':'IV V','I II vii I':'IV V iii IV','I II iii II':'IVmaj7 V IVmaj7 V','I VII IV I':'V IV I V','I v IV I':'V ii I V','I VII I IV':'V IV I I','i VI VII i':'vi IV V vi','i VII VI VII':'vi V IV V','i iv VII III':'vi iii IV V','i° II iv II':'vii° I','i iv V i':'vi ii III vi','I II vii II':'III IV ii III'};
 const PROG2={'iii ii I IV':'iii IV iii ii','IV V vi V':'IVmaj7 V IVmaj7 V','V IV V I':'V IV I I','vi ii V I':'vi iii IV V','vii° I iii I':'vii° I','III IV ii IV':'III IV ii III','ii V':'ii7 V7'};
 function legacyKey(c){if(!c)return;if(PROG2[c.prog])c.prog=PROG2[c.prog];const old=c.prog,md=c.md||'auto';let deg=MODEDEG[md];
@@ -1817,8 +1887,10 @@ function applyState0(st){if(!st||!st.c)return false;restoring=true;const c=st.c;
  if(st.grid)ROWS.forEach(([k])=>{const r=st.grid[k];if(Array.isArray(r)&&r.length===steps())grid[k]=r.map(x=>{x=+x;return x>0?Math.min(1,x):0})});
  if(!st.tm2&&$('tm').value!=='linn')$('tm').value='pearl';
  if(st.seed)bassSeed=st.seed;if(st.dev!=null)savedDev=st.dev;
+ // piano roll: a state without it (older versions) plays Auto, as it always did
+ prLoad(st.pr);if(c.bmode==null)$('bmode').value='auto';if(c.kmode==null)$('kmode').value='auto';prSync();
  setBpm(st.bpm||80);uiRefresh();draw();restoring=false;return true}
-function uiRefresh(){if(typeof gvlPrev!=='undefined')gvlPrev=$('gvl').value;if(window.mmRng)document.querySelectorAll('input[type=range]').forEach(mmRng);fatUI();swUI();if(window.mmVcUI)mmVcUI();$('mvt').textContent=$('mv').value+'%';$('cpl').style.display=$('prog').value==='custom'?'':'none';$('beat').classList.toggle('big',$('bigl').checked);
+function uiRefresh(){if(typeof gvlPrev!=='undefined')gvlPrev=$('gvl').value;if(window.mmRng)document.querySelectorAll('input[type=range]').forEach(mmRng);fatUI();swUI();if(window.mmVcUI)mmVcUI();$('mvt').textContent=$('mv').value+'%';if(typeof xInfo==='function')xInfo();$('cpl').style.display=$('prog').value==='custom'?'':'none';$('beat').classList.toggle('big',$('bigl').checked);
  if(out&&!xBusy)out.gain.setTargetAtTime(volG($('mv').value),ctx.currentTime,0.02);if(revSend&&!xBusy)revSend.gain.setTargetAtTime($('room').value/100*0.5,ctx.currentTime,0.05);chordPreview()}
 addEventListener('pagehide',()=>{if(saveT&&!restoring){clearTimeout(saveT);try{store.setItem(SKEY,JSON.stringify(getState(true)))}catch(e){}}});
 function save(){if(restoring)return;clearTimeout(saveT);saveT=setTimeout(()=>{try{store.setItem(SKEY,JSON.stringify(getState(true)));$('sv').innerHTML=store.mem?'Settings kept until reload':mmIcon('check')+'Settings saved'}catch(e){$('sv').textContent='Saving not available here'}},300)}
@@ -1850,21 +1922,26 @@ function uniqueName(n,raw){for(let i=2;;i++){const sfx=' ('+i+')',t=n.slice(0,60
 function psUI(sel){const P2=presets(),e=$('ps');e.innerHTML='<option value="">— choose —</option>'+Object.keys(P2).sort().map(k=>'<option value="'+esc(k)+'">'+esc(k)+'</option>').join('');if(sel)e.value=sel}
 function cmsg(t){$('cmsg').textContent=t}
 const GXOK={0.35:1,0.7:1,1:1};const GV=x=>x<=0?'.':x<0.5?'g':x<0.85?'m':'x',VG={'.':0,g:.35,m:.7,x:1};
-function encodeCode(){const st=getState(false),gr={};for(const k in st.grid)if(st.grid[k].some(x=>x>0))gr[k]=st.grid[k].map(GV).join('');const rv={};for(const k in rowVol)if(rowVol[k]!==1)rv[k]=rowVol[k];
+async function encodeCode(){const st=getState(false),gr={};for(const k in st.grid)if(st.grid[k].some(x=>x>0))gr[k]=st.grid[k].map(GV).join('');const rv={};for(const k in rowVol)if(rowVol[k]!==1)rv[k]=rowVol[k];
  // gx: exact hit strengths for rows the 4-letter grid would round (ghost notes at 0.22, 0.28 ...). Older versions ignore it and use g.
  const gx={};for(const k in st.grid)if(st.grid[k].some(x=>x>0&&!(x in GXOK)))gx[k]=st.grid[k].map(x=>Math.round(x*100)/100);
- const o={v:2,pk:1,fx:1,c:st.c,bpm:st.bpm,g:gr,r:rv,seed:st.seed};if(Object.keys(gx).length)o.gx=gx;return 'DM2.'+btoa(unescape(encodeURIComponent(JSON.stringify(o)))).replace(/=+$/,'')}
-function decodeCode(txt){const m2=txt.trim().replace(/\s+/g,'').match(/DM2\.([A-Za-z0-9+/]+)/);if(!m2)throw new Error('No pattern code found');
+ const o={v:2,pk:1,fx:1,c:st.c,bpm:st.bpm,g:gr,r:rv,seed:st.seed};if(Object.keys(gx).length)o.gx=gx;
+ // pr: the piano roll parts, compact and deflated (older versions ignore it and play Auto)
+ if(st.pr)o.pr=await prPack(st.pr);return 'DM2.'+btoa(unescape(encodeURIComponent(JSON.stringify(o)))).replace(/=+$/,'')}
+async function decodeCode(txt){const m2=txt.trim().replace(/\s+/g,'').match(/DM2\.([A-Za-z0-9+/]+)/);if(!m2)throw new Error('No pattern code found');
  const o=JSON.parse(decodeURIComponent(escape(atob(m2[1]))));const nb=+o.c.b||4,ns=+o.c.sub||2,grd={};ROWS.forEach(([k])=>{grd[k]=o.g&&o.g[k]?[...o.g[k]].map(ch=>VG[ch]||0):new Array(nb*ns).fill(0);const x=o.gx&&o.gx[k];if(Array.isArray(x)&&x.length===grd[k].length&&x.every(v=>typeof v==='number'&&isFinite(v)))grd[k]=x.map(v=>Math.max(0,Math.min(1,v)))});
- const rv={};ROWS.forEach(([k])=>rv[k]=o.r&&o.r[k]!=null?o.r[k]:1);const r0={pk:o.pk,c:o.c,bpm:o.bpm,grid:grd,rowVol:rv,seed:o.seed};if(o.fx)Object.assign(r0,{tm2:1,av:1,bj:1,kt:1,fl:1,vt:1});return r0}
+ const rv={};ROWS.forEach(([k])=>rv[k]=o.r&&o.r[k]!=null?o.r[k]:1);const r0={pk:o.pk,c:o.c,bpm:o.bpm,grid:grd,rowVol:rv,seed:o.seed};if(o.fx)Object.assign(r0,{tm2:1,av:1,bj:1,kt:1,fl:1,vt:1});if(o.pr){try{r0.pr=await prUnpack(o.pr)}catch(e){console.warn('Piano roll in the code skipped',e)}}return r0}
 // ===== controls =====
 document.addEventListener('change',save);document.addEventListener('input',save);
 const inFrame=(()=>{try{return window.self!==window.top}catch(e){return true}})();
 // Notion (and other embeds) block downloads inside the frame, so the export runs in a full-screen tab where Save works.
-$('xbtn').onclick=()=>{if(!inFrame)return exportMp3();
- const u=location.origin+location.pathname+'?dm='+encodeURIComponent(encodeCode())+'&xp='+$('xlen').value;
- const w=window.open(u,'_blank');
+$('xbtn').onclick=async()=>{if(!inFrame)return exportMp3();
+ const w=window.open('about:blank','_blank'),code=await encodeCode();
+ // long codes (a big piano roll) ride in the # part of the link, which never goes to a server and has no practical length limit
+ let u=location.origin+location.pathname+'?dm='+encodeURIComponent(code)+'&xp='+$('xlen').value;if(u.length>LINKMAX)u=location.origin+location.pathname+'?xp='+$('xlen').value+'#dm='+encodeURIComponent(code);
+ if(w)w.location.href=u;
  $('xst').innerHTML=w?'Opened full screen to export and save your MP3 (Notion blocks downloads inside the page).':'Notion blocks downloads here. <a href="'+u+'" target="_blank" rel="noopener">Open full screen to export</a>'};
+const LINKMAX=6000,CODEMAX=4000; // past CODEMAX characters a code is offered as a .metronome file instead (some apps cut long text)
 p.onclick=async()=>{if(playing){stop();return}if(xBusy){start();return}p.disabled=true;p.textContent='Loading sounds…';try{await start()}catch(e){p.innerHTML=mmIcon('play')+'Play';status('Audio could not start. Try again.');console.error(e)}finally{p.disabled=false;if(!playing)p.innerHTML=mmIcon('play')+'Play'}};
 s.oninput=e=>setBpm(+e.target.value);
 $('mv').oninput=e=>{$('mvt').textContent=e.target.value+'%';if(out&&!xBusy)out.gain.setTargetAtTime(volG(e.target.value),ctx.currentTime,0.02)};
@@ -1923,8 +2000,11 @@ function confirmDlg(title,msg,okText){return new Promise(res=>{let d=$('mmDlg');
 $('psd').onclick=async()=>{const k=$('ps').value;if(!k){psMsg('Choose a preset first');return}
  const yes=await confirmDlg('Delete preset?','“'+k+'” will be erased from this device. This can’t be undone.','Delete');if(!yes){psMsg('Kept “'+k+'”');return}
  const {raw:P2}=readPresets();delete P2[k];try{writePresets(P2)}catch(e){}psUI();psMsg('Deleted “'+k+'”')};
-$('cx').onclick=async()=>{const c=encodeCode();$('code').value=c;let ok=false;try{const pp=document.permissionsPolicy||document.featurePolicy;if(pp&&pp.allowsFeature&&!pp.allowsFeature('clipboard-write'))throw 0;await navigator.clipboard.writeText(c);ok=true}catch(e){try{$('code').select();ok=document.execCommand('copy')}catch(e2){}}cmsg(ok?'Copied! Paste it into another drum machine.':'Code ready — select and copy it from the box.')};
-$('ci2').onclick=()=>{try{applyState(decodeCode($('code').value));save();$('cmsg').innerHTML='Pattern loaded '+mmIcon('check')}catch(e){cmsg('That code did not work: '+e.message)}};
+$('cx').onclick=async()=>{const c=await encodeCode();$('code').value=c;
+ if(c.length>CODEMAX){$('cmsg').innerHTML='This code is long ('+c.length+' characters) because of your piano roll notes, and some apps cut long text. Safer: <button type="button" id="cxf" class="btn">'+mmIcon('download')+'Save as .metronome file</button>';
+  $('cxf').onclick=()=>{const gname=(($('pre').selectedOptions[0]||{}).textContent||curName).replace(/\s*\(.*\)/,'');if(window.mmSaveStates)mmSaveStates({[gname+' '+bpm+' BPM (piano roll)']:getState(false)})};return}
+ let ok=false;try{const pp=document.permissionsPolicy||document.featurePolicy;if(pp&&pp.allowsFeature&&!pp.allowsFeature('clipboard-write'))throw 0;await navigator.clipboard.writeText(c);ok=true}catch(e){try{$('code').select();ok=document.execCommand('copy')}catch(e2){}}cmsg(ok?'Copied! Paste it into another drum machine.':'Code ready — select and copy it from the box.')};
+$('ci2').onclick=async()=>{try{applyState(await decodeCode($('code').value));save();$('cmsg').innerHTML='Pattern loaded '+mmIcon('check')}catch(e){cmsg('That code did not work: '+e.message)}};
 // Space is Play/Stop: also cancel its keyup, or a button the mouse last clicked (Tap, +1) fires a second time.
 let spaceKey=false,kbNav=false;document.addEventListener('pointerdown',()=>{kbNav=false},true);document.addEventListener('keydown',e=>{if(e.key==='Tab')kbNav=true},true);
 document.addEventListener('keyup',e=>{if(e.code==='Space'&&spaceKey){spaceKey=false;e.preventDefault()}});
@@ -1941,19 +2021,204 @@ document.addEventListener('keydown',e=>{const tg=e.target.tagName,ty=e.target.ty
  else if(k==='ArrowLeft'){e.preventDefault();setBpm(bpm-1)}else if(k==='ArrowRight'){e.preventDefault();setBpm(bpm+1)}
  else if(k==='ArrowUp'){e.preventDefault();setBpm(bpm+5)}else if(k==='ArrowDown'){e.preventDefault();setBpm(bpm-5)}
  else if(k==='KeyF')fillNow();else if(k==='KeyT')tap()});
+// ===== Piano roll (2026-11-12.1): draw or edit the bass line and the keys part =====
+// Auto = the generated part, exactly as before. Manual = the notes in the roll, played through the same instruments and mix.
+// A part = {b: beats a bar, s: steps a beat, bars: 1|2|4|8, k: parent key it is written in (0-11),
+//           n: [[step, midi note, length in steps, velocity 0-1, offset ms (optional), glide 1 (optional)], ...]}
+// Parts per lane (bass, keys) and section: main (the loop; in Verse / Chorus mode the part both sections share), verse, chorus.
+// An empty verse or chorus part plays the main one. A key change moves every note by the interval.
+var PR={bass:{},keys:{}},prLane='bass',prSec='verse',prUndo=[],prSel=null,prLen=0,prG=null,prDragOn=false,prNote={t:0,x:''},prT=0;
+var rollSbNow=0,rollSecNow='main',bassEvM=[],keysEvM=[],bassMan=false,keysMan=false;
+const PRSEC=['main','verse','chorus'],PRBARS=[1,2,4,8],PRRANGE={bass:[28,55],keys:[48,84]},PRBLK=[1,3,6,8,10]; // E1-G3, C3-C6 (the view grows to show any note outside)
+const prModeId=l=>l==='bass'?'bmode':'kmode',prOnId=l=>l==='bass'?'bon':'kon',prManual=l=>$(prModeId(l)).value==='manual';
+const prR=(x,d)=>Math.round(x*d)/d;
+function prEditSec(){return $('arr').checked?prSec:'main'}
+function secGrid(sec){if(sec==='main'||!$('arr').checked)return {b:beats,s:sub};const g=$(sec==='verse'?'av':'ac').value;return curName===g||!P[g]?{b:beats,s:sub}:{b:P[g].b,s:P[g].s}}
+function progBars(){const L=parseProg().length,bpc=+$('bpc').value;return bpc<1?Math.ceil(L/2):Math.max(1,Math.round(L*bpc))}
+function secLen(sec){return sec==='main'||!$('arr').checked?99:+$(sec==='verse'?'ab':'cb').value}
+function fitBars(sec){const need=Math.min(progBars(),secLen(sec));return PRBARS.find(x=>x>=need)||8}
+// the part shown in the roll (an empty one follows the groove's grid and the key)
+function partView(l,sec){const p=PR[l][sec];if(p&&!p.n.length){const g=secGrid(sec);p.b=g.b;p.s=g.s;p.k=keyPc()}return p||Object.assign({k:keyPc(),n:[],bars:fitBars(sec)},secGrid(sec))}
+function partGet(l,sec){if(!PR[l][sec])PR[l][sec]=partView(l,sec);return PR[l][sec]}
+function partFor(l,sec){const p=PR[l][sec];if(p&&p.n.length)return p;const m=PR[l].main;return sec!=='main'&&m&&m.n.length?m:null}
+// the chord under a step: same rule as the scheduler (two chords a bar change on the middle beat)
+function chordAt(prog,gb,st,b,s){const L=prog.length,bpc=+$('bpc').value;if(bpc<1){const a=(2*gb)%L;return st>=Math.round(b/2)*s?prog[(a+1)%L]:prog[a]}return prog[Math.floor(gb/bpc)%L]}
+// one bar of a manual part, on the grid that is playing (a part written on another grid plays by beat position)
+function manualEv(l,sec,sb){const p=partFor(l,sec);if(!p)return [];const bl=p.b*p.s,rb=sb%p.bars,same=p.b===beats&&p.s===sub,n=steps(),ev=[];
+ for(const x of p.n){if(Math.floor(x[0]/bl)!==rb)continue;let s=x[0]-rb*bl,d=x[2];if(!same){const bp=s/p.s;if(bp>=beats)continue;s=Math.round(bp*sub);if(s>=n)continue;d=d*sub/p.s}
+  ev.push({s,m:x[1],d,v:x[3],o:(x[4]||0)/1000,g:!!x[5]})}return ev}
+// called at every bar start, after the auto parts are written (they keep their own state either way)
+function prBar(){let sec='main',sb=barN;if($('arr').checked){const A=+$('ab').value,C=+$('cb').value,pb=barN%(A+C);sec=pb<A?'verse':'chorus';sb=pb<A?pb:pb-A}
+ rollSecNow=sec;rollSbNow=sb;bassMan=$('bon').checked&&prManual('bass');keysMan=$('kon').checked&&prManual('keys');
+ bassEvM=bassMan?manualEv('bass',sec,sb):[];keysEvM=keysMan?manualEv('keys',sec,sb):[]}
+// manual keys notes that start together: the same voices, release and organ percussion as an auto chord
+function keysPlayNotes(T,list,dt,hv){if(!keysBus||!ctx)return;const a=+$('kv').value/100;if(a<=0)return;const kv=keysSound();hv=hv||1;
+ if(kv==='pad'||kv==='padbright'){const gs={};list.forEach(x=>{const k=x.d+'|'+x.v;(gs[k]=gs[k]||[]).push(x)});for(const k in gs){const g=gs[k];synthPad(T,g.map(x=>x.m),g[0].d*dt,g[0].v*hv,a,kv==='padbright')}return}
+ // notes from one auto chord come with rising offsets (the roll); a drop starts the next chord (the other hand), which sees the organ's last release
+ let gEnd=0,po=-1e9;list.forEach(x=>{const nw=(x.o||0)<po;if(ORG[kv]&&nw&&gEnd)orgLastEnd=gEnd;po=x.o||0;const t0=Math.max(ctx.currentTime,T+(x.o||0)),tt=t0+(Math.random()-.5)*0.003,v=Math.max(0.05,Math.min(1,x.v*hv)),end=Math.max(tt+0.08,t0+x.d*dt);if(!gEnd||nw)gEnd=t0+x.d*dt;
+  if(ORG[kv])organNote(kv,tt,x.m,v,end,a);else if(KSET[kv])sampleNote(kv,tt,x.m,v,end,a);else{const ks=LIB[kv]?kv:'upright';libNote(ks,tt,x.m,end-tt,v,a,keysBus)}});
+ if(ORG[kv]&&gEnd)orgLastEnd=gEnd}
+// Run the engine silently from bar 0 (Copy auto to roll, the MP3 length) and put every bit of playing state back afterwards.
+function prSim(fn,lane,keepTr){const S={barN,pos,cin,isCount,muted,fillBar,prevFill,crashNow,bassEv,keysEv,chordNow,chordNext,chordB,chordC,halfAt,secName,trMsg,curFill,forceBar,rollPlan,pkMove,bassSeed,surStyle,surV,bassPrevM,bassPlan,bassSpan,bassIB,bassRun,bassLastCk,kRng,keysPrev,keysTied,kPrev,kPrevL,keysLast,lastBassM,barsAtBpm,lastBpm,lastFill,fillFirst,keysChain,curName,cur,beats,sub,swing,bassEvM,keysEvM,bassMan,keysMan,rollSbNow,rollSecNow,grid,bpm0:bpm,sw:$('sw').value,pre:$('pre').value,bon:$('bon').checked,kon:$('kon').checked,tr:$('tr').checked};
+ simming=true;grid=JSON.parse(JSON.stringify(grid));
+ try{barN=0;pos=0;cin=0;isCount=false;muted=false;prevFill=false;fillBar=false;forceBar=-1;secName='';surStyle=null;surV=null;lastBassM=null;bassPrevM=null;bassPlan=null;bassRun=0;bassLastCk='';trMsg='';kPrev=null;kPrevL=null;keysPrev=-1;keysTied=false;kRng=null;keysChain=null;barsAtBpm=0;
+  if(lane==='bass')$('bon').checked=true;if(lane==='keys')$('kon').checked=true;if(!keepTr)$('tr').checked=false;
+  return fn()}
+ finally{({barN,pos,cin,isCount,muted,fillBar,prevFill,crashNow,bassEv,keysEv,chordNow,chordNext,chordB,chordC,halfAt,secName,trMsg,curFill,forceBar,rollPlan,pkMove,bassSeed,surStyle,surV,bassPrevM,bassPlan,bassSpan,bassIB,bassRun,bassLastCk,kRng,keysPrev,keysTied,kPrev,kPrevL,keysLast,lastBassM,barsAtBpm,lastBpm,lastFill,fillFirst,keysChain,curName,cur,beats,sub,swing,bassEvM,keysEvM,bassMan,keysMan,rollSbNow,rollSecNow,grid}=S);
+  $('pre').value=S.pre;$('bon').checked=S.bon;$('kon').checked=S.kon;$('tr').checked=S.tr;$('b').value=beats;$('sub').value=sub;$('sw').value=S.sw;simming=false;if(bpm!==S.bpm0)setBpm(S.bpm0);swUI();draw();if(window.tsUI)tsUI();gNote()}}
+// Copy auto to roll: what Auto plays from the top, for this progression and groove, as notes (exact timing, length and strength)
+function prCopy(){const l=prLane,sec=prEditSec(),song=$('arr').checked&&sec!=='main',A=+$('ab').value,before=JSON.stringify(PR[l][sec]||null);
+ const p=partGet(l,sec);let bars=p.bars;if(song)bars=Math.min(bars,secLen(sec));bars=[...PRBARS].reverse().find(x=>x<=bars)||1;
+ const start=song&&sec==='chorus'?A:0,notes=[];let grd=null;
+ prSim(()=>{for(let b=0;b<start+bars;b++){barN=b;pos=0;barStart();if(b<start)continue;const dt=60/bpm/sub;if(!grd)grd={b:beats,s:sub};const off=(b-start)*grd.b*grd.s;
+  if(l==='bass'){for(const e of bassEv)notes.push([off+e.s,e.m,prR(e.d,1e4),prR(e.v,1e4),0,e.g?1:0]);continue}
+  const kv=keysSound(),pad=kv==='pad'||kv==='padbright';
+  for(const e of keysEv){const dur=e.d*dt*(e.push||e.tail?1:0.97);if(pad){e.ms.forEach(m=>notes.push([off+e.s,m,prR(dur/dt,1e4),prR(e.v,1e4),0]));continue}
+   const tail=e.tail||0,roll=e.roll||0.007,lag=e.lag||0,X=Math.max(0.08,dur)+tail;
+   e.ms.forEach((m,i)=>notes.push([off+e.s,m,prR(Math.max(0.08,X-i*roll)/dt,1e4),prR(Math.max(0.05,Math.min(1,e.v*(e.vs?e.vs[i]:1))),1e4),prR((lag+i*roll)*1000,100)]))}}},l);
+ if(!notes.length){prSay('Auto has nothing to copy here.');return}
+ prUndoPush(before);p.b=grd.b;p.s=grd.s;p.bars=bars;p.k=keyPc();p.n=notes.map(x=>{const y=x.slice();while(y.length>4&&!y[y.length-1])y.pop();return y});prSel=null;
+ const e=$(prModeId(l));e.value='manual';$(prOnId(l)).checked=true;e.dispatchEvent(new Event('change',{bubbles:true}));
+ prSay('Copied '+bars+' bar'+(bars>1?'s':'')+' of the auto '+(l==='bass'?'bass line':'keys part')+' ('+notes.length+' notes). It now plays from the roll (Manual), sounding just like Auto. Change any note you like.');save();prDraw()}
+function prState(){const out={};for(const l of ['bass','keys'])for(const s of PRSEC){const p=PR[l][s];if(p&&p.n.length){(out[l]=out[l]||{})[s]={b:p.b,s:p.s,bars:p.bars,k:p.k,n:p.n.map(x=>x.slice())}}}return Object.keys(out).length?out:null}
+// read a stored roll field by field: bad parts and bad notes are dropped, the rest loads
+function cleanPR(pr){if(!isObj(pr))return null;const out={},F=x=>typeof x==='number'&&isFinite(x);
+ for(const l of ['bass','keys']){if(!isObj(pr[l]))continue;for(const s of PRSEC){const p=pr[l][s];if(!isObj(p)||!Array.isArray(p.n))continue;const b=+p.b,ss=+p.s,bars=+p.bars,k=+p.k;
+  if(!(b>=1&&b<=16&&b%1===0)||![2,3,4].includes(ss))continue;const max=b*ss*8;
+  const n=p.n.filter(x=>Array.isArray(x)&&x.length>=4&&x.slice(0,4).every(F)&&x[0]>=0&&x[0]<max&&x[1]>=12&&x[1]<=108&&x[2]>0&&x[2]<=1024&&(x[4]==null||(F(x[4])&&Math.abs(x[4])<500))).slice(0,4000)
+   .map(x=>{const y=[Math.round(x[0]),Math.round(x[1]),x[2],Math.max(0.01,Math.min(1,x[3]))];if(x[4]||x[5])y.push(x[4]||0);if(x[5])y.push(1);return y});
+  (out[l]=out[l]||{})[s]={b,s:ss,bars:PRBARS.includes(bars)?bars:1,k:k>=0&&k<12&&k%1===0&&p.k!==null&&p.k!==''?k:null,n}}}
+ return Object.keys(out).length?out:null}
+function prLoad(pr){PR={bass:{},keys:{}};const c=cleanPR(pr);if(c)for(const l in c)for(const s in c[l])PR[l][s]=c[l][s];prSel=null;prUndo=[];prG=null}
+// key change: every note moves by the interval (up to a 4th up or a 5th down, whichever is closer)
+function prSync(){const k=keyPc();for(const l of ['bass','keys'])for(const s in PR[l]){const p=PR[l][s];if(!p)continue;if(p.k==null){p.k=k;continue}let d=mod12(k-p.k);if(d>6)d-=12;if(d)p.n.forEach(x=>{x[1]+=d});p.k=k}}
+// pattern codes: a compact text (base 36, step deltas), then deflate where the browser has it
+const PRL={bass:'b',keys:'k'},PRS={main:'m',verse:'v',chorus:'c'};
+function prCompact(pr){const out=[];for(const l in PRL)for(const s in PRS){const p=pr[l]&&pr[l][s];if(!p||!p.n.length)continue;let prev=0;
+ const ns=p.n.slice().sort((a,b)=>a[0]-b[0]||a[1]-b[1]).map(x=>{const f=[(x[0]-prev).toString(36),x[1].toString(36),Math.round(x[2]*100).toString(36),Math.round(x[3]*1000).toString(36)];prev=x[0];const o=Math.round((x[4]||0)*10);if(o||x[5])f.push(o.toString(36));if(x[5])f.push('1');return f.join('.')});
+ out.push(PRL[l]+PRS[s]+[p.b,p.s,p.bars,p.k==null?'':p.k].join('.')+':'+ns.join(','))}return out.join('|')}
+function prExpand(t){const pr={};for(const part of String(t).split('|')){const m=part.match(/^([bk])([mvc])([^:]*):(.*)$/);if(!m)continue;const l=m[1]==='b'?'bass':'keys',s={m:'main',v:'verse',c:'chorus'}[m[2]],h=m[3].split('.');let prev=0;
+ const n=m[4]?m[4].split(',').map(f=>{const a=f.split('.').map(z=>parseInt(z,36));prev+=a[0];const x=[prev,a[1],a[2]/100,a[3]/1000];if(a.length>4){x.push(a[4]/10);if(a[5])x.push(1)}return x}):[];
+ (pr[l]=pr[l]||{})[s]={b:+h[0],s:+h[1],bars:+h[2],k:h[3]===''||h[3]==null?null:+h[3],n}}return pr}
+const b64u=u8=>{let s='';for(let i=0;i<u8.length;i+=0x8000)s+=String.fromCharCode.apply(null,u8.subarray(i,i+0x8000));return btoa(s).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'')};
+const unb64u=t=>{t=t.replace(/-/g,'+').replace(/_/g,'/');const s=atob(t),u=new Uint8Array(s.length);for(let i=0;i<s.length;i++)u[i]=s.charCodeAt(i);return u};
+async function prPack(pr){const t=prCompact(pr);if(window.CompressionStream){try{const z=new Uint8Array(await new Response(new Blob([new TextEncoder().encode(t)]).stream().pipeThrough(new CompressionStream('deflate-raw'))).arrayBuffer()),zz='z.'+b64u(z);if(zz.length<t.length)return zz}catch(e){}}return 'p.'+t}
+async function prUnpack(s){if(typeof s!=='string')return null;if(s.startsWith('z.')){const u=unb64u(s.slice(2));return prExpand(await new Response(new Blob([u]).stream().pipeThrough(new DecompressionStream('deflate-raw'))).text())}return prExpand(s.startsWith('p.')?s.slice(2):s)}
+// ----- the editor -----
+function prLv(l){return glv().map(x=>prR(x*(l==='keys'?0.78:1),1000))} // keys sit a little softer: accent = a firm chord, not a slam
+function prLvName(v,L){return (L.length===2?['normal','ghost']:L.length===3?['accent','normal','ghost']:['accent','normal','soft','ghost'])[lvIdx(v,L)]}
+const PRLC={accent:' lv4',normal:' lv3',soft:' lv2',ghost:' lv1'};
+function NN(m){const fl=['F','A#','D#','G#','C#'].includes($('key').value);return (fl?FLAT:SHARP)[mod12(m)]+(Math.floor(m/12)-1)}
+function prSay(t){prNote={t:Date.now(),x:t};const e=$('rmsg');if(e)e.textContent=t}
+function prSoon(){cancelAnimationFrame(prT);prT=requestAnimationFrame(()=>prDraw())}
+function prDraw(){if(simming)return;const box=$('prsc');if(!box)return;const prog=parseProg();
+ const l=prLane,sec=prEditSec(),p=partView(l,sec),bl=p.b*p.s,N=bl*p.bars,L=prLv(l),newView=!prG||prG.l!==l||prG.sec!==sec;
+ let [lo,hi]=PRRANGE[l];p.n.forEach(x=>{if(x[0]<N){lo=Math.min(lo,x[1]);hi=Math.max(hi,x[1])}});
+ const ph=matchMedia('(max-width:620px)').matches,rh=ph?28:22,KW=46,avail=Math.max(200,(box.clientWidth||600)-KW-2),cw=Math.max(ph?30:22,Math.min(48,Math.floor(avail/N))),W=N*cw,H=(hi-lo+1)*rh;
+ const auto=!prManual(l),tonic=mod12(tonicNow),gb0=$('arr').checked&&sec==='chorus'?+$('ab').value:0;
+ // top: the chord of every bar (Roman numeral + letters), a marker at every chord change, beat numbers
+ const lbl=c=>{const rn=c.mrn&&modeNow!=='ionian'?c.mrn:c.rn;return (rn?'<b>'+esc(rn)+'</b> ':'')+esc(c.label)};let hd='',mk='',prev=null;
+ for(let r=0;r<p.bars;r++)for(const st of (+$('bpc').value<1?[0,Math.round(p.b/2)*p.s]:[0])){const c=chordAt(prog,gb0+r,st,p.b,p.s),x=(r*bl+st)*cw;if(st===0||c!==prev)hd+='<span class="prch" style="left:'+x+'px">'+lbl(c)+'</span>';if((r||st)&&c!==prev)mk+='<i class="prchg" style="left:'+(x-1)+'px"></i>';prev=c}
+ for(let i=0;i<N;i++)if(i%p.s===0)hd+='<span class="prbn'+(i%bl?'':' bar')+'" style="left:'+i*cw+'px">'+((i%bl)/p.s+1)+'</span>';
+ let ks='',rows='';for(let m=hi;m>=lo;m--){const pc=mod12(m),blk=PRBLK.includes(pc),inS=bassScale.includes(pc);
+  ks+='<div class="prk '+(blk?'b':'w')+(pc===0?' c':'')+'" data-m="'+m+'" style="height:'+rh+'px" title="'+NN(m)+'">'+(pc===0?'C'+(Math.floor(m/12)-1):'')+'</div>';
+  rows+='<div class="prrow'+(inS?' in':'')+(pc===tonic?' ton':'')+(pc===0?' c':'')+'" style="height:'+rh+'px"></div>'}
+ const lc=a=>'color-mix(in srgb,var(--c-ink) '+a+'%,transparent)',lines='background-image:linear-gradient(90deg,'+lc(55)+' 2px,transparent 2px),linear-gradient(90deg,'+lc(24)+' 1px,transparent 1px),linear-gradient(90deg,'+lc(9)+' 1px,transparent 1px);background-size:'+bl*cw+'px 100%,'+p.s*cw+'px 100%,'+cw+'px 100%';
+ let ns='';p.n.forEach((x,i)=>{if(x[0]>=N)return;const nm=prLvName(x[3],L),sel=i===prSel;
+  ns+='<div class="prn'+PRLC[nm]+(sel?' sel':'')+'" data-i="'+i+'" role="button" aria-label="'+NN(x[1])+', '+nm+', bar '+(Math.floor(x[0]/bl)+1)+' beat '+(Math.floor((x[0]%bl)/p.s)+1)+'" style="left:'+(x[0]*cw+1)+'px;top:'+((hi-x[1])*rh+2)+'px;width:'+Math.max(6,x[2]*cw-2)+'px;height:'+(rh-4)+'px"><i class="prh" data-h="'+i+'"></i>'+(sel?'<i class="prknob" data-h="'+i+'" title="Drag to make the note longer or shorter">'+mmIcon('len')+'</i>':'')+'</div>'});
+ const sL=box.scrollLeft,sT=box.scrollTop;
+ box.innerHTML='<div class="prhead" style="width:'+(KW+W+30)+'px"><div class="prcorner">'+(l==='bass'?'Bass':'Keys')+'</div><div class="prtime" style="width:'+W+'px">'+hd+'</div></div><div class="prbody" style="width:'+(KW+W+30)+'px"><div class="prkeys">'+ks+'</div><div class="prgrid'+(auto?' auto':'')+'" style="width:'+W+'px;height:'+H+'px">'+rows+'<div class="prlines" style="'+lines+'"></div>'+mk+ns+'<div class="prph" id="prph" hidden></div></div></div>';
+ const oldHi=prG&&prG.hi;prG={l,sec,p,lo,hi,cw,rh,N,bl,L};
+ if(newView){const ms=p.n.filter(x=>x[0]<N).map(x=>x[1]),mid=ms.length?ms.reduce((a,b)=>a+b,0)/ms.length:(l==='bass'?40:64);box.scrollTop=Math.max(0,(hi-mid)*rh-box.clientHeight/2+40);box.scrollLeft=0}
+ else{box.scrollLeft=sL;box.scrollTop=sT+(oldHi!=null?(hi-oldHi)*rh:0)}
+ // toolbar
+ document.querySelectorAll('.prlane button').forEach(b=>{const on=b.dataset.l===l;b.classList.toggle('sel',on);b.setAttribute('aria-pressed',on?'true':'false')});
+ document.querySelectorAll('.prmode button').forEach(b=>{const on=b.dataset.m===$(prModeId(l)).value;b.classList.toggle('sel',on);b.setAttribute('aria-pressed',on?'true':'false')});
+ $('rsecl').hidden=!$('arr').checked;$('rsec').value=prSec;$('rchl').hidden=l!=='keys';$('rbars').value=p.bars;$('rundo').disabled=!prUndo.length;
+ const who=l==='bass'?'The bass':'The keys',g=secGrid(sec);let msg='';
+ if(!$(prOnId(l)).checked)msg=(l==='bass'?'Bass':'Keys')+' is off. Tap Manual (or turn on “'+(l==='bass'?'Bass on':'Keys on')+'”) to hear it.';
+ else if(auto)msg=who+' play Auto: written for you as the song goes.'+(p.n.length?' These roll notes are saved but not playing. Tap Manual to hear them.':' Tap Copy auto to roll to get it as notes you can change.');
+ else if(!p.n.length)msg=(sec!=='main'&&partFor(l,sec)?'This section has no notes of its own, so it plays the shared part. ':'Manual, no notes yet. ')+'Tap a square to add a note, or Copy auto to roll for a starting point.';
+ if(p.n.length&&(p.b!==g.b||p.s!==g.s))msg+=' Written on a '+p.b+'-beat bar in '+({2:'8ths',3:'triplets',4:'16ths'}[p.s])+'; it plays on this groove by beat.';
+ $('rmsg').textContent=Date.now()-prNote.t<7000?prNote.x:msg}
+function prUndoPush(snap){prUndo.push({l:prLane,sec:prEditSec(),p:snap,mode:$(prModeId(prLane)).value,on:$(prOnId(prLane)).checked});if(prUndo.length>60)prUndo.shift()}
+function pushUndo(){prUndoPush(JSON.stringify(PR[prLane][prEditSec()]||null))}
+function prUndoDo(){const u=prUndo.pop();if(!u)return;const v=JSON.parse(u.p);if(v)PR[u.l][u.sec]=v;else delete PR[u.l][u.sec];
+ const me=$(prModeId(u.l));if(me.value!==u.mode)me.value=u.mode;$(prOnId(u.l)).checked=u.on;prLane=u.l;if(u.sec!=='main')prSec=u.sec;prSel=null;save();prSay('Undone.');prDraw()}
+async function prClear(){const p=PR[prLane][prEditSec()];if(!p||!p.n.length){prSay('Nothing to clear.');prDraw();return}const nm=prLane==='bass'?'bass':'keys';
+ if(!await confirmDlg('Clear the '+nm+' part?','All '+p.n.length+' notes in this '+nm+' part go. Undo brings them back.','Clear'))return;pushUndo();p.n=[];prSel=null;save();prSay('Cleared. Undo brings the notes back.');prDraw()}
+async function prAud(l,ms,v){try{await init();if(!ctx)return;const t=ctx.currentTime+0.03;
+ if(l==='bass'){if(LIB[$('bt').value])loadLib($('bt').value);ms.forEach(m=>bassNote(t,m,0.5,v,false,1))}else{keysLoad(keysSound());keysPlayNotes(t,ms.map(m=>({m,d:0.9,v,o:0})),1,1)}}catch(e){}}
+function prFirst(l){const e=$(prModeId(l));if(e.value==='manual')return;e.value='manual';$(prOnId(l)).checked=true;e.dispatchEvent(new Event('change',{bubbles:true}));
+ prSay('First note in: '+(l==='bass'?'the bass now plays':'the keys now play')+' your roll (Manual). Tap Auto to go back; your notes stay saved.')}
+function prTapNote(i){const p=partGet(prLane,prEditSec()),x=p.n[i];if(!x)return;const L=prG.L;pushUndo();const k=lvIdx(x[3],L);
+ if(k+1>=L.length){p.n.splice(i,1);prSel=null}else{x[3]=L[k+1];prSel=i;prAud(prLane,[x[1]],x[3])}save();prDraw()}
+// Chord stamp (keys): the bar's chord, voiced by the same engine the auto keys use, held to the next chord change
+function prStamp(step){const G=prG,sec=prEditSec(),p=partGet('keys',sec),prog=parseProg(),gb0=$('arr').checked&&sec==='chorus'?+$('ab').value:0,at=s=>chordAt(prog,gb0+Math.floor(s/G.bl),s%G.bl,p.b,p.s),ch=at(step);
+ let end=G.N;for(let s=step+1;s<G.N;s++)if(at(s)!==ch){end=s;break}
+ const sv=[kPrev,kPrevL,keysLast];kPrev=null;kPrevL=null;const V=keysVoice(ch,keysFam(),Math.random);[kPrev,kPrevL,keysLast]=sv;
+ const ms=V.lh.concat(V.rh).filter(m=>m!=null);if(!ms.length)return;pushUndo();const v=G.L.length>2?G.L[1]:G.L[0],first=!p.n.length;
+ p.n=p.n.filter(x=>!(x[0]===step&&ms.includes(x[1])));ms.forEach(m=>p.n.push([step,m,end-step,v]));prSel=null;if(first)prFirst('keys');
+ prAud('keys',ms,v);save();if(!first)prSay('Stamped '+ch.label+'. Tap any note to make it softer or take it out.');prDraw()}
+function prClick(e){if(prDragOn||!prG)return;if(e.target.closest('.prh,.prknob'))return;const G=prG;
+ const k=e.target.closest('.prk');if(k){prAud(prLane,[+k.dataset.m],prLane==='keys'?0.62:0.85);return}
+ const n=e.target.closest('.prn');if(n){prTapNote(+n.dataset.i);return}
+ const ge=e.target.closest('.prgrid');if(!ge)return;const r=ge.getBoundingClientRect(),x=e.clientX-r.left,y=e.clientY-r.top,step=Math.floor(x/G.cw),row=Math.floor(y/G.rh);let m=G.hi-row;
+ if(step<0||step>=G.N||m<G.lo||m>G.hi)return;if(prLane==='keys'&&$('rchord').checked){prStamp(step);return}
+ if($('rlock').checked&&!bassScale.includes(mod12(m))){const up=(y/G.rh-row)<0.5;let best=null;for(let d=1;d<=6&&best==null;d++){const a=bassScale.includes(mod12(m+d)),b=bassScale.includes(mod12(m-d));if(a&&b)best=up?m+d:m-d;else if(a)best=m+d;else if(b)best=m-d}if(best!=null)m=best}
+ pushUndo();const p=partGet(prLane,prEditSec()),first=!p.n.length;p.n.push([step,m,Math.max(1,Math.min(prLen||p.s,G.N-step)),G.L[0]]);prSel=p.n.length-1;if(first)prFirst(prLane);
+ prAud(prLane,[m],G.L[0]);save();prDraw()}
+// length: drag the right edge (mouse) or the round handle on the picked note (touch); snaps to the grid
+function prDown(e){const h=e.target.closest('.prh,.prknob');if(!h||!prG)return;e.preventDefault();e.stopPropagation();const i=+h.dataset.h,p=partGet(prLane,prEditSec()),x=p.n[i];if(!x)return;
+ const G=prG,x0=e.clientX,len0=x[2],max=G.N-x[0],nEl=h.closest('.prn'),before=JSON.stringify(p);let len=len0,moved=false;prDragOn=true;try{h.setPointerCapture(e.pointerId)}catch(_){}
+ const mv=ev=>{if(Math.abs(ev.clientX-x0)>3)moved=true;if(!moved)return;len=Math.max(1,Math.min(max,Math.round(len0+(ev.clientX-x0)/G.cw)));nEl.style.width=Math.max(6,len*G.cw-2)+'px'};
+ const up=()=>{h.removeEventListener('pointermove',mv);h.removeEventListener('pointerup',up);h.removeEventListener('pointercancel',up);setTimeout(()=>{prDragOn=false},0);
+  if(moved&&len!==len0){prUndoPush(before);x[2]=len;prLen=len;save()}prSel=i;prDraw()};
+ h.addEventListener('pointermove',mv);h.addEventListener('pointerup',up);h.addEventListener('pointercancel',up)}
+// playhead: follows the bar and step that is sounding, and scrolls the roll along with it
+function prTick(e){const ph=$('prph');if(!ph||!prG)return;if(!e||e.sb==null||!playing){ph.hidden=true;return}const G=prG;
+ if($('arr').checked&&G.sec!=='main'&&G.sec!==e.sc){ph.hidden=true;return}
+ const x=((e.sb%G.p.bars)*G.bl+e.i/sub*G.p.s)*G.cw;ph.hidden=false;ph.style.left=x+'px';
+ const box=$('prsc');if(box&&box.offsetParent&&!prDragOn){const vis=box.clientWidth-46;if(x<box.scrollLeft||x>box.scrollLeft+vis-24)box.scrollLeft=Math.max(0,x-24)}}
+function prInit(){const box=$('prsc');if(!box)return;
+ document.querySelectorAll('.prlane button').forEach(b=>b.onclick=()=>{prLane=b.dataset.l;prSel=null;prDraw()});
+ document.querySelectorAll('.prmode button').forEach(b=>b.onclick=()=>{const e=$(prModeId(prLane));if(e.value===b.dataset.m)return;pushUndo();e.value=b.dataset.m;if(e.value==='manual')$(prOnId(prLane)).checked=true;e.dispatchEvent(new Event('change',{bubbles:true}))});
+ document.querySelectorAll('.prgo').forEach(b=>b.onclick=()=>{prLane=b.dataset.l;prSel=null;if(window.mmShowTab)mmShowTab('Piano roll');prDraw();$('prsc').scrollIntoView({block:'nearest'})});
+ $('rsec').onchange=()=>{prSec=$('rsec').value;prSel=null;prDraw()};
+ $('rbars').onchange=()=>{pushUndo();partGet(prLane,prEditSec()).bars=+$('rbars').value;save();prDraw()};
+ $('rcopy').onclick=prCopy;$('rundo').onclick=prUndoDo;$('rclr').onclick=prClear;
+ box.addEventListener('click',prClick);box.addEventListener('pointerdown',prDown);
+ ['bmode','kmode','bon','kon','arr','av','ac','ab','cb','prog','cprog','bpc','md','key','gvl','kvoice','ksnd','pre','ts'].forEach(id=>{const e=$(id);if(e)e.addEventListener('change',()=>{if(id==='key'){prSync();save()}prSoon()})});
+ addEventListener('resize',prSoon)}
+// ===== MP3 by times through =====
+// one pass = the whole arrangement: verse + chorus in Verse / Chorus mode, otherwise the chord loop (and any manual part, so they line up)
+function passBars(){if($('arr').checked)return +$('ab').value+ +$('cb').value;const c=[];if($('bon').checked||$('kon').checked)c.push(progBars());
+ ['bass','keys'].forEach(l=>{const p=PR[l].main;if($(prOnId(l)).checked&&prManual(l)&&p&&p.n.length)c.push(p.bars)});if(!c.length)c.push(+$('fe').value||4);
+ const gcd=(a,b)=>b?gcd(b,a%b):a,x=c.reduce((a,b)=>a*b/gcd(a,b));return x>32?Math.max(...c):x}
+function exportPlan(times){const pb=passBars(),bars=pb*times;let secs=0;prSim(()=>{for(let b=0;b<bars;b++){barN=b;pos=0;barStart();secs+=beats*60/bpm}},null,true);return {pb,bars,secs}}
+function xInfo(){const e=$('xinfo');if(!e||simming)return;const t=$('xby').value==='times';$('xtl').hidden=!t;$('xml').hidden=t;if(!t){e.textContent='';return}
+ const pb=passBars(),n=+$('xtimes').value||4,bars=pb*n,song=$('arr').checked,bt=g=>P[g]?(curName===g?beats:P[g].b):beats;
+ const sec=Math.round(song?n*(+$('ab').value*bt($('av').value)+ +$('cb').value*bt($('ac').value))*60/bpm:bars*beats*60/bpm);
+ e.textContent=(n===1?'Once':n+' times')+' through = '+bars+' bar'+(bars===1?'':'s')+' ('+(song?'verse + chorus = ':'a ')+pb+'-bar pass), about '+Math.floor(sec/60)+':'+String(sec%60).padStart(2,'0')+($('xci').checked?' plus the count-in':'')+', then the last chord rings out.'}
+// the ending: back on the one, crash and kick, the bass root and the chord ringing out
+function exportEnd(T){const prog=parseProg(),L=prog.length,bpc=+$('bpc').value,ch=bpc<1?prog[(2*barN)%L]:prog[Math.floor(barN/bpc)%L];
+ hit(49,T,0.95);hit(36,T,0.9);if($('bon').checked)bassNote(T,bassRoot(ch.pc),2.2,0.9);
+ if($('kon').checked){const sv=[kPrev,kPrevL,keysLast],V=keysVoice(ch,keysFam(),Math.random);[kPrev,kPrevL,keysLast]=sv;keysChord(T,V.lh.concat(V.rh),2.2,0.62,{roll:0.012,lag:0,tail:0.4})}}
 // ===== boot =====
 buildProgMenu();p.disabled=false;p.innerHTML=mmIcon('play')+'Play';$('av').value='rock';$('ac').value='pop';psUI();restore();uiRefresh();logUI();restoring=false;listDevs();
-{const sp=new URLSearchParams(location.search),dm=sp.get('dm');if(dm){try{applyState(decodeCode(dm));uiRefresh();save()}catch(e){console.error(e)}
-  if(sp.get('xp')){setSel($('xlen'),sp.get('xp'));history.replaceState(null,'',location.pathname);$('xst').textContent='Your settings from Notion are loaded. Tap Export to build and save your MP3.';setTimeout(()=>{if(window.mmShowTab)mmShowTab('Export');$('xbtn').scrollIntoView({block:'center'});$('xbtn').focus()},300)}}}
+prInit();prDraw();
+(async()=>{const sp=new URLSearchParams(location.search),hm=location.hash.match(/^#dm=([^&]+)/),dm=sp.get('dm')||(hm?decodeURIComponent(hm[1]):null);if(dm){try{applyState(await decodeCode(dm));uiRefresh();save()}catch(e){console.error(e)}
+  if(sp.get('xp')){setSel($('xlen'),sp.get('xp'));history.replaceState(null,'',location.pathname);$('xst').textContent='Your settings from Notion are loaded. Tap Export to build and save your MP3.';setTimeout(()=>{if(window.mmShowTab)mmShowTab('Export');$('xbtn').scrollIntoView({block:'center'});$('xbtn').focus()},300)}}})();
+['xby','xtimes','xci','bon','kon','arr','ab','cb','av','ac','prog','cprog','bpc','fe','bmode','kmode','rbars','pre','ts'].forEach(id=>{const e=$(id);if(e)e.addEventListener('change',()=>setTimeout(xInfo,0))});xInfo();
 
-</script><script>(function(){const C=['#e8412c','#f28c28','#f6c33b','#efe6d2'];document.querySelectorAll('.sec>h4').forEach((h,i)=>h.style.setProperty('--band',C[i%4]))})();</script><p class="appver" style="text-align:center;font-size:11px;opacity:.6;margin:18px 0 10px;font-family:ui-monospace,Menlo,monospace">Modal Metronome · Version 2026-11-11.25</p>
+</script><script>(function(){const C=['#e8412c','#f28c28','#f6c33b','#efe6d2'];document.querySelectorAll('.sec>h4').forEach((h,i)=>h.style.setProperty('--band',C[i%4]))})();</script><p class="appver" style="text-align:center;font-size:11px;opacity:.6;margin:18px 0 10px;font-family:ui-monospace,Menlo,monospace">Modal Metronome · Version 2026-11-12.1</p>
 <script>/* Setting help: hover the name on a computer, tap it on a phone or iPad */
-(function(){const T={"mv": "Master volume for everything: drums, bass and keys. Saved on this device only, not in presets or links.", "xlen": "How long the MP3 will be. It records the groove, bass, chords, fills and tempo exactly as they are set now, so you can practice with it anywhere.", "ps": "Your saved setups. Pick one to load it. Type a name and tap Save to store everything you have set right now. Presets live on this device and never get erased by Reset.", "pre": "The drum pattern. Each groove is written the way real drummers play that style. Changing it also sets the time signature the groove is written in.", "ts": "Time signature: how many beats are in a bar and what kind. 4/4 = four quarter-note beats. 6/8, 9/8 (3+3+3) and 12/8 = beats split in three. In 5/8, 7/8, 9/8 (2+2+2+3) and 11/8 each beat is one 8th note, so the BPM counts 8ths.", "sdv": "Subdivide: the steady in-between notes that keep time. \"As written\" plays the groove's own hi-hat or ride part. Pick Quarter notes, 8ths, 16ths, Triplets or Off-beats to replace it with a steady pulse. Off = no subdivision at all, just the kick and snare.", "cy": "Subdivide with: the instrument that plays the subdivision. Hi-hat is tight and dry, ride is washy, ride bell cuts through, shaker and tambourine are soft and bright, cowbell, side stick, claves and woodblock are clicky and easy to hear.", "fb": "First beat: adds an extra sound on beat 1 of every bar so you always know where the bar starts. Great for odd meters like 7/8 and 9/8.", "sw": "Swing pushes every second note late. 50% = straight, even notes. About 67% = triplet swing, like jazz and blues shuffles.", "pkt": "Pocket: where the drummer sits on the beat. Auto uses the real feel of the groove: backbeat a hair behind, hats leading. Machine = perfectly on the grid.", "gdyn": "Ghost notes are the very soft snare taps between the backbeats. \"4 levels\" plays them softer or louder depending on where they fall, like a real drummer. Flat = all the same.", "groll": "How often soft snare rolls show up: drags, ruffs, 5-stroke and short buzz rolls tucked in before the backbeat or onto the e and a. They sit below the ghost notes. Sprinkle = now and then, Some = about one a bar, Lots = a busy ghost-note feel.", "grst": "Natural mix = what a drummer reaches for: mostly drags and short ruffs, some buzzes, now and then a 7- or 9-stroke roll that builds into a fill. Stick strokes = no buzzes. Buzz and press rolls = only buzzed strokes.", "hu": "Humanize adds tiny random changes in timing and volume so the drums don't sound like a machine. Zero = perfectly even.", "crash": "Plays a crash cymbal on beat 1 every 4 bars to mark the phrase.", "ci": "Count-in: clicks before the band starts so you can come in on time.", "do": "Drop-out: the drums and bass go silent for some bars while you keep playing. When they come back, you find out if you kept the time yourself.", "bigl": "Makes the beat light big and flashes the screen on every beat, so you can see the pulse from across the room.", "tr": "Tempo trainer: speeds the metronome up a little every few bars until it reaches your goal. It never slows down.", "trg": "The tempo the trainer stops at.", "tri": "How many BPM to add each time.", "trb": "How many bars to play before each speed-up.", "fe": "How often the drummer plays a fill (a short drum break) at the end of a phrase.", "fs": "The kind of fill: toms, snare, or a mix.", "fa": "How busy the fill is. Low = short and simple. High = full bar with doubles.", "fc": "Plays a crash on the beat right after every fill, like a drummer landing the fill.", "key": "The major parent key: the \"1\" of the scale. The studio names every mode from its parent major key.", "md": "The mode: which note of the parent key the music sits on. The bass and keys use it for passing notes and voicings.", "prog": "The chord progression the bass and keys play. Pick a mode first: the list then shows only that mode's progressions, in Roman numerals from the mode's own 1 (D Dorian: i – IV = Dm – G), with the letters for your parent key.", "bpc": "How long each chord lasts. Normal = one bar. Double time = two chords per bar. Half time = each chord lasts two bars.", "cprog": "Type your own chords, separated by spaces (for example: ii V I vi or Dm7 G7 Cmaj7).", "bon": "Turns the bass player on. The bass follows the chords and the groove.", "bt": "The bass sound: electric, upright, synth and more.", "btone": "Shapes the bass like a mixing engineer: EQ and compression on the bass channel.", "bs": "How the bass plays: root notes, walking lines, pedal tones and more, matched to the style.", "bauto": "Writes a fresh bass line every few bars so it never gets repetitive.", "bvar": "How often the bass adds passing notes, octave jumps and pickups.", "bv": "Bass volume, separate from the drums.", "kon": "Turns the keyboard player on. The keys play the chords in the progression.", "ksnd": "The keyboard sound. Auto picks what a band would bring: grand piano for pop, ballads, jazz and Latin, a tine electric piano for neo-soul and funk, a tonewheel organ for gospel and blues shuffles. The sampled sounds load the first time you pick them.", "kcomp": "Comping = how the keys play the chords: held, pushed, stabs. Auto matches the groove.", "kvoice": "Voicing = which chord notes the keys play. Pop/rock: the root in the left hand, the triad in the right, moving to the closest notes. Jazz: rootless voicings (3-7-9, 7-3-13) between C3 and A4, the root left to the bass. Neo-soul and gospel add 9ths, 11ths and 13ths from the mode. Nothing muddy: no 3rds below E-flat 3.", "kv": "Keys volume, separate from the drums.", "kit": "Picks the whole drum kit at once. You can still change each drum below.", "kk": "The kick drum sound.", "sn": "The snare drum sound.", "rv": "The ride cymbal sound.", "hh": "The hi-hat sound.", "hfeel": "Tight = closed and choked. Loose = hats a little open and sloshy.", "sfeel": "Tight = damped, higher crack. Open = lower, fatter, more ring.", "kfeel": "Tight = short and punchy. Boomy = lower and longer.", "tm": "The tom sounds used in fills.", "pc": "The percussion sounds: shaker, tambourine, cowbell, congas and more.", "room": "How much room echo (reverb) is on the whole band.", "arr": "Song mode: switches between a verse groove and a chorus groove, so practice feels like a real song.", "av": "The groove for the verse.", "ac": "The groove for the chorus.", "ab": "How many bars the verse lasts.", "cb": "How many bars the chorus lasts.", "mode": "Direct is fastest. Pick Compatibility only if the sound crackles or won't play on your device.", "dev": "Which speaker or headphones the sound plays through.", "showall": "Shows every drum in the pattern grid, not just the drums this groove uses.", "gvl": "How many strengths a grid square can have. 4: accent, normal, soft, ghost. 3: accent, normal, ghost. 2: normal and ghost. Going down snaps every hit to the nearest level that is left; nothing is deleted. The grooves keep their exact strengths until you change them."};
+(function(){const T={"xby": "Choose how long the MP3 is: Times through plays the whole loop a set number of times (the chord loop, or verse + chorus in Verse / Chorus mode) and ends on the one. Minutes plays for a set time.", "xtimes": "How many times the whole loop plays in the MP3. Once through = the full chord loop, or verse + chorus when Verse / Chorus is on. The file ends back on the one with the last chord ringing out.", "xci": "Adds the count-in clicks at the start of the MP3, so you know when to come in. Off = the band starts right away.", "bmode": "Auto: the app writes the bass line for you, fresh as it plays. Manual: the bass plays the notes in the piano roll. Switching back to Auto keeps your roll notes saved.", "kmode": "Auto: the app plays the chords for you in the comping style you picked. Manual: the keys play the notes in the piano roll. Switching back to Auto keeps your roll notes saved.", "rsec": "With Verse / Chorus on, the verse and the chorus can each have their own part. Shared = one part for both. A section with no notes of its own plays the shared part.", "rbars": "How long the part is before it repeats: 1, 2, 4 or 8 bars. Making it shorter hides the later bars; their notes come back when you make it longer again.", "rlock": "Scale lock: a note you tap snaps to the nearest note of the key and mode, so a wrong note can't sneak in. The light rows are the notes in the key. Turn it off to add any note, like a chromatic passing note.", "rchord": "Chord stamp (keys): tap anywhere in a bar to drop in that bar's chord, voiced the way the auto keys play it and held to the next chord change. Then change the notes one by one.", "rcopy": "Copies what Auto plays right now (this progression, this groove, this style) into the roll as notes you can change. It switches the part to Manual, and it sounds just like Auto until you edit it.", "rundo": "Takes back the last change in the piano roll.", "rclr": "Removes every note in this part. You get asked first, and Undo brings them back.", "mv": "Master volume for everything: drums, bass and keys. Saved on this device only, not in presets or links.", "xlen": "How many minutes the MP3 lasts when you export by minutes. It records the groove, bass, chords, fills and tempo exactly as they are set now, so you can practice with it anywhere.", "ps": "Your saved setups. Pick one to load it. Type a name and tap Save to store everything you have set right now. Presets live on this device and never get erased by Reset.", "pre": "The drum pattern. Each groove is written the way real drummers play that style. Changing it also sets the time signature the groove is written in.", "ts": "Time signature: how many beats are in a bar and what kind. 4/4 = four quarter-note beats. 6/8, 9/8 (3+3+3) and 12/8 = beats split in three. In 5/8, 7/8, 9/8 (2+2+2+3) and 11/8 each beat is one 8th note, so the BPM counts 8ths.", "sdv": "Subdivide: the steady in-between notes that keep time. \"As written\" plays the groove's own hi-hat or ride part. Pick Quarter notes, 8ths, 16ths, Triplets or Off-beats to replace it with a steady pulse. Off = no subdivision at all, just the kick and snare.", "cy": "Subdivide with: the instrument that plays the subdivision. Hi-hat is tight and dry, ride is washy, ride bell cuts through, shaker and tambourine are soft and bright, cowbell, side stick, claves and woodblock are clicky and easy to hear.", "fb": "First beat: adds an extra sound on beat 1 of every bar so you always know where the bar starts. Great for odd meters like 7/8 and 9/8.", "sw": "Swing pushes every second note late. 50% = straight, even notes. About 67% = triplet swing, like jazz and blues shuffles.", "pkt": "Pocket: where the drummer sits on the beat. Auto uses the real feel of the groove: backbeat a hair behind, hats leading. Machine = perfectly on the grid.", "gdyn": "Ghost notes are the very soft snare taps between the backbeats. \"4 levels\" plays them softer or louder depending on where they fall, like a real drummer. Flat = all the same.", "groll": "How often soft snare rolls show up: drags, ruffs, 5-stroke and short buzz rolls tucked in before the backbeat or onto the e and a. They sit below the ghost notes. Sprinkle = now and then, Some = about one a bar, Lots = a busy ghost-note feel.", "grst": "Natural mix = what a drummer reaches for: mostly drags and short ruffs, some buzzes, now and then a 7- or 9-stroke roll that builds into a fill. Stick strokes = no buzzes. Buzz and press rolls = only buzzed strokes.", "hu": "Humanize adds tiny random changes in timing and volume so the drums don't sound like a machine. Zero = perfectly even.", "crash": "Plays a crash cymbal on beat 1 every 4 bars to mark the phrase.", "ci": "Count-in: clicks before the band starts so you can come in on time.", "do": "Drop-out: the drums and bass go silent for some bars while you keep playing. When they come back, you find out if you kept the time yourself.", "bigl": "Makes the beat light big and flashes the screen on every beat, so you can see the pulse from across the room.", "tr": "Tempo trainer: speeds the metronome up a little every few bars until it reaches your goal. It never slows down.", "trg": "The tempo the trainer stops at.", "tri": "How many BPM to add each time.", "trb": "How many bars to play before each speed-up.", "fe": "How often the drummer plays a fill (a short drum break) at the end of a phrase.", "fs": "The kind of fill: toms, snare, or a mix.", "fa": "How busy the fill is. Low = short and simple. High = full bar with doubles.", "fc": "Plays a crash on the beat right after every fill, like a drummer landing the fill.", "key": "The major parent key: the \"1\" of the scale. The studio names every mode from its parent major key.", "md": "The mode: which note of the parent key the music sits on. The bass and keys use it for passing notes and voicings.", "prog": "The chord progression the bass and keys play. Pick a mode first: the list then shows only that mode's progressions, in Roman numerals from the mode's own 1 (D Dorian: i – IV = Dm – G), with the letters for your parent key.", "bpc": "How long each chord lasts. Normal = one bar. Double time = two chords per bar. Half time = each chord lasts two bars.", "cprog": "Type your own chords, separated by spaces (for example: ii V I vi or Dm7 G7 Cmaj7).", "bon": "Turns the bass player on. The bass follows the chords and the groove.", "bt": "The bass sound: electric, upright, synth and more.", "btone": "Shapes the bass like a mixing engineer: EQ and compression on the bass channel.", "bs": "How the bass plays: root notes, walking lines, pedal tones and more, matched to the style.", "bauto": "Writes a fresh bass line every few bars so it never gets repetitive.", "bvar": "How often the bass adds passing notes, octave jumps and pickups.", "bv": "Bass volume, separate from the drums.", "kon": "Turns the keyboard player on. The keys play the chords in the progression.", "ksnd": "The keyboard sound. Auto picks what a band would bring: grand piano for pop, ballads, jazz and Latin, a tine electric piano for neo-soul and funk, a tonewheel organ for gospel and blues shuffles. The sampled sounds load the first time you pick them.", "kcomp": "Comping = how the keys play the chords: held, pushed, stabs. Auto matches the groove.", "kvoice": "Voicing = which chord notes the keys play. Pop/rock: the root in the left hand, the triad in the right, moving to the closest notes. Jazz: rootless voicings (3-7-9, 7-3-13) between C3 and A4, the root left to the bass. Neo-soul and gospel add 9ths, 11ths and 13ths from the mode. Nothing muddy: no 3rds below E-flat 3.", "kv": "Keys volume, separate from the drums.", "kit": "Picks the whole drum kit at once. You can still change each drum below.", "kk": "The kick drum sound.", "sn": "The snare drum sound.", "rv": "The ride cymbal sound.", "hh": "The hi-hat sound.", "hfeel": "Tight = closed and choked. Loose = hats a little open and sloshy.", "sfeel": "Tight = damped, higher crack. Open = lower, fatter, more ring.", "kfeel": "Tight = short and punchy. Boomy = lower and longer.", "tm": "The tom sounds used in fills.", "pc": "The percussion sounds: shaker, tambourine, cowbell, congas and more.", "room": "How much room echo (reverb) is on the whole band.", "arr": "Song mode: switches between a verse groove and a chorus groove, so practice feels like a real song.", "av": "The groove for the verse.", "ac": "The groove for the chorus.", "ab": "How many bars the verse lasts.", "cb": "How many bars the chorus lasts.", "mode": "Direct is fastest. Pick Compatibility only if the sound crackles or won't play on your device.", "dev": "Which speaker or headphones the sound plays through.", "showall": "Shows every drum in the pattern grid, not just the drums this groove uses.", "gvl": "How many strengths a grid square can have. 4: accent, normal, soft, ghost. 3: accent, normal, ghost. 2: normal and ghost. Going down snaps every hit to the nearest level that is left; nothing is deleted. The grooves keep their exact strengths until you change them."};
  const tip=document.createElement('div');tip.id='tip';document.body.appendChild(tip);let cur=null;
  function show(el){const r=el.getBoundingClientRect();tip.textContent=el.dataset.tip;tip.style.display='block';const w=tip.offsetWidth,h=tip.offsetHeight;
   let x=Math.min(Math.max(8,r.left),innerWidth-w-8),y=r.bottom+6;if(y+h>innerHeight-8)y=Math.max(8,r.top-h-6);tip.style.left=x+'px';tip.style.top=y+'px';cur=el}
  function hide(){tip.style.display='none';cur=null}
- for(const id in T){const e=document.getElementById(id);if(!e)continue;const lab=e.closest('label');if(!lab)continue;lab.removeAttribute('title');
+ for(const id in T){const e=document.getElementById(id);if(!e)continue;const lab=e.closest('label');if(!lab){if(e.tagName==='BUTTON')e.title=T[id];continue}lab.removeAttribute('title');
   const tn=[...lab.childNodes].find(n=>n.nodeType===3&&n.textContent.trim());if(!tn)continue;
   const sp=document.createElement('span');sp.className='tn';sp.dataset.tip=T[id];sp.textContent=tn.textContent.trim();tn.replaceWith(sp);
   if(tn.textContent.endsWith(' ')||/\s$/.test(tn.textContent))sp.after(document.createTextNode(' '));
@@ -1974,7 +2239,7 @@ buildProgMenu();p.disabled=false;p.innerHTML=mmIcon('play')+'Play';$('av').value
   const byName={};secs.forEach(x=>{const h=x.querySelector(':scope>h4');if(h)byName[h.firstChild.textContent.trim()]=x});
   const ex=hd.querySelector('.row.exp');if(ex){const sx=document.createElement('div');sx.className='sec';sx.innerHTML='<h4>Export</h4>';sx.appendChild(ex);w.insertBefore(sx,secs[0]);secs.unshift(sx);byName.Export=sx}
   /* grouped by what they control: drums | band | song | tools (a gap marks each new group) */
-  const G=[['Groove',['Groove']],['Grid',['Pattern']],['Fills',['Fills']],['Drum sounds',['Drum sounds']],['Chords',['Harmony'],1],['Bass',['Bass line']],['Keys',['Keys']],['Song',['Song'],1],['Mix',['Output']],['Practice',['Practice','Practice log'],1],['Presets',['My presets']],['Export',['Export']]];
+  const G=[['Groove',['Groove']],['Grid',['Pattern']],['Fills',['Fills']],['Drum sounds',['Drum sounds']],['Chords',['Harmony'],1],['Bass',['Bass line']],['Keys',['Keys']],['Piano roll',['Piano roll']],['Song',['Song'],1],['Mix',['Output']],['Practice',['Practice','Practice log'],1],['Presets',['My presets']],['Export',['Export']]];
   const used=new Set(G.flatMap(g=>g[1]));secs.forEach(x=>{const h=x.querySelector(':scope>h4'),n=h&&h.firstChild.textContent.trim();if(n&&!used.has(n)){G.push([n,[n]]);used.add(n)}});
   const ok=G.filter(g=>g[1].some(n=>byName[n]));const slug=t=>t.toLowerCase().replace(/[^a-z0-9]+/g,'-');
   const bar=document.createElement('div');bar.className='tabs';bar.setAttribute('role','tablist');bar.setAttribute('aria-label','Metronome settings');
@@ -2076,6 +2341,8 @@ buildProgMenu();p.disabled=false;p.innerHTML=mmIcon('play')+'Play';$('av').value
   const L=[];if(add.length)L.push('Imported '+add.length+': '+add.map(x=>'“'+x+'”').join(', '));if(rep.length)L.push('Replaced '+rep.length+': '+rep.map(x=>'“'+x+'”').join(', '));
   if(skip.length)L.push('Skipped '+skip.length+': '+skip.join('; '));msg(L.join('\n')||'Nothing to import.')}
  window.mmImport=importFiles;
+ window.mmSaveStates=async P=>{if(inFrame){const u=location.origin+location.pathname+'#mmpx='+await pack(JSON.stringify(P));const w=window.open(u,'_blank');$('cmsg').textContent=w?'Opened full screen to save the file (Notion blocks downloads inside the page).':'Notion blocks downloads here. Open the metronome full screen and try again.';return}
+  $('cmsg').textContent=await saveFile(fileText(P),Object.keys(P)[0].replace(/[^\w\- ]+/g,'')+'.metronome')};
 })();</script>
 <script>/* Auto-update: Safari and Notion keep old copies of this page. If the live site has a newer version, reload it once (settings in the link are kept). */
 (function(){const mine=(document.querySelector('.appver')||{}).textContent||'';const m=mine.match(/Version ([0-9.-]+)/);if(!m)return;
