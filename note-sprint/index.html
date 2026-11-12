@@ -774,8 +774,8 @@ input[type=range],input[type=checkbox],input[type=radio]{accent-color:var(--c-ac
     for(let h=1;h<=16;h++){ const fh=h*f0*Math.sqrt(1+0.0004*h*h), k0=Math.floor(fh*0.985/bw), k1=Math.ceil(fh*1.015/bw); if(k1>=SPN/2) break; let v=0, w=0; for(let k=k0;k<=k1;k++){ v=Math.max(v,spS[k]-pre[k]); w=Math.max(w,spS[k]) } N.push(Math.max(0,v)); A.push(w) }
     const sum=(arr,r)=>arr.reduce((t,v,i)=>(i+1)%r?t:t+v,0), tot=sum(N,1); if(!(tot>0)) return -1;
     // the answer = the HIGHEST of these keys whose own partials hold at least TAILX of all the new energy (octave 2x, octave+fifth 3x, two octaves 4x)
-    const sub=last!=null&&[0,12,19,24,28,31,34,36].includes(last-md); let r=md;
-    if(sub) for(const [c,k] of [[md+24,4],[md+19,3],[md+12,2],[md,1]]){ if(c>108||c===last&&c!==md) continue; if(sum(N,k)>=TAILX*tot){ r=c; break } }
+    let r=md;
+    for(const [c,k] of [[md+24,4],[md+19,3],[md+12,2],[md,1]]){ if(c>108||c===last&&c!==md) continue; if(sum(N,k)>=TAILX*tot){ r=c; break } }
     const kk={0:1,12:2,19:3,24:4}[r-md]; return sum(N,kk)<STALE*sum(A,kk)?-1:r }
   // Two keys sounding at once with no shared period (A1 still ringing, A2 struck) read as no pitch at all. Take the old key's spectrum out
   // (keeping the new sound's phase), back to a waveform, undo the window over its middle 2/3, and read the pitch of what is left.
@@ -792,7 +792,7 @@ input[type=range],input[type=checkbox],input[type=radio]{accent-color:var(--c-ac
   // older versions could learn a bad tuning from talking: start every device fresh once
   if(store.get("tuneV",0)!==2){ tuneOff=0; store.set("tuneOff",0); store.set("tuneV",2) }
   const micG=x=>0.25*Math.pow(48,(+x)/100);
-  const THR=0.015, AP=0.12, TICK=20, HOLDK=0.95, HOLDR=1.2, SHK=2.5, OCTG=1e9, LPHZ=700, HPHZ=900, FAST_MS=15, FAST_LOW=48, FAST_MS_LOW=80, FASTN=3, BASSG=0.9, TAILX=0.8, STALE=0.2, SHL=0.4; let thr=THR, lastAp=1;
+  const THR=0.015, AP=0.12, TICK=20, HOLDK=0.95, HOLDR=1.2, SHK=2.5, OCTG=1e9, LPHZ=700, HPHZ=900, FAST_MS=15, FAST_LOW=48, FAST_MS_LOW=80, FASTN=3, BASSG=0.9, TAILX=0.8, STALE=0.2, SHL=0.3; let thr=THR, lastAp=1;
   function setThr(v){ thr=v; $("thr").style.left=Math.min(100,thr*600)+"%" }
   // Embedded pages (Notion and most sites) usually do not pass the microphone through to the app. Spot it before the tap where the browser can tell,
   // and always offer a one-tap way out: the same app in its own tab, opened in mic mode with this level and key.
@@ -858,23 +858,24 @@ input[type=range],input[type=checkbox],input[type=radio]{accent-color:var(--c-ac
     $("meterFill").style.width=Math.min(100,r*600)+"%";
     if(hypeQuiet()){ m.quiet=true; m.armed=false; m.hist=[]; return }
     // the music window just closed: start the ear fresh, levels taken from now, nothing ringing on record, so no music frame counts as a note
-    if(m.quiet){ m.quiet=false; m.hist=[]; m.hold=rs; m.ps=m.ps2=rs; m.lastR=m.lastR2=0; m.lastMd=null; p1=p2=rs }
+    if(m.quiet){ m.quiet=false; m.hist=[]; m.fl=null; m.hold=rs; m.ps=m.ps2=rs; m.lastR=m.lastR2=0; m.lastMd=null; p1=p2=rs }
     const now=performance.now();
-    // room noise floor = the quietest look in the last ~2 s. Pitch is read down to 3x that (never above the old fixed 0.008), so a top-of-the-staff note
+    // room noise floor = the quietest recent look. Pitch is read down to 3x that (never above the old fixed 0.008), so a top-of-the-staff note
     // like F5, which fades in a fraction of a second, still gives enough steady looks for a decision.
-    m.hist.push(r); if(m.hist.length>2000/TICK) m.hist.shift(); const gate=Math.min(0.008,Math.max(0.002,3*Math.min(...m.hist)));
+    // (a slow follower: drops at once to anything quieter, creeps up 10% a second, so a key ringing for seconds is never mistaken for the room)
+    m.hist.push(r); if(m.hist.length>2000/TICK) m.hist.shift(); m.fl=m.fl==null||r<m.fl?r:m.fl*1.002; const gate=Math.min(0.008,Math.max(0.002,3*m.fl));
     // a new key = the newest 20 ms jumps well past both of the last two looks AND past the fading peak of what was already ringing. A string that
     // swells back as its 2-3 strings beat (strongest in the upper treble) never climbs over its own earlier peak, so it never re-arms and never
-    // answers the next question by itself.
+    // answers the next question by itself. Over a key that is still ringing, a 1.5x jump is enough (a softer repeat of a loud low note).
     const hold=m.hold||0; m.hold=Math.max(rs,hold*HOLDK);
-    if(!m.armed&&now>m.cool&&Math.max(r,rs)>thr&&rs>1.8*Math.min(p1,p2)&&rs>HOLDR*hold){
+    if(!m.armed&&now>m.cool&&Math.max(r,rs)>thr&&rs>(hold>0.25*rs&&hold>4*m.fl?1.5:1.8)*Math.min(p1,p2)&&rs>HOLDR*hold){
       m.armed=true;m.sharp=false;m.sharpLv=0;m.clip=false;m.armedAt=now;m.cand=[];m.res=[];m.raw=[];m.rawX=[];m.env=[];m.envS=[];m.fc=[];m.fr=[];m.slow=0;
       // what was sounding just before this attack, so a still-ringing key can be told apart from the new one
       // (two looks back, 40 ms: the look just before can already hold the first ms of this attack when the attack straddles two looks)
-      m.tail=m.last2&&m.lastR2>Math.max(0.004,4*Math.min(...m.hist))?mag(m.last2,SPN,m.pre||(m.pre=new Float32Array(SPN/2+1))):null }
+      m.tail=m.last2&&m.lastR2>Math.max(0.004,4*m.fl)?mag(m.last2,SPN,m.pre||(m.pre=new Float32Array(SPN/2+1))):null }
     if(m.armed){ m.env.push(r); m.envS.push(rs); if(clipped) m.clip=true;
       // a hammer hits: inside the frame the level leaps SHK x within ~10 ms, landing near the note's full level. A voice (or a swelling string)
-      // ramps up over tens of ms: its only quick leaps are at the very start of a syllable, far below where it ends up (checked at decision: SHL).
+      // ramps up over tens of ms: its only quick leaps are at the very start of a syllable, far below where it is 60 ms later (SHL).
       { const H=256, nb=Math.floor(L/H)-1, a=new Float32Array(nb); let pk=0; for(let i=0;i<nb;i++){ let e=0; for(let j=i*H;j<i*H+2*H;j++) e+=b[j]*b[j]; a[i]=Math.sqrt(e); if(a[i]>pk) pk=a[i] }
         // over a still-ringing key the leap starts from that key's level, so there a quick 1.5x jump that adds 30% of the peak counts too
         for(let i=2;i<nb;i++) if(a[i]>=0.4*pk&&(a[i]>SHK*a[i-2]||m.tail&&a[i]>1.5*a[i-2]&&a[i]-a[i-2]>0.3*pk)){ if(!m.sharp){ m.sharp=true; m.sharpI=m.envS.length-1 } m.sharpLv=Math.max(m.sharpLv||0,a[i]/Math.sqrt(2*H)) } } }
@@ -884,7 +885,7 @@ input[type=range],input[type=checkbox],input[type=radio]{accent-color:var(--c-ac
     // a struck string only fades after its peak; a voice swells and dips. Beating strings may lift the level a little between looks
     // (up to ~35%, seen on real upper-treble recordings, where the old 12% limit threw away good F5s) but never back above the peak.
     // A clipped (very loud) strike sits flat at full scale for a while, so it is exempt: the sharp attack already proved it was struck.
-    const struck=()=>m.sharp&&m.sharpLv>=SHL*Math.max(...m.envS), decays=ev=>{ const pk=Math.max(...ev), pi=ev.indexOf(pk); return m.clip||ev.slice(pi).every((v,i,a)=>i===0||v<=a[i-1]*1.35)&&ev[ev.length-1]<=pk*0.97 };
+    const struck=()=>m.sharp&&m.sharpLv>=SHL*Math.max(...m.envS.slice(m.sharpI,m.sharpI+4)), decays=ev=>{ const pk=Math.max(...ev), pi=ev.indexOf(pk); return m.clip||ev.slice(pi).every((v,i,a)=>i===0||v<=a[i-1]*1.35)&&ev[ev.length-1]<=pk*0.97 };
     // FAST LOOK: the app knows which key it asked, so it listens closely around it (an octave and a step below to an octave and a fifth above)
     // on just the newest few periods. Three agreeing looks 20 ms apart on the asked key = an answer about 70 ms after the strike. Any other
     // key (or talking near it) goes to the stricter full-range look below, so a wrong key is still heard and marked wrong.
