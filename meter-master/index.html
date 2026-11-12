@@ -1,0 +1,707 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Meter Master · Clarendon Hills Music Academy</title>
+<meta name="description" content="Meter Master: an internal-clock trainer. A cowbell plays quarter notes, then drops out. Keep tapping through the silence and see how steady your clock really is. Built by Clarendon Hills Music Academy.">
+<link rel="stylesheet" href="../shared/chma.css">
+<script src="../shared/brand.js"></script>
+<script src="../shared/hype.js"></script>
+<style>
+/* Setup on the left, play card + action bar on the right (desktop). Phone: compact setup, big tap pad, fixed bottom bar. */
+*{box-sizing:border-box} [hidden]{display:none!important}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--c-page);color:var(--c-ink);font-family:var(--f-body);font-size:15px;-webkit-font-smoothing:antialiased;padding:12px 24px}
+.wrap{max-width:1200px;margin:0 auto;background:var(--c-panel);border-radius:var(--r-card);box-shadow:var(--shadow-card);padding:0 16px 16px;overflow:hidden;position:relative}
+.chma-headwrap{margin:0 -16px}
+.chma-ver,.appver{font-size:14px}
+.appver{font-family:var(--f-num);color:var(--c-mut);margin:0}
+h1{font-family:var(--f-title);font-weight:700;font-size:30px;letter-spacing:-.01em;margin:0;line-height:1.05} h1 em{font-style:normal;color:var(--c-act)}
+.sub{color:var(--c-mut);font-size:14px;margin:4px 0 0}
+.why{font-weight:600;font-size:14px;margin:0;line-height:1.4}
+.cols{display:grid;grid-template-columns:minmax(300px,370px) minmax(0,1fr);gap:16px;align-items:start;margin-top:10px}
+.setup,.play{display:flex;flex-direction:column;gap:12px;min-width:0}
+.sect{display:flex;flex-direction:column;gap:6px}
+.lbl{font:700 14px var(--f-body);letter-spacing:.08em;text-transform:uppercase;color:var(--c-mut)}
+button{font:inherit;touch-action:manipulation;-webkit-tap-highlight-color:transparent;-webkit-user-select:none;user-select:none}
+.key,.pick button,.seg button,.chips button,.btn{font-weight:600;font-size:15px;color:var(--c-ink);background:var(--c-key);border:1px solid var(--c-key-b);border-radius:12px;box-shadow:0 3px 0 var(--c-key-sh);min-height:44px;padding:6px 12px;cursor:pointer;transition:transform .05s,box-shadow .05s}
+.pick button:active,.seg button:active,.chips button:active,.btn:active{transform:translateY(2px);box-shadow:0 1px 0 var(--c-key-sh)}
+.pick button[aria-pressed="true"],.seg button[aria-pressed="true"],.chips button[aria-pressed="true"]{background:var(--c-sel);border-color:var(--c-sel);color:var(--c-sel-ink)}
+.pick{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+.pick button{display:grid;grid-template-columns:30px 1fr;align-items:center;text-align:left;padding:4px 10px;gap:6px;min-height:44px}
+.pick button b{font-family:var(--f-num);font-size:15px} .pick button span{font-size:14px;font-weight:500;line-height:1.2}
+.pick button:last-child{grid-column:1 / -1}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chips button{font-family:var(--f-num);padding:6px 10px;min-width:48px}
+.trow{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.bpmin{display:flex;align-items:center;gap:6px;font-size:14px;color:var(--c-mut)}
+.bpmin input{width:78px;font:700 16px var(--f-num);min-height:44px;border-radius:10px;border:1px solid var(--c-key-b);background:var(--c-lcd);color:var(--c-led);padding:0 8px;text-align:center}
+.seg{display:flex;gap:6px} .seg button{flex:1;padding:6px 8px}
+.two{display:grid;grid-template-columns:auto 1fr;gap:10px}
+.two>div{display:flex;flex-direction:column;gap:6px;min-width:0}
+.inStat{font-size:14px;color:var(--c-mut);margin:0;line-height:1.4;min-height:0}
+.inStat a{color:inherit}
+details{background:var(--c-panel2);border:1px solid var(--c-line);border-radius:14px;padding:0 14px}
+summary{font-weight:700;cursor:pointer;min-height:44px;display:flex;align-items:center;list-style-position:inside}
+details[open]{padding-bottom:12px}
+details p{font-size:14px;line-height:1.45;margin:8px 0 0;color:var(--c-ink)}
+details label{display:flex;gap:8px;align-items:center;font-size:15px;min-height:40px}
+details .note{color:var(--c-mut)}
+select{font:inherit;font-size:15px;min-height:44px;border-radius:10px;border:1px solid var(--c-key-b);background:var(--c-key);color:var(--c-ink);padding:0 10px}
+input[type=checkbox]{accent-color:var(--c-act);width:20px;height:20px}
+input[type=range]{accent-color:var(--c-act)}
+.setrow{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-top:8px;font-size:15px}
+.setgrp{border-top:1px solid var(--c-line);margin-top:10px;padding-top:6px}
+.setgrp h3{font-size:14px;letter-spacing:.08em;text-transform:uppercase;color:var(--c-mut);margin:4px 0 0}
+.lvlbar{height:10px;flex:1;min-width:100px;background:var(--c-lcd);border-radius:6px;overflow:hidden;position:relative}
+.lvlbar i{position:absolute;left:0;top:0;bottom:0;width:0;background:var(--c-ok)}
+.dbg{font:500 14px var(--f-num);max-height:180px;overflow:auto;background:var(--c-lcd);color:#cfd6e3;border-radius:10px;padding:8px;margin-top:8px;white-space:pre-wrap}
+/* play card */
+.card{position:relative;background:var(--c-panel2);border:1px solid var(--c-line);border-radius:18px;padding:14px;display:flex;flex-direction:column;gap:12px}
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;background:var(--c-lcd);border:1px solid var(--c-lcd-b);border-radius:14px;box-shadow:inset 0 2px 8px rgba(0,0,0,.55);padding:8px 12px}
+.stats b{font-family:var(--f-num);font-size:20px;display:block;color:var(--c-led);text-shadow:var(--c-led-glow)} .stats span{font-size:14px;color:#9aa3b2;letter-spacing:.04em}
+.stage{display:flex;align-items:center;gap:18px;min-height:132px}
+.light{flex:none;width:120px;height:120px;border-radius:50%;background:radial-gradient(circle at 40% 35%,#2b2e35,#121317 70%);border:3px solid #33363e;display:flex;align-items:center;justify-content:center;font:700 44px var(--f-num);color:#555a64;box-shadow:inset 0 4px 14px rgba(0,0,0,.7)}
+.light.on{background:radial-gradient(circle at 40% 35%,#ffd2a8,#ff6a1a 55%,#c84300);border-color:#ff8a3d;color:#1b0c00;box-shadow:0 0 34px rgba(255,106,26,.75),inset 0 -6px 14px rgba(0,0,0,.25)}
+.light.on.acc{background:radial-gradient(circle at 40% 35%,#d7e4ff,#2f6bff 55%,#163a99);border-color:#6e95ff;color:#fff;box-shadow:0 0 40px rgba(47,107,255,.8),inset 0 -6px 14px rgba(0,0,0,.25)}
+.light.gap{background:#0b0c0e;border-color:#1c1e23;color:#3a3d45;font-size:15px;letter-spacing:.14em}
+.state{display:flex;flex-direction:column;gap:4px;min-width:0}
+.state b{font-family:var(--f-title);font-size:28px;line-height:1.1}
+.state b.sil{color:var(--c-warn);letter-spacing:.02em}
+.state span{font-size:15px;color:var(--c-mut);line-height:1.4}
+.pad{position:relative;width:100%;min-height:150px;border-radius:18px;border:2px solid var(--c-key-b);background:var(--c-key);color:var(--c-ink);box-shadow:0 5px 0 var(--c-key-sh);cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;font-family:var(--f-title);font-size:34px;font-weight:700;letter-spacing:.08em;touch-action:none}
+.pad small{font:500 15px var(--f-body);letter-spacing:0;color:var(--c-mut)}
+.pad.hit{transform:translateY(3px);box-shadow:0 2px 0 var(--c-key-sh);border-color:var(--c-act)}
+.pad:focus-visible,button:focus-visible,summary:focus-visible,input:focus-visible,select:focus-visible{outline:3px solid var(--c-sel);outline-offset:2px}
+.ticks{width:100%;height:40px;display:block;background:var(--c-lcd);border-radius:10px}
+.tickcap{font-size:14px;color:var(--c-mut);margin:-6px 0 0}
+.actbar .actions{display:flex;gap:8px}
+.actbar .btn{min-height:52px;font-size:16px}
+.btn.primary{background:var(--c-act);border-color:var(--c-act);color:var(--c-act-ink);box-shadow:0 3px 0 var(--c-act-sh);flex:2 1 0}
+.actbar .btn:not(.primary){flex:1 1 0}
+.btn:disabled{opacity:.45;cursor:default}
+/* challenge */
+.arcrow{display:flex;gap:8px;align-items:center;flex-wrap:wrap;justify-content:center}
+.pill{border:1px solid var(--c-lcd-b);border-radius:999px;padding:4px 10px;background:var(--c-lcd);color:var(--c-led);text-shadow:var(--c-led-glow);font:700 14px var(--f-num);letter-spacing:.03em}
+.pill.met{background:var(--c-ok);border-color:var(--c-ok);color:#fff;text-shadow:none}
+.pill.fire{color:#ff8a1f;border-color:#ff8a1f;text-shadow:none}
+.arcmeter{position:relative;height:22px;border-radius:999px;background:var(--c-lcd);overflow:hidden}
+.arcmeter i{position:absolute;left:0;top:0;bottom:0;width:0;background:var(--c-act);border-radius:999px;transition:width .3s}
+.arcmeter u{position:absolute;top:0;bottom:0;width:3px;background:#fff;opacity:.85}
+.arcmeter b{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font:700 14px var(--f-num);letter-spacing:.12em;color:#fff;opacity:0}
+.arcmeter.hit i{background:var(--c-ok)} .arcmeter.hit b{opacity:1}
+.arcsplash{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;background:radial-gradient(circle at 50% 45%,color-mix(in srgb,var(--c-act) 28%,var(--c-panel2)) 0%,var(--c-panel2) 70%);border-radius:18px;z-index:6;text-align:center;padding:20px;overflow:hidden}
+.arcsplash .pre{font:700 14px var(--f-num);letter-spacing:.12em;color:var(--c-ok);min-height:18px}
+.arcsplash b{font-family:var(--f-title);font-size:42px;line-height:1}
+.arcsplash .tp{font:700 16px var(--f-num);color:var(--c-act)}
+.arcsplash span{font-size:15px;color:var(--c-mut);max-width:32em;line-height:1.45}
+.arcsplash .tapgo{font-size:14px;color:var(--c-mut)}
+.arcsplash.go b{animation:swoop .75s .2s cubic-bezier(.2,1.4,.3,1) both} .arcsplash.go .pre,.arcsplash.go span{animation:fadeup .4s .1s both}
+@keyframes swoop{0%{opacity:0;transform:translateX(120%) skewX(-24deg) scale(.6)}60%{opacity:1;transform:translateX(-5%) skewX(6deg) scale(1.08)}100%{opacity:1;transform:none}}
+@keyframes fadeup{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+.hitstamp{position:absolute;left:50%;top:40%;z-index:7;pointer-events:none;font:700 40px var(--f-title);color:#fff;background:var(--c-ok);padding:10px 22px;border-radius:14px;opacity:0;white-space:nowrap;transform:translate(-50%,-50%)}
+.hitstamp.go{animation:stamp 1.6s cubic-bezier(.2,1.5,.4,1) forwards}
+@keyframes stamp{0%{opacity:0;transform:translate(-50%,-50%) scale(2.6) rotate(-12deg)}16%{opacity:1;transform:translate(-50%,-50%) scale(1) rotate(-5deg)}75%{opacity:1;transform:translate(-50%,-50%) scale(1) rotate(-5deg)}100%{opacity:0;transform:translate(-50%,-50%) scale(.7) rotate(-5deg)}}
+@media (prefers-reduced-motion:reduce){.arcsplash.go *,.hitstamp.go{animation-duration:.01s!important;animation-delay:0s!important}}
+/* results */
+.card.showres>:not(.results){display:none!important}
+.results{display:flex;flex-direction:column;gap:12px}
+.results h2{font-family:var(--f-title);margin:0;font-size:26px}
+.score{font:700 44px var(--f-num);color:var(--c-led);text-shadow:var(--c-led-glow);background:var(--c-lcd);border:1px solid var(--c-lcd-b);border-radius:14px;box-shadow:inset 0 2px 8px rgba(0,0,0,.55);padding:10px 16px;display:flex;align-items:baseline;gap:12px;flex-wrap:wrap}
+.score small{font-size:15px;color:#9aa3b2;text-shadow:none}
+.score .nb{font-size:15px;color:#fff;background:var(--c-ok);border-radius:8px;padding:2px 8px;text-shadow:none}
+.verdict{font-size:18px;font-weight:700;line-height:1.35}
+.verdict.good{color:var(--c-ok)} .verdict.warn{color:var(--c-warn)} .verdict.bad{color:var(--c-bad)}
+.fix{font-size:15px;line-height:1.45;margin:0}
+.rgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.rgrid div{background:var(--c-lcd);border-radius:10px;padding:8px 10px}
+.rgrid b{display:block;font:700 19px var(--f-num);color:var(--c-led);text-shadow:var(--c-led-glow)} .rgrid span{font-size:14px;color:#9aa3b2}
+.chartwrap{overflow-x:auto;-webkit-overflow-scrolling:touch;background:var(--c-lcd);border-radius:12px;padding:6px 0}
+.chartwrap svg{display:block}
+.legend{display:flex;flex-wrap:wrap;gap:6px 14px;font-size:14px;color:var(--c-mut)}
+.legend i{display:inline-block;width:12px;height:12px;border-radius:3px;margin-right:5px;vertical-align:-1px}
+.gaps{display:flex;flex-direction:column;gap:8px}
+.gapc{background:var(--c-key);border:1px solid var(--c-key-b);border-radius:12px;padding:8px 12px;font-size:14px;line-height:1.5}
+.gapc b.t{font-size:15px} .gapc .v{font-weight:700} .gapc .v.good{color:var(--c-ok)} .gapc .v.warn{color:var(--c-warn)} .gapc .v.bad{color:var(--c-bad)}
+.gapc .m{color:var(--c-mut);font-family:var(--f-num)}
+.rsel{display:flex;gap:6px;flex-wrap:wrap}.rsel button{min-height:44px;padding:4px 10px;font-family:var(--f-num)}
+.rounds{display:flex;gap:6px;flex-wrap:wrap}
+.results .actions{display:flex;gap:8px}.results .actions .btn{flex:1}
+.stamp{font-size:14px;color:var(--c-mut)}
+/* phones and short tablets */
+@media (max-width:899px){
+  body{padding:8px max(10px,env(safe-area-inset-right,0px)) calc(80px + env(safe-area-inset-bottom,0px)) max(10px,env(safe-area-inset-left,0px))}
+  .wrap{padding:0 12px 14px}
+  .chma-headwrap{margin:0 -12px}
+  .cols{display:flex;flex-direction:column;align-items:stretch;gap:10px;margin-top:6px}
+  .setup{display:contents}
+  .setup header{position:absolute;top:17px;right:12px;height:40px;display:flex;align-items:center}
+  h1{font-size:24px}
+  .sub,.why,.lbl,.chma-ver{display:none}
+  .s-level{order:1}.s-tempo{order:2}.s-game{order:3}.play{order:4}.how{order:5}#settingsBox{order:6}.setup .appver{order:7}
+  body.running .s-level,body.running .s-tempo,body.running .s-game{display:none}
+  body.in-tap .inStat{display:none}
+  .pick{display:flex;overflow-x:auto;gap:6px;margin:0 -12px;padding:2px 12px 6px;scrollbar-width:none;scroll-snap-type:x proximity}
+  .pick::-webkit-scrollbar{display:none}
+  .pick button{flex:0 0 auto;display:block;padding:4px 12px;scroll-snap-align:start;line-height:1.2}
+  .pick button b{display:inline;margin-right:4px;font-size:14px}.pick button span{display:inline}
+  .chips{flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none;margin:0 -12px;padding:2px 12px 6px}
+  .chips::-webkit-scrollbar{display:none}
+  .chips button{flex:0 0 auto}
+  .trow{flex-wrap:nowrap}
+  .two{grid-template-columns:1fr;gap:8px}
+  .two .seg button{padding:6px 6px}
+  .card{padding:10px;gap:10px}
+  .stats{padding:6px 8px}.stats b{font-size:17px}.stats span{font-size:14px;letter-spacing:0}
+  .stage{min-height:84px;gap:12px}
+  .light{width:76px;height:76px;font-size:30px}.light.gap{font-size:14px;letter-spacing:.06em}
+  .state b{font-size:22px}.state span{font-size:14px}
+  .pad{min-height:160px;min-height:clamp(150px,calc(100svh - 560px),340px)}
+  body.running .pad{min-height:clamp(200px,calc(100svh - 360px),420px)}
+  .actbar{position:fixed;left:0;right:0;bottom:0;z-index:30;background:var(--c-panel);border-top:1px solid var(--c-line);box-shadow:0 -8px 24px rgba(0,0,0,.18);padding:8px max(12px,env(safe-area-inset-right,0px)) calc(8px + env(safe-area-inset-bottom,0px)) max(12px,env(safe-area-inset-left,0px))}
+  .actbar .actions{max-width:640px;margin:0 auto}
+  .rgrid{grid-template-columns:repeat(2,1fr)}
+  .score{font-size:36px}
+}
+@media (min-width:560px) and (max-width:899px){.two{grid-template-columns:1fr 1.2fr}}
+@media (min-width:900px){
+  .play{position:sticky;top:12px}
+  .stage{min-height:120px}
+}
+@media (min-width:900px) and (max-height:760px){
+  .pad{min-height:118px}
+  .light{width:104px;height:104px}
+  .stage{min-height:108px}
+}
+</style>
+</head>
+<body class="chma-page">
+<div class="wrap">
+  <div data-chma-head></div>
+  <div class="cols">
+  <section class="setup">
+    <header>
+      <h1>Meter <em>Master</em></h1>
+      <p class="sub">Keep the beat when the beat stops.</p>
+    </header>
+    <p class="why">Your band won't always have a drummer. Meter Master builds the clock inside you.</p>
+
+    <div class="sect s-level"><span class="lbl" aria-hidden="true">Level</span>
+      <div class="pick" id="levels" role="group" aria-label="Level"></div></div>
+
+    <div class="sect s-tempo"><span class="lbl" aria-hidden="true">Tempo &amp; time</span>
+      <div class="chips" id="tempos" role="group" aria-label="Tempo"></div>
+      <div class="trow"><label class="bpmin">Or type <input id="bpmIn" type="number" inputmode="numeric" min="30" max="240" step="1" aria-label="Tempo in BPM"> BPM</label>
+        <div class="seg" id="meterSeg" role="group" aria-label="Time signature" style="flex:1"><button data-m="4">4/4</button><button data-m="3">3/4</button></div></div></div>
+
+    <div class="sect s-game">
+      <div class="two">
+        <div><span class="lbl" aria-hidden="true">Mode</span><div class="seg" id="modeSeg" role="group" aria-label="Mode"><button data-m="prac">Practice</button><button data-m="chal">Challenge</button></div></div>
+        <div><span class="lbl" aria-hidden="true">Input</span><div class="seg" id="inSeg" role="group" aria-label="Input"><button data-i="tap">Tap</button><button data-i="midi">MIDI</button><button data-i="mic">Mic β</button></div></div>
+      </div>
+      <p class="inStat" id="inStat" aria-live="polite"></p>
+    </div>
+
+    <details class="how"><summary>How it works</summary>
+      <p><b>Tap every quarter note, the whole time.</b> The cowbell plays for a bar or two, then goes silent. Keep tapping right through the silence. When the sound comes back, you'll hear if you're still with it.</p>
+      <p><b>Levels:</b> the silent stretches get longer. Level 1 is 2 bars of sound, 1 bar of silence. Level 7 gives you a count-in, then 16 bars of nothing.</p>
+      <p><b>Slow tempos are harder.</b> More space between beats means more room to drift. If 96 feels easy, try 60.</p>
+      <p><b>What you get:</b> every tap is checked against the true beat, even in the silence. You'll see if you <b>rushed</b> (sped up), <b>dragged</b> (slowed down), how <b>steady</b> you were, and where you landed when the beat came back.</p>
+      <p><b>Points:</b> 3 for a tap within about 25 ms of the beat, 2 within 50 ms, 1 within 90 ms (a bit wider at slow tempos). Taps in the silence count double. Extra taps and drifting tempo cost points.</p>
+      <p><b>Challenge:</b> 5 rounds and a bonus round, and the silence grows every round. Round 1 is the warm-up that sets your targets. The pulse light and your tap marks stay dark in the silence, so it's all you.</p>
+      <p><b>Input:</b> tap the pad or press the space bar. <b>MIDI:</b> plug in a digital piano and play any key (Chrome and Edge). <b>Mic (Beta):</b> clap, snap or play a note. Run <b>Calibrate</b> once per input so the app knows your device's delay.</p>
+    </details>
+
+    <details id="settingsBox"><summary>Settings</summary>
+      <div class="setrow"><label for="sndSel" style="min-height:0">Sound</label><select id="sndSel"><option value="cow">Cowbell</option><option value="click">Click</option><option value="wood">Woodblock</option><option value="beat">Simple beat (kick + hat)</option><option value="beep">CHMA beep</option></select><button class="btn" id="hearBtn" type="button">Hear it</button></div>
+      <label><input type="checkbox" id="accOn" checked> Accent beat 1</label>
+      <label><input type="checkbox" id="ticksOn" checked> Show my taps (Practice)</label>
+      <label><input type="checkbox" id="ticksChal"> Show my taps in Challenge too</label>
+      <label><input type="checkbox" id="hypeOn" checked> Music on round screens</label>
+      <label><input type="checkbox" id="retryOn"> Second try on a missed round (Challenge)</label>
+      <div class="setgrp"><h3>Calibration</h3>
+        <p class="note">Every phone, laptop and speaker adds a little delay. Calibrate once per input: tap (or play, or clap) along with 8 clicks.</p>
+        <div class="setrow"><button class="btn" id="calBtn2" type="button">Calibrate this input</button><button class="btn" id="calReset" type="button">Reset</button></div>
+        <p class="note" id="calTxt"></p></div>
+      <div class="setgrp" id="micBox"><h3>Microphone (Beta)</h3>
+        <label><input type="checkbox" id="phonesOn"> I'm wearing headphones</label>
+        <p class="note">On speakers the mic can hear the cowbell, so it only listens in the silence (that's where it counts). With headphones it grades every beat.</p>
+        <div class="setrow">Sensitivity <input type="range" id="micSens" min="1" max="10" value="6" aria-label="Microphone sensitivity"><span class="lvlbar" aria-hidden="true"><i id="micLvl"></i></span></div>
+        <details id="dbgBox" style="margin-top:8px"><summary>Show details</summary><div class="dbg" id="dbg">No mic events yet.</div></details>
+      </div>
+    </details>
+    <p class="appver" id="appVer">Meter Master · Version 2026-11-12.1</p>
+  </section>
+
+  <section class="play">
+    <div class="card" id="card">
+      <div class="stats">
+        <div><b id="sPts">0</b><span>Points</span></div><div><b id="sPct">–</b><span>Accuracy</span></div>
+        <div><b id="sTempo">–</b><span>Your tempo</span></div><div><b id="sBest">–</b><span>Best</span></div>
+      </div>
+      <div class="arcrow" id="arcRow" hidden><span class="pill" id="arcRound">ROUND 1</span><span class="pill" id="arcNeed">WARM-UP</span><span class="pill fire" id="arcFire" hidden>BONUS</span></div>
+      <div class="arcmeter" id="arcMeter" hidden><i id="arcFill"></i><u id="arcTgt"></u><b>TARGET HIT</b></div>
+      <div class="stage">
+        <div class="light" id="light" aria-hidden="true"></div>
+        <div class="state" aria-live="polite"><b id="stT">Ready</b><span id="stS">Your band won't always have a drummer. Meter Master builds the clock inside you.</span></div>
+      </div>
+      <button class="pad" id="pad" type="button" aria-label="Tap pad: tap every quarter note">TAP<small id="padHint">Space bar or tap here</small></button>
+      <svg class="ticks" id="ticks" aria-hidden="true"></svg>
+      <p class="tickcap" id="tickCap">Your taps in this bar: green = on the beat, yellow = close, red = off.</p>
+
+      <div class="arcsplash" id="splash" hidden><div class="pre" id="spP"></div><b id="spT">ROUND 1</b><div class="tp" id="spB"></div><span id="spS"></span><div class="tapgo" id="spTap" hidden>Tap to start now</div></div>
+      <div class="hitstamp" id="hitStamp" aria-hidden="true">TARGET HIT!</div>
+
+      <div class="results" id="results" hidden>
+        <h2 id="rTitle" tabindex="-1">Results</h2>
+        <div class="rounds" id="rRounds" hidden></div>
+        <div class="score" id="rScore"><span id="rPts">0</span><small id="rOf"></small><span class="nb" id="rNew" hidden>NEW BEST</span></div>
+        <div class="verdict" id="rVerdict"></div>
+        <p class="fix" id="rFix"></p>
+        <div class="rgrid">
+          <div><b id="rAcc">–</b><span>Accuracy</span></div><div><b id="rOff">–</b><span>Avg in silence</span></div><div><b id="rSpread">–</b><span>Steadiness</span></div>
+          <div><b id="rTempo">–</b><span>Your tempo</span></div><div><b id="rMiss">–</b><span>Missed / extra</span></div><div><b id="rRe">–</b><span>Re-entry</span></div>
+        </div>
+        <div class="rsel" id="rSel" hidden></div>
+        <div class="legend"><span><i style="background:#33d17a"></i>On it</span><span><i style="background:#ffb21a"></i>Close</span><span><i style="background:#ff4d5e"></i>Off / extra</span><span><i style="background:rgba(255,178,26,.25);border:1px solid #ffb21a"></i>Silence</span></div>
+        <div class="chartwrap"><svg id="svgT" role="img" aria-label="Timeline of every tap against the beat"></svg></div>
+        <div class="chartwrap"><svg id="svgC" role="img" aria-label="Early and late chart: up means ahead of the beat (rushing), down means behind (dragging)"></svg></div>
+        <div class="gaps" id="rGaps"></div>
+        <div class="stamp" id="rStamp"></div>
+        <p class="fix" style="color:var(--c-mut)">Screenshot this screen and send it to your Instructor.</p>
+        <div class="actions"><button class="btn" id="closeBtn" type="button">Back</button><button class="btn primary" id="againBtn" type="button">Go again</button></div>
+      </div>
+    </div>
+    <div class="actbar" id="actbar"><div class="actions">
+      <button class="btn" id="calBtn" type="button">Calibrate</button>
+      <button class="btn primary" id="goBtn" type="button">Start</button></div></div>
+  </section>
+  </div>
+</div>
+
+<script>
+(()=>{
+'use strict';
+const VER="2026-11-12.1";
+const $=id=>document.getElementById(id);
+const store={get(k,d){try{const v=localStorage.getItem("mm-"+k);return v==null?d:JSON.parse(v)}catch(e){return d}},set(k,v){try{localStorage.setItem("mm-"+k,JSON.stringify(v))}catch(e){}}};
+const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
+
+// ================= LEVELS =================
+// on = bars with sound, off = bars of silence, cyc = how many on/off cycles, ci = count-in bars. Every run ends with 1 bar of sound (the last re-entry).
+const LEVELS=[
+  {id:1,on:2,off:1,cyc:4,ci:1},
+  {id:2,on:2,off:2,cyc:3,ci:1},
+  {id:3,on:2,off:4,cyc:3,ci:1},
+  {id:4,on:1,off:4,cyc:3,ci:1},
+  {id:5,on:1,off:8,cyc:2,ci:1},
+  {id:6,on:1,off:16,cyc:1,ci:1},
+  {id:7,on:0,off:16,cyc:1,ci:2}];
+const lvlName=L=>L.on?`${L.on} on · ${L.off} off`:`Count-in · ${L.off} off`;
+// Challenge: the silence grows every round. Round 6 is the bonus round.
+const ROUNDS=[{on:2,off:1,cyc:2,ci:1},{on:2,off:2,cyc:2,ci:1},{on:2,off:4,cyc:2,ci:1},{on:1,off:4,cyc:2,ci:1},{on:1,off:8,cyc:2,ci:1},{on:1,off:16,cyc:1,ci:1}];
+const TEMPOS=[60,72,84,96,108,120,140];
+
+// ================= PLAN =================
+// Every beat of a run, in time order. t = seconds after the first beat. ph: ci (count-in), on (sound), gap (silence).
+function buildPlan(L,bpm,bpb){
+  const P=60/bpm, beats=[], gaps=[]; let bar=0;
+  const add=(n,ph,g)=>{ for(let b=0;b<n;b++){ for(let k=0;k<bpb;k++) beats.push({i:beats.length,t:beats.length*P,bar,bb:k,ph,sound:ph!=="gap",gap:ph==="gap"?g:-1,ret:-1,graded:ph!=="ci"}); bar++ } };
+  add(L.ci,"ci");
+  for(let c=0;c<L.cyc;c++){ if(L.on) add(L.on,"on"); const from=beats.length; add(L.off,"gap",c); gaps.push({idx:c,from,to:beats.length,bars:L.off}) }
+  add(1,"on");
+  gaps.forEach(g=>{ g.ret=g.to; beats[g.to].ret=g.idx });
+  return {bpm,P,bpb,beats,gaps,bars:bar,end:beats.length*P,L};
+}
+
+// ================= GRADING =================
+// Windows: 25 / 50 / 90 ms at 120 BPM and faster; wider at slow tempos (a 60 BPM beat is twice as long).
+const winScale=P=>clamp(P/0.5,0.85,1.6);
+const MISS=1, EXTRA=1, WI=4, IOI_CAP=1.2, AB_GAP=0.05, AB_ON=2;
+// Taps are matched to beats by a best-path alignment: the gaps between your taps are compared with the gaps between the beats,
+// so a student who drifts half a beat (or more) in a long silence still has each tap matched to the beat it was meant for.
+// With the sound on (and on the returning beat 1) the sound is the reference: there the distance to the beat counts, not the gap since your last tap.
+function grade(plan,tapsIn,opt){
+  opt=opt||{}; const P=plan.P, until=opt.until==null?Infinity:opt.until, gradeOn=opt.gradeOn!==false, sc=winScale(P), W=[0.025*sc,0.05*sc,0.09*sc];
+  const G=plan.beats.filter(b=>b.graded&&b.t<=until&&(gradeOn||b.ph==="gap"));
+  const out={P,W,beats:[],taps:[],gaps:[],score:0,max:0,pct:0,extra:0,missed:0,pts:0,pen:0};
+  if(!G.length) return out;
+  const lo=G[0].t-0.5*P, hi=Math.min(until+0.5*P,G[G.length-1].t+0.6*P);
+  const inGap=t=>plan.gaps.some(gp=>t>=plan.beats[gp.from].t-0.5*P&&t<plan.beats[gp.ret].t-0.3*P);
+  const x=tapsIn.filter(t=>t>=lo&&t<=hi&&(gradeOn||inGap(t))).slice().sort((a,b)=>a-b), n=G.length, m=x.length, g=G.map(b=>b.t);
+  const lim=b=>b.ph==="gap"?2.6*P:b.ret>=0?0.95*P:0.48*P;
+  const pairs=[]; let j0=0;
+  for(let i=0;i<n;i++){ const L=lim(G[i]); while(j0<m&&x[j0]<g[i]-L) j0++; for(let j=j0;j<m&&x[j]<=g[i]+L;j++) pairs.push({i,j,c:0,p:-1}) }
+  pairs.sort((a,b)=>a.j-b.j||a.i-b.i); const byTap=Array.from({length:m},()=>[]); pairs.forEach((p,k)=>byTap[p.j].push(k));
+  pairs.forEach(p=>{ let best=MISS*p.i+EXTRA*p.j, prev=-1;
+    for(let jj=p.j-1;jj>=Math.max(0,p.j-6);jj--) for(const qk of byTap[jj]){ const q=pairs[qk]; if(q.i>=p.i) continue;
+      const io=Math.min(IOI_CAP,WI*Math.abs((x[p.j]-x[jj])-(g[p.i]-g[q.i]))/P)*(G[p.i].ph==="gap"?1:0.15);
+      const c=q.c+MISS*(p.i-q.i-1)+EXTRA*(p.j-jj-1)+io; if(c<best){ best=c; prev=qk } }
+    p.c=best+(G[p.i].ph==="gap"?AB_GAP:AB_ON)*Math.abs(x[p.j]-g[p.i])/P; p.p=prev });
+  let bestEnd=MISS*n+EXTRA*m, last=-1;
+  pairs.forEach((p,k)=>{ const e=p.c+MISS*(n-1-p.i)+EXTRA*(m-1-p.j); if(e<bestEnd){ bestEnd=e; last=k } });
+  const tb=new Array(n).fill(-1), bt=new Array(m).fill(-1);
+  for(let k=last;k>=0;k=pairs[k].p){ tb[pairs[k].i]=pairs[k].j; bt[pairs[k].j]=pairs[k].i }
+  const ptsOf=o=>{ const a=Math.abs(o); return a<=W[0]?3:a<=W[1]?2:a<=W[2]?1:0 };
+  G.forEach((b,i)=>{ const off=tb[i]>=0?x[tb[i]]-b.t:null, w=(b.ph==="gap"||b.ret>=0)?2:1, pts=off==null?0:ptsOf(off);
+    out.beats.push({b,off,w,pts}); out.max+=3*w; out.pts+=pts*w; if(off==null) out.missed++ });
+  x.forEach((t,j)=>{ out.taps.push({t,beat:bt[j]>=0?G[bt[j]].i:-1}); if(bt[j]<0) out.extra++ });
+  // per gap
+  const bpb=plan.bpb;
+  plan.gaps.forEach(gp=>{ const rb=plan.beats[gp.ret]; if(rb.t>until+1e-9) return;
+    const gb=out.beats.filter(r=>r.b.gap===gp.idx), matched=gb.map((r,k)=>({k,off:r.off})).filter(o=>o.off!=null);
+    const t0=plan.beats[gp.from].t-0.5*P, t1=rb.t-0.5*P, extra=out.taps.filter(tp=>tp.beat<0&&tp.t>=t0&&tp.t<t1).length;
+    const S={idx:gp.idx,bars:gp.bars,n:gb.length,hit:matched.length,missed:gb.length-matched.length,extra,mean:null,spread:null,bpm:null,drift:null,se:null,re:null,reProj:false,lostAt:null,key:"",text:"",pen:0,pts:0,max:0};
+    gb.forEach(r=>{ S.pts+=r.pts*r.w; S.max+=3*r.w });
+    if(matched.length){ S.mean=matched.reduce((s,o)=>s+o.off,0)/matched.length }
+    let a=null,c=null;
+    if(matched.length>=3){ const nn=matched.length, km=matched.reduce((s,o)=>s+o.k,0)/nn, om=S.mean; let sxx=0,sxy=0; matched.forEach(o=>{ sxx+=(o.k-km)**2; sxy+=(o.k-km)*(o.off-om) });
+      c=sxx>0?sxy/sxx:0; a=om-c*km; let rss=0; matched.forEach(o=>{ rss+=(o.off-(a+c*o.k))**2 }); const df=Math.max(1,nn-2);
+      S.spread=Math.sqrt(rss/df); S.se=sxx>0?Math.sqrt(rss/df/sxx)/P:1; S.drift=P/(P+c)-1; S.bpm=plan.bpm*P/(P+c) }
+    else if(matched.length) S.spread=0;
+    // re-entry: your tap on the returning beat 1. With no tap there (or on speakers in mic mode), where your own clock said it would be.
+    const rr=out.beats.find(r=>r.b.i===gp.ret);
+    if(rr&&rr.off!=null) S.re=rr.off; else if(a!=null){ S.re=a+c*gb.length; S.reProj=true }
+    // lost: two misses in a row, or two taps in a row further off than 30% of a beat (at least 120 ms)
+    const big=Math.max(0.3*P,0.12);
+    for(let k=0;k<gb.length;k++){ const o=gb[k].off, o2=k+1<gb.length?gb[k+1].off:undefined;
+      const bad=v=>v===null||Math.abs(v)>big; if(bad(o)&&(o2===undefined?(o===null&&k>0):bad(o2))){ S.lostAt=Math.floor(k/bpb)+1; break } }
+    // verdict
+    const sig=S.drift!=null&&Math.abs(S.drift)>=0.025&&Math.abs(S.drift)>=2.5*S.se;
+    const lean=S.mean==null?"":Math.abs(S.mean)>=0.02?` (a hair ${S.mean>0?"late":"early"}: ${fmtMs(S.mean)})`:"";
+    if(S.hit<Math.ceil(gb.length/2)){ S.key="lost"; S.text=`Lost the beat at bar ${S.lostAt||1} of the silence`+(S.missed?` (${S.missed} of ${gb.length} beats had no tap)`:"") }
+    else if(S.lostAt&&S.spread>0.07*P){ S.key="lost"; S.text=`Lost the beat at bar ${S.lostAt} of the silence` }
+    else if(sig&&S.drift>0){ S.key="rush"; S.text=`Rushing in the silence: you sped up to ${Math.round(S.bpm)} BPM (+${pc(S.drift)})` }
+    else if(sig){ S.key="drag"; S.text=`Dragging in the silence: you slowed to ${Math.round(S.bpm)} BPM (−${pc(-S.drift)})` }
+    else if(S.lostAt){ S.key="lost"; S.text=`Lost the beat at bar ${S.lostAt} of the silence` }
+    else if(S.spread!=null&&S.spread>Math.max(0.035,0.07*P)){ S.key="shaky"; S.text=`Shaky: your beats wander (±${Math.round(S.spread*1000)} ms)` }
+    else if(S.mean!=null&&Math.abs(S.mean)>W[1]){ S.key=S.mean>0?"late":"early"; S.text=`Steady, but ${S.mean>0?"behind":"ahead of"} the beat (${fmtMs(S.mean)})` }
+    else { S.key="solid"; S.text="Solid"+lean }
+    if((S.key==="rush"||S.key==="drag")){ S.pen=Math.min(S.pts,Math.round(Math.max(0,Math.abs(S.drift)*100-1.5)*gb.length*0.25)) }
+    // re-entry verdict
+    if(S.re==null) S.reKey="none"; else if(Math.abs(S.re)<=W[1]) S.reKey="on"; else S.reKey=S.re>0?"late":"early";
+    out.pen+=S.pen; out.gaps.push(S) });
+  out.score=Math.max(0,out.pts-out.extra-out.pen); out.pct=out.max?out.score/out.max:0;
+  // summary over the gaps
+  const gs=out.gaps, gm=[]; gs.forEach(S=>out.beats.filter(r=>r.b.gap===S.idx&&r.off!=null).forEach(r=>gm.push(r.off)));
+  out.gMean=gm.length?gm.reduce((s,v)=>s+v,0)/gm.length:null;
+  const sp=gs.filter(S=>S.spread!=null); out.gSpread=sp.length?Math.sqrt(sp.reduce((s,S)=>s+S.spread*S.spread*S.hit,0)/Math.max(1,sp.reduce((s,S)=>s+S.hit,0))):null;
+  const tg=gs.filter(S=>S.bpm!=null); out.gBpm=tg.length?tg.reduce((s,S)=>s+S.bpm*S.n,0)/tg.reduce((s,S)=>s+S.n,0):null;
+  const rs=gs.filter(S=>S.re!=null); out.reMean=rs.length?rs.reduce((s,S)=>s+Math.abs(S.re),0)/rs.length:null; out.reProj=rs.length>0&&rs.every(S=>S.reProj);
+  out.gMissed=gs.reduce((s,S)=>s+S.missed,0); out.gExtra=gs.reduce((s,S)=>s+S.extra,0);
+  const SEV={lost:5,rush:4,drag:4,shaky:3,early:2,late:2,solid:0};
+  let worst=null; gs.forEach(S=>{ if(!worst||SEV[S.key]>SEV[worst.key]) worst=S });
+  out.key=worst?worst.key:"none";
+  if(!worst) out.headline="No silence graded yet.";
+  else if(out.key==="solid") out.headline=gs.length>1?"Solid. Your clock held through every silence.":"Solid. Your clock held through the silence.";
+  else if(out.key==="rush"||out.key==="drag"){ const same=gs.filter(S=>S.key===out.key), d=same.reduce((s,S)=>s+S.drift,0)/same.length, bp=Math.round(plan.bpm*(1+d));
+    out.headline=out.key==="rush"?`Rushing in the silence: you sped up to ${bp} BPM (+${pc(d)})`+(same.length>1?` in ${same.length} of ${gs.length} silences`:gs.length>1?` in silence ${worst.idx+1}`:""):`Dragging in the silence: you slowed to ${bp} BPM (−${pc(-d)})`+(same.length>1?` in ${same.length} of ${gs.length} silences`:gs.length>1?` in silence ${worst.idx+1}`:"") }
+  else out.headline=worst.text+(gs.length>1?` (silence ${worst.idx+1})`:"");
+  return out;
+}
+const pc=v=>(Math.round(v*1000)/10).toFixed(1).replace(/\.0$/,"")+"%";
+const fmtMs=s=>{ const v=Math.round(s*1000); return (v>0?"+":v<0?"−":"")+Math.abs(v)+" ms" };
+const FIX={solid:"Next rung: a longer silence, or the same level at a slower tempo.",
+  rush:"Fix: count the 'and' out loud in the silence: 1-and-2-and. Rushers skip the 'and'. Then try it again at this tempo.",
+  drag:"Fix: lean forward. Think the next beat a hair before it comes, and keep your tap small and quick.",
+  lost:"Fix: count the bars out loud in the silence: ONE-2-3-4, TWO-2-3-4. Knowing which bar you're in keeps you from falling off.",
+  shaky:"Fix: tap from the forearm, not the fingertip. Same motion, same height, every beat.",
+  early:"Fix: you're steady but ahead. Wait for the beat. Let it come to you.",
+  late:"Fix: you're steady but behind. If you haven't calibrated, do that first (Settings). If you have, tap a hair sooner.",
+  none:"Tap every quarter note, the whole time, including the silence."};
+
+// ================= SOUND =================
+let audio=null;
+const aSess=t=>{ try{ if(navigator.audioSession) navigator.audioSession.type=t }catch(e){} };
+function ctx(){ if(!audio){ aSess("playback"); audio=new (window.AudioContext||window.webkitAudioContext)({latencyHint:"interactive"});
+  audio.onstatechange=()=>{ if(audio.state!=="running"&&(run||calHook)) abort("The audio paused (another app or the lock screen), so this run stopped. Press Start to go again.") } } return audio }
+const noiseCache=new WeakMap();
+function noise(ac){ let b=noiseCache.get(ac); if(!b){ const L=Math.floor(ac.sampleRate*0.25); b=ac.createBuffer(1,L,ac.sampleRate); const d=b.getChannelData(0); let s=12345; for(let i=0;i<L;i++){ s=(s*1103515245+12345)&0x7fffffff; d[i]=s/0x3fffffff-1 } noiseCache.set(ac,b) } return b }
+// every sound ends by 0.2 s, so even at 240 BPM (0.25 s a beat) a silence is truly silent from its first beat
+function envG(ac,t,peak,att,dec){ const g=ac.createGain(); g.gain.setValueAtTime(0.0001,t); g.gain.exponentialRampToValueAtTime(peak,t+att); g.gain.exponentialRampToValueAtTime(0.0001,t+att+dec); g.gain.setValueAtTime(0,t+att+dec+0.002); return g }
+const SND={
+  cow(ac,d,t,acc,trk){ const k=acc?1.12:1, g=envG(ac,t,acc?0.5:0.32,0.002,0.15), bp=ac.createBiquadFilter(); bp.type="bandpass"; bp.frequency.value=1400*k; bp.Q.value=0.9; bp.connect(g); g.connect(d);
+    [562,845].forEach(f=>{ const o=ac.createOscillator(); o.type="square"; o.frequency.value=f*k; o.connect(bp); trk(o); o.start(t); o.stop(t+0.17) }) },
+  click(ac,d,t,acc,trk){ const g=envG(ac,t,acc?0.6:0.4,0.0008,0.03), o=ac.createOscillator(); o.type="sine"; o.frequency.value=acc?3200:2400; o.connect(g); g.connect(d); trk(o); o.start(t); o.stop(t+0.045);
+    const s=ac.createBufferSource(), hp=ac.createBiquadFilter(), g2=envG(ac,t,acc?0.35:0.22,0.0005,0.012); s.buffer=noise(ac); hp.type="highpass"; hp.frequency.value=3000; s.connect(hp).connect(g2); g2.connect(d); trk(s); s.start(t); s.stop(t+0.03) },
+  wood(ac,d,t,acc,trk){ const f=587*(acc?1.335:1), lp=ac.createBiquadFilter(); lp.type="lowpass"; lp.frequency.value=2600; lp.connect(d);
+    const o=ac.createOscillator(), o2=ac.createOscillator(), g=envG(ac,t,acc?0.6:0.42,0.0015,0.09), g2=envG(ac,t,acc?0.17:0.12,0.001,0.035);
+    o.frequency.setValueAtTime(f*1.35,t); o.frequency.exponentialRampToValueAtTime(f,t+0.012); o2.frequency.value=f*2.76; o.connect(g).connect(lp); o2.connect(g2).connect(lp); trk(o); trk(o2); o.start(t); o2.start(t); o.stop(t+0.1); o2.stop(t+0.05) },
+  beat(ac,d,t,acc,trk,bb,bpb){ const s=ac.createBufferSource(), hp=ac.createBiquadFilter(), g=envG(ac,t,acc?0.3:0.22,0.001,0.045); s.buffer=noise(ac); hp.type="highpass"; hp.frequency.value=7000; s.connect(hp).connect(g); g.connect(d); trk(s); s.start(t); s.stop(t+0.06);
+    if(bb===0||(bpb===4&&bb===2)){ const o=ac.createOscillator(), kg=envG(ac,t,bb===0&&acc?0.95:0.75,0.003,0.17); o.type="sine"; o.frequency.setValueAtTime(150,t); o.frequency.exponentialRampToValueAtTime(45,t+0.13); o.connect(kg); kg.connect(d); trk(o); o.start(t); o.stop(t+0.19) } },
+  beep(ac,d,t,acc,trk){ const g=envG(ac,t,acc?0.5:0.36,0.002,0.06), o=ac.createOscillator(); o.type="sine"; o.frequency.setValueAtTime(acc?1900:1300,t); o.frequency.linearRampToValueAtTime(acc?1800:1200,t+0.06); o.connect(g); g.connect(d); trk(o); o.start(t); o.stop(t+0.07) }};
+const live=new Set(); const track=n=>{ live.add(n); n.onended=()=>live.delete(n); return n };
+function hush(){ live.forEach(n=>{ try{ n.stop() }catch(e){} }); live.clear() }
+// schedule every sounding beat of a plan (also used by the offline silence test)
+function schedule(ac,dest,plan,t0,snd,acc,trk){ const f=SND[snd]||SND.cow, out=[]; plan.beats.forEach(b=>{ if(!b.sound) return; const t=t0+b.t; f(ac,dest,t,acc&&b.bb===0,trk||(()=>{}),b.bb,plan.bpb); out.push(t) }); return out }
+
+// ================= CLOCK =================
+// Events (pointer, key, MIDI) carry a performance.now() time stamp; getOutputTimestamp() pairs that clock with the audio clock at the speaker.
+function outTs(){ try{ const o=audio.getOutputTimestamp&&audio.getOutputTimestamp(); if(o&&o.performanceTime>0&&o.contextTime>0) return o }catch(e){} return null }
+const outLat=()=>audio?((audio.outputLatency||0)+(audio.baseLatency||0)):0;
+function evToCtx(ts){ const o=outTs(); if(o) return o.contextTime+(ts-o.performanceTime)/1000; return audio.currentTime-(performance.now()-ts)/1000-outLat() }
+function heardNow(){ const o=outTs(); if(o) return o.contextTime+(performance.now()-o.performanceTime)/1000; return audio.currentTime-outLat() }
+// input delay: your calibration, or a typical default until you calibrate
+const DEF_LAG={tap:0.025,midi:0.006,mic:0.012};
+const lagOf=src=>{ const v=store.get("lat-"+src,null); return v==null?DEF_LAG[src]:v/1000 };
+
+// ================= STATE =================
+let lvl=store.get("lvl",1), bpm=store.get("bpm",96), bpb=store.get("bpb",4), mode=store.get("mode","prac"), inMode=store.get("in","tap");
+if(!LEVELS.find(L=>L.id===lvl)) lvl=1; bpm=clamp(+bpm||96,30,240); if(bpb!==3) bpb=4; if(!["prac","chal"].includes(mode)) mode="prac"; if(!["tap","midi","mic"].includes(inMode)) inMode="tap";
+["sndSel","accOn","ticksOn","ticksChal","hypeOn","retryOn","phonesOn","micSens"].forEach(id=>{ const el=$(id), v=store.get("set-"+id,null); if(v!=null){ if(el.type==="checkbox") el.checked=!!v; else el.value=v }
+  el.addEventListener("change",()=>{ store.set("set-"+id,el.type==="checkbox"?el.checked:el.value); if(id==="micSens") micCfg(); if(id==="ticksOn"||id==="ticksChal") ticksVis(); if(id==="phonesOn") inStatus() }) });
+let run=null, arc=null, calHook=null, lastRes=null, starting=false;
+
+// ================= UI: setup =================
+function buildLevels(){ const box=$("levels"); box.innerHTML=""; LEVELS.forEach(L=>{ const b=document.createElement("button"); b.type="button"; b.dataset.id=L.id; b.innerHTML=`<b>L${L.id}</b><span>${lvlName(L)}</span>`; b.setAttribute("aria-label",`Level ${L.id}: ${L.on?`${L.on} bar${L.on>1?"s":""} of sound, ${L.off} bar${L.off>1?"s":""} of silence`:`count-in, then ${L.off} bars of silence`}`); b.addEventListener("click",()=>{ if(busy()) return; lvl=L.id; store.set("lvl",lvl); mark() }); box.appendChild(b) }) }
+function buildTempos(){ const box=$("tempos"); TEMPOS.forEach(t=>{ const b=document.createElement("button"); b.type="button"; b.dataset.t=t; b.textContent=t; b.setAttribute("aria-label",t+" BPM"); b.addEventListener("click",()=>{ if(busy()) return; setBpm(t) }); box.appendChild(b) }) }
+function setBpm(v){ v=Math.round(clamp(+v||96,30,240)); bpm=v; store.set("bpm",v); mark() }
+$("bpmIn").addEventListener("change",()=>{ if(busy()){ $("bpmIn").value=bpm; return } setBpm($("bpmIn").value) });
+document.querySelectorAll("#meterSeg button").forEach(b=>b.addEventListener("click",()=>{ if(busy()) return; bpb=+b.dataset.m; store.set("bpb",bpb); mark() }));
+document.querySelectorAll("#modeSeg button").forEach(b=>b.addEventListener("click",()=>{ if(busy()) return; mode=b.dataset.m; store.set("mode",mode); mark() }));
+document.querySelectorAll("#inSeg button").forEach(b=>b.addEventListener("click",()=>{ if(busy()) return; setInput(b.dataset.i) }));
+const busy=()=>!!(run||arc||calHook||starting);
+function mark(){ document.querySelectorAll("#levels button").forEach(b=>b.setAttribute("aria-pressed",String(+b.dataset.id===lvl&&mode==="prac")));
+  document.querySelectorAll("#tempos button").forEach(b=>b.setAttribute("aria-pressed",String(+b.dataset.t===bpm)));
+  if(document.activeElement!==$("bpmIn")) $("bpmIn").value=bpm;
+  document.querySelectorAll("#meterSeg button").forEach(b=>b.setAttribute("aria-pressed",String(+b.dataset.m===bpb)));
+  document.querySelectorAll("#modeSeg button").forEach(b=>b.setAttribute("aria-pressed",String(b.dataset.m===mode)));
+  document.querySelectorAll("#inSeg button").forEach(b=>b.setAttribute("aria-pressed",String(b.dataset.i===inMode)));
+  $("levels").setAttribute("aria-disabled",String(mode==="chal")); $("levels").style.opacity=mode==="chal"?".55":"";
+  $("micBox").hidden=inMode!=="mic"; showBest(); ticksVis(); calLabel(); inStatus() }
+const bestKey=()=>mode==="chal"?`C-${bpm}-${bpb}`:`L${lvl}-${bpm}-${bpb}`;
+function showBest(){ const B=store.get("best",{})[bestKey()]; $("sBest").textContent=B?(mode==="chal"?`R${B.r}`:Math.round(B.pct*100)+"%"):"–" }
+function ticksVis(){ const on=mode==="chal"?$("ticksChal").checked:$("ticksOn").checked; $("ticks").hidden=!on; $("tickCap").hidden=!on }
+
+// ================= INPUT: tap, space, MIDI =================
+function padFlash(){ const p=$("pad"); p.classList.add("hit"); clearTimeout(padFlash.t); padFlash.t=setTimeout(()=>p.classList.remove("hit"),80) }
+$("pad").addEventListener("pointerdown",e=>{ e.preventDefault(); if(inMode!=="tap"&&!run&&!calHook) return; hit(evToCtxSafe(e.timeStamp),"tap") });
+document.addEventListener("keyup",e=>{ if(e.code==="Space"&&(run||calHook)) e.preventDefault() });
+document.addEventListener("keydown",e=>{ if(e.code!=="Space") return; const tg=e.target.tagName; if(["INPUT","SELECT","TEXTAREA"].includes(tg)) return;
+  if(!run&&!calHook){ if(tg==="BUTTON"||tg==="SUMMARY"||tg==="A") return; e.preventDefault(); if(!e.repeat&&!busy()&&$("results").hidden) $("goBtn").click(); return }
+  e.preventDefault(); if(e.repeat) return; hit(evToCtxSafe(e.timeStamp),"tap") });
+function evToCtxSafe(ts){ if(!audio) return null; return evToCtx(ts||performance.now()) }
+let midiAcc=null;
+async function midiStart(){ if(!navigator.requestMIDIAccess){ $("inStat").innerHTML="This browser can't use MIDI. Web MIDI works in Chrome and Edge (Safari, iPhone and iPad don't have it yet). Use Tap or Mic here."; return false }
+  try{ if(!midiAcc){ midiAcc=await navigator.requestMIDIAccess(); midiAcc.onstatechange=()=>{ hookMidi(); inStatus() } } hookMidi(); inStatus(); return true }catch(e){ $("inStat").textContent="MIDI was blocked. Allow MIDI for this page (the icon in the address bar), then pick MIDI again."; return false } }
+function hookMidi(){ if(!midiAcc) return; midiAcc.inputs.forEach(inp=>{ inp.onmidimessage=ev=>{ const d=ev.data; if(!d||d.length<3) return; if((d[0]&0xf0)===0x90&&d[2]>0){ if(inMode==="midi") hit(evToCtxSafe(ev.timeStamp),"midi") } } }) }
+function midiNames(){ const n=[]; if(midiAcc) midiAcc.inputs.forEach(i=>n.push(i.name||"MIDI device")); return n }
+
+function setInput(i){ inMode=i; store.set("in",i); if(i!=="mic") micStop(); mark(); if(i==="midi") midiStart(); if(i==="mic") inStatus() }
+const framed=(()=>{ try{ return window.self!==window.top }catch(e){ return true } })();
+function inStatus(){ const s=$("inStat"), h=$("padHint"); document.body.classList.toggle("in-tap",inMode==="tap");
+  if(inMode==="tap"){ s.textContent="Tap the pad or press the space bar on every beat."; h.textContent="Space bar or tap here"; $("pad").firstChild.textContent="TAP" }
+  else if(inMode==="midi"){ $("pad").firstChild.textContent="PLAY"; h.textContent="Play any key on your piano"; if(!navigator.requestMIDIAccess) s.innerHTML="Web MIDI works in Chrome and Edge only. Safari, iPhone and iPad don't have it yet: use Tap or Mic."; else if(midiAcc){ const n=midiNames(); s.textContent=n.length?`MIDI: ${n.join(", ")}. Play any key on every beat.`:"No MIDI device found. Plug in your piano by USB, then pick MIDI again." } else s.textContent="Pick MIDI to connect your piano (Chrome and Edge)." }
+  else { $("pad").firstChild.textContent="CLAP"; h.textContent="Clap, snap or play a note"; s.textContent=(mic?"Mic on. ":"The mic turns on when you press Start. ")+($("phonesOn").checked?"Headphones: every beat is graded.":"Speakers: the mic listens in the silences only (headphones grade every beat).")+" Beta." } }
+
+// ================= MIC (Beta): spectral-flux onsets in an AudioWorklet =================
+// Every 128 samples a 512-point FFT of the last 512 samples; flux = how much the spectrum grew (log magnitudes, positive changes only).
+// The worklet hears every sample (no snapshot gaps), so a re-struck note that is still ringing still shows up as a jump.
+// An onset = a local peak of the flux above (k x its recent average + floor), at least `refr` seconds after the last one.
+const FLUX_SRC=`class MMFlux extends AudioWorkletProcessor{constructor(){super();const N=this.N=512;this.buf=new Float32Array(N);this.win=new Float32Array(N).map((_,i)=>0.5-0.5*Math.cos(2*Math.PI*i/(N-1)));
+ this.re=new Float32Array(N);this.im=new Float32Array(N);this.prev=new Float32Array(N/2+1);this.hist=new Float32Array(48);this.hi=0;this.k=1.8;this.floor=6;this.refr=0.07;this.last=-9;this.f0=0;this.f1=0;this.t1=0;this.th1=1e9;this.lv=0;this.cnt=0;this.filled=0;
+ this.rev=new Uint16Array(N);for(let i=0,j=0;i<N;i++){this.rev[i]=j;let b=N>>1;while(j&b){j^=b;b>>=1}j|=b}
+ this.cs=new Float32Array(N/2);this.sn=new Float32Array(N/2);for(let i=0;i<N/2;i++){this.cs[i]=Math.cos(-2*Math.PI*i/N);this.sn[i]=Math.sin(-2*Math.PI*i/N)}
+ this.port.onmessage=e=>Object.assign(this,e.data)}
+ fft(){const N=this.N,re=this.re,im=this.im;for(let i=0;i<N;i++){const j=this.rev[i];if(j>i){let t=re[i];re[i]=re[j];re[j]=t;t=im[i];im[i]=im[j];im[j]=t}}
+  for(let L=2;L<=N;L<<=1){const h=L>>1,st=N/L;for(let i=0;i<N;i+=L)for(let k=0;k<h;k++){const c=this.cs[k*st],s=this.sn[k*st],a=i+k,b=a+h,tr=re[b]*c-im[b]*s,ti=re[b]*s+im[b]*c;re[b]=re[a]-tr;im[b]=im[a]-ti;re[a]+=tr;im[a]+=ti}}}
+ process(ins){const x=ins[0]&&ins[0][0];if(!x)return true;const N=this.N,n=x.length;this.buf.copyWithin(0,n);this.buf.set(x,N-n);this.filled+=n;
+  for(let i=0;i<n;i++){const a=x[i]<0?-x[i]:x[i];if(a>this.lv)this.lv=a}
+  for(let i=0;i<N;i++){this.re[i]=this.buf[i]*this.win[i];this.im[i]=0}this.fft();
+  let fl=0;for(let k=2;k<=N/2;k++){const m=Math.log(1+100*Math.hypot(this.re[k],this.im[k]));const d=m-this.prev[k];if(d>0)fl+=d;this.prev[k]=m}
+  if(this.filled<sampleRate*0.25){this.hist[this.hi++%48]=fl;return true}
+  let mean=0;for(let i=0;i<48;i++)mean+=this.hist[i];mean/=48;const th=this.k*mean+this.floor;
+  const tc=currentTime+n/sampleRate-0.3*N/sampleRate;
+  if(this.f1>this.th1&&this.f1>=this.f0&&this.f1>fl&&this.t1-this.last>this.refr){this.last=this.t1;this.port.postMessage({on:this.t1,f:this.f1,th:this.th1})}
+  this.f0=this.f1;this.f1=fl;this.t1=tc;this.th1=th;this.hist[this.hi++%48]=fl;
+  if(++this.cnt>=24){this.port.postMessage({lv:this.lv});this.lv=0;this.cnt=0}return true}}
+registerProcessor('mm-flux',MMFlux);`;
+let mic=null, fluxURL=null;
+const dbgLines=[]; function dbg(s){ dbgLines.push(s); if(dbgLines.length>120) dbgLines.shift(); const d=$("dbg"); if(d&&$("dbgBox").open){ d.textContent=dbgLines.slice().reverse().join("\n") } }
+$("dbgBox").addEventListener("toggle",()=>{ $("dbg").textContent=dbgLines.length?dbgLines.slice().reverse().join("\n"):"No mic events yet." });
+function micCfg(){ if(!mic||!mic.node) return; const s=+$("micSens").value; mic.node.port.postMessage({k:2.6-s*0.12,floor:16-s*1.5,refr:Math.min(0.08,0.35*60/bpm)}) }
+async function fluxNode(a){ if(!a.__mmflux){ fluxURL=fluxURL||URL.createObjectURL(new Blob([FLUX_SRC],{type:"text/javascript"})); a.__mmflux=a.audioWorklet.addModule(fluxURL) } await a.__mmflux; return new AudioWorkletNode(a,"mm-flux",{numberOfInputs:1,numberOfOutputs:1,outputChannelCount:[1]}) }
+async function micStart(){ const s=$("inStat");
+  if(!window.isSecureContext||!navigator.mediaDevices||!navigator.mediaDevices.getUserMedia){ s.textContent="This browser can't reach the microphone here (the address must start with https). Use Tap or MIDI."; return false }
+  try{ const pp=document.permissionsPolicy||document.featurePolicy; if(pp&&pp.allowsFeature&&!pp.allowsFeature("microphone")){ s.innerHTML=`The microphone can't turn on inside this page (embeds keep it off). <a href="${location.href.split("#")[0]}" target="_blank" rel="noopener">Open full screen</a>, or use Tap.`; return false } }catch(e){}
+  if(mic) return true; const a=ctx(); s.textContent="Waiting for the microphone. Tap Allow if your device asks.";
+  try{ aSess("play-and-record"); const st=await navigator.mediaDevices.getUserMedia({audio:{echoCancellation:false,noiseSuppression:false,autoGainControl:false}}); await a.resume();
+    if(inMode!=="mic"){ st.getTracks().forEach(t=>t.stop()); aSess("playback"); return false }
+    const src=a.createMediaStreamSource(st), node=await fluxNode(a), mute=a.createGain(); mute.gain.value=0; src.connect(node); node.connect(mute).connect(a.destination);
+    mic={st,src,node,mute}; micCfg();
+    node.port.onmessage=e=>{ const d=e.data; if(d.lv!=null){ $("micLvl").style.width=Math.min(100,d.lv*250)+"%"; return } if(d.on!=null) micOnset(d) };
+    inStatus(); dbg(`${a.currentTime.toFixed(3)} mic on · ${a.sampleRate} Hz · out latency ${Math.round(outLat()*1000)} ms`); return true
+  }catch(e){ s.textContent=e&&e.name==="NotAllowedError"?"The microphone was blocked. Allow it for this page (the icon in the address bar), or use Tap.":"The microphone didn't start ("+(e&&e.name||"error")+"). Use Tap or MIDI."; aSess("playback"); return false } }
+function micStop(){ if(!mic) return; try{ mic.st.getTracks().forEach(t=>t.stop()); mic.src.disconnect(); mic.node.disconnect() }catch(e){} mic=null; aSess("playback") }
+function hypeBusy(){ try{ return !!(window.chmaHype&&(chmaHype.isPlaying()||performance.now()<chmaHype.endsAt+150)) }catch(e){ return false } }
+// a mic onset (input-clock time) becomes a tap; the micSafe-style gate drops the app's own sounds and the round music
+function micOnset(d){ const t=d.on-outLat(), tag=`${d.on.toFixed(3)} s  flux ${d.f.toFixed(1)} (thr ${d.th.toFixed(1)})`;
+  if(inMode!=="mic"){ return }
+  if(hypeBusy()){ dbg(tag+"  gated: round music"); return }
+  if(calHook){ dbg(tag+"  calibration"); calHook(t,"mic",d); return }
+  if(!run){ dbg(tag+"  (not running)"); padFlash(); return }
+  if(!$("phonesOn").checked){ const rel=t-lagOf("mic")-run.t0; const near=run.sounds.some(s=>rel-s> -0.03&&rel-s<0.25); if(near){ dbg(tag+"  gated: app sound"); return } }
+  dbg(tag+"  counted"); hit(t,"mic",true) }
+
+// ================= TAPS =================
+const tickBuf=[];
+function hit(t,src,isMic){ if(t==null) return; padFlash();
+  if(calHook){ calHook(t,src); return }
+  if(!run) return;
+  const rel=t-lagOf(src)-run.t0; if(rel<-run.plan.P) return; run.taps.push(rel); run.raw.push({t,src}); addTick(rel) }
+function addTick(rel){ if($("ticks").hidden) return; const P=run.plan.P, k=Math.round(rel/P), b=run.plan.beats[clamp(k,0,run.plan.beats.length-1)], off=rel-k*P;
+  tickBuf.push({pos:((rel/P)%run.plan.bpb+run.plan.bpb)%run.plan.bpb,off}); if(tickBuf.length>8) tickBuf.shift(); drawTicks() }
+function drawTicks(){ const svg=$("ticks"), w=svg.clientWidth||300, h=40, n=bpb; let s="";
+  for(let k=0;k<n;k++){ const x=12+(w-24)*(k/n); s+=`<line x1="${x}" x2="${x}" y1="6" y2="34" stroke="#3a3d45" stroke-width="${k?1:2}"/>` }
+  const sc=run?winScale(run.plan.P):1;
+  tickBuf.forEach((tk,i)=>{ const x=12+(w-24)*(tk.pos/n), a=Math.abs(tk.off), c=a<=0.05*sc?"#33d17a":a<=0.09*sc?"#ffb21a":"#ff4d5e", op=(0.35+0.65*(i+1)/tickBuf.length).toFixed(2); s+=`<line x1="${x.toFixed(1)}" x2="${x.toFixed(1)}" y1="4" y2="36" stroke="${c}" stroke-width="4" stroke-linecap="round" opacity="${op}"/>` });
+  svg.setAttribute("viewBox",`0 0 ${w} ${h}`); svg.innerHTML=s }
+
+// ================= RUN =================
+function setState(t,s,cls){ const T=$("stT"); if(T.textContent!==t) T.textContent=t; T.className=cls||""; if($("stS").textContent!==s) $("stS").textContent=s }
+function light(on,acc,gap,num){ const L=$("light"); L.classList.toggle("on",!!on); L.classList.toggle("acc",!!(on&&acc)); L.classList.toggle("gap",!!gap); const txt=gap?"SILENCE":num||""; if(L.textContent!==txt) L.textContent=txt }
+function lockUI(){ document.body.classList.toggle("running",!!(run||arc)); $("goBtn").textContent=run||arc?"Stop":"Start"; $("calBtn").disabled=busy(); $("calBtn2").disabled=busy() }
+async function prepInput(){ if(inMode==="mic") return await micStart(); if(inMode==="midi"){ await midiStart(); return true } return true }
+// start one run of a plan; done(res) is called with the graded result
+async function startRun(L,done){ const a=ctx(); try{ await a.resume() }catch(e){}
+  const plan=buildPlan(L,bpm,bpb); let wait=0; if(inMode==="mic"&&window.chmaHype){ try{ wait=Math.max(0,chmaHype.endsAt+200-performance.now()) }catch(e){} }
+  const t0=a.currentTime+0.35+wait/1000;
+  hush(); const sounds=schedule(a,a.destination,plan,t0,$("sndSel").value,$("accOn").checked,track).map(t=>t-t0);
+  run={plan,t0,taps:[],raw:[],sounds,done,phase:"",lastGrade:null,gradeOn:inMode!=="mic"||$("phonesOn").checked}; tickBuf.length=0; drawTicks(); lockUI();
+  $("sPts").textContent="0"; $("sPct").textContent="–"; $("sTempo").textContent="–";
+  requestAnimationFrame(loop) }
+function loop(){ const R=run; if(!R) return; const P=R.plan.P, rt=heardNow()-R.t0, k=Math.floor(rt/P), B=R.plan.beats;
+  if(rt<0){ light(false); setState("Get ready",inMode==="mic"?"Clap, snap or play on every beat. The count-in starts now.":"Tap every beat, the whole time. Count-in first.") }
+  else if(k<B.length){ const b=B[k], into=rt-k*P, flash=b.sound&&into<Math.min(0.12,0.45*P);
+    if(b.ph==="gap"){ light(false,false,true); setState("SILENCE: keep going","Keep tapping. The beat comes back. Don't wait for it.","sil") }
+    else if(b.ph==="ci"){ light(flash,b.bb===0,false,String(b.bb+1)); setState("Count-in",`Listen, then join in: ${Array.from({length:R.plan.bpb},(_,i)=>i+1).join(" ")}`) }
+    else { light(flash,b.bb===0); const pb=B[k-b.bb-1], back=!!(pb&&pb.ph==="gap"); setState(back?"It's back. Still with it?":"Sound on: tap with it",back?"Hear where you landed. Keep going.":"Lock in. Silence is coming.") }
+    const ph=b.ph+(b.gap>=0?b.gap:""); if(ph!==R.phase){ const was=R.phase; R.phase=ph; if(b.ph==="gap"){ tickBuf.length=0; drawTicks() } if(was.startsWith("gap")) setTimeout(()=>liveGrade(R),Math.round(P*600)) } }
+  if(rt>R.plan.end+0.15*P){ light(false); return finishRun(R) }
+  requestAnimationFrame(loop) }
+function liveGrade(R){ if(run!==R) return; const rt=heardNow()-R.t0, res=grade(R.plan,R.taps,{until:rt-0.45*R.plan.P,gradeOn:R.gradeOn}); R.lastGrade=res; showLive(res) }
+function showLive(res){ $("sPts").textContent=res.score; $("sPct").textContent=res.max?Math.round(res.pct*100)+"%":"–"; const lg=res.gaps[res.gaps.length-1]; $("sTempo").textContent=lg&&lg.bpm?Math.round(lg.bpm):"–";
+  if(arc&&arc.round>1){ const hitT=res.pct>=arc.need/100; $("arcFill").style.width=Math.min(100,res.pct*100)+"%"; $("arcMeter").classList.toggle("hit",hitT); if(hitT&&!arc.hit){ arc.hit=true; const hs=$("hitStamp"); hs.classList.remove("go"); void hs.offsetWidth; hs.classList.add("go") } } }
+function finishRun(R){ if(run!==R) return; setTimeout(()=>{ if(run!==R) return; run=null; const res=grade(R.plan,R.taps,{gradeOn:R.gradeOn}); res.plan=R.plan; res.rawTaps=R.taps.slice(); res.gradeOn=R.gradeOn; lastRes=res; showLive(res); lockUI(); R.done(res) },Math.round(R.plan.P*450)) }
+function abort(msg){ hush(); if(run){ run=null } calHook=null; if(arc){ arc=null; $("arcRow").hidden=true; $("arcMeter").hidden=true } hypeStop(); $("splash").hidden=true; starting=false; lockUI(); light(false); setState("Stopped",msg||"Press Start to go again.") }
+document.addEventListener("visibilitychange",()=>{ if(document.hidden&&(run||arc||calHook)) abort("The app was in the background, so this run stopped. Press Start to go again.") });
+
+// ================= PRACTICE =================
+$("goBtn").addEventListener("click",async()=>{ if(run||arc){ abort(); return } if(calHook||starting) return; starting=true; lockUI();
+  const ok=await prepInput(); starting=false; if(!ok&&inMode==="mic"){ lockUI(); return }
+  $("results").hidden=true; $("card").classList.remove("showres");
+  if(mode==="chal") return arcStart();
+  const L=LEVELS.find(x=>x.id===lvl); await startRun(L,res=>{ setState("Done","Here's how your clock held up."); saveBest(res); showResults(res,`Level ${lvl} · ${lvlName(L)}`) }) });
+function saveBest(res){ if(!res.max) return; const all=store.get("best",{}), k=bestKey(), B=all[k]; res.isBest=!B||res.pct>B.pct+1e-9; if(res.isBest){ all[k]={pct:res.pct,score:res.score,at:Date.now()}; store.set("best",all) } showBest() }
+
+// ================= CHALLENGE =================
+let splashTok=0;
+function hypePlay(ms){ try{ if(window.chmaHype&&$("hypeOn").checked){ const a=ctx(); a.resume().catch(()=>{}); chmaHype.play(ms,{ctx:a,round:arc?Math.min(5,arc.round):1,bonus:!!(arc&&arc.round===6),enabled:$("hypeOn").checked,micSafe:inMode==="mic"}) } }catch(e){} }
+function hypeStop(f){ try{ window.chmaHype&&chmaHype.stop(f||120) }catch(e){} }
+function splash(pre,t,tp,sub,then){ const tok=++splashTok, ms=Math.max(4500,2500+sub.length*30); $("spP").textContent=pre||""; $("spT").textContent=t; $("spB").textContent=tp||""; $("spS").textContent=sub; $("spTap").hidden=true;
+  const sp=$("splash"); sp.hidden=false; sp.classList.remove("go"); void sp.offsetWidth; sp.classList.add("go");
+  let done=false; const go=()=>{ if(done||tok!==splashTok) return; done=true; if(inMode!=="mic") hypeStop(120); sp.onpointerdown=null; sp.hidden=true; if(arc) then() };
+  hypePlay(ms); sp.onpointerdown=null; setTimeout(()=>{ if(tok!==splashTok||done) return; $("spTap").hidden=false; sp.onpointerdown=e=>{ e.preventDefault(); go() } },900); setTimeout(go,ms) }
+const rName=r=>r===6?"BONUS ROUND":`ROUND ${r}`;
+const rDesc=R=>`${R.on} bar${R.on>1?"s":""} on · ${R.off} bar${R.off>1?"s":""} of silence`;
+function arcStart(){ arc={round:1,results:[],warm:null,need:0,hit:false,retry:false}; lockUI(); $("arcRow").hidden=false; $("arcMeter").hidden=true; arcBar();
+  splash("CHALLENGE MODE","ROUND 1",`${bpm} BPM · ${bpb}/4`,`Warm-up: ${rDesc(ROUNDS[0])}. No target yet: this round sets your targets. The silence grows every round.`,arcRound) }
+function arcNeed(r){ return Math.round(clamp(Math.min(85,(arc.warm||0.7)*100*0.85)-(r-2)*4,35,85)) }
+function arcBar(){ const r=arc.round; $("arcRound").textContent=`${r===6?"BONUS":`ROUND ${r} OF 5`} · ${ROUNDS[r-1].off} OFF`; $("arcFire").hidden=r!==6;
+  if(r===1){ $("arcNeed").textContent="WARM-UP"; $("arcNeed").classList.remove("met"); $("arcMeter").hidden=true; return }
+  $("arcNeed").textContent=`TARGET ${arc.need}%`; $("arcMeter").hidden=false; $("arcTgt").style.left=`calc(${arc.need}% - 1px)`; $("arcFill").style.width="0%"; $("arcMeter").classList.remove("hit") }
+function arcRound(){ if(!arc) return; arc.hit=false; arcBar(); startRun(ROUNDS[arc.round-1],arcRoundEnd) }
+function arcRoundEnd(res){ if(!arc) return; const r=arc.round, p=Math.round(res.pct*100); res.round=r; arc.results.push(res);
+  if(r===1){ arc.warm=res.pct; arc.round=2; arc.need=arcNeed(2); arc.retry=false; arcBar(); return splash(`WARM-UP DONE · ${res.score} POINTS · ${p}%`,rName(2),rDesc(ROUNDS[1]),`Target: ${arc.need}% of the points. ${res.headline}`,arcRound) }
+  if(r===6) return arcFinish(true,res);
+  if(res.pct*100<arc.need){ if($("retryOn").checked&&!arc.retry){ arc.retry=true; return splash(`${p}% · TARGET ${arc.need}%`,"SECOND TRY",rDesc(ROUNDS[r-1]),`One more shot at ${rName(r).toLowerCase()}. ${FIX[res.key]||""}`,arcRound) } return arcFinish(false,res) }
+  arc.round++; arc.retry=false; arc.need=arcNeed(arc.round); arcBar();
+  splash(`${rName(r)} CLEARED ✓ · ${p}%`,rName(arc.round),rDesc(ROUNDS[arc.round-1]),arc.round===6?`Bonus: 16 bars of silence. Target ${arc.need}%. Count the bars.`:`Longer silence. Target: ${arc.need}% of the points.`,arcRound) }
+function arcFinish(won,res){ hypeStop(); const A=arc; arc=null; $("arcRow").hidden=true; $("arcMeter").hidden=true; lockUI();
+  const cleared=won?6:A.round-1, tot=A.results.reduce((s,r)=>s+r.score,0);
+  const all=store.get("best",{}), k=bestKey(), B=all[k]; const isBest=!B||cleared>B.r||(cleared===B.r&&tot>B.score); if(isBest){ all[k]={r:cleared,score:tot,at:Date.now()}; store.set("best",all) } showBest();
+  const why=won?`All 5 rounds cleared, and the bonus round too. ${tot} points at ${bpm} BPM.`:A.round===1?"":`${A.round===6?"The bonus round":"Round "+A.round} needed ${A.need}%. You had ${Math.round(res.pct*100)}%. ${cleared>=1?`Rounds cleared: ${cleared}.`:""}`;
+  res.isBest=isBest; res.chal={won,results:A.results,why,tot}; setState(won?"Challenge cleared!":"Challenge over",why||"Here's how your clock held up.");
+  showResults(res,won?"Challenge cleared!":"Challenge over") }
+
+// ================= RESULTS =================
+function showResults(res,title){ $("card").classList.add("showres"); $("results").hidden=false; $("rTitle").textContent=title; lastRes=res;
+  const ch=res.chal; $("rRounds").hidden=!ch; $("rSel").hidden=!(ch&&ch.results.length>1);
+  if(ch){ $("rRounds").innerHTML=ch.results.map(r=>`<span class="pill">${r.round===6?"BONUS":"R"+r.round} ${Math.round(r.pct*100)}%</span>`).join("");
+    $("rSel").innerHTML=ch.results.map((r,i)=>`<button class="key" type="button" data-i="${i}" aria-pressed="${i===ch.results.length-1}">${r.round===6?"Bonus":"Round "+r.round}${i>0&&ch.results[i-1].round===r.round?" (2nd try)":""}</button>`).join("");
+    $("rSel").querySelectorAll("button").forEach(b=>b.addEventListener("click",()=>{ $("rSel").querySelectorAll("button").forEach(x=>x.setAttribute("aria-pressed",String(x===b))); detail(ch.results[+b.dataset.i],true) })) }
+  const total=ch?ch.tot:res.score, max=ch?ch.results.reduce((s,r)=>s+r.max,0):res.max;
+  $("rOf").textContent=`/ ${max} points`; $("rNew").hidden=!res.isBest; countUp($("rPts"),total);
+  detail(res,!!ch); $("rStamp").textContent=`${new Date().toLocaleString()} · ${bpm} BPM · ${bpb}/4 · ${inMode==="tap"?"Tap":inMode==="midi"?"MIDI":"Mic"} · Meter Master ${VER}`;
+  setTimeout(()=>{ try{ $("rTitle").focus({preventScroll:true}) }catch(e){} },50) }
+function countUp(el,to){ const t0=performance.now(), dur=Math.min(1400,300+to*6); cancelAnimationFrame(countUp.r); const f=()=>{ const p=Math.min(1,(performance.now()-t0)/dur); el.textContent=Math.round(to*(1-Math.pow(1-p,3))); if(p<1) countUp.r=requestAnimationFrame(f) }; f() }
+function detail(res,isCh){ const plan=res.plan, V=$("rVerdict"), good=res.key==="solid", bad=res.key==="lost";
+  let v=res.headline||""; if(isCh&&res.round) v=`${res.round===6?"Bonus":"Round "+res.round}: `+v; if(res.chal&&res.chal.why) v=res.chal.why+" "+v; V.textContent=v;
+  V.className="verdict "+(good?"good":bad?"bad":"warn"); $("rFix").textContent=FIX[res.key]||"";
+  $("rAcc").textContent=Math.round(res.pct*100)+"%"; $("rOff").textContent=res.gMean==null?"–":fmtMs(res.gMean); $("rSpread").textContent=res.gSpread==null?"–":"±"+Math.round(res.gSpread*1000)+" ms";
+  $("rTempo").textContent=res.gBpm==null?"–":`${Math.round(res.gBpm)} / ${plan.bpm}`; $("rMiss").textContent=`${res.gMissed} / ${res.gExtra}`;
+  $("rRe").textContent=res.reMean==null?"–":`${Math.round(res.reMean*1000)} ms${res.reProj?"*":""}`;
+  drawCharts(res); gapCards(res) }
+function gapCards(res){ const P=res.plan.P, rk={on:"right on it",early:"early",late:"late",none:"no tap"};
+  $("rGaps").innerHTML=res.gaps.map(S=>{ const cls=S.key==="solid"?"good":S.key==="lost"?"bad":"warn";
+    const re=S.re==null?"no tap":`${fmtMs(S.re)} (${rk[S.reKey]}${S.reProj?", projected from your taps":""})`;
+    return `<div class="gapc"><b class="t">Silence ${S.idx+1} · ${S.bars} bar${S.bars>1?"s":""}</b> · <span class="v ${cls}">${S.text}</span><br>
+      <span class="m">avg ${S.mean==null?"–":fmtMs(S.mean)} · spread ±${S.spread==null?"–":Math.round(S.spread*1000)} ms · tempo ${S.bpm?Math.round(S.bpm)+" BPM":"–"}${S.drift!=null?` (${S.drift>=0?"+":"−"}${pc(Math.abs(S.drift))})`:""} · missed ${S.missed} · extra ${S.extra}</span><br>
+      <span class="m">Back in: ${re}${S.lostAt&&S.key!=="lost"?` · drifted past ${Math.round(Math.max(0.3*P,0.12)*1000)} ms by bar ${S.lostAt}`:""}${S.pen?` · drift −${S.pen} pts`:""}</span></div>` }).join("")+(res.gradeOn===false?`<p class="fix" style="color:var(--c-mut)">Mic on speakers: only the silences were graded. * Re-entry is projected from your taps in the silence.</p>`:"") }
+function drawCharts(res){ const plan=res.plan, P=plan.P, B=plan.beats, first=B.find(b=>b.graded)||B[0], t0=first.t-0.6*P, t1=B[B.length-1].t+0.6*P;
+  const wrapW=Math.max(280,($("svgT").parentNode.clientWidth||600)-2), nb=B.length-first.i, W=Math.max(wrapW,nb*12+40), X=t=>20+(t-t0)/(t1-t0)*(W-40);
+  const col=p=>p>=2?"#33d17a":p===1?"#ffb21a":"#ff4d5e";
+  let sh=""; plan.gaps.forEach(g=>{ const a=X(B[g.from].t-0.5*P), b=X(B[g.to-1].t+0.5*P); sh+=`<rect x="${a.toFixed(1)}" y="0" width="${(b-a).toFixed(1)}" height="100%" fill="rgba(255,178,26,.16)" stroke="rgba(255,178,26,.5)" stroke-width="1"/><text x="${((a+b)/2).toFixed(1)}" y="18" text-anchor="middle" font-size="14" font-weight="700" fill="#ffb21a" font-family="Inter,system-ui,sans-serif">SILENCE ${g.idx+1}</text>` });
+  // timeline
+  const H=120, TY=74; let s=sh;
+  B.forEach(b=>{ if(b.i<first.i) return; const x=X(b.t); s+=`<line x1="${x.toFixed(1)}" x2="${x.toFixed(1)}" y1="${b.bb===0?40:52}" y2="${TY+20}" stroke="${b.sound?"#6b7280":"#4b4f58"}" stroke-width="${b.bb===0?2:1}" ${b.sound?"":'stroke-dasharray="3 3"'}/>`;
+    if(b.ret>=0) s+=`<text x="${x.toFixed(1)}" y="${TY+38}" text-anchor="middle" font-size="14" fill="#9aa3b2" font-family="Inter,system-ui,sans-serif">back</text>` });
+  const byBeat=new Map(res.beats.map(r=>[r.b.i,r]));
+  res.beats.forEach(r=>{ if(r.off==null){ const x=X(r.b.t); s+=`<circle cx="${x.toFixed(1)}" cy="${TY}" r="6" fill="none" stroke="#ff4d5e" stroke-width="2" stroke-dasharray="3 2"/>` } });
+  res.taps.forEach(tp=>{ const x=X(tp.t); if(tp.beat<0){ s+=`<text x="${x.toFixed(1)}" y="${TY+6}" text-anchor="middle" font-size="18" font-weight="800" fill="#ff4d5e">×</text>`; return } const r=byBeat.get(tp.beat); s+=`<line x1="${x.toFixed(1)}" x2="${x.toFixed(1)}" y1="${TY-16}" y2="${TY+16}" stroke="${col(r.pts)}" stroke-width="4" stroke-linecap="round"/>` });
+  const sv=$("svgT"); sv.setAttribute("width",W); sv.setAttribute("height",H); sv.setAttribute("viewBox",`0 0 ${W} ${H}`); sv.innerHTML=s;
+  // early / late chart: up = ahead (early, rushing), down = behind (late, dragging)
+  const CH=170, mid=95, lim=Math.max(0.12,Math.min(0.5*P,Math.max(0.12,...res.beats.filter(r=>r.off!=null).map(r=>Math.abs(r.off)))*1.15)), Y=o=>mid+clamp(o,-lim,lim)/lim*65;
+  let c=sh.replace(/y="18"/g,'y="16"'); const w1=res.W[1];
+  c+=`<rect x="20" y="${Y(-w1).toFixed(1)}" width="${W-40}" height="${(Y(w1)-Y(-w1)).toFixed(1)}" fill="rgba(51,209,122,.10)"/>`;
+  c+=`<line x1="20" x2="${W-20}" y1="${mid}" y2="${mid}" stroke="#9aa3b2" stroke-width="1"/>`;
+  c+=`<text x="24" y="${mid-50}" font-size="14" fill="#9aa3b2" font-family="Inter,system-ui,sans-serif">↑ early (ahead)</text><text x="24" y="${mid+62}" font-size="14" fill="#9aa3b2" font-family="Inter,system-ui,sans-serif">↓ late (behind)</text>`;
+  c+=`<text x="${W-24}" y="${mid-50}" text-anchor="end" font-size="14" fill="#9aa3b2" font-family="JetBrains Mono,monospace">−${Math.round(lim*1000)} ms</text><text x="${W-24}" y="${mid+62}" text-anchor="end" font-size="14" fill="#9aa3b2" font-family="JetBrains Mono,monospace">+${Math.round(lim*1000)} ms</text>`;
+  let path="", pen=false; res.beats.forEach(r=>{ if(r.off==null){ pen=false; return } const x=X(r.b.t).toFixed(1), y=Y(-r.off).toFixed(1); path+=(pen?"L":"M")+x+" "+y; pen=true });
+  // note: Y(-off) puts an early tap (negative offset) above the line
+  c+=`<path d="${path}" fill="none" stroke="#6e95ff" stroke-width="2.5" stroke-linejoin="round"/>`;
+  res.beats.forEach(r=>{ if(r.off==null) return; c+=`<circle cx="${X(r.b.t).toFixed(1)}" cy="${Y(-r.off).toFixed(1)}" r="3.5" fill="${col(r.pts)}"/>` });
+  const sc=$("svgC"); sc.setAttribute("width",W); sc.setAttribute("height",CH); sc.setAttribute("viewBox",`0 0 ${W} ${CH}`); sc.innerHTML=c }
+$("closeBtn").addEventListener("click",()=>{ $("results").hidden=true; $("card").classList.remove("showres"); setState("Ready","Pick a level and tempo, then press Start.") });
+$("againBtn").addEventListener("click",()=>{ $("results").hidden=true; $("card").classList.remove("showres"); $("goBtn").click() });
+
+// ================= CALIBRATION =================
+// Tap (or play, or clap) along with 8 clicks at 100 BPM. Clicks 3-8 count; the median offset is saved for this input.
+function calLabel(){ const v=store.get("lat-"+inMode,null), nm=inMode==="tap"?"Tap":inMode==="midi"?"MIDI":"Mic"; $("calTxt").textContent=v==null?`${nm}: not calibrated yet (using a typical ${Math.round(DEF_LAG[inMode]*1000)} ms).`:`${nm} offset ${v} ms (saved).` }
+$("calReset").addEventListener("click",()=>{ try{ localStorage.removeItem("mm-lat-"+inMode) }catch(e){} calLabel() });
+async function calibrate(){ if(busy()) return; starting=true; lockUI(); const ok=await prepInput(); starting=false; if(!ok){ lockUI(); return } const a=ctx(); await a.resume();
+  const NC=8, sp=0.6, t0=a.currentTime+0.6, hits=[]; for(let i=0;i<NC;i++) SND.wood(a,a.destination,t0+i*sp,i===0,track);
+  const src=inMode; calHook=(t,s)=>{ if(s===src) hits.push(t) }; lockUI();
+  setState("Calibrating",src==="mic"?"Clap with each of the 8 clicks.":src==="midi"?"Play a key with each of the 8 clicks.":"Tap with each of the 8 clicks."); $("calTxt").textContent="Listening…";
+  setTimeout(()=>{ calHook=null; lockUI(); const offs=[]; let spk=null;
+    // mic on speakers: the speaker's own click shows up at the same spot every time; learn it from clicks 1-2 and skip it later
+    if(src==="mic"&&!$("phonesOn").checked){ const o=[0,1].map(k=>hits.filter(t=>Math.abs(t-(t0+k*sp))<0.25).map(t=>t-(t0+k*sp))[0]).filter(v=>v!=null); if(o.length===2&&Math.abs(o[0]-o[1])<0.004) spk=(o[0]+o[1])/2 }
+    for(let k=2;k<NC;k++){ let c=hits.map(t=>t-(t0+k*sp)).filter(v=>Math.abs(v)<0.25); if(spk!=null) c=c.filter(v=>Math.abs(v-spk)>0.008); if(c.length) offs.push(c.sort((x,y)=>Math.abs(x)-Math.abs(y))[0]) }
+    if(offs.length<4){ $("calTxt").textContent="Not enough hits. Try again: one tap with every click."; setState("Ready","Calibration didn't save. Try again."); return }
+    offs.sort((x,y)=>x-y); const med=offs[offs.length>>1], q=f=>offs[Math.round(f*(offs.length-1))];
+    if(q(0.75)-q(0.25)>0.045){ $("calTxt").textContent=`Too uneven (spread ${Math.round((q(0.75)-q(0.25))*1000)} ms). Nothing saved. Try again, steady with the clicks.`; setState("Ready","Calibration didn't save. Try again."); return }
+    const v=Math.round(med*1000); store.set("lat-"+src,v); calLabel(); setState("Calibrated",`Your ${src==="tap"?"tap":src==="midi"?"MIDI":"mic"} offset is ${v} ms. Saved.`) },(0.6+NC*sp+0.5)*1000) }
+$("calBtn").addEventListener("click",calibrate); $("calBtn2").addEventListener("click",calibrate);
+$("hearBtn").addEventListener("click",async()=>{ const a=ctx(); await a.resume(); const t=a.currentTime+0.08, P=60/bpm; for(let k=0;k<bpb;k++) SND[$("sndSel").value](a,a.destination,t+k*P,$("accOn").checked&&k===0,track,k,bpb) });
+
+// ================= INIT =================
+buildLevels(); buildTempos(); mark(); drawTicks(); light(false);
+window.addEventListener("resize",()=>{ drawTicks(); if(lastRes&&!$("results").hidden) drawCharts(lastRes) });
+if(inMode==="midi") midiStart();
+
+// test hooks (read-only helpers for the automated checks)
+window.__mm={VER,LEVELS,ROUNDS,buildPlan,grade,schedule,SND,winScale,
+  tapCtx:(t,src)=>hit(t,src||"tap"), state:()=>({run:!!run,arc:arc?{round:arc.round,need:arc.need}:null,mode,inMode,bpm,bpb,lvl,lastRes,t0:run&&run.t0,plan:run&&run.plan}),
+  ctx:()=>ctx(), heardNow:()=>heardNow(), evToCtx:ts=>evToCtx(ts), lagOf, FLUX_SRC, fluxNode, micOnset:d=>micOnset(d)};
+})();
+</script>
+</body>
+</html>
