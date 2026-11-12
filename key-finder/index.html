@@ -147,21 +147,94 @@ button:focus-visible,summary:focus-visible,input:focus-visible{outline:3px solid
 .why{font-weight:600}
 @media (max-width:400px){.arcbar{font-size:11.5px;gap:6px}.arcbar .pill{padding:3px 8px}.arcsplash b{font-size:34px}.arcsplash span{font-size:14px}.hitstamp{font-size:32px;padding:10px 18px}}
 @media (prefers-reduced-motion:reduce){.arcsplash.go *,.hitstamp.go{animation-duration:.01s!important;animation-delay:0s!important}.arcbar .fire,.arcmeter.flash{animation:none!important}.bar i,.arcmeter i{transition:none}}
+/* ---- Layout 2026-11-12: setup left, play card + action bar right (desktop); compact setup + fixed bottom action bar (phone/tablet) ---- */
+.cols{display:flex;flex-direction:column;gap:16px}
+.setup,.play{display:flex;flex-direction:column;gap:16px;min-width:0}
+.sect{display:flex;flex-direction:column;gap:8px}
+.lbl{font:700 14px var(--f-body);letter-spacing:.08em;text-transform:uppercase;color:var(--c-mut)}
+.sub{font-size:14px}
+.pick button span{font-size:14px}
+.stats span{font-size:14px;letter-spacing:.06em}
+.tip{font-size:14px;text-align:left;line-height:1.45}
+details.how p{margin:10px 0 0}
+.swipe,.stamp,.miss span,.arcbar{font-size:14px}
+.arcmeter{height:22px}.arcmeter b{font-size:14px}
+.rgrid span{font-size:14px;letter-spacing:.04em}
+.piano .w{font-size:14px}.piano .w.mc{font-size:12px}
+.appver,.chma-ver{font-size:14px}
+.actbar .actions{flex-wrap:nowrap}.actbar .btn{min-height:52px;font-size:16px}
+.actbar .btn.primary{flex:2 1 0}.actbar .btn:not(.primary){flex:1 1 0}
+@media (min-width:900px){
+  body{padding:16px 24px}
+  .wrap{max-width:1180px;padding:0 16px 16px;gap:12px}
+  .cols{display:grid;grid-template-columns:minmax(280px,340px) minmax(0,1fr);gap:16px;align-items:start}
+  .setup{gap:16px}
+  .pick{flex-direction:column;flex-wrap:nowrap;gap:8px}
+  .pick button{min-width:0;flex:none;display:grid;grid-template-columns:34px 1fr;grid-template-rows:auto auto;column-gap:10px;row-gap:0;align-items:center;justify-items:start;text-align:left;padding:8px 12px}
+  .pick button b{grid-row:1 / span 2}
+  .card{padding:16px;gap:12px}
+  .prompt{min-height:48px}
+  .piano{height:clamp(130px,24vh,170px)}
+  .appver{text-align:left;margin:0}
+}
+@media (max-width:899px){
+  body{padding:8px max(12px,env(safe-area-inset-right,0px)) calc(84px + env(safe-area-inset-bottom,0px)) max(12px,env(safe-area-inset-left,0px))}
+  .wrap{gap:12px;padding:0 12px 16px}
+  .chma-headwrap{margin:0 -12px}
+  .cols,.setup{gap:12px}
+  .setup{display:contents}
+  .setup header{order:1}.s-level{order:2}.s-game{order:3}.play{order:4}.how{order:5}.setup details:not(.how){order:6}.setup .appver{order:7}
+  h1{font-size:26px}
+  .sub,.lbl{display:none}
+  .pick{flex-wrap:nowrap;overflow-x:auto;gap:8px;margin:0 -12px;padding:2px 12px 6px;scroll-snap-type:x proximity;scrollbar-width:none;-webkit-overflow-scrolling:touch}
+  .pick::-webkit-scrollbar{display:none}
+  .pick button{flex:0 0 auto;min-width:0;width:auto;padding:6px 14px;scroll-snap-align:start;gap:0;font-size:14px;line-height:1.25}
+  .pick button b{font-size:14px}
+  .seg button{min-height:44px;padding:8px 10px}
+  .card{padding:12px;gap:10px}
+  .stats{padding:8px 10px}.stats b{font-size:18px}.stats span{font-size:14px;letter-spacing:0;text-transform:none}
+  .prompt{min-height:40px;font-size:18px}.prompt .big{font-size:32px}
+  .piano{height:clamp(104px,17vh,170px)}
+  .fb{min-height:20px}
+  .pad button{min-height:46px}
+  .actbar{position:fixed;left:0;right:0;bottom:0;z-index:30;background:var(--c-panel);border-top:1px solid var(--c-line);box-shadow:0 -8px 24px rgba(0,0,0,.18);
+    padding:12px max(16px,env(safe-area-inset-right,0px)) calc(12px + env(safe-area-inset-bottom,0px)) max(16px,env(safe-area-inset-left,0px))}
+  .actbar .actions{max-width:640px;margin:0 auto}
+}
 </style></head>
 <body>
 <div class="wrap">
   <div data-chma-head></div>
+  <div class="cols">
+  <section class="setup">
   <header>
     <h1>Key <em>Finder</em></h1>
     <p class="sub">No sheet music. Just the keys. Learn every key on the piano by sight.</p>
   </header>
 
-  <div class="row pick" id="levels" role="group" aria-label="Level"></div>
+  <div class="sect s-level"><span class="lbl" aria-hidden="true">Level</span>
+  <div class="row pick" id="levels" role="group" aria-label="Level"></div></div>
 
+  <div class="sect s-game"><span class="lbl" aria-hidden="true">Game</span>
   <div class="seg" id="seg" role="group" aria-label="Game type">
     <button data-mode="name">Name the key</button><button data-mode="find">Find the key</button>
-  </div>
+  </div></div>
 
+  <details class="how"><summary>How it works</summary>
+    <p class="tip">No sheet music. Just the keys. Learn every key on the piano by sight.</p>
+    <p class="tip">Practice: take your time (turn on Second try in Settings to try again after a miss). Challenge: five 30-second rounds and a bonus round. Round 1 is the warm-up that sets your targets. One try per key, no second chances. Last 10 seconds of a round = 2x points.</p>
+  </details>
+  <details><summary>Settings</summary>
+    <label><input type="checkbox" id="soundOn" checked> Play the key's sound</label>
+    <label><input type="checkbox" id="hypeOn" checked> Music on round screens</label>
+    <label><input type="checkbox" id="labelsOn"> Show letter names on every white key (easier)</label>
+    <label><input type="checkbox" id="retryOn"> Second try on a miss (practice only)</label>
+    <label><input type="checkbox" id="flatsOn"> Call black keys by their flat name (D♭) in Find the key</label>
+  </details>
+  <p class="appver" id="appVer">Key Finder · Version 2026-11-12.1</p>
+  </section>
+
+  <section class="play">
   <div class="card" id="card">
     <div class="stats">
       <div><b id="sPts">0</b><span>Points</span></div><div><b id="sPct">–</b><span>Accuracy</span></div>
@@ -174,8 +247,6 @@ button:focus-visible,summary:focus-visible,input:focus-visible{outline:3px solid
     <div class="pianoWrap" id="pianoWrap"><div class="pianoScroll" id="pianoScroll"><div class="piano" id="piano"></div></div></div><p class="swipe" id="swipe" hidden>Swipe the keyboard to see more keys</p>
     <div class="fb" id="fb" aria-live="polite"></div>
     <div id="padWrap"><div class="pad" id="padW"></div><div class="pad blk" id="padB" style="margin-top:8px"></div></div>
-    <div class="actions"><button class="btn" id="resetBtn">Reset score</button><button class="btn primary" id="chalBtn">Start Challenge</button></div>
-    <p class="tip">Practice: take your time (turn on Second try in Settings to try again after a miss). Challenge: five 30-second rounds and a bonus round. Round 1 is the warm-up that sets your targets. One try per key, no second chances. Last 10 seconds of a round = 2x points.</p>
 
     <div class="arcsplash" id="arcSplash" hidden><div class="boom"></div><div id="arcPcs"></div><div class="pre" id="arcSplashP"></div><b id="arcSplashT">ROUND 1</b><span id="arcSplashS"></span></div><div class="hitstamp" id="hitStamp" aria-hidden="true">TARGET HIT!</div>
 
@@ -189,15 +260,10 @@ button:focus-visible,summary:focus-visible,input:focus-visible{outline:3px solid
       <div class="actions"><button class="btn" id="closeBtn">Back to practice</button><button class="btn primary" id="againBtn">Challenge again</button></div>
     </div>
   </div>
+  <div class="actbar" id="actbar"><div class="actions"><button class="btn" id="resetBtn">Reset score</button><button class="btn primary" id="chalBtn">Start Challenge</button></div></div>
+  </section>
+  </div>
 
-  <details><summary>Settings</summary>
-    <label><input type="checkbox" id="soundOn" checked> Play the key's sound</label>
-    <label><input type="checkbox" id="hypeOn" checked> Music on round screens</label>
-    <label><input type="checkbox" id="labelsOn"> Show letter names on every white key (easier)</label>
-    <label><input type="checkbox" id="retryOn"> Second try on a miss (practice only)</label>
-    <label><input type="checkbox" id="flatsOn"> Call black keys by their flat name (D♭) in Find the key</label>
-  </details>
-  <p class="appver" id="appVer">Key Finder · Version 2026-11-11.11</p>
 </div>
 
 <script>
@@ -292,7 +358,7 @@ button:focus-visible,summary:focus-visible,input:focus-visible{outline:3px solid
   // the next key after an answer: never under a round splash or the results sheet
   function next(){ if($("arcSplash").hidden&&$("results").hidden) newQ() }
   // results sheet over the card: the card underneath is inert so Tab and screen readers stay on the sheet
-  function sheet(on){ $("results").hidden=!on; [...$("card").children].forEach(c=>{ if(c!==$("results")) c.inert=on }) }
+  function sheet(on){ $("results").hidden=!on; [...$("card").children].forEach(c=>{ if(c!==$("results")) c.inert=on }); $("actbar").inert=on; $("actbar").hidden=on }
 
   // ---------- Challenge mode: arcade rounds (same rules as the other studio apps) ----------
   // Round 1 is a 30-second warm-up whose score sets the targets. Rounds 2-5 each have their own fresh target (extra points never carry),
@@ -318,7 +384,7 @@ button:focus-visible,summary:focus-visible,input:focus-visible{outline:3px solid
   function arcSplash(t,sub,ms,then,pre){ ms=Math.max(4500,2500+String(sub||"").length*30);   /* long enough to read (students said the round screens flashed by); tap to go sooner */ clearTimeout(nextT); $("arcSplashT").textContent=t; $("arcSplashS").textContent=sub; $("arcSplashP").textContent=pre||""; const sp=$("arcSplash"); sp.hidden=false; locked=true; $("card").classList.remove("met");
     const pcs=$("arcPcs"); pcs.innerHTML=""; const cols=["var(--accent)","var(--good)","#ff8a1f","#ffd23f"]; for(let i=0;i<22;i++){ const a=Math.random()*Math.PI*2,d=110+Math.random()*170,e=document.createElement("i"); e.className="pc"; e.style.cssText=`background:${cols[i%4]};--dx:${Math.cos(a)*d}px;--dy:${Math.sin(a)*d}px;--r:${Math.random()*720-360}deg`; pcs.appendChild(e) }
     sp.classList.remove("go"); void sp.offsetWidth; sp.classList.add("go"); whoosh(); hypePlay(ms);
-    const tok=++splashTok, t0=performance.now(), go=()=>{ if(tok!==splashTok) return; splashTok++; hypeStop(120); sp.onclick=null; sp.hidden=true; if(arc) then() }; sp.onclick=()=>{ if(performance.now()-t0>900) go() }; let hint=sp.querySelector('.tapgo'); if(!hint){ hint=document.createElement('small'); hint.className='tapgo'; hint.style.cssText='display:block;margin-top:14px;opacity:.6;font-size:12px'; hint.textContent='Tap to start'; ($("arcSplashS").parentNode||sp).appendChild(hint) } setTimeout(go,ms) }   // a stopped or restarted challenge never wakes an old splash
+    const tok=++splashTok, t0=performance.now(), go=()=>{ if(tok!==splashTok) return; splashTok++; hypeStop(120); sp.onclick=null; sp.hidden=true; if(arc) then() }; sp.onclick=()=>{ if(performance.now()-t0>900) go() }; let hint=sp.querySelector('.tapgo'); if(!hint){ hint=document.createElement('small'); hint.className='tapgo'; hint.style.cssText='display:block;margin-top:14px;opacity:.6;font-size:14px'; hint.textContent='Tap to start'; ($("arcSplashS").parentNode||sp).appendChild(hint) } setTimeout(go,ms) }   // a stopped or restarted challenge never wakes an old splash
   function arcStart(){ stopChallenge(); resetScore(); sheet(false); arc={round:1,bonus:false,warm:true,needs:[],start:0}; tLeft=ARC_T; arcUI(true); showClock(); render();
     arcSplash("ROUND 1",`Warm-up: ${mode==="name"?"name":"find"} as many keys as you can in 30 seconds. Your score sets your targets. One try per key, no second chances. Last 10 seconds = 2x points.`,2600,arcRound,"CHALLENGE MODE") }
   function arcRound(){ clearInterval(timer); tLeft=ARC_T; const f=$("tFill"); f.style.transition="none"; showClock(); void f.offsetWidth; f.style.transition=""; arcBar(); newQ();   // a fresh round's clock bar snaps full, never slides back up
