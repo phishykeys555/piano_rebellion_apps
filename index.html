@@ -23,6 +23,16 @@ h1{font-family:var(--f-title);font-weight:700;font-size:32px;letter-spacing:-.01
 
 /* iPhone/iPad: no grey tap flash box over the rounded keys */
 button,a,label,summary,select,input{-webkit-tap-highlight-color:transparent}
+
+/* Layout 2026-11-12: two columns of apps on wide screens so every app is on screen without scrolling; 14px minimum text */
+.sub{font-size:14px}.apps span{font-size:14px}.appver,.chma-ver{font-size:14px}
+.apps a{min-height:64px}
+@media (min-width:900px){
+  body{padding:16px 24px}
+  main{max-width:1040px}
+  .apps{display:grid;grid-template-columns:1fr 1fr;gap:12px 16px}
+  .apps a{height:100%}
+}
 </style></head>
 <body><main>
 <div data-chma-head></div>
@@ -37,6 +47,6 @@ button,a,label,summary,select,input{-webkit-tap-highlight-color:transparent}
 <li><a href="hanon-player/"><div class="txt"><b>Hanon Speed Trainer</b><span>Hanon Exercises 1 and 2, 50 to 280 BPM, with level tempo goals.</span></div><i aria-hidden="true">›</i></a></li>
 <li><a href="guitar-tuner/"><div class="txt"><b>Strobe Tuner</b><span>Guitar Revolution: tune every string with a true strobe.</span></div><i aria-hidden="true">›</i></a></li>
 </ul>
-<p class="appver">Music Games · Version 2026-11-11.6</p>
+<p class="appver">Music Games · Version 2026-11-12.1</p>
 </main>
 </body></html>
