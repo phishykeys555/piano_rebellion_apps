@@ -226,6 +226,39 @@ button{touch-action:manipulation;cursor:pointer}
   .stepper button{width:44px}
 }
 @media (prefers-reduced-motion:reduce){.knob i{transition:none}}
+
+/* one-screen layout (2026-11-12) */
+.title{margin:4px 0 6px}.title h1{font-size:clamp(24px,7vw,34px)}.title .sub{margin-top:3px}
+.bezel{width:min(62vw,52vh,300px);padding:10px}
+.meter{margin-top:8px;padding:8px 12px}
+.panel{margin-top:10px;gap:10px}
+.dirs{margin-top:4px}
+.privacy{margin:8px 0 0;font-size:12px}.appver{margin:4px 0 0}
+details.more{border-top:1px solid var(--cream-edge);padding-top:6px}
+details.more>summary{cursor:pointer;min-height:40px;display:flex;align-items:center;font:700 11px/1 var(--f-caps);letter-spacing:.2em;color:var(--ink-soft);text-transform:uppercase;list-style:none}
+details.more>summary::before{content:"\25B8";margin-right:8px;transition:transform .2s}
+details.more[open]>summary::before{transform:rotate(90deg)}
+details.more>summary::-webkit-details-marker{display:none}
+details.more .settings{padding:4px 0 6px}
+.hub.tapme{cursor:pointer}
+.hub.tapme .note.idle{font:italic 800 13px/1.15 var(--f-serif);color:#5a3d1c;padding:0 6px}
+@media (min-width:880px){.bezel{width:min(380px,60vh)}}
+@media (max-width:879px){
+  body{padding-top:8px}
+  .bezel{width:min(58vw,40vh,280px)}
+  .knob{width:46px;height:46px}
+  .plate{min-height:46px;padding:5px 36px 5px 12px}
+  .plate .name{font-size:16px}.plate .notes{font-size:11.5px;margin-top:1px}
+  #tuneLbl{display:none}
+  .tuning{gap:10px}
+  .meter{margin-top:6px;padding:6px 12px}
+  .dirs{margin-top:2px}
+  .title h1{font-size:clamp(22px,6.5vw,30px)}
+  .panel{margin-top:8px;gap:6px}
+  body{padding-bottom:calc(8px + env(safe-area-inset-bottom))}.face{padding-bottom:8px}
+  details.more{padding-top:2px}details.more>summary{min-height:36px}
+}
+
 </style>
 </head>
 <body>
@@ -245,7 +278,7 @@ button{touch-action:manipulation;cursor:pointer}
         <div class="bezel">
           <div class="glass">
             <canvas id="strobe" aria-hidden="true"></canvas>
-            <div class="hub"><div class="note idle" id="hubNote" aria-live="polite">&mdash;</div></div>
+            <div class="hub" id="hub"><div class="note idle" id="hubNote" aria-live="polite">&mdash;</div></div>
           </div>
         </div>
         <div class="dirs" aria-label="Which way means sharp or flat">
@@ -258,17 +291,11 @@ button{touch-action:manipulation;cursor:pointer}
           <div class="cell"><div class="k">Cents</div><div class="v" id="vCents">&mdash;</div></div>
           <div class="cell"><div class="k">Frequency</div><div class="v" id="vHz">&mdash;<small>Hz</small></div></div>
           <div class="lamp"><div class="jewel" id="jewel" role="img" aria-label="In tune lamp: off"></div><div class="k">In tune</div></div>
-          <div class="status"><span class="sig" id="sig" aria-hidden="true"></span><span id="status" aria-live="polite">Tap Power, then play one string.</span></div>
+          <div class="status"><span class="sig" id="sig" aria-hidden="true"></span><span id="status" aria-live="polite">Starting the tuner…</span></div>
         </div>
-        <p class="howto">Play one string. When the pattern stands still, you're in tune.</p>
       </section>
 
       <section class="panel" aria-label="Controls">
-        <button class="power" id="power" aria-pressed="false">
-          <span class="tog" aria-hidden="true"></span>
-          <span class="txt"><span class="big" id="powerBig">Power</span><span class="small" id="powerSmall">Tap to start the tuner</span></span>
-          <span class="pilot" aria-hidden="true"></span>
-        </button>
 
         <div class="set">
           <div class="lbl" id="tuneLbl">Tuning</div>
@@ -282,18 +309,7 @@ button{touch-action:manipulation;cursor:pointer}
           </div>
         </div>
 
-        <div class="set" id="strSet">
-          <div class="strhead">
-            <div class="lbl">String <span style="letter-spacing:.06em">6 = thickest</span></div>
-            <button class="auto" id="auto" aria-pressed="true"><span class="tog" aria-hidden="true"></span><span class="t">Auto</span></button>
-          </div>
-          <div class="strings" id="strings"></div>
-          <div class="chromnote">Chromatic: play any note and the tuner finds it.</div>
-        </div>
-
-        <div class="groove" aria-hidden="true"></div>
-
-        <div class="settings">
+        <details class="more"><summary>Settings</summary><div class="settings">
           <div class="set">
             <div class="lbl" id="calLbl">A4 calibrate</div>
             <div class="stepper" role="group" aria-labelledby="calLbl">
@@ -310,10 +326,6 @@ button{touch-action:manipulation;cursor:pointer}
               <button data-t="2" aria-pressed="false">&plusmn;2</button>
             </div>
           </div>
-          <div class="set">
-            <div class="lbl">Reference tone</div>
-            <button class="reftone" id="ref"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 9v6h4l5 4V5L8 9z"/><path d="M16.5 8.5a5 5 0 0 1 0 7"/><path d="M19 6a8.5 8.5 0 0 1 0 12"/></svg><span id="refTxt">Play E2</span></button>
-          </div>
           <div class="set accset">
             <div class="lbl" id="accLbl">Spelling</div>
             <div class="seg" id="acc" role="group" aria-labelledby="accLbl">
@@ -321,14 +333,12 @@ button{touch-action:manipulation;cursor:pointer}
               <button data-a="flat" aria-pressed="false" aria-label="Flats">&#9837;</button>
             </div>
           </div>
-        </div>
+        </div><p class="privacy">Your sound stays on this device. Nothing is recorded or uploaded.</p></details>
 
         <div class="msg" id="msg" role="alert"></div>
       </section>
     </div>
-
-    <p class="privacy">Your sound stays on this device. Nothing is recorded or uploaded.</p>
-    <p class="appver">Strobe Tuner &middot; Version 2026-11-11.6</p>
+    <p class="appver">Strobe Tuner &middot; Version 2026-11-12.1</p>
   </main>
   <div class="cheek" aria-hidden="true"></div>
 </div>
@@ -354,7 +364,7 @@ const TUNINGS = [
   { id:'chrom', name:'Chromatic',       spell:null,    m:[] }
 ];
 
-const S = { tuning:TUNINGS[0], a4:440, tol:1, acc:'sharp', auto:true, sel:5,
+const S = { tuning:TUNINGS[0], a4:440, tol:1, acc:'sharp', auto:true, /* always auto: no string picking */ sel:5,
   running:false, ctx:null, node:null, stream:null, src:null, sink:null, wake:null, wakeBusy:false, moduleReady:false, startTok:0, ref:null,
   target:null,           // {midi, f, name}
   cand:null, candN:0,
@@ -388,8 +398,8 @@ function renderTuning(){
   const idx = TUNINGS.indexOf(t);
   $('knobPtr').style.transform = 'rotate(' + (-135 + idx * 270 / (TUNINGS.length - 1)) + 'deg)';
   $('face').classList.toggle('chromatic', chrom);
-  const box = $('strings'); box.innerHTML = '';
-  t.m.forEach((m, i) => {
+  const box = $('strings'); if (box) box.innerHTML = '';
+  if (box) t.m.forEach((m, i) => {
     const b = document.createElement('button');
     b.className = 'str'; b.dataset.i = i;
     b.innerHTML = '<span class="n">' + (6 - i) + '</span><span class="p">' + label(m, t.spell) + '</span>';
@@ -402,7 +412,7 @@ function renderTuning(){
   else sendTarget(0);
   renderStrings(); updateRef(); resetReadout();
 }
-function renderStrings(){
+function renderStrings(){ if (!$('strings')) return;
   const chrom = !S.tuning.m.length;
   $('auto').setAttribute('aria-pressed', String(S.auto));
   document.querySelectorAll('.str').forEach(b => {
@@ -414,7 +424,6 @@ function renderStrings(){
   if (chrom) $('auto').setAttribute('aria-pressed', 'true');
 }
 function pickString(i){ S.auto = false; S.sel = i; setTarget(S.tuning.m[i]); renderStrings(); updateRef(); resetReadout(); }
-$('auto').addEventListener('click', () => { S.auto = !S.auto; if (S.auto) { S.target = null; sendTarget(0); } else setTarget(S.tuning.m[S.sel]); renderStrings(); updateRef(); resetReadout(); });
 sel.addEventListener('change', () => { S.tuning = TUNINGS.find(t => t.id === sel.value); save(); renderTuning(); });
 $('knob').addEventListener('click', () => { S.tuning = TUNINGS[(TUNINGS.indexOf(S.tuning) + 1) % TUNINGS.length]; save(); renderTuning(); });
 
@@ -575,8 +584,9 @@ function readout(){
     $('vHz').innerHTML = (S.target.f * Math.pow(2, S.cents / 1200)).toFixed(2) + '<small>Hz</small>';
   } else if (!S.target || S.cents === null) { $('vCents').textContent = '—'; $('vHz').innerHTML = '—<small>Hz</small>'; }   // a new note never shows the last note's reading
   let st;
-  if (!S.running) st = 'Tap Power, then play one string.';
-  else if (!fresh) st = live ? 'Listening…' : (S.auto || !S.tuning.m.length ? 'Listening… play one string.' : 'Listening… play string ' + (6 - S.sel) + ' (' + label(S.tuning.m[S.sel], spellFor()) + ').');
+  if (!S.running) st = S.needTap ? 'Tap the tuner to start.' : 'Starting the tuner… allow the microphone.';
+  else if (S.ctx && S.ctx.state !== 'running') st = 'Tap anywhere to start listening.';
+  else if (!fresh) st = live ? 'Listening…' : 'Listening… play one string.';
   else if (Math.abs(S.cents) > 60) st = S.cents > 0 ? 'Way too high. Is that the right string?' : 'Way too low. Is that the right string?';
   else if (inTune) st = 'In tune. Nice! Next string.';
   else if (S.cents > 0) st = 'Sharp: loosen a little (tune down).';
@@ -613,7 +623,7 @@ async function start(){
     if (navigator.audioSession) { try { navigator.audioSession.type = 'play-and-record'; } catch (e) {} }
     stream = await navigator.mediaDevices.getUserMedia({ audio:{ echoCancellation:false, noiseSuppression:false, autoGainControl:false, channelCount:1 } });
     if (tok !== S.startTok) { drop(); return; }
-    await resumed;
+    await Promise.race([resumed, new Promise(r => setTimeout(r, 400))]);  // opened without a tap: carry on suspended; the first tap anywhere resumes it
     if (!S.moduleReady) { await ctx.audioWorklet.addModule('tuner-worklet.js'); S.moduleReady = true; }
     if (tok !== S.startTok) { drop(); return; }
     S.stream = stream;
@@ -635,12 +645,12 @@ async function start(){
     const n = err && err.name;
     if ((n === 'NotAllowedError' || n === 'SecurityError') && isFramed && micPolicyOff()) showMsg(FRAMED_MSG + openTab());
     else if (n === 'NotAllowedError' || n === 'SecurityError' || n === 'PermissionDeniedError')
-      showMsg('The tuner needs to hear your guitar. Tap <b>Allow</b> when your device asks about the microphone. If you tapped Don’t Allow, turn the microphone on for this site in your browser settings (iPhone/iPad Safari: tap <b>aA</b> in the address bar, then Website Settings, then Microphone), then tap Power again.' + openTab());
+      showMsg('The tuner needs to hear your guitar. Tap <b>Allow</b> when your device asks about the microphone. If you tapped Don’t Allow, turn the microphone on for this site in your browser settings (iPhone/iPad Safari: tap <b>aA</b> in the address bar, then Website Settings, then Microphone), then tap the tuner again.' + openTab());
     else if (n === 'NotFoundError' || n === 'OverconstrainedError' || n === 'DevicesNotFoundError')
-      showMsg('No microphone found. Plug one in or use a phone or tablet, then tap Power again.');
+      showMsg('No microphone found. Plug one in or use a phone or tablet, then tap the tuner again.');
     else if (n === 'NotReadableError' || n === 'TrackStartError' || n === 'AbortError')
-      showMsg('Another app is using the microphone. Close it (or end the call), then tap Power again.');
-    else showMsg('The tuner couldn’t start the microphone. Reload the page and tap Power again.' + openTab());
+      showMsg('Another app is using the microphone. Close it (or end the call), then tap the tuner again.');
+    else showMsg('The tuner couldn’t start the microphone. Reload the page and tap the tuner.' + openTab());
   }
 }
 function stop(){
@@ -653,13 +663,12 @@ function stop(){
   if (S.auto) S.target = null;
   setPower(false); renderStrings();
 }
-function setPower(on){
-  const b = $('power');
-  b.setAttribute('aria-pressed', String(on === true));
-  $('powerBig').textContent = on === true ? 'On' : on === 'wait' ? 'Warming up' : 'Power';
-  $('powerSmall').textContent = on === true ? 'Tap to turn off' : on === 'wait' ? 'Allow the microphone' : 'Tap to start the tuner';
-}
-$('power').addEventListener('click', () => { if (S.running) stop(); else if ($('powerBig').textContent !== 'Warming up') start(); });
+function setPower(on){ S.needTap = false; const hub = $('hub'); if (hub) hub.classList.toggle('tapme', on === false && !!S.lastErr); }
+// no power switch: the tuner starts on its own and stays on while the page is open.
+// Browsers that need a tap first (iPhone, some Chrome) start on the first tap anywhere.
+function autoStart(){ if (!S.running && !S.starting) { S.starting = true; Promise.resolve(start()).finally(() => { S.starting = false; }); } }
+const tapStart = () => { if (!S.running) autoStart(); };
+document.addEventListener('pointerdown', tapStart, true);
 
 async function keepAwake(){
   if (!('wakeLock' in navigator) || !S.running || S.wake || S.wakeBusy || document.visibilityState !== 'visible') return;
@@ -684,8 +693,8 @@ function refMidi(){
   if (t.m.length) return !S.auto ? t.m[S.sel] : (S.target ? S.target.midi : t.m[0]);
   return S.target ? S.target.midi : 69;
 }
-function updateRef(){ $('refTxt').textContent = 'Play ' + label(refMidi(), spellFor()); }
-$('ref').addEventListener('click', () => {
+function updateRef(){ if (!$('refTxt')) return; $('refTxt').textContent = 'Play ' + label(refMidi(), spellFor()); }
+function playRef(){
   const ctx = getCtx(); if (!ctx) return;
   if (!S.running && navigator.audioSession) { try { navigator.audioSession.type = 'playback'; } catch (e) {} }
   ctx.resume().catch(() => {});
@@ -710,13 +719,13 @@ $('ref').addEventListener('click', () => {
   const me = { out, oscs }; S.ref = me;
   // tidy up when the audio clock says the tone is over (a wall-clock timer can fire early if the audio was paused)
   if (oscs[0]) oscs[0].onended = () => { if (S.ref === me) S.ref = null; try { out.disconnect(); } catch (e) {} };
-  const btn = $('ref'); btn.classList.add('playing'); clearTimeout(refGlow); refGlow = setTimeout(() => btn.classList.remove('playing'), 900);
-});
+  }
 let refGlow = 0;
 
 /* ---------- init ---------- */
 $('calOut').textContent = S.a4 + ' Hz'; setTol(S.tol); setAcc(S.acc);
 renderTuning();
+autoStart();
 window.addEventListener('resize', () => { CW = 0; });
 requestAnimationFrame(loop);
 
