@@ -792,7 +792,7 @@ input[type=range],input[type=checkbox],input[type=radio]{accent-color:var(--c-ac
   // older versions could learn a bad tuning from talking: start every device fresh once
   if(store.get("tuneV",0)!==2){ tuneOff=0; store.set("tuneOff",0); store.set("tuneV",2) }
   const micG=x=>0.25*Math.pow(48,(+x)/100);
-  const THR=0.015, AP=0.12, TICK=20, HOLDK=0.95, HOLDR=1.2, SHK=2.5, OCTG=1e9, LPHZ=700, HPHZ=900, FAST_MS=15, FAST_LOW=48, FAST_MS_LOW=80, FASTN=3, BASSG=0.9, TAILX=0.8, STALE=0.2; let thr=THR, lastAp=1;
+  const THR=0.015, AP=0.12, TICK=20, HOLDK=0.95, HOLDR=1.2, SHK=2.5, OCTG=1e9, LPHZ=700, HPHZ=900, FAST_MS=15, FAST_LOW=48, FAST_MS_LOW=80, FASTN=3, BASSG=0.9, TAILX=0.8, STALE=0.2, SHL=0.4; let thr=THR, lastAp=1;
   function setThr(v){ thr=v; $("thr").style.left=Math.min(100,thr*600)+"%" }
   // Embedded pages (Notion and most sites) usually do not pass the microphone through to the app. Spot it before the tap where the browser can tell,
   // and always offer a one-tap way out: the same app in its own tab, opened in mic mode with this level and key.
@@ -873,17 +873,18 @@ input[type=range],input[type=checkbox],input[type=radio]{accent-color:var(--c-ac
       // (two looks back, 40 ms: the look just before can already hold the first ms of this attack when the attack straddles two looks)
       m.tail=m.last2&&m.lastR2>Math.max(0.004,4*Math.min(...m.hist))?mag(m.last2,SPN,m.pre||(m.pre=new Float32Array(SPN/2+1))):null }
     if(m.armed){ m.env.push(r); m.envS.push(rs); if(clipped) m.clip=true;
-      // a hammer hits: inside the frame the level leaps SHK x within ~10 ms. A voice (or a swelling string) ramps up over tens of ms.
+      // a hammer hits: inside the frame the level leaps SHK x within ~10 ms, landing near the note's full level. A voice (or a swelling string)
+      // ramps up over tens of ms: its only quick leaps are at the very start of a syllable, far below where it ends up (checked at decision: SHL).
       if(!m.sharp){ const H=256, nb=Math.floor(L/H)-1, a=new Float32Array(nb); let pk=0; for(let i=0;i<nb;i++){ let e=0; for(let j=i*H;j<i*H+2*H;j++) e+=b[j]*b[j]; a[i]=Math.sqrt(e); if(a[i]>pk) pk=a[i] }
         // over a still-ringing key the leap starts from that key's level, so there a quick 1.5x jump that adds 30% of the peak counts too
-        for(let i=2;i<nb;i++) if(a[i]>=0.4*pk&&(a[i]>SHK*a[i-2]||m.tail&&a[i]>1.5*a[i-2]&&a[i]-a[i-2]>0.3*pk)){ m.sharp=true; break } } }
+        for(let i=2;i<nb;i++) if(a[i]>=0.4*pk&&(a[i]>SHK*a[i-2]||m.tail&&a[i]>1.5*a[i-2]&&a[i]-a[i-2]>0.3*pk)){ m.sharp=true; m.sharpI=m.envS.length-1; m.sharpLv=a[i]/Math.sqrt(2*H); break } } }
     if(clipped&&m.armed&&!m.clipSaid){ m.clipSaid=true; $("micStat").textContent=g>1.05&&pkA>=0.999?"Very loud: lower Sensitivity a little.":"Very loud: move the device a little farther from the piano (or play a bit softer)." }
     const fin=md=>{ m.armed=false; m.cool=now+250; m.lastMd=md; if(m.clipSaid&&!m.clip){ m.clipSaid=false; $("micStat").textContent="Listening. Play any key: the Level bar should jump past the line. Too low? Raise Sensitivity." } heardNote(md); answerHeard(md) };
     const learn=rs=>{ rs=rs.slice().sort((a,b)=>a-b); const med=rs[Math.floor(rs.length/2)]||0; tuneOff=Math.max(-0.6,Math.min(0.6,tuneOff+0.5*med)); store.set("tuneOff",tuneOff) };
     // a struck string only fades after its peak; a voice swells and dips. Beating strings may lift the level a little between looks
     // (up to ~35%, seen on real upper-treble recordings, where the old 12% limit threw away good F5s) but never back above the peak.
     // A clipped (very loud) strike sits flat at full scale for a while, so it is exempt: the sharp attack already proved it was struck.
-    const decays=ev=>{ const pk=Math.max(...ev), pi=ev.indexOf(pk); return m.clip||ev.slice(pi).every((v,i,a)=>i===0||v<=a[i-1]*1.35)&&ev[ev.length-1]<=pk*0.97 };
+    const struck=()=>m.sharp&&m.sharpLv>=SHL*Math.max(...m.envS), decays=ev=>{ const pk=Math.max(...ev), pi=ev.indexOf(pk); return m.clip||ev.slice(pi).every((v,i,a)=>i===0||v<=a[i-1]*1.35)&&ev[ev.length-1]<=pk*0.97 };
     // FAST LOOK: the app knows which key it asked, so it listens closely around it (an octave and a step below to an octave and a fifth above)
     // on just the newest few periods. Three agreeing looks 20 ms apart on the asked key = an answer about 70 ms after the strike. Any other
     // key (or talking near it) goes to the stricter full-range look below, so a wrong key is still heard and marked wrong.
@@ -894,14 +895,14 @@ input[type=range],input[type=checkbox],input[type=radio]{accent-color:var(--c-ac
       if(f>0&&lastAp<AP){ const x=69+12*Math.log2(f/440)-tuneOff; let md=Math.round(x); if(Math.abs(x-md)<=0.45){ md=bassOct(md,tg,f,sr); if(m.tail) md=tailFix(md,b,m.pre,sr,m.lastMd); if(md>0){ m.fc.push(md); m.fr.push(x-Math.round(x)) } } }
       const nc=m.fc.length, best=nc?m.fc[nc-1]:null; let k=0; while(k<nc&&m.fc[nc-1-k]===best) k++;
       const fx=m.fr.slice(nc-Math.min(k,FASTN)), es=m.envS, pk=Math.max(...es);
-      if(best===tg&&k>=FASTN&&Math.max(...fx)-Math.min(...fx)<=0.08&&m.sharp&&(m.clip||es.indexOf(pk)<=3&&es[es.length-1]<=pk*0.97)){ learn(fx); return fin(best) } }
+      if(best===tg&&k>=FASTN&&Math.max(...fx)-Math.min(...fx)<=0.08&&struck()&&(m.clip||es.indexOf(pk)<=3&&es[es.length-1]<=pk*0.97)){ learn(fx); return fin(best) } }
     // FULL LOOK (every other tick, the whole keyboard): the original steady-4-looks rule, the fallback for anything the fast look can't settle
     if(m.armed&&now-m.armedAt>=70&&(m.slow++)%2===0){ m.ut=false; const f=pitchT(b,sr,gate,0,0,m);
       // tuneOff = how sharp/flat this piano sits (semitones), learned from every confirmed note, so a home piano that's a bit off still reads exactly
       if(f>MINHZ*0.9&&f<4400&&lastAp<AP){ const x=69+12*Math.log2(f/440)-tuneOff; let md=Math.round(x); m.raw.push(x-md); m.rawX.push(x); if(Math.abs(x-md)<=0.45){ md=bassOct(md,tg,f,sr); if(m.tail) md=tailFix(md,b,m.pre,sr,m.lastMd); if(md>0){ m.cand.push(md); m.res.push(x-Math.round(x)) } } }
       const cnt={}; let best=null, bc=0; for(const v of m.cand){cnt[v]=(cnt[v]||0)+1; if(cnt[v]>bc){bc=cnt[v];best=v}}
       const bx=bc?m.res.filter((_,i)=>m.cand[i]===best):[], steady=bx.length>=4&&Math.max(...bx)-Math.min(...bx)<=0.22&&Math.abs(bx[bx.length-1]-bx[0])<=0.15;
-      if(bc>=4&&bc>=0.8*m.cand.length&&steady&&decays(m.env)&&m.sharp){ learn(bx); return fin(best) }
+      if(bc>=4&&bc>=0.8*m.cand.length&&steady&&decays(m.env)&&struck()){ learn(bx); return fin(best) }
       else if(now-m.armedAt>900){ m.armed=false;
         // a steady pitch that sits between two keys = the piano itself is off: re-centre on it and ask for the note again
         const rr=[...m.raw].sort((a,b)=>a-b), md=rr[rr.length>>1], rx=[...m.rawX].sort((a,b)=>a-b), mx=rx[rx.length>>1];

@@ -476,11 +476,12 @@ button:focus-visible,select:focus-visible,summary:focus-visible,input:focus-visi
   // Challenge "Faster + accuracy". Tempo: after every rhythm, its score moves the tempo (95%+: +2 BPM, 80-94%: +1, 60-79%: hold, under 60%: -2),
   // never below the round's start and never above its cap = start x 1.08; the next round starts at that cap (overall max 180). Speed-up off = steady.
   // Points: each round counts from 0 toward its own target (like Note Sprint), set from the round's START tempo: the rhythms that fit in 30 s
-  // (each try = a count-in bar + your bar + about 1 s between tries) are dealt up front, and the target is the round's accuracy bar (75/80/85/90/90%)
+  // (every try that starts before the clock runs out, as the last one still counts; each try = a count-in bar + your bar + about 1 s
+  // between tries; a try that would start in the last moment is left out, so a perfect player is never one rhythm short) are dealt up front, and the target is the round's accuracy bar (75/80/85/90/90%)
   // of the points they hold (1 per note), always more than the notes in its first 2 rhythms, so it can never be reached in 2 bars.
   // Earning a faster tempo fits more rhythms in: more chances to score.
   const ARC_NEED=[0,0,75,80,85,90,90], ARC_MAX=180, ARC_OVH=1.0, ARC_LEAD=0.4; // index = round (6 = bonus); seconds between tries; before the first
-  function roundPlan(r,b){ const M=MT(), Cy=2*M.beats*60/b+ARC_OVH, F=Math.max(3,Math.floor((ARC_T-ARC_LEAD)/Cy)), deck=[]; for(let i=0;i<F;i++) deck.push(makeBar());
+  function roundPlan(r,b){ const M=MT(), Cy=2*M.beats*60/b+ARC_OVH, F=Math.max(3,Math.ceil((ARC_T-ARC_LEAD)/Cy-0.12)), deck=[]; for(let i=0;i<F;i++) deck.push(makeBar());
     const n=deck.map(x=>x.notes.length), possible=n.reduce((a,c)=>a+c,0), need=r>1?Math.max(Math.ceil(ARC_NEED[r]/100*possible),n[0]+n[1]+1):0; return {deck,need,possible} }
   const trange=(a,b)=>a===b?tl(a):MT().compound?`♩. = ${a}–${b}`:`${a}–${b} BPM`;
   function arcLimits(start){ arc.start=Math.min(arcMax(),start); arc.cap=arc.ramp?Math.min(arcMax(),Math.round(arc.start*1.08)):arc.start; arc.bpm=arc.start; arc.dir=0; arc.top=Math.max(arc.top||0,arc.bpm);
