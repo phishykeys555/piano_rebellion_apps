@@ -1,0 +1,362 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Groupies · Clarendon Hills Music Academy</title>
+<meta name="description" content="Groupies: find the four bands of four. A daily music word puzzle with theory, history and pop culture topics.">
+<link rel="stylesheet" href="../shared/chma.css">
+<script src="../shared/brand.js"></script>
+<style>
+:root{
+ --t1:#ff6a1a;--t1i:#121212; --t2:#ff4d5e;--t2i:#160608; --t3:#2f6bff;--t3i:#ffffff; --t4:#e9e9e9;--t4i:#121212;
+}
+@media (prefers-color-scheme:light){:root{--t1:#ff5a1f;--t1i:#1b1c1f;--t2:#d93044;--t2i:#ffffff;--t3:#2350c8;--t3i:#ffffff;--t4:#1b1c1f;--t4i:#7dff9a}}
+*{box-sizing:border-box}
+html,body{height:100%}
+body{margin:0;background:var(--c-page);color:var(--c-ink);font:15px/1.35 var(--f-body);-webkit-font-smoothing:antialiased;padding:6px 6px 4px}
+button,a{-webkit-tap-highlight-color:transparent}
+main{max-width:600px;margin:0 auto;background:var(--c-panel);border-radius:var(--r-card);box-shadow:var(--shadow-card);padding:0 9px 8px;overflow:hidden}
+.chma-headwrap{margin:0 -9px 6px}
+.chma-head{padding-top:8px}
+.top{display:flex;align-items:center;gap:8px}
+.ttl{flex:1;min-width:0}
+h1{font:700 24px/1.05 var(--f-title);letter-spacing:-.01em;margin:0}
+h1 em{font-style:normal;color:var(--c-act)}
+.tag{font-size:12px;color:var(--c-mut);margin:2px 0 0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ib{width:38px;height:38px;min-height:38px;padding:0;border-radius:11px;font-size:17px;line-height:1;display:grid;place-items:center}
+button{font:600 14px var(--f-body);color:var(--c-ink);background:var(--c-key);border:1px solid var(--c-key-b);border-radius:var(--r-key);box-shadow:0 3px 0 var(--c-key-sh);min-height:40px;padding:0 12px;cursor:pointer;touch-action:manipulation;transition:transform .05s,box-shadow .05s}
+button:active{transform:translateY(2px);box-shadow:0 1px 0 var(--c-key-sh)}
+button:disabled{opacity:.4;cursor:default;transform:none}
+button:focus-visible,select:focus-visible{outline:2px solid var(--c-sel);outline-offset:2px}
+.bar{display:flex;gap:6px;margin:8px 0 6px;align-items:center}
+.seg{display:flex;gap:4px;background:var(--c-panel2);border:1px solid var(--c-line);border-radius:12px;padding:3px}
+.seg button{min-height:32px;padding:0 10px;font-size:13px;box-shadow:none;border-color:transparent;background:transparent}
+.seg button[aria-pressed="true"]{background:var(--c-sel);color:var(--c-sel-ink)}
+select{font:600 13px var(--f-body);color:var(--c-ink);background:var(--c-key);border:1px solid var(--c-key-b);border-radius:10px;min-height:38px;padding:0 6px;max-width:100%;flex:1;min-width:0}
+.info{display:flex;justify-content:space-between;align-items:baseline;gap:8px;font-size:12px;color:var(--c-mut);margin:0 2px 6px;min-height:16px}
+.info b{color:var(--c-ink);font-weight:700}
+.info span:first-child{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#board{display:grid;gap:6px;grid-template-rows:repeat(4,var(--th))}
+:root{--th:clamp(64px,calc((100dvh - 330px) / 4),92px)}
+.row{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px}
+.tile{position:relative;height:var(--th);min-height:0;padding:3px;border-radius:12px;display:flex;align-items:center;justify-content:center;text-align:center;font:800 16px/1.08 var(--f-body);letter-spacing:0;overflow:hidden;word-break:normal;overflow-wrap:normal;hyphens:manual;-webkit-hyphens:manual;user-select:none}
+.tile span{display:block;width:100%}
+.tile[aria-pressed="true"]{background:var(--c-sel);border-color:var(--c-sel);color:var(--c-sel-ink);transform:translateY(1px);box-shadow:0 2px 0 rgba(0,0,0,.35)}
+.tile.shake{animation:shake .38s}
+@keyframes shake{20%,60%{transform:translateX(-5px)}40%,80%{transform:translateX(5px)}}
+.tile.pop{animation:pop .25s}
+@keyframes pop{50%{transform:translateY(-4px) scale(1.04)}}
+.solved{height:var(--th);border-radius:12px;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:4px 10px;gap:2px;cursor:pointer;border:0;width:100%;box-shadow:0 3px 0 rgba(0,0,0,.28);font-family:var(--f-body)}
+.solved .cat{font:800 14px/1.1 var(--f-body);text-transform:uppercase;letter-spacing:.03em;display:flex;gap:6px;align-items:center;justify-content:center;max-width:100%}
+.solved .its{font:600 13px/1.15 var(--f-body);opacity:.92;max-width:100%}
+.solved .tn{font:700 10px var(--f-num);letter-spacing:.12em;text-transform:uppercase;opacity:.8}
+.ti1{background:var(--t1);color:var(--t1i)}.ti2{background:var(--t2);color:var(--t2i)}.ti3{background:var(--t3);color:var(--t3i)}.ti4{background:var(--t4);color:var(--t4i)}
+.ico{font-family:var(--f-body);font-weight:900}
+.solved.in{animation:slide .35s}
+@keyframes slide{from{transform:scale(.94);opacity:.4}to{transform:none;opacity:1}}
+.mist{display:flex;align-items:center;justify-content:center;gap:8px;margin:8px 0 6px;font-size:13px;color:var(--c-mut);min-height:18px}
+.dots{display:flex;gap:7px}
+.dot{width:12px;height:12px;border-radius:50%;background:var(--c-act);box-shadow:var(--c-led-glow)}
+.dot.gone{background:transparent;border:2px solid var(--c-key-b);box-shadow:none}
+.acts{display:grid;grid-template-columns:1fr 1fr 1.25fr;gap:8px}
+.acts button{min-height:44px;font-size:14px}
+#submit{background:var(--c-act);border-color:var(--c-act);color:var(--c-act-ink);box-shadow:0 3px 0 var(--c-act-sh);font-family:var(--f-title);font-weight:700;font-size:16px}
+#toast{position:fixed;left:50%;top:22%;transform:translate(-50%,-6px);background:var(--c-ink);color:var(--c-page);font:700 15px var(--f-body);padding:10px 16px;border-radius:12px;opacity:0;pointer-events:none;transition:opacity .2s,transform .2s;z-index:50;box-shadow:0 10px 30px rgba(0,0,0,.35)}
+#toast.on{opacity:1;transform:translate(-50%,0)}
+.appver{text-align:center;font:500 10.5px var(--f-num);color:var(--c-mut);margin:8px 0 0}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+/* dialogs */
+dialog{border:0;padding:0;background:transparent;color:var(--c-ink);max-width:min(560px,calc(100vw - 20px));width:100%;max-height:calc(100dvh - 20px)}
+dialog::backdrop{background:rgba(0,0,0,.55)}
+.dlg{background:var(--c-panel);border-radius:20px;box-shadow:var(--shadow-card);padding:16px;max-height:calc(100dvh - 24px);overflow:auto}
+.dlg h2{font:700 22px var(--f-title);margin:0 0 6px}
+.dlg h3{font:700 10.5px var(--f-body);letter-spacing:.16em;text-transform:uppercase;color:var(--c-mut);margin:14px 0 6px}
+.dlg p{margin:6px 0}
+.dhead{display:flex;justify-content:space-between;align-items:center;gap:8px}
+.stats{display:grid;grid-template-columns:repeat(5,1fr);gap:6px;text-align:center}
+.stats div{background:var(--c-lcd);border:1px solid var(--c-lcd-b);border-radius:12px;padding:8px 2px}
+.stats b{display:block;font:700 22px var(--f-num);color:var(--c-led);text-shadow:var(--c-led-glow)}
+.stats span{font-size:10px;color:#9aa3b2;line-height:1.1;display:block}
+.rev{display:grid;gap:8px}
+.rev .rg{border-radius:12px;padding:10px 12px}
+.rev .rg .cat{font:800 13px var(--f-body);text-transform:uppercase;letter-spacing:.03em;display:flex;gap:6px;align-items:center}
+.rev .rg .its{font:600 12.5px var(--f-body);opacity:.9;margin:2px 0 4px}
+.rev .rg .why{font-size:13.5px;line-height:1.35}
+.rev .rg .tn{font:700 9.5px var(--f-num);letter-spacing:.12em;text-transform:uppercase;opacity:.8;margin-left:auto}
+.btnrow{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
+.btnrow button{flex:1}
+.prim{background:var(--c-act);border-color:var(--c-act);color:var(--c-act-ink);box-shadow:0 3px 0 var(--c-act-sh)}
+.tiers{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+.tiers div{border-radius:10px;padding:7px 10px;font:700 13px var(--f-body);display:flex;gap:6px;align-items:center}
+.result{font:700 18px var(--f-title);margin:0 0 4px}
+.arch{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:6px}
+.arch button{text-align:left;min-height:46px;font-size:13px;line-height:1.15;padding:6px 10px}
+.arch button small{display:block;color:var(--c-mut);font-weight:500;font-size:11px}
+.arch button.done small::after{content:" · solved"}
+kbd{font:600 11px var(--f-num);background:var(--c-key);border:1px solid var(--c-key-b);border-radius:5px;padding:1px 5px}
+@media (min-width:700px){
+ body{padding:16px}
+ main{padding:0 18px 10px}.chma-headwrap{margin:0 -18px 8px}
+ h1{font-size:28px}
+ .tile{font-size:18px}
+ :root{--th:clamp(64px,calc((100dvh - 350px) / 4),92px)}
+}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style></head><body><main>
+<div data-chma-head data-ver="v2026-11-12.1"></div>
+<div class="top">
+ <div class="ttl"><h1>Group<em>ies</em></h1><p class="tag">Find the four bands of four.</p></div>
+ <button class="ib" id="helpB" aria-label="How to play" title="How to play">?</button>
+ <button class="ib" id="statsB" aria-label="Stats" title="Stats">&#9636;</button>
+ <button class="ib" id="muteB" aria-label="Sound on" aria-pressed="false" title="Sound">&#9835;</button>
+</div>
+<div class="bar">
+ <div class="seg" role="group" aria-label="Mode"><button id="mDaily" aria-pressed="true">Daily</button><button id="mPrac" aria-pressed="false">Practice</button></div>
+ <select id="topic" aria-label="Topic"><option value="all">All topics</option><option value="theory">Theory</option><option value="history">History</option><option value="pop">Pop Culture</option></select>
+</div>
+<div class="info"><span id="pLabel">&nbsp;</span><span id="pHint">Pick 4 that belong together</span></div>
+<div id="board" role="grid" aria-label="Puzzle tiles"></div>
+<div class="mist"><span>Mistakes left</span><div class="dots" id="dots" aria-hidden="true"></div><span class="sr" id="mistSr"></span></div>
+<div class="acts">
+ <button id="shuffle">Shuffle</button>
+ <button id="deselect">Deselect all</button>
+ <button id="submit">Submit</button>
+</div>
+<p class="appver">Groupies · Version 2026-11-12.1</p>
+</main>
+<div id="toast" role="status" aria-live="assertive"></div>
+<div class="sr" id="live" aria-live="polite"></div>
+
+<dialog id="dEnd" aria-labelledby="endT"><div class="dlg">
+ <div class="dhead"><h2 id="endT">Nice.</h2><button class="ib" data-close aria-label="Close">&times;</button></div>
+ <p class="result" id="endSub"></p>
+ <div class="rev" id="endRev"></div>
+ <div class="btnrow"><button class="prim" id="shareB">Share result</button><button id="nextB">Practice another</button></div>
+ <h3>Your stats</h3><div class="stats" id="endStats"></div>
+</div></dialog>
+
+<dialog id="dStats" aria-labelledby="stT"><div class="dlg">
+ <div class="dhead"><h2 id="stT">Stats</h2><button class="ib" data-close aria-label="Close">&times;</button></div>
+ <div class="stats" id="statsBox"></div>
+ <p style="font-size:12.5px;color:var(--c-mut)">Streaks count Daily wins on back-to-back days. Saved on this device only.</p>
+</div></dialog>
+
+<dialog id="dArch" aria-labelledby="arT"><div class="dlg">
+ <div class="dhead"><h2 id="arT">Practice archive</h2><button class="ib" data-close aria-label="Close">&times;</button></div>
+ <p style="font-size:13px;color:var(--c-mut)" id="arSub"></p>
+ <div class="arch" id="archList"></div>
+</div></dialog>
+
+<dialog id="dHelp" aria-labelledby="hpT"><div class="dlg">
+ <div class="dhead"><h2 id="hpT">How to play Groupies</h2><button class="ib" data-close aria-label="Close">&times;</button></div>
+ <p>Sixteen words are hiding four groups of four. Pick four that share something, then hit <b>Submit</b>.</p>
+ <p>Watch for red herrings: some words look like they fit two groups. Only one way works. Three right out of four gets you a <b>One away!</b></p>
+ <p>You get <b>4 mistakes</b>. Win or lose, every group is revealed with why it fits.</p>
+ <h3>Difficulty tiers</h3>
+ <div class="tiers" id="tierKey"></div>
+ <h3>Modes</h3>
+ <p><b>Daily</b>: one puzzle a day, the same for everyone in the studio. <b>Practice</b>: pick any puzzle from the archive. The topic menu works in both.</p>
+ <h3>Keyboard</h3>
+ <p><kbd>Arrows</kbd> move between tiles, <kbd>Enter</kbd> or <kbd>Space</kbd> selects. <kbd>Tab</kbd> reaches Shuffle, Deselect and Submit.</p>
+ <p style="font-size:12px;color:var(--c-mut)">An original Clarendon Hills Music Academy game.</p>
+</div></dialog>
+
+<script>
+"use strict";
+const $=id=>document.getElementById(id);
+const TIERS={1:{name:"Warm-up",ico:"♩",emo:"🎹"},2:{name:"Groove",ico:"♫",emo:"🥁"},3:{name:"Deep cut",ico:"◉",emo:"💿"},4:{name:"Brain melter",ico:"✸",emo:"🤯"}};
+const TOPIC_NAME={all:"All topics",theory:"Theory",history:"History",pop:"Pop Culture"};
+const EPOCH=Date.UTC(2026,10,12); /* Daily #1 = 2026-11-12 */
+const URL_LIVE="https://phishykeys555.github.io/piano_rebellion_apps/groupies/";
+let PUZ=[];
+
+/* ---------- storage (always guarded) ---------- */
+const store={get(k,d){try{const v=localStorage.getItem("groupies."+k);return v==null?d:JSON.parse(v)}catch(e){return d}},
+ set(k,v){try{localStorage.setItem("groupies."+k,JSON.stringify(v))}catch(e){}}};
+
+/* ---------- seeded random ---------- */
+function hash(s){let h=2166136261;for(let i=0;i<s.length;i++){h^=s.charCodeAt(i);h=Math.imul(h,16777619)}return h>>>0}
+function rng(seed){let a=seed>>>0;return()=>{a=(a+0x6D2B79F5)>>>0;let t=a;t=Math.imul(t^t>>>15,t|1);t^=t+Math.imul(t^t>>>7,t|61);return((t^t>>>14)>>>0)/4294967296}}
+function shuffled(arr,r){const a=arr.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(r()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a}
+
+/* ---------- dates ---------- */
+function todayKey(d){d=d||new Date();const y=d.getFullYear(),m=d.getMonth()+1,dd=d.getDate();return y+"-"+String(m).padStart(2,"0")+"-"+String(dd).padStart(2,"0")}
+function dayNum(key){const[y,m,d]=key.split("-").map(Number);return Math.round((Date.UTC(y,m-1,d)-EPOCH)/86400000)}
+function pool(topic){return PUZ.filter(p=>topic==="all"||p.topic===topic)}
+/* Daily: a fixed shuffled order per topic, walked one per day. Same date + topic = same puzzle, same tile order. */
+function dailyPuzzle(key,topic){const list=pool(topic);const order=shuffled(list,rng(hash("groupies-order-"+topic)));const n=dayNum(key);return order[((n%order.length)+order.length)%order.length]}
+
+/* ---------- state ---------- */
+let mode="daily",topic=store.get("topic","all"),cur=null,dateKey=todayKey();
+let tiles=[],sel=[],solved=[],mistakes=0,guesses=[],over=false,won=false,focusIdx=0,guessSet=new Set();
+if(!TOPIC_NAME[topic])topic="all";
+
+function tierOf(word){return cur.groups.find(g=>g.items.includes(word))}
+function start(p,opts){
+ cur=p;opts=opts||{};sel=[];solved=[];mistakes=0;guesses=[];over=false;won=false;focusIdx=0;guessSet=new Set();
+ const seed=mode==="daily"?hash("groupies-"+dateKey+"-"+p.id):(Date.now()>>>0);
+ tiles=shuffled(p.groups.flatMap(g=>g.items),rng(seed));
+ const lab=mode==="daily"?("Daily #"+(dayNum(dateKey)+1)+" · "+dateKey+" · "+TOPIC_NAME[topic]):("Practice #"+p.id+" · "+p.title);
+ $("pLabel").innerHTML=mode==="daily"?("<b>Daily #"+(dayNum(dateKey)+1)+"</b> · "+esc(p.title)+" · "+TOPIC_NAME[topic]):("<b>Practice #"+p.id+"</b> · "+esc(p.title));
+ $("pLabel").title=lab;
+ /* restore a finished or in-progress daily */
+ if(mode==="daily"){const sv=store.get("daily."+dateKey+"."+topic,null);if(sv&&sv.id===p.id){restore(sv)}}
+ render();setHint();
+ if(over&&!opts.quiet)setTimeout(()=>showEnd(false),250);
+}
+function restore(sv){
+ guesses=sv.guesses||[];mistakes=0;solved=[];
+ for(const gs of guesses){const g=cur.groups.find(G=>gs.every(w=>G.items.includes(w)));guessSet.add(gs.slice().sort().join("|"));if(g){solved.push(g)}else mistakes++}
+ tiles=tiles.filter(w=>!solved.some(g=>g.items.includes(w)));
+ if(solved.length===4){over=true;won=true}else if(mistakes>=4){over=true;won=false;revealAll()}
+}
+function saveDaily(){if(mode!=="daily")return;store.set("daily."+dateKey+"."+topic,{id:cur.id,guesses,over,won})}
+
+/* ---------- render ---------- */
+function esc(s){return String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]))}
+function render(newSolved){
+ const b=$("board");b.innerHTML="";
+ solved.forEach((g,i)=>{const r=document.createElement("button");r.className="solved ti"+g.tier+(g===newSolved?" in":"");r.setAttribute("role","row");
+  r.setAttribute("aria-label","Solved, "+TIERS[g.tier].name+": "+g.name+". "+g.items.join(", "));
+  r.innerHTML='<span class="tn"><span class="ico" aria-hidden="true">'+TIERS[g.tier].ico+'</span> '+TIERS[g.tier].name+'</span><span class="cat">'+esc(g.name)+'</span><span class="its">'+g.items.map(esc).join(" · ")+'</span>';
+  r.onclick=()=>toast(g.why,4200);b.appendChild(r);fitSolved(r)});
+ for(let row=0;row<tiles.length/4;row++){const r=document.createElement("div");r.className="row";r.setAttribute("role","row");
+  for(let c=0;c<4;c++){const i=row*4+c,w=tiles[i];const t=document.createElement("button");t.className="tile";t.dataset.i=i;t.setAttribute("role","gridcell");
+   const on=sel.includes(w);t.setAttribute("aria-pressed",on);t.setAttribute("aria-label",w+(on?", selected":""));t.tabIndex=i===focusIdx?0:-1;
+   t.innerHTML="<span>"+esc(w)+"</span>";t.onclick=()=>{focusIdx=i;toggle(w)};r.appendChild(t)}
+  b.appendChild(r)}
+ b.querySelectorAll(".tile").forEach(fitTile);
+ const d=$("dots");d.innerHTML="";for(let i=0;i<4;i++){const x=document.createElement("span");x.className="dot"+(i<4-mistakes?"":" gone");d.appendChild(x)}
+ $("mistSr").textContent=(4-mistakes)+" of 4 mistakes left";
+ $("submit").disabled=over||sel.length!==4;$("deselect").disabled=over||!sel.length;$("shuffle").disabled=over;
+ if(over){$("submit").textContent="See results";$("submit").disabled=false}else $("submit").textContent="Submit";
+}
+/* Fitting: shrink the label down to 11px without breaking words. If a long word still will not fit,
+   give it one soft hyphen at a natural split and fit again from 15px, so kids never squint at 8px text. */
+const SPLIT={TETRACHORD:"TETRA|CHORD",QUADRUPLET:"QUADRU|PLET",STRAVINSKY:"STRA|VINSKY",CHOPSTICKS:"CHOP|STICKS",WATERMELON:"WATER|MELON",LUFTBALLONS:"LUFT|BALLONS",ROCKETMAN:"ROCKET|MAN",WOODSTOCK:"WOOD|STOCK",ARMSTRONG:"ARM|STRONG",SEMIBREVE:"SEMI|BREVE",SOUNDBOARD:"SOUND|BOARD",FALLBOARD:"FALL|BOARD",KEYSTONE:"KEY|STONE",BLUEBERRY:"BLUE|BERRY",GUACAMOLE:"GUACA|MOLE",SEABISCUIT:"SEA|BISCUIT",EYEPATCH:"EYE|PATCH",AUTOGRAPH:"AUTO|GRAPH",YEARBOOK:"YEAR|BOOK",MONOTONE:"MONO|TONE",BARITONE:"BARI|TONE",FRANKENSTRAT:"FRANKEN|STRAT",SECRETARIAT:"SECRE|TARIAT",TEMPTATIONS:"TEMP|TATIONS",COMMODORES:"COMMO|DORES"};
+function splitWord(x){const u=x.toUpperCase();if(SPLIT[u])return SPLIT[u].split("|").map((p,k)=>k?x.slice(SPLIT[u].indexOf("|")):x.slice(0,SPLIT[u].indexOf("|")));
+ const m=Math.floor(x.length/2),V=/[AEIOUY]/i,C=c=>/[A-Z]/i.test(c)&&!V.test(c),DI=/^(CH|TH|SH|PH|CK|QU)$/i;
+ for(const d of [0,1,-1,2,-2]){const i=m+d;if(i<3||i>x.length-3)continue;const a=x[i-1],b=x[i],c=x[i+1];
+  if(C(a)&&a===b)return[x.slice(0,i),x.slice(i)];
+  if(C(a)&&C(b)&&!DI.test(a+b))return[x.slice(0,i),x.slice(i)];
+  if(C(b)&&V.test(c)&&V.test(a))return[x.slice(0,i),x.slice(i)]}
+ return[x.slice(0,m),x.slice(m)]}
+function softBreak(w){return w.split(" ").map(x=>x.length<8?esc(x):splitWord(x).map(esc).join("&shy;")).join(" ")}
+function overflows(t,s){return s.scrollWidth>s.clientWidth+0.5||s.offsetHeight>t.clientHeight-6}
+function fitTile(t){const s=t.firstChild,w=s.textContent;let f=parseFloat(getComputedStyle(t).fontSize);
+ while(overflows(t,s)&&f>11){f-=0.5;s.style.fontSize=f+"px"}
+ if(overflows(t,s)){s.innerHTML=softBreak(w);f=Math.min(15,parseFloat(getComputedStyle(t).fontSize));s.style.fontSize=f+"px";
+  while(overflows(t,s)&&f>10){f-=0.5;s.style.fontSize=f+"px"}}}
+function fitSolved(r){const c=r.querySelector(".cat"),it=r.querySelector(".its");let f=14,g=13;
+ for(let k=0;k<8&&r.scrollHeight>r.clientHeight+1;k++){f-=.8;g-=.8;c.style.fontSize=f+"px";it.style.fontSize=g+"px"}}
+function setHint(){$("pHint").textContent=over?(won?"Solved!":"Out of mistakes"):(sel.length?sel.length+" of 4 picked":"Pick 4 that belong together")}
+
+/* ---------- play ---------- */
+function toggle(w){if(over)return;const kb=!!(document.activeElement&&document.activeElement.classList.contains("tile"));const i=sel.indexOf(w);
+ if(i>=0){sel.splice(i,1);snd("off")}else{if(sel.length>=4){snd("nope");return}sel.push(w);snd("on")}
+ render();setHint();if(kb)focusTile(true)}
+function submit(){
+ if(over){showEnd(true);return}
+ if(sel.length!==4)return;
+ const key=sel.slice().sort().join("|");
+ if(guessSet.has(key)){toast("Already tried that one");snd("nope");return}
+ guessSet.add(key);guesses.push(sel.slice());
+ const g=cur.groups.find(G=>sel.every(w=>G.items.includes(w)));
+ if(g){solved.push(g);tiles=tiles.filter(w=>!g.items.includes(w));sel=[];snd("right");announce("Correct: "+g.name);
+  if(solved.length===4){over=true;won=true;finish()}
+  focusIdx=0;render(g);setHint();saveDaily();if(over)setTimeout(()=>{snd("win");showEnd(true)},650);return}
+ mistakes++;const best=Math.max(...cur.groups.map(G=>sel.filter(w=>G.items.includes(w)).length));
+ const els=[...document.querySelectorAll(".tile[aria-pressed=true]")];els.forEach(e=>{e.classList.remove("shake");void e.offsetWidth;e.classList.add("shake")});
+ if(best===3){toast("One away!");snd("close");announce("One away")}else{snd("wrong");announce("Not a group")}
+ if(mistakes>=4){over=true;won=false;sel=[];setTimeout(()=>{revealAll();finish();render();setHint();snd("lose");saveDaily();setTimeout(()=>showEnd(true),500)},450)}
+ else setTimeout(()=>{render();setHint()},380);
+ saveDaily();
+}
+function revealAll(){cur.groups.slice().sort((a,b)=>a.tier-b.tier).forEach(g=>{if(!solved.includes(g))solved.push(g)});tiles=[]}
+function finish(){
+ /* stats */
+ const st=store.get("stats",{played:0,wins:0,clean:0,cur:0,best:0,lastDaily:null});
+ st.played++;if(won){st.wins++;if(mistakes===0)st.clean++}
+ if(mode==="daily"){const n=dayNum(dateKey);if(won){st.cur=(st.lastDaily===n-1)?st.cur+1:1;st.best=Math.max(st.best,st.cur);st.lastDaily=n}else{st.cur=0;st.lastDaily=n}}
+ store.set("stats",st);
+ const done=store.get("done",{});done[cur.id]=done[cur.id]||won;store.set("done",done);
+}
+function statsHTML(){const st=store.get("stats",{played:0,wins:0,clean:0,cur:0,best:0});
+ const pct=st.played?Math.round(100*st.wins/st.played):0;
+ return[[st.played,"Played"],[pct,"Win %"],[st.cur,"Current streak"],[st.best,"Best streak"],[st.clean,"No-mistake wins"]].map(a=>"<div><b>"+a[0]+"</b><span>"+a[1]+"</span></div>").join("")}
+function showEnd(fresh){
+ $("endT").textContent=won?(mistakes===0?"Flawless.":["Nailed it.","Solved.","Got there."][Math.min(mistakes,2)]):"So close.";
+ $("endSub").textContent=won?("Solved with "+mistakes+" mistake"+(mistakes===1?"":"s")+"."):"Out of mistakes. Here is how it breaks down:";
+ $("endRev").innerHTML=cur.groups.slice().sort((a,b)=>a.tier-b.tier).map(g=>'<div class="rg ti'+g.tier+'"><div class="cat"><span class="ico" aria-hidden="true">'+TIERS[g.tier].ico+'</span>'+esc(g.name)+'<span class="tn">'+TIERS[g.tier].name+'</span></div><div class="its">'+g.items.map(esc).join(" · ")+'</div><div class="why">'+esc(g.why)+'</div></div>').join("");
+ $("endStats").innerHTML=statsHTML();
+ $("nextB").textContent=mode==="daily"?"Play practice":"Next puzzle";
+ openD("dEnd");
+}
+function shareText(){
+ const head=mode==="daily"?("Groupies · Daily #"+(dayNum(dateKey)+1)+" ("+TOPIC_NAME[topic]+")"):("Groupies · Practice #"+cur.id);
+ const rows=guesses.map(gs=>gs.map(w=>TIERS[tierOf(w).tier].emo).join(""));
+ return head+"\n"+rows.join("\n")+"\n"+(won?"Solved, "+mistakes+" mistake"+(mistakes===1?"":"s"):"Ran out of mistakes")+"\n"+URL_LIVE;
+}
+async function share(){const t=shareText();let ok=false;
+ try{if(navigator.clipboard&&window.isSecureContext){await navigator.clipboard.writeText(t);ok=true}}catch(e){}
+ if(!ok){try{const ta=document.createElement("textarea");ta.value=t;ta.setAttribute("readonly","");ta.style.position="fixed";ta.style.opacity="0";document.body.appendChild(ta);ta.select();ok=document.execCommand("copy");ta.remove()}catch(e){}}
+ window.__lastShare=t;toast(ok?"Result copied. Paste it anywhere.":"Copy failed, sorry");snd("on")}
+
+/* ---------- UI helpers ---------- */
+let tT;function toast(m,ms){const t=$("toast");t.textContent=m;t.classList.add("on");clearTimeout(tT);tT=setTimeout(()=>t.classList.remove("on"),ms||1500)}
+function announce(m){$("live").textContent=m}
+function openD(id){const d=$(id);try{if(!d.open)d.showModal()}catch(e){d.setAttribute("open","")}}
+document.querySelectorAll("dialog").forEach(d=>{d.addEventListener("click",e=>{if(e.target===d||e.target.closest("[data-close]"))d.close()})});
+function focusTile(){const t=document.querySelector('.tile[data-i="'+focusIdx+'"]');if(t)t.focus()}
+$("board").addEventListener("keydown",e=>{const t=e.target.closest(".tile");if(!t)return;let i=+t.dataset.i,n=tiles.length;
+ const mv={ArrowLeft:-1,ArrowRight:1,ArrowUp:-4,ArrowDown:4}[e.key];
+ if(mv!==undefined){e.preventDefault();let j=i+mv;if(j<0||j>=n)return;focusIdx=j;document.querySelectorAll(".tile").forEach(x=>x.tabIndex=-1);const nt=document.querySelector('.tile[data-i="'+j+'"]');nt.tabIndex=0;nt.focus()}
+ else if(e.key==="Enter"||e.key===" "){e.preventDefault();focusIdx=i;toggle(tiles[i])}});
+$("submit").onclick=submit;
+$("deselect").onclick=()=>{sel=[];snd("off");render();setHint()};
+$("shuffle").onclick=()=>{tiles=shuffled(tiles,rng(Date.now()>>>0));snd("shuf");render();setHint()};
+$("shareB").onclick=share;
+$("nextB").onclick=()=>{$("dEnd").close();if(mode==="daily"){setMode("practice")}else{const l=pool(topic);const i=l.indexOf(cur);start(l[(i+1)%l.length])}};
+$("statsB").onclick=()=>{$("statsBox").innerHTML=statsHTML();openD("dStats")};
+$("helpB").onclick=()=>openD("dHelp");
+$("tierKey").innerHTML=[1,2,3,4].map(t=>'<div class="ti'+t+'"><span class="ico" aria-hidden="true">'+TIERS[t].ico+'</span>'+TIERS[t].name+'</div>').join("");
+function setMode(m){mode=m;$("mDaily").setAttribute("aria-pressed",m==="daily");$("mPrac").setAttribute("aria-pressed",m==="practice");
+ if(m==="daily"){dateKey=todayKey();start(dailyPuzzle(dateKey,topic))}else{openArchive()}}
+function openArchive(){const done=store.get("done",{});const l=pool(topic);$("arSub").textContent=l.length+" puzzles · "+TOPIC_NAME[topic];
+ $("archList").innerHTML=l.map(p=>'<button data-id="'+p.id+'" class="'+(done[p.id]?"done":"")+'">#'+p.id+" "+esc(p.title)+"<small>"+TOPIC_NAME[p.topic]+"</small></button>").join("");
+ $("archList").querySelectorAll("button").forEach(b=>b.onclick=()=>{$("dArch").close();mode="practice";$("mDaily").setAttribute("aria-pressed",false);$("mPrac").setAttribute("aria-pressed",true);start(PUZ.find(p=>p.id===+b.dataset.id))});
+ openD("dArch");
+ if(mode==="practice"&&(!cur||(topic!=="all"&&cur.topic!==topic)))start(l[0],{quiet:true});}
+$("mDaily").onclick=()=>setMode("daily");$("mPrac").onclick=()=>setMode("practice");
+$("topic").value=topic;
+$("topic").onchange=e=>{topic=e.target.value;store.set("topic",topic);if(mode==="daily")start(dailyPuzzle(dateKey,topic));else openArchive()};
+addEventListener("resize",()=>{clearTimeout(window.__rz);window.__rz=setTimeout(()=>render(),120)});
+
+/* ---------- sound (Web Audio, original, subtle) ---------- */
+let AC=null,muted=store.get("muted",false);
+function ac(){if(!AC){try{AC=new (window.AudioContext||window.webkitAudioContext)()}catch(e){AC=null}}if(AC&&AC.state==="suspended")AC.resume();return AC}
+function tone(f,t0,dur,type,vol){const a=ac();if(!a)return;const o=a.createOscillator(),g=a.createGain();o.type=type||"sine";o.frequency.value=f;
+ const t=a.currentTime+t0;g.gain.setValueAtTime(0.0001,t);g.gain.exponentialRampToValueAtTime(vol||0.08,t+0.012);g.gain.exponentialRampToValueAtTime(0.0001,t+dur);o.connect(g).connect(a.destination);o.start(t);o.stop(t+dur+0.02)}
+const N=m=>440*Math.pow(2,(m-69)/12);
+function snd(k){if(muted)return;try{
+ if(k==="on")tone(N(84),0,.07,"triangle",.05);
+ else if(k==="off")tone(N(79),0,.06,"triangle",.04);
+ else if(k==="nope")tone(N(60),0,.08,"square",.025);
+ else if(k==="shuf"){[76,79,83,86].forEach((m,i)=>tone(N(m),i*.035,.06,"triangle",.035))}
+ else if(k==="wrong"){tone(N(52),0,.18,"sawtooth",.03);tone(N(51),.09,.22,"sawtooth",.03)}
+ else if(k==="close"){tone(N(67),0,.1,"triangle",.05);tone(N(68),.09,.16,"triangle",.05)}
+ else if(k==="right"){[72,76,79].forEach((m,i)=>tone(N(m),i*.07,.22,"triangle",.06))}
+ else if(k==="win"){/* Cmaj9 rising, then a high G: a tiny original sting */[60,64,67,71,74].forEach((m,i)=>tone(N(m),i*.085,.6,"triangle",.055));tone(N(79),.5,.9,"sine",.06);tone(N(48),.5,.9,"sine",.05)}
+ else if(k==="lose"){[67,63,60].forEach((m,i)=>tone(N(m),i*.16,.4,"triangle",.05))}
+}catch(e){}}
+function setMuteUI(){$("muteB").setAttribute("aria-pressed",muted);$("muteB").setAttribute("aria-label",muted?"Sound off (tap to turn on)":"Sound on (tap to mute)");$("muteB").innerHTML=muted?"&#10005;":"&#9835;";$("muteB").style.opacity=muted?.6:1}
+$("muteB").onclick=()=>{muted=!muted;store.set("muted",muted);setMuteUI();if(!muted)snd("on")};setMuteUI();
+
+/* ---------- boot ---------- */
+fetch("puzzles.json",{cache:"no-cache"}).then(r=>r.json()).then(p=>{PUZ=p;window.__G={get cur(){return cur},get tiles(){return tiles},dailyPuzzle,todayKey,shareText,get over(){return over},get won(){return won}};
+ const q=new URLSearchParams(location.search);
+ if(q.get("date")&&/^\d{4}-\d{2}-\d{2}$/.test(q.get("date")))dateKey=q.get("date");
+ if(q.get("p")){mode="practice";$("mDaily").setAttribute("aria-pressed",false);$("mPrac").setAttribute("aria-pressed",true);start(PUZ.find(x=>x.id===+q.get("p"))||PUZ[0])}
+ else start(dailyPuzzle(dateKey,topic));
+ if(!store.get("seenHelp",false)&&!q.get("nohelp")){store.set("seenHelp",true);openD("dHelp")}
+}).catch(e=>{$("pLabel").textContent="Could not load puzzles. Refresh to try again."});
+</script>
+</body></html>
