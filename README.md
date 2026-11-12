@@ -23,5 +23,6 @@ Every app shows its version at the bottom of the page: `Version YYYY-MM-DD.N` (d
 | Major 7th Play-Along | 2026-11-11.8 |
 | Song Dissector | 2026-11-11.14 |
 | Strobe Tuner (Guitar Revolution) | 2026-11-12.1 |
+| Groupies (find the four bands of four) | 2026-11-12.1 |
 | Music Games (home) | 2026-11-12.1 |
 | Round music (`shared/hype.js`) | 2026-11-12.1 |
