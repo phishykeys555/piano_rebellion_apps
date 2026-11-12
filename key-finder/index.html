@@ -162,6 +162,8 @@ details.how p{margin:10px 0 0}
 .rgrid span{font-size:14px;letter-spacing:.04em}
 .piano .w{font-size:14px}.piano .w.mc{font-size:12px}
 .appver,.chma-ver{font-size:14px}
+/* results sheet: takes the card's place at its full height (it covered the card before; now nothing is cut off on short screens) */
+.card.showres>:not(.results){display:none!important}.card.showres .results{position:static;padding:4px;overflow:visible;background:none}
 .arcrow{display:flex;align-items:center;gap:8px 16px;flex-wrap:wrap}.arcrow .arcbar{flex:none;justify-content:flex-start}.arcrow .clock{flex:1 1 160px}
 .actbar .actions{flex-wrap:nowrap}.actbar .btn{min-height:52px;font-size:16px}
 .actbar .btn.primary{flex:2 1 0}.actbar .btn:not(.primary){flex:1 1 0}
@@ -369,7 +371,7 @@ details.how p{margin:10px 0 0}
   // the next key after an answer: never under a round splash or the results sheet
   function next(){ if($("arcSplash").hidden&&$("results").hidden) newQ() }
   // results sheet over the card: the card underneath is inert so Tab and screen readers stay on the sheet
-  function sheet(on){ $("results").hidden=!on; [...$("card").children].forEach(c=>{ if(c!==$("results")) c.inert=on }); $("actbar").inert=on; $("actbar").hidden=on }
+  function sheet(on){ $("results").hidden=!on; [...$("card").children].forEach(c=>{ if(c!==$("results")) c.inert=on }); $("actbar").inert=on; $("actbar").hidden=on; $("card").classList.toggle("showres",on) }
 
   // ---------- Challenge mode: arcade rounds (same rules as the other studio apps) ----------
   // Round 1 is a 30-second warm-up whose score sets the targets. Rounds 2-5 each have their own fresh target (extra points never carry),
