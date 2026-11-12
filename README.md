@@ -16,7 +16,7 @@ Every app shows its version at the bottom of the page: `Version YYYY-MM-DD.N` (d
 |---|---|
 | Note Sprint | 2026-11-11.12 |
 | Key Finder | 2026-11-11.11 |
-| Rhythm Trainer | 2026-11-11.22 |
+| Rhythm Trainer | 2026-11-11.23 |
 | Modal Metronome | 2026-11-11.18 |
 | Hanon Speed Trainer | 2026-11-11.7 |
 | Major 7th Play-Along | 2026-11-11.8 |
