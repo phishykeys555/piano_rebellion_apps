@@ -885,7 +885,7 @@ input[type=range],input[type=checkbox],input[type=radio]{accent-color:var(--c-ac
   // ---- THE EAR. It hears every sample: the audio thread hands each block to a ring (AudioWorklet, else ScriptProcessor) and the ear takes
   // one look per 20 ms OF SOUND, not of clock. A busy or throttled page answers a little later; it can never skip a key's attack.
   // (Browsers with neither fall back to one look at the analyser per timer tick, the old way.)
-  const HOPMS=20, COOL=40, REARM=150, EARLY=450, TPN=3, TOWN=0.2, LEAPH=1.7, LEAPE=1.15, LOWO=0.2, UPO=0.2, TONR=3;
+  const HOPMS=20, COOL=40, REARM=150, EARLY=450, TPN=3, TOWN=0.2, LEAPH=1.7, LEAPE=1.15, LOWO=0.2, UPO=0.3, TONR=3;
   function micInit(sr,g){ return {g,sr,hop:Math.round(sr*HOPMS/1000),ring:new Float32Array(1<<17),w:0,h:0,fw:0,s0:0,buf:new Float32Array(4096),hist:[],armed:false,armedAt:0,cand:[],cool:0,asks:[],dlog:[],fe:[],fh:[],lateMax:0,mode:"analyser"} }
   function micFeed(x){ const m=mic; if(!m) return; const R=m.ring, N=R.length; if(m.w===0) m.s0=performance.now()-x.length/m.sr*1000; for(let i=0;i<x.length;i++) R[(m.w+i)&(N-1)]=x[i]; m.w+=x.length; m.fw=performance.now() }
   // sound time (ms) of a moment on the page clock; with no ring, sound time IS the page clock
