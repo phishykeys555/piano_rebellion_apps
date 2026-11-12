@@ -94,6 +94,12 @@ button:focus-visible,input:focus-visible{outline:3px solid var(--accent);outline
 .heard.msg{font-family:var(--display);font-weight:600;font-size:17px;line-height:1.3;text-align:center;color:var(--muted);display:flex;align-items:center;justify-content:center;gap:8px;padding:10px 14px;margin:0 auto;max-width:420px;border:1px dashed var(--border);border-radius:12px}
 .micstat{font-size:13px;color:var(--muted);text-align:center;max-width:420px;line-height:1.4}
 .micstat a{color:var(--accent);font-weight:700}
+.diaglink{font-size:12px;color:var(--muted);text-decoration:underline;text-underline-offset:2px}
+.micdiag{width:100%;max-width:560px;border:1px solid var(--border);border-radius:12px;background:var(--panel);padding:10px 12px;box-sizing:border-box}
+.micdiag .dhead{display:flex;justify-content:space-between;align-items:center;gap:8px;font-size:14px;color:var(--ink)}
+.micdiag .dhead button{font:inherit;font-size:13px;padding:6px 10px;border-radius:8px;border:1px solid var(--border);background:var(--bg,transparent);color:var(--ink);cursor:pointer}
+.micdiag .dnote{font-size:12px;color:var(--muted);margin:6px 0}
+.micdiag pre{font-family:var(--mono);font-size:11px;line-height:1.45;white-space:pre-wrap;word-break:break-word;max-height:300px;overflow:auto;margin:0;color:var(--ink)}
 a.primary{display:inline-flex;align-items:center;justify-content:center;min-height:44px;border-radius:10px;border:1px solid;text-decoration:none;text-align:center}
 .meter{width:100%;max-width:320px;height:6px;border-radius:3px;background:var(--border);overflow:hidden}
 .meter i{display:block;height:100%;width:0;background:var(--good)}
@@ -246,89 +252,89 @@ input[type=range],input[type=checkbox],input[type=radio]{accent-color:var(--c-ac
 .settings label.selrow{flex-wrap:wrap} #lmSel,#lsSel{flex:1 1 170px;min-width:0}
 @media (pointer:coarse){.rng select,#lmSel,#lsSel,.keyrow select{min-height:40px}.rngq button,.lmchips button,.ivfocus button{min-height:40px}}
 .rotate{color:var(--c-act)}
+/* ---- Layout 2026-11-12 (shared pattern): setup left, play card + action bar right on desktop; compact setup + fixed bottom
+   action bar on phones. Start and the staff are on screen without scrolling at 1280x720, 1440x800, 768x1024 and 390x664. ---- */
+.cols{display:flex;flex-direction:column;gap:16px}
+.setup,.play{display:flex;flex-direction:column;gap:16px;min-width:0}
+.sect{display:flex;flex-direction:column;gap:8px}
+.lbl{font:700 14px var(--body);letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.sub,.tip,.keyrow label,.lvl span,.stat span,.micstat,.swipe{font-size:14px}
+.keyrow label{letter-spacing:.04em}
+details.how p{margin:0;padding:0 16px 12px;line-height:1.45;color:var(--muted)}
+.appverp{text-align:left}
+.actbar .actions{flex-wrap:nowrap}.actbar button{min-height:52px;font-size:16px}
+.actbar .primary{flex:2 1 0}.actbar .ghost{flex:1 1 0}
+.staffbox svg{max-height:clamp(150px,30vh,250px);width:auto;max-width:100%;margin:0 auto}
+.micpad:has(#micCtl:not([hidden])) #micBtn{display:none}   /* mic on: its controls and status line say so */
+@media (min-width:900px){
+  body{padding:12px 24px}
+  .wrap{max-width:1180px;gap:12px}
+  .cols{display:grid;grid-template-columns:minmax(280px,340px) minmax(0,1fr);gap:16px;align-items:start}
+  .levels{grid-template-columns:repeat(3,1fr);gap:8px}
+  .lvl{padding:8px 6px}
+  .card{padding:16px;gap:12px}
+  .piano{height:clamp(120px,19vh,160px)}
+  .letters button{padding:12px 0}
+  /* mic panel side by side: the heard note left, the microphone controls right */
+  .micpad:has(#micCtl:not([hidden])){display:grid;grid-template-columns:minmax(150px,auto) minmax(0,1fr);column-gap:24px;row-gap:8px;align-items:center;justify-items:start}
+  .micpad:has(#micCtl:not([hidden])) #heard{grid-column:1;grid-row:1 / span 3;justify-self:center}
+  .micpad:has(#micCtl:not([hidden])) #micCtl,.micpad:has(#micCtl:not([hidden])) #micStat,.micpad:has(#micCtl:not([hidden])) #micDiagLink{grid-column:2;max-width:none;text-align:left}
+  .micpad:has(#micCtl:not([hidden])) #micDiag{grid-column:1 / -1}
+}
+@media (max-width:899px){
+  body{padding:8px max(12px,env(safe-area-inset-right,0px)) 16px max(12px,env(safe-area-inset-left,0px))}
+  .wrap{gap:12px}
+  .cols,.setup{gap:12px}
+  .setup{display:contents}
+  .setup header{order:1}.s-level{order:2}.s-game{order:3}.play{order:4}.how{order:5}#settingsBox{order:6}.appverp{order:7}
+  .wrap{position:relative}
+  .setup header{position:absolute;top:17px;right:12px;height:40px;display:flex;align-items:center}
+  h1{font-size:24px;line-height:1}
+  .sub,.lbl,.chma-ver{display:none}
+  .keyrow{flex-wrap:nowrap}.keyrow label{white-space:nowrap}.keyrow select{flex:1;min-width:0}
+  .stat span{letter-spacing:0;text-transform:none}
+  body.running .s-level,body.running .s-game{display:none}
+  .levels{display:flex;flex-wrap:nowrap;overflow-x:auto;gap:8px;margin:0 -12px;padding:2px 12px 6px;scrollbar-width:none;-webkit-overflow-scrolling:touch}
+  .levels::-webkit-scrollbar{display:none}
+  .lvl{flex:0 0 auto;min-height:48px;padding:5px 14px;flex-direction:row;gap:6px}
+  .lvl b{font-size:14px}
+  .s-game{flex-direction:row;flex-wrap:wrap;gap:8px}
+  .s-game .seg{flex:1 1 100%}
+  .card{padding:12px;gap:10px}
+  .stats b{font-size:18px}
+  .prompt{min-height:40px}
+  .staffbox svg{max-height:clamp(110px,22vh,220px)}
+  .letters button{padding:10px 0;font-size:20px}
+  .heard{font-size:34px;min-height:40px}
+}
+/* phones (and short tablets): the action row is a fixed bar at the bottom, clear of the home indicator */
+@media (max-width:599px),(max-width:899px) and (max-height:899px){
+  body{padding-bottom:calc(84px + env(safe-area-inset-bottom,0px))}
+  .actbar{position:fixed;left:0;right:0;bottom:0;z-index:30;background:var(--c-panel,var(--panel));border-top:1px solid var(--c-line,var(--border));box-shadow:0 -8px 24px rgba(0,0,0,.18);
+    padding:10px max(12px,env(safe-area-inset-right,0px)) calc(10px + env(safe-area-inset-bottom,0px)) max(12px,env(safe-area-inset-left,0px))}
+  .actbar button{min-height:48px}
+  .actbar .actions{max-width:640px;margin:0 auto}
+}
 </style>
 
 <div class="wrap">
   <div data-chma-head></div>
+  <div class="cols">
+  <div class="setup">
   <header>
     <h1>Note <em>Sprint</em></h1>
     <p class="sub">Name the note. Say it out loud as you tap.</p>
   </header>
-
-  <div class="levels" id="levels" role="group" aria-label="Level"></div>
-  <div class="keyrow"><label for="keySel">Key signature</label><select id="keySel"></select></div>
+  <div class="sect s-level"><div class="lbl" aria-hidden="true">Level</div>
+  <div class="levels" id="levels" role="group" aria-label="Level"></div></div>
+  <div class="sect s-game"><div class="lbl" aria-hidden="true">Answer with</div>
   <div class="seg" id="seg" role="group" aria-label="Answer with">
     <button data-mode="letters">Tap letters</button><button data-mode="piano">Tap piano keys</button><button data-mode="mic">Play my piano</button>
   </div>
-
-  <section class="card" aria-label="Practice" id="card">
-    <div class="stats">
-      <div class="stat"><b id="sCorrect">0/0</b><span>Points</span></div>
-      <div class="stat"><b id="sPct">–</b><span>Accuracy</span></div>
-      <div class="stat"><b id="sStreak">0</b><span>Streak</span></div>
-      <div class="stat"><b id="sBest">0</b><span>Best</span></div>
-    </div>
-    <div class="arcbar" id="arcbar" hidden><span class="pill" id="arcRound">ROUND 1</span><span class="pill need" id="arcNeed">NEED 12</span><span class="pill fire" id="arcFire" hidden>ON FIRE 2X</span></div>
-    <div class="arcmeter" id="arcMeter" hidden><i id="arcFill"></i><b id="arcHit">TARGET HIT</b></div>
-    <div class="clockrow" id="clockrow" hidden><div class="watch" id="watch" role="timer" aria-label="Time left">
-      <svg viewBox="0 0 118 132"><rect class="crown" x="51" y="0" width="16" height="9" rx="2"/><rect class="crown" x="56" y="8" width="6" height="8"/><rect class="crown" x="94" y="16" width="10" height="6" rx="2" transform="rotate(45 99 19)"/>
-        <circle class="ring-bg" cx="59" cy="73" r="52" fill="none" stroke-width="9"/>
-        <circle class="ring" id="ring" cx="59" cy="73" r="52" fill="none" stroke-width="9" stroke-linecap="round" transform="rotate(-90 59 73)" stroke-dasharray="326.7" stroke-dashoffset="0"/></svg>
-      <div class="num" id="clock">30</div><div class="lab">SECONDS</div></div></div>
-
-    <div class="staffbox" id="staffbox"><svg id="staff" role="img" aria-label="Note on a staff"></svg></div>
-    <div class="prompt" id="prompt" aria-live="polite"></div>
-    <div class="choice" id="choice" hidden><button class="ghost" id="showBtn">Show me the answer</button></div>
-
-    <div id="letterPad">
-      <div class="acc" id="accRow" hidden>
-        <button class="chip" data-acc="b" aria-pressed="false" title="Flat (key: -)">♭</button>
-        <button class="chip" data-acc="" aria-pressed="true" title="Natural">♮</button>
-        <button class="chip" data-acc="#" aria-pressed="false" title="Sharp (key: =)">♯</button>
-      </div>
-      <div class="letters" id="letters"></div>
-    </div>
-    <div id="ivPad" class="ivpad" hidden>
-      <div class="ivfocus" id="ivFocus"><span>Focus on:</span></div>
-      <div class="ivans" id="ivAns"></div>
-    </div>
-    <div id="micPad" class="micpad" hidden>
-      <button class="primary" id="micBtn">Turn on the microphone</button>
-      <a class="primary" id="micOpen" href="./" target="_blank" rel="noopener" hidden>Open full screen</a>
-      <div class="heard" id="heard" aria-live="polite">–</div>
-      <div class="micctl" id="micCtl" hidden>
-        <label for="micSel">Microphone</label><select id="micSel"></select>
-        <label for="micGain">Sensitivity</label><input type="range" id="micGain" min="0" max="100" step="1" value="64">
-        <span>Level</span><div class="meter" style="max-width:none"><i id="meterFill"></i><span class="thr" id="thr"></span></div>
-      </div>
-      <div class="micstat" id="micStat" aria-live="polite">Play the note on your piano. One note at a time, the right octave.</div>
-    </div>
-    <div id="pianoPad" hidden><div class="pianoWrap" id="pianoWrap"><div class="pianoScroll" id="pianoScroll"><div class="piano" id="piano"></div></div></div><p class="swipe" id="rotateHint" hidden>Swipe the keyboard to see more keys</p></div>
-
-    <div class="row">
-      <button class="ghost" id="resetBtn">Reset score</button>
-      <button class="primary" id="chalBtn" title="Challenge mode: one try per note, no second chances">Start Challenge</button>
-    </div>
-    <p class="tip" id="kbTip">Keyboard: A–G to answer. In a key with sharps or flats, tap ♯ or ♭ first (or press = / −). Piano keys must be the exact key, right octave.</p>
-    <p class="tip" id="appVer"><span class="appver">Note Sprint · Version 2026-11-11.13</span></p>
-
-    <div class="arcsplash" id="arcSplash" hidden><div class="boom"></div><div id="arcPcs"></div><div class="pre" id="arcSplashP"></div><b id="arcSplashT">ROUND 2</b><span id="arcSplashS"></span></div><div class="hitstamp" id="hitStamp">TARGET HIT!</div>
-    <div class="results" id="results" hidden>
-      <h2 id="rTitle" tabindex="-1">Challenge over</h2>
-      <div class="big" id="rScore">0 <small>correct</small></div>
-      <div class="rgrid">
-        <div><b id="rPct">0%</b><span>Accuracy</span></div>
-        <div><b id="rTotal">0</b><span>Attempts</span></div>
-        <div><b id="rBest">0</b><span>Best streak</span></div>
-      </div>
-      <div><div class="stamp">Missed most</div><div class="misses" id="rMiss"></div></div>
-      <div id="rWhy" style="font-weight:600"></div><div class="stamp" id="rStamp"></div>
-      <p class="tip" style="text-align:left">Screenshot this screen and send it to your instructor.</p>
-      <div class="stamp">Note Sprint · By <a href="https://clarendonhillsmusicacademy.com/" target="_blank" rel="noopener" style="color:inherit;text-decoration:underline">Clarendon Hills Music Academy</a></div>
-      <div class="row"><button class="ghost" id="closeResults">Back to practice</button><button class="primary" id="againBtn">Play again</button></div>
-    </div>
-  </section>
-
+  <div class="keyrow"><label for="keySel">Key signature</label><select id="keySel"></select></div></div>
+  <details class="how"><summary>How it works</summary>
+    <p>Name the note. Say it out loud as you tap. Start Challenge runs timed rounds: a 30-second warm-up sets your targets, then beat each round's target to unlock the next.</p>
+    <p id="kbTip">Keyboard: A–G to answer. In a key with sharps or flats, tap ♯ or ♭ first (or press = / −). Piano keys must be the exact key, right octave.</p></details>
   <details id="settingsBox">
     <summary>Custom settings</summary>
     <div class="settings">
@@ -375,6 +381,84 @@ input[type=range],input[type=checkbox],input[type=radio]{accent-color:var(--c-ac
       </fieldset>
     </div>
   </details>
+  <p class="tip appverp" id="appVer"><span class="appver">Note Sprint · Version 2026-11-12.1</span></p>
+  </div>
+  <div class="play">
+
+  <section class="card" aria-label="Practice" id="card">
+    <div class="stats">
+      <div class="stat"><b id="sCorrect">0/0</b><span>Points</span></div>
+      <div class="stat"><b id="sPct">–</b><span>Accuracy</span></div>
+      <div class="stat"><b id="sStreak">0</b><span>Streak</span></div>
+      <div class="stat"><b id="sBest">0</b><span>Best</span></div>
+    </div>
+    <div class="arcbar" id="arcbar" hidden><span class="pill" id="arcRound">ROUND 1</span><span class="pill need" id="arcNeed">NEED 12</span><span class="pill fire" id="arcFire" hidden>ON FIRE 2X</span></div>
+    <div class="arcmeter" id="arcMeter" hidden><i id="arcFill"></i><b id="arcHit">TARGET HIT</b></div>
+    <div class="clockrow" id="clockrow" hidden><div class="watch" id="watch" role="timer" aria-label="Time left">
+      <svg viewBox="0 0 118 132"><rect class="crown" x="51" y="0" width="16" height="9" rx="2"/><rect class="crown" x="56" y="8" width="6" height="8"/><rect class="crown" x="94" y="16" width="10" height="6" rx="2" transform="rotate(45 99 19)"/>
+        <circle class="ring-bg" cx="59" cy="73" r="52" fill="none" stroke-width="9"/>
+        <circle class="ring" id="ring" cx="59" cy="73" r="52" fill="none" stroke-width="9" stroke-linecap="round" transform="rotate(-90 59 73)" stroke-dasharray="326.7" stroke-dashoffset="0"/></svg>
+      <div class="num" id="clock">30</div><div class="lab">SECONDS</div></div></div>
+
+    <div class="staffbox" id="staffbox"><svg id="staff" role="img" aria-label="Note on a staff"></svg></div>
+    <div class="prompt" id="prompt" aria-live="polite"></div>
+    <div class="choice" id="choice" hidden><button class="ghost" id="showBtn">Show me the answer</button></div>
+
+    <div id="letterPad">
+      <div class="acc" id="accRow" hidden>
+        <button class="chip" data-acc="b" aria-pressed="false" title="Flat (key: -)">♭</button>
+        <button class="chip" data-acc="" aria-pressed="true" title="Natural">♮</button>
+        <button class="chip" data-acc="#" aria-pressed="false" title="Sharp (key: =)">♯</button>
+      </div>
+      <div class="letters" id="letters"></div>
+    </div>
+    <div id="ivPad" class="ivpad" hidden>
+      <div class="ivfocus" id="ivFocus"><span>Focus on:</span></div>
+      <div class="ivans" id="ivAns"></div>
+    </div>
+    <div id="micPad" class="micpad" hidden>
+      <button class="primary" id="micBtn">Turn on the microphone</button>
+      <a class="primary" id="micOpen" href="./" target="_blank" rel="noopener" hidden>Open full screen</a>
+      <div class="heard" id="heard" aria-live="polite">–</div>
+      <div class="micctl" id="micCtl" hidden>
+        <label for="micSel">Microphone</label><select id="micSel"></select>
+        <label for="micGain">Sensitivity</label><input type="range" id="micGain" min="0" max="100" step="1" value="64">
+        <span>Level</span><div class="meter" style="max-width:none"><i id="meterFill"></i><span class="thr" id="thr"></span></div>
+      </div>
+      <div class="micstat" id="micStat" aria-live="polite">Play the note on your piano. One note at a time, the right octave.</div>
+      <a href="#" class="diaglink" id="micDiagLink" hidden>Mic not catching notes? Show details</a>
+      <div class="micdiag" id="micDiag" hidden>
+        <div class="dhead"><b>Mic details</b><span><button type="button" id="micDiagCopy">Copy log</button> <button type="button" id="micDiagClose">Close</button></span></div>
+        <p class="dnote">The last 20 sounds the microphone heard, newest last. Something missed? Tap Copy log and paste it to your teacher.</p>
+        <pre id="micDiagLog">Nothing heard yet.</pre>
+      </div>
+    </div>
+    <div id="pianoPad" hidden><div class="pianoWrap" id="pianoWrap"><div class="pianoScroll" id="pianoScroll"><div class="piano" id="piano"></div></div></div><p class="swipe" id="rotateHint" hidden>Swipe the keyboard to see more keys</p></div>
+
+
+
+    <div class="arcsplash" id="arcSplash" hidden><div class="boom"></div><div id="arcPcs"></div><div class="pre" id="arcSplashP"></div><b id="arcSplashT">ROUND 2</b><span id="arcSplashS"></span></div><div class="hitstamp" id="hitStamp">TARGET HIT!</div>
+    <div class="results" id="results" hidden>
+      <h2 id="rTitle" tabindex="-1">Challenge over</h2>
+      <div class="big" id="rScore">0 <small>correct</small></div>
+      <div class="rgrid">
+        <div><b id="rPct">0%</b><span>Accuracy</span></div>
+        <div><b id="rTotal">0</b><span>Attempts</span></div>
+        <div><b id="rBest">0</b><span>Best streak</span></div>
+      </div>
+      <div><div class="stamp">Missed most</div><div class="misses" id="rMiss"></div></div>
+      <div id="rWhy" style="font-weight:600"></div><div class="stamp" id="rStamp"></div>
+      <p class="tip" style="text-align:left">Screenshot this screen and send it to your instructor.</p>
+      <div class="stamp">Note Sprint · By <a href="https://clarendonhillsmusicacademy.com/" target="_blank" rel="noopener" style="color:inherit;text-decoration:underline">Clarendon Hills Music Academy</a></div>
+      <div class="row"><button class="ghost" id="closeResults">Back to practice</button><button class="primary" id="againBtn">Play again</button></div>
+    </div>
+  </section>
+  <div class="actbar" id="actbar"><div class="row actions"><button class="ghost" id="resetBtn">Reset score</button>
+      <button class="primary" id="chalBtn" title="Challenge mode: one try per note, no second chances">Start Challenge</button></div></div>
+  </div>
+  </div>
+
+
 </div>
 
 <script>
@@ -553,7 +637,7 @@ input[type=range],input[type=checkbox],input[type=radio]{accent-color:var(--c-ac
       const clef=s.staffMode==="mix"?both[Math.floor(Math.random()*both.length)]:s.staffMode; q={grand:false,key,notes:[makeNote(clef,s,s.acc,prev&&prev.notes[0],key)]}}
     q.marks=[null,null]; q.tried=[false,false]; $("choice").hidden=true; $("staffbox").className="staffbox"; setPrompt(); draw();
   }
-  function setPrompt(cls,text,coach){const el=$("prompt");el.className="prompt"+(cls?" "+cls:""); el.textContent="";
+  function setPrompt(cls,text,coach){ try{ micAsk() }catch(e){} const el=$("prompt");el.className="prompt"+(cls?" "+cls:""); el.textContent="";
     const t=text!=null?text:(q.grand?(idx===0?"Top note first (right hand)":"Now the bottom note (left hand)"):"");
     if(coach!=null){const v=document.createElement("div");v.className="verdict";v.textContent=t;const c=document.createElement("div");c.className="coach";c.textContent=coach;el.append(v,c)}
     else el.textContent=t}
@@ -829,9 +913,11 @@ input[type=range],input[type=checkbox],input[type=radio]{accent-color:var(--c-ac
     if(my!==micTry||$("micPad").hidden){ stream.getTracks().forEach(t=>t.stop()); if(my===micTry) fail("Play the note on your piano. One note at a time, the right octave."); return }   // mode changed while the audio woke up: never leave a hidden mic listening
     const src=audio.createMediaStreamSource(stream), g=audio.createGain(), an=audio.createAnalyser(), mute=audio.createGain();
     g.gain.value=micG($("micGain").value); an.fftSize=4096; mute.gain.value=0; src.connect(g); g.connect(an); an.connect(mute); mute.connect(audio.destination);
-    mic={stream,g,an,src,mute,buf:new Float32Array(an.fftSize),hist:[],armed:false,armedAt:0,cand:[],cool:0};
+    mic=Object.assign(micInit(audio.sampleRate,g),{stream,an,src,mute});
+    // every sample to the ear (the analyser stays as the fallback until the first block arrives)
+    micTap(g,mute).then(tp=>{ if(tp&&mic&&mic.g===g){ mic.tap=tp.n; mic.mode=tp.mode } else if(tp) try{ tp.n.disconnect() }catch(e){} });
     stream.getAudioTracks().forEach(t=>t.addEventListener("ended",micLost));
-    mic.timer=setInterval(micTick,TICK); micBusy=false; $("micBtn").textContent="Microphone on"; $("micBtn").disabled=true; $("micBtn").hidden=false; $("micOpen").hidden=true; $("micCtl").hidden=false;
+    mic.timer=setInterval(micTick,TICK); micBusy=false; $("micBtn").textContent="Microphone on"; $("micBtn").disabled=true; $("micBtn").hidden=false; $("micOpen").hidden=true; $("micCtl").hidden=false; if(!micDiagOn) $("micDiagLink").hidden=false;
     setThr(THR);
     $("micStat").textContent="Listening. Play any key: the Level bar should jump past the line. Too low? Raise Sensitivity.";
     try{ const devs=(await navigator.mediaDevices.enumerateDevices()).filter(d=>d.kind==="audioinput"), cur=stream.getAudioTracks()[0].getSettings().deviceId;
@@ -847,7 +933,7 @@ input[type=range],input[type=checkbox],input[type=radio]{accent-color:var(--c-ac
   function micLost(){ if(!mic) return; micStop(); $("micStat").textContent="The microphone stopped (screen locked or another app took it). Tap the button to turn it back on." }
   document.addEventListener("visibilitychange",()=>{ if(document.hidden) return; if(audio&&audio.state!=="running") audio.resume().catch(()=>{});
     if(mic&&mic.stream.getAudioTracks().some(t=>t.readyState==="ended")) micLost() });
-  function micStop(keepUi){ if(!mic)return; clearInterval(mic.timer); mic.stream.getTracks().forEach(t=>t.stop()); try{mic.mute.disconnect()}catch(e){} mic=null; if(!keepUi) try{ if(navigator.audioSession) navigator.audioSession.type="playback" }catch(e){}
+  function micStop(keepUi){ if(!mic)return; clearInterval(mic.timer); try{ if(mic.tap){ mic.tap.disconnect(); if(mic.tap.port) mic.tap.port.onmessage=null; else mic.tap.onaudioprocess=null } }catch(e){} mic.stream.getTracks().forEach(t=>t.stop()); try{mic.mute.disconnect()}catch(e){} mic=null; if(!keepUi) try{ if(navigator.audioSession) navigator.audioSession.type="playback" }catch(e){}
     if(!keepUi){ $("micBtn").textContent="Turn on the microphone"; $("micBtn").disabled=false; $("micCtl").hidden=true } }
   $("micOpen").addEventListener("click",()=>{ $("micOpen").href=fullUrl() });
   $("micSel").addEventListener("change",e=>micStart(e.target.value));
@@ -856,37 +942,97 @@ input[type=range],input[type=checkbox],input[type=radio]{accent-color:var(--c-ac
   // round-screen music (shared/hype.js): the mic ignores it while it plays and for 250 ms after, so it never counts as a note
   function hypePlay(ms){ try{ if(window.chmaHype&&$("hypeOn").checked){ const a=AC(); chmaHype.play(ms,{ctx:a,round:arc?arc.round:1,bonus:!!(arc&&arc.bonus),enabled:true,micSafe:readSettings().mode==="mic"}) } }catch(e){} }
   function hypeStop(f){ try{ window.chmaHype&&chmaHype.stop(f) }catch(e){} }
-  const hypeQuiet=()=>{ try{ return !!(window.chmaHype&&(chmaHype.isPlaying()||performance.now()<chmaHype.endsAt+250)) }catch(e){ return false } };
-  function micTick(){ const m=mic, b=m.buf; m.an.getFloatTimeDomainData(b); m.tickN=(m.tickN||0)+1; const L=b.length, sr=audio.sampleRate, g=m.g.gain.value||1;
+  const hypeQuiet=w=>{ try{ return !!(window.chmaHype&&(chmaHype.isPlaying()||(w||performance.now())<chmaHype.endsAt+250)) }catch(e){ return false } };
+  // every sample to the ear: an AudioWorklet (or, on older browsers, a ScriptProcessor) copies each 512-sample block into the ring
+  async function micTap(g,mute){ const ctx=audio;
+    try{ if(ctx.audioWorklet&&window.AudioWorkletNode){ if(!micTap.mod){ const code="registerProcessor('ns-tap',class extends AudioWorkletProcessor{constructor(){super();this.b=new Float32Array(512);this.n=0}process(i){const c=i[0]&&i[0][0];if(c){for(let k=0;k<c.length;k++){this.b[this.n++]=c[k];if(this.n===512){this.port.postMessage(this.b,[this.b.buffer]);this.b=new Float32Array(512);this.n=0}}}return true}})";
+          const u=URL.createObjectURL(new Blob([code],{type:"application/javascript"})); micTap.mod=Promise.race([ctx.audioWorklet.addModule(u),new Promise((_,j)=>setTimeout(()=>j(new Error("slow")),2500))]) }
+        await micTap.mod; const n=new AudioWorkletNode(ctx,"ns-tap",{numberOfInputs:1,numberOfOutputs:1,outputChannelCount:[1],channelCount:1,channelCountMode:"explicit"});
+        n.port.onmessage=e=>{ if(mic&&mic.tap===n) micFeed(e.data) }; g.connect(n); n.connect(mute); return {n,mode:"worklet"} } }catch(e){ micTap.mod=null }
+    try{ const sp=ctx.createScriptProcessor(1024,1,1); sp.onaudioprocess=e=>{ if(mic&&mic.tap===sp) micFeed(new Float32Array(e.inputBuffer.getChannelData(0))) }; g.connect(sp); sp.connect(mute); return {n:sp,mode:"script"} }catch(e){} return null }
+  let micDiagOn=false; const dkn=k=>["C","C♯","D","E♭","E","F","F♯","G","A♭","A","B♭","B"][((k%12)+12)%12]+(Math.floor(k/12)-1);
+  function micDiagText(){ const m=mic; const head=`${(document.querySelector(".appver")||{}).textContent||"Note Sprint"} | ${m?m.mode+" "+m.sr+" Hz":"mic off"} | Sens ${$("micGain").value} | tune ${tuneOff.toFixed(2)} | late tick max ${m?Math.round(m.lateMax):0} ms | ${navigator.userAgent||""}`;
+    const rows=(m?m.dlog:[]).map(e=>`+${e.t.toFixed(2)}s  level ${e.lv.toFixed(3)}  heard ${e.rd}  asked ${e.tg}  -> ${e.dec}${e.why?"  ["+e.why+"]":""}`); return head+"\n"+(rows.length?rows.join("\n"):"Nothing heard yet.") }
+  function micDiagShow(){ const el=$("micDiagLog"); if(el) el.textContent=micDiagText() }
+  // ---- THE EAR. It hears every sample: the audio thread hands each block to a ring (AudioWorklet, else ScriptProcessor) and the ear takes
+  // one look per 20 ms OF SOUND, not of clock. A busy or throttled page answers a little later; it can never skip a key's attack.
+  // (Browsers with neither fall back to one look at the analyser per timer tick, the old way.)
+  const HOPMS=20, COOL=40, REARM=150, EARLY=450, TPN=3, TOWN=0.2, LEAPH=1.7, LEAPE=1.15, LOWO=0.2, UPO=0.3, TONR=3;
+  function micInit(sr,g){ return {g,sr,hop:Math.round(sr*HOPMS/1000),ring:new Float32Array(1<<17),w:0,h:0,fw:0,s0:0,buf:new Float32Array(4096),hist:[],armed:false,armedAt:0,cand:[],cool:0,asks:[],dlog:[],fe:[],fh:[],lateMax:0,mode:"analyser"} }
+  function micFeed(x){ const m=mic; if(!m) return; const R=m.ring, N=R.length; if(m.w===0) m.s0=performance.now()-x.length/m.sr*1000; for(let i=0;i<x.length;i++) R[(m.w+i)&(N-1)]=x[i]; m.w+=x.length; m.fw=performance.now() }
+  // sound time (ms) of a moment on the page clock; with no ring, sound time IS the page clock
+  const sNow=(m,wall)=>m.w>0?m.s0+m.w/m.sr*1000+(wall-m.fw):wall, wallOf=(m,t)=>m.w>0?t-(m.s0+m.w/m.sr*1000)+m.fw:t;
+  // every question change, stamped in sound time: an attack belongs to the question that was open when it began (or opened up to 450 ms after:
+  // students anticipate, and a busy page shows the next note late). An early hit only ever counts as RIGHT.
+  function micAsk(){ const m=mic; if(!m) return; const id=micAskId(), a=m.asks; if(a.length&&a[a.length-1].id===id) return; a.push({id,tg:micTarget(),st:sNow(m,performance.now()),heard:false,said:false}); if(a.length>8) a.shift() }
+  const askAt=(m,t)=>{ let A=null; for(const a of m.asks) if(a.st<=t) A=a; return A };
+  // (an early one must also start 250 ms+ after the last answer: never a bounce or the tail of the key just answered)
+  const mine=(m,A)=>A&&A.tg!=null&&m.armedAt>=A.st-EARLY&&(m.armedAt>=A.st||m.armedAt>=(m.ansAt||-1e9)+250);
+  // ---- diagnostics: the last 20 attacks, each with its level, what was read, what was asked, what was decided and why
+  function dlog(m,o){ const e={t:((o.t!=null?o.t:m.armedAt)-(m.t0||0))/1000,lv:m.pk||0,sens:+$("micGain").value,f:o.t==null?{same:m.same,jmp:m.jmp,hit:m.hit,hard:m.hard,sharp:m.sharp,ratio:m.preR?m.pk/m.preR:0,own:m.own,by:m.by,tv:(m.tv||[]).length}:null,...o}; m.dlog.push(e); if(m.dlog.length>20) m.dlog.shift(); if(micDiagOn) micDiagShow() }
+  function micLog(){ return mic?mic.dlog:[] }
+  function micTick(){ const m=mic; if(!m) return; micAsk(); const wn=performance.now(); if(m.lastWall) m.lateMax=Math.max(m.lateMax*0.999,wn-m.lastWall); m.lastWall=wn;
+    if(m.w>0){ const H=m.hop, Lb=m.buf.length, N=m.ring.length, sr=m.sr;
+      if(m.w-m.h>sr*1.5){ m.h=m.w-H; m.armed=false; m.hist=[]; m.fe=[]; m.fh=[] }   // the page slept (tab hidden): start fresh at the newest sound
+      let n=0; while(m.w-m.h>=H&&n++<120){ m.h+=H; const b=m.buf, R=m.ring, o=m.h-Lb; for(let i=0;i<Lb;i++){ const k=o+i; b[i]=k>=0?R[k&(N-1)]:0 } look(b,m.s0+m.h/sr*1000) } }
+    else{ m.an.getFloatTimeDomainData(m.buf); look(m.buf,performance.now()) }
+    // a right key decided a moment before its question appeared (anticipation): it answers that question if it began no more than 150 ms early
+    const p=m.pend, A=m.asks[m.asks.length-1]; if(p&&A&&A.tg!=null&&A.id===micAskId()){ if(p.at>=A.st-EARLY&&p.at>=(m.ansAt||-1e9)+250&&p.md===A.tg){ m.pend=null; m.ansAt=sNow(m,performance.now()); dlog(m,{t:p.at,rd:dkn(p.md),tg:dkn(A.tg),dec:"right (played just before the note showed)",why:""}); heardNote(p.md); answerHeard(p.md) } else if(A.st-p.at>EARLY) m.pend=null } }
+  function look(b,now){ const m=mic; m.tickN=(m.tickN||0)+1; const L=b.length, sr=m.sr, g=m.g.gain.value||1, wall=wallOf(m,now);
     let r=0, pkA=0; for(let i=0;i<L;i++){ const v=b[i]; r+=v*v; if(v>pkA) pkA=v; else if(-v>pkA) pkA=-v } r=Math.sqrt(r/L);
     // attack detector on the newest ~20 ms only, so a new key is caught even while the last one still rings
     let rs=0; const S=1024; for(let i=L-S;i<L;i++) rs+=b[i]*b[i]; rs=Math.sqrt(rs/S); let p1=m.ps||0, p2=m.ps2||0; m.ps2=p1; m.ps=rs;
+    // fine 5 ms envelope of the sound and of its top end (2nd difference) over this look's new samples: a key struck again while it still rings
+    // barely moves the overall level, but its hammer/attack lifts the top end several-fold within a few ms
+    { const W=256, nw=Math.min(16,Math.max(1,Math.ceil(m.hop/W||4))); for(let j=nw;j>=1;j--){ const s0=L-j*W; let e=0,h=0; for(let i=s0;i<s0+W;i++){ e+=b[i]*b[i]; const d=b[i]-2*b[i-1]+b[i-2]; h+=d*d } m.fe.push(Math.sqrt(e/W)); m.fh.push(Math.sqrt(h/W)) } if(m.fe.length>24){ m.fe.splice(0,m.fe.length-24); m.fh.splice(0,m.fh.length-24) } }
     // clipping: the microphone's converter hit full scale (at any Sensitivity), or this page's own gain pushed the level past full scale
     const clipped=pkA/g>=0.985||pkA>=0.999;
-    $("meterFill").style.width=Math.min(100,r*600)+"%";
-    if(hypeQuiet()){ m.quiet=true; m.armed=false; m.hist=[]; return }
+    m.mv=Math.max(r,(m.mv||0)*0.94); $("meterFill").style.width=Math.min(100,m.mv*600)+"%";   // peak-held, so a short note stays visible
+    if(hypeQuiet(wall)){ m.quiet=true; m.armed=false; m.hist=[]; return }
     // the music window just closed: start the ear fresh, levels taken from now, nothing ringing on record, so no music frame counts as a note
     if(m.quiet){ m.quiet=false; m.hist=[]; m.fl=null; m.hold=rs; m.ps=m.ps2=rs; m.lastR=m.lastR2=0; m.lastMd=null; p1=p2=rs }
-    const now=performance.now(); if(!m.t0){ m.t0=now; m.cool=now+400 }   // the first looks after the mic opens go from silence to room sound: never an attack
+    if(!m.t0){ m.t0=now; m.cool=now+400 }
+    if(m.w>0&&m.h<L+3*m.hop){ m.cool=Math.max(m.cool,now+1); m.ps=m.ps2=m.hold=rs }   // the ring just took over: its first windows are part zeros   // the first looks after the mic opens go from silence to room sound: never an attack
     // room noise floor = the quietest recent look. Pitch is read down to 3x that (never above the old fixed 0.008), so a top-of-the-staff note
     // like F5, which fades in a fraction of a second, still gives enough steady looks for a decision.
     // (a slow follower: drops at once to anything quieter, creeps up 10% a second, so a key ringing for seconds is never mistaken for the room)
-    m.hist.push(r); if(m.hist.length>2000/TICK) m.hist.shift(); if(r>1e-6) m.fl=m.fl==null||r<m.fl?r:m.fl*1.002;   /* (the analyser hands back pure zeros for a moment at start: never a floor) */ const gate=Math.min(0.008,Math.max(0.002,3*(m.fl||0)));
+    m.hist.push(r); if(m.hist.length>2000/HOPMS) m.hist.shift(); if(r>1e-6) m.fl=m.fl==null||r<m.fl?r:Math.min(m.fl*1.002,Math.max(m.fl,0.004));   /* (it creeps no higher than 0.004: a pedal held down for minutes is ringing keys, not room noise) */   /* (the analyser hands back pure zeros for a moment at start: never a floor) */ const gate=Math.min(0.008,Math.max(0.002,3*(m.fl||0)));
     // a new key = the newest 20 ms jumps well past both of the last two looks AND past the fading peak of what was already ringing. A string that
-    // swells back as its 2-3 strings beat (strongest in the upper treble) never climbs over its own earlier peak, so it never re-arms and never
-    // answers the next question by itself. Over a key that is still ringing, a 1.5x jump is enough (a softer repeat of a loud low note).
+    // swells back as its 2-3 strings beat never climbs over its own earlier peak, so it never re-arms and never answers by itself.
     const hold=m.hold||0; m.hold=Math.max(rs,hold*HOLDK);
-    if(!m.armed&&now>m.cool&&Math.max(r,rs)>thr&&rs>(hold>0.25*rs&&hold>4*m.fl?1.5:1.8)*Math.min(p1,p2)&&rs>HOLDR*hold){
-      m.armed=true;m.ask=micAskId();m.sharp=false;m.hard=false;m.sharpLv=0;m.clip=false;m.armedAt=now;m.cand=[];m.res=[];m.raw=[];m.rawX=[];m.env=[];m.envS=[];m.fc=[];m.fr=[];m.slow=0;
+    const A=askAt(m,now), tgNow=A&&A.tg!=null?A.tg:null;
+    const bOn=now>m.cool&&Math.max(r,rs)>thr&&rs>(hold>0.25*rs&&hold>4*m.fl?1.5:1.8)*Math.min(p1,p2)&&rs>HOLDR*hold;
+    // ...or a re-strike (also between notes: an early hit on the next one): within one 5 ms step the top end leaps 1.7x and the level 1.15x over the 16 ms before,
+    // landing near the ringing peak (a beat's swell climbs out of a notch far below it, and never this fast at the top end)
+    // (level over 16 ms, so a low key's own waveform inside one period never looks like a leap)
+    let leap=false; if(now>m.cool&&Math.max(r,rs)>thr){ const fe=m.fe, fh=m.fh, n=fe.length, nw=Math.max(1,Math.ceil(m.hop/256)), f3=k=>Math.sqrt((fe[k]*fe[k]+fe[k-1]*fe[k-1]+fe[k-2]*fe[k-2])/3);
+      for(let k=Math.max(6,n-nw);k<n;k++){ const ph=Math.min(fh[k-2],fh[k-3],fh[k-4]), e=f3(k); if(fh[k]>=LEAPH*ph&&e>=LEAPE*f3(k-3)&&e>=0.5*hold&&e>0.5*thr) leap=true } }
+    // ...or, while a question is open, the ASKED key appearing: at least 2 of its own partials (1st-8th) jump 3x over 40-80 ms ago, and
+    // those hold 30%+ of its partial energy. That catches a soft or slow-speaking key over a loud ringing one, which hardly moves the overall
+    // level (a ringing key that shares some of its partials, like A3 under D2, leaves the others free). Arming only: an answer still needs
+    // the asked key's pitch.
+    let tOn=false; if(tgNow!=null&&now>m.cool&&Math.max(r,rs)>0.5*thr&&!(m.lastMd===tgNow&&now-m.lastAt<8000)){   /* (not the key just answered: it may still ring) */ const P=tband(b,tgNow,sr,false,true); P.r=r; if(m.tbG!==A){ m.tbG=A; m.tb=[] } const tb=m.tb; tb.push(P); if(tb.length>8) tb.shift(); const n=tb.length;
+      if(n>=6&&realPeak(P)){ const mx=Math.max(...P), g3=TONR*Math.max(1,r/Math.max(1e-9,Math.min(tb[n-4].r,tb[n-5].r,tb[n-6].r))); let c=0, up=0, all=0; for(let h=0;h<P.length;h++){ all+=P[h]; if(P[h]>=0.1*mx&&P[h]>=g3*Math.min(tb[n-4][h],tb[n-5][h],tb[n-6][h])){ c++; up+=P[h] } } if(c>=2&&up>=0.15*all) tOn=true } } else m.tb=[];
+    // LOOK BACK when a question opens: the asked key's partials now vs the sound 500 ms ago (the ring keeps it). If they appeared in between,
+    // the student hit it just before the note showed: arm that attack now, with the old sound as "before".
+    let back=null; if(tgNow!=null&&m.backA!==A){ m.backA=A; if(!m.armed&&m.w>0&&now-A.st<60&&Math.max(r,rs)>0.5*thr&&!(m.lastMd===tgNow&&now-m.lastAt<8000)){ const N=m.ring.length, e=Math.max(m.h-Math.round(0.5*sr),m.ansH!=null?m.ansH+Math.round(0.3*sr):0), t=m.tmpB||(m.tmpB=new Float32Array(L)); for(let i=0;i<L;i++){ const q=e-L+i; t[i]=q>=0&&m.w-q<N?m.ring[q&(N-1)]:0 }
+        let tr=0; for(let i=0;i<L;i++) tr+=t[i]*t[i]; tr=Math.sqrt(tr/L);
+        const P=tband(b,tgNow,sr,false,true), Q0=tband(t,tgNow,sr,true,true), mx=Math.max(...P), g3=TONR*Math.max(1,r/Math.max(1e-9,tr)); let c=0, up=0, all=0; for(let h=0;h<P.length;h++){ all+=P[h]; if(P[h]>=0.1*mx&&P[h]>=g3*Q0[h]){ c++; up+=P[h] } } if(realPeak(P)&&c>=2&&up>=0.15*all&&m.h-e>=Math.round(0.12*sr)) back=t } }
+    if(m.armed&&leap&&now-m.armedAt<80) m.hit=true;   // the top-end leap of a real strike (a beat's swell never has one)
+    if(m.armed&&tOn&&now-m.armedAt<100) m.tOn=true;
+    if(m.armed&&now-m.armedAt>=REARM&&(bOn||leap||tOn)){ endAttack(now,"a new key came before this one was decided") }
+    if(!m.armed&&(bOn||leap||tOn||back)){
+      m.armed=true;m.sharp=false;m.hard=false;m.sharpLv=0;m.clip=false;m.armedAt=now;m.cand=[];m.res=[];m.raw=[];m.rawX=[];m.env=[];m.envS=[];m.fc=[];m.fr=[];m.slow=0;m.tv=[];m.tvF=0;m.own=0;m.sub=0;m.pk=0;m.by=bOn?"level":leap?"re-strike":"asked key appearing";m.armH=m.h;m.hit=leap;m.tOn=tOn;m.jmp=0;m.same=null;
       // what was sounding just before this attack, so a still-ringing key can be told apart from the new one
       // (two looks back, 40 ms: the look just before can already hold the first ms of this attack when the attack straddles two looks)
       m.tail=m.last2&&m.lastR2>Math.max(0.0015,4*m.fl)?mag(m.last2,SPN,m.pre||(m.pre=new Float32Array(SPN/2+1))):null;
+      if(back&&!(bOn||leap||tOn)){ m.by="asked key appearing (before the note showed)"; m.armedAt=Math.max(A.st-EARLY+1,(m.ansAt||-1e9)+251,now-60); m.tOn=true; let br=0; for(let i=0;i<L;i++) br+=back[i]*back[i]; m.tail=Math.sqrt(br/L)>Math.max(0.0015,4*m.fl)?mag(back,SPN,m.pre||(m.pre=new Float32Array(SPN/2+1))):null }
       // the OLD key = the last key answered (if recent), else whatever pitch was sounding just before this attack. An answer may only come from
       // the new attack: once its first clean look names another key, any later look that hears the old key again (its tail, a swell as its
       // strings beat, sympathetic ringing) is ignored. The live G5-read-as-F4 / D4 failure was exactly that.
       m.first=null; m.preS=p2; m.preR=m.lastR2||0; m.notch=p2<0.6*hold; m.old=m.lastMd!=null&&now-m.lastAt<8000?m.lastMd:null;
       if(m.old==null&&m.last2&&m.lastR2>Math.max(0.0008,2*m.fl)){ const fo=pitch(m.last2,sr,0.0005); if(fo>0&&lastAp<AP) m.old=Math.round(69+12*Math.log2(fo/440)-tuneOff) } }
-    if(m.armed){ m.env.push(r); m.envS.push(rs); if(clipped) m.clip=true;
+    if(m.armed){ const e0=m.envS.length?m.envS[m.envS.length-1]:m.preS; if(e0>0&&now-m.armedAt<100) m.jmp=Math.max(m.jmp,rs/e0); m.env.push(r); m.envS.push(rs); m.pk=Math.max(m.pk,r); if(clipped) m.clip=true;
       // a hammer hits: inside the frame the level leaps SHK x within ~10 ms, landing near the note's full level. A voice (or a swelling string)
       // ramps up over tens of ms: its only quick leaps are at the very start of a syllable, far below where it is 60 ms later (SHL).
       { const H=256, nb=Math.floor(L/H)-1, a=new Float32Array(nb); let pk=0; for(let i=0;i<nb;i++){ let e=0; for(let j=i*H;j<i*H+2*H;j++) e+=b[j]*b[j]; a[i]=Math.sqrt(e); if(a[i]>pk) pk=a[i] }
@@ -902,43 +1048,123 @@ input[type=range],input[type=checkbox],input[type=radio]{accent-color:var(--c-ac
     const oldish=md=>m.old!=null&&[-24,-19,-12,0,12,19,24,28,31,34,36].includes(md-m.old), take=md=>{ if(!(md>0)) return false;
       if(md>=60&&(m.fc.filter(v=>v===md+12).length>=2||m.cand.filter(v=>v===md+12).length>=2)) return false;
       if(md>=40&&m.first!=null&&m.first>=55&&[12,19,24,28,31,34,36].includes(m.first-md)) return false;   // ...or reads as a lower shadow of the key this attack named
-      if(md===m.old) return m.first==null&&!(m.notch&&!m.hard||rs<1.5*m.preS||r<(md===tg?1.5:2.5)*m.preR);   /* rising out of a beat's notch needs a real hammer leap; and r (85 ms) must be up too (1.5x when the old key is the one asked again, 2.5x otherwise), so a click, a key-release thump or a soft new key over the ringing key does not count */
+      if(md===m.old) return m.first==null&&(m.hit||m.hard)&&!(m.notch&&!m.hard||rs<1.5*m.preS||r<(md===tg?1.5:2.5)*m.preR);   /* rising out of a beat's notch needs a real hammer leap; and r (85 ms) must be up too (1.5x when the old key is the one asked again, 2.5x otherwise), so a click, a key-release thump or a soft new key over the ringing key does not count */
       // the first look that names a key other than the old one fixes this attack's key; old-key looks taken before it are thrown out
       if(m.first==null){ m.first=md; if(m.old!=null) for(const [c,q2] of [[m.fc,m.fr],[m.cand,m.res]]) for(let i=c.length-1;i>=0;i--) if(c[i]===m.old){ c.splice(i,1); q2.splice(i,1) } }
       return !(oldish(md)&&md!==m.first) };
-    const fin=md=>{ m.armed=false; m.cool=now+250; m.lastMd=md; m.lastAt=now; if(m.ask!==micAskId()) return;   // this attack began before the current question appeared: it can't answer it
-      if(m.clipSaid&&!m.clip){ m.clipSaid=false; $("micStat").textContent="Listening. Play any key: the Level bar should jump past the line. Too low? Raise Sensitivity." } heardNote(md); answerHeard(md) };
+    function fin(md,how){ m.armed=false; m.cool=now+COOL; m.lastMd=md; m.lastAt=now; const Q=askAt(m,now);
+      if(mine(m,Q)&&m.armedAt<Q.st&&md!==Q.tg){ dlog(m,{rd:dkn(md),tg:dkn(Q.tg),dec:"not counted: began before this note showed",why:how}); return }   // an early hit only ever counts as RIGHT
+      if(!mine(m,Q)||Q.id!==micAskId()){ const early=!Q||Q.tg==null;
+        if(early) m.pend={md,at:m.armedAt}; dlog(m,{rd:dkn(md),tg:Q&&Q.tg!=null?dkn(Q.tg):"-",dec:early?"heard between notes (kept 150 ms in case the note was about to show)":"not counted: began before this note showed",why:how}); return }
+      if(md!==Q.tg&&!((m.hard||m.hit)&&m.by==="level")){ dlog(m,{rd:dkn(md),tg:dkn(Q.tg),dec:"not graded: too weak an attack to call it a wrong key",why:how+", by "+m.by}); return }
+      Q.heard=true; m.ansAt=now; m.ansH=m.armH; if(m.clipSaid&&!m.clip){ m.clipSaid=false; $("micStat").textContent="Listening. Play any key: the Level bar should jump past the line. Too low? Raise Sensitivity." }
+      dlog(m,{rd:dkn(md),tg:dkn(Q.tg),dec:md===Q.tg?"right":"wrong key",why:how+", by "+m.by+(m.preR?", "+(m.pk/m.preR).toFixed(1)+"x over the ringing level":"")}); heardNote(md); answerHeard(md) }
     const learn=rs=>{ rs=rs.slice().sort((a,b)=>a-b); const med=rs[Math.floor(rs.length/2)]||0; tuneOff=Math.max(-0.6,Math.min(0.6,tuneOff+0.5*med)); store.set("tuneOff",tuneOff) };
     // a struck string only fades after its peak; a voice swells and dips. Beating strings may lift the level a little between looks
     // (up to ~35%, seen on real upper-treble recordings, where the old 12% limit threw away good F5s) but never back above the peak.
     // A clipped (very loud) strike sits flat at full scale for a while, so it is exempt: the sharp attack already proved it was struck.
-    const struck=()=>m.sharp&&m.sharpLv>=SHL*Math.max(...m.envS.slice(m.sharpI,m.sharpI+4)), decays=ev=>{ const pk=Math.max(...ev), pi=ev.indexOf(pk); return m.clip||ev.slice(pi).every((v,i,a)=>i===0||v<=a[i-1]*1.35)&&ev[ev.length-1]<=pk*0.97 };
-    // FAST LOOK: the app knows which key it asked, so it listens closely around it (an octave and a step below to an octave and a fifth above)
-    // on just the newest few periods. Three agreeing looks 20 ms apart on the asked key = an answer about 70 ms after the strike. Any other
-    // key (or talking near it) goes to the stricter full-range look below, so a wrong key is still heard and marked wrong.
+    function struck(){ return m.sharp&&m.sharpLv>=SHL*Math.max(...m.envS.slice(m.sharpI,m.sharpI+4)) }
+    function decays(ev){ const pk=Math.max(...ev), pi=ev.indexOf(pk); return m.clip||ev.slice(pi).every((v,i,a)=>i===0||v<=a[i-1]*1.35)&&ev[ev.length-1]<=pk*0.97 }
+    // the key this attack may answer: the question open now, if the attack began no more than 150 ms before it appeared
+    const QA=m.armed?askAt(m,now):null, tg=m.armed&&mine(m,QA)?QA.tg:null;
+    // ASKED-KEY PATH. The app knows which key it asked, so a look that reads THAT key is a vote for it, whatever the stricter gates below
+    // think of the attack (they exist to name a WRONG key safely, and each of them has, at some time, thrown away a right one).
+    // A vote needs the look to read the asked key (or, below C3, its octave with the asked key's own period as clean: weak bass through a
+    // small speaker). When the asked key is the one still ringing, the vote also needs a real strike (a top-end or hammer leap: a beat's
+    // swell, which can double the level of a pedalled, chorused digital piano, has neither) and new sound at that key's own odd partials,
+    // which a re-strike gives and an octave-higher wrong key (all even partials) does not.
+    // the asked key was ALREADY sounding before this attack (it was answered last, or its partials were there in the look before)
+    // (with the ring, "before" = 120 ms before the attack was noticed: a late-noticed attack's own start never counts as already ringing)
+    function sameRing(k){ if(m.same==null){ let ring=false; if(m.tail&&m.old!==k){ let pb=m.last2||b; if(m.w>0&&m.armH){ const N=m.ring.length, e=m.armH-Math.round(0.12*sr), L2=pb.length, t=m.tmpB||(m.tmpB=new Float32Array(L2)); for(let i=0;i<L2;i++){ const q=e-L2+i; t[i]=q>=0&&m.w-q<N?m.ring[q&(N-1)]:0 } pb=t }
+        const a=tband(pb,k,sr,true,true), c=tband(b,k,sr,false,true); let n=0; for(let h=0;h<Math.min(6,c.length);h++) if(c[h]>0&&a[h]>=0.3*c[h]) n++; ring=n>=3&&realPeak(a,tbS) }
+      m.same=!!m.tail&&(m.old===k||ring) } return m.same }
+    // a re-strike: a quick leap inside the frame, plus a top-end leap, a hammer leap, the level jumping 1.5x within one look, or most of the
+    // new sound at the key's own partials. (Measured on 348 real re-strikes over the same ringing key on the digital-piano bench: none fails
+    // this; half of the pedal-and-chorus swells that arm do.)
+    function restrike(){ return m.sharp&&(m.hit||m.hard||m.jmp>=1.5||m.own>=0.7) }
+    const vote=(x,f)=>{ if(tg==null) return; let md=Math.round(x); if(Math.abs(x-md)>0.45) return; md=upOct(lowOct(bassOct(md,tg,f,sr),tg,b,sr),tg,b,sr); if(md===tg){ if(sameRing(tg)){ m.own=Math.max(m.own,ownNew(tg,b,m.pre,sr)); if(m.own<TOWN||!restrike()) return } m.tv.push(x-Math.round(x)) } else if(tg-md>=12&&[12,19,24,28,31].includes(tg-md)&&md!==m.old) m.sub++ };
+    // FAST LOOK: listen closely around the asked key (an octave and a step below to an octave and a fifth above) on just the newest few periods.
     // Keys below C3 wait 80 ms first: right after the hammer, a low string's 2nd partial can outshine its 1st and read an octave high.
-    const tg=m.armed?micTarget():null;
     if(m.armed&&tg!=null&&now-m.armedAt>=(tg<FAST_LOW?FAST_MS_LOW:FAST_MS)){ const fT=440*Math.pow(2,(tg+tuneOff-69)/12), fLo=Math.max(MINHZ,fT*Math.pow(2,-14/12)), fHi=Math.min(4400,fT*Math.pow(2,20/12)),
         ml=Math.ceil(sr/fLo)+2, n=Math.min(L,ml+Math.max(1024,2*ml)); m.ut=false; let f=m.tail?pitchT(b,sr,gate,fLo,fHi,m):pitch(b.subarray(L-n),sr,gate,fLo,fHi);
-      if(f>0&&lastAp<AP){ const x=69+12*Math.log2(f/440)-tuneOff; let md=Math.round(x); if(Math.abs(x-md)<=0.45){ md=bassOct(md,tg,f,sr); if(m.tail) md=tailFix(md,b,m.pre,sr,m.lastMd); if(take(md)){ m.fc.push(md); m.fr.push(x-Math.round(x)) } } }
-      const nc=m.fc.length, best=nc?m.fc[nc-1]:null; let k=0; while(k<nc&&m.fc[nc-1-k]===best) k++;
-      const fx=m.fr.slice(nc-Math.min(k,FASTN)), es=m.envS, pk=Math.max(...es);
-      if(best===tg&&k>=FASTN&&Math.max(...fx)-Math.min(...fx)<=(tg<FAST_LOW?0.15:0.08)&&struck()&&(m.clip||es.indexOf(pk)<=3&&es[es.length-1]-m.preS<=(pk-m.preS)*0.97)){ learn(fx); return fin(best) } }
-    // FULL LOOK (every other tick, the whole keyboard): the original steady-4-looks rule, the fallback for anything the fast look can't settle
+      if(!(f>0&&lastAp<AP)&&m.tail&&!sameRing(tg)&&sieve(tg,b,m.pre,sr)) m.tv.push(0);   // no clean pitch in a thick ringing mixture: the new sound's spectrum decides
+      if(f>0&&lastAp<AP){ const x=69+12*Math.log2(f/440)-tuneOff; vote(x,f); let md=Math.round(x); if(Math.abs(x-md)<=0.45){ md=upOct(lowOct(bassOct(md,tg,f,sr),tg,b,sr),tg,b,sr); if(m.tail&&md!==tg) md=tailFix(md,b,m.pre,sr,m.lastMd); if(md===tg&&take(md)){ m.fc.push(md);   /* (only the asked key: this narrow look reads other keys at a double period, F5 as F4, and that must never name the attack) */ m.fr.push(x-Math.round(x)) } } } }
+    // FULL LOOK (every other look, the whole keyboard): names any key, right or wrong
     if(m.armed&&now-m.armedAt>=70&&(m.slow++)%2===0){ m.ut=false; const f=pitchT(b,sr,gate,0,0,m);
       // tuneOff = how sharp/flat this piano sits (semitones), learned from every confirmed note, so a home piano that's a bit off still reads exactly
-      if(f>MINHZ*0.9&&f<4400&&lastAp<AP){ const x=69+12*Math.log2(f/440)-tuneOff; let md=Math.round(x); m.raw.push(x-md); m.rawX.push(x); if(Math.abs(x-md)<=0.45){ md=bassOct(md,tg,f,sr); if(m.tail) md=tailFix(md,b,m.pre,sr,m.lastMd); if(take(md)){ m.cand.push(md); m.res.push(x-Math.round(x)) } } }
+      if(f>MINHZ*0.9&&f<4400&&lastAp<AP){ const x=69+12*Math.log2(f/440)-tuneOff; let md=Math.round(x); m.raw.push(x-md); m.rawX.push(x); vote(x,f); if(m.tv.length) m.tvF++; if(Math.abs(x-md)<=0.45){ md=upOct(lowOct(bassOct(md,tg,f,sr),tg,b,sr),tg,b,sr); if(m.tail&&md!==tg) md=tailFix(md,b,m.pre,sr,m.lastMd); if(take(md)){ m.cand.push(md); m.res.push(x-Math.round(x)) } } } }
+    if(m.armed&&tg!=null){ const v=m.tv, nv=v.length;
+      // the asked key, read the same way 3 times (within 0.2 semitone), from an attack that was struck (a hammer leap, or a re-strike's top-end
+      // leap over the ringing key), and no lower key under it (a wrong key an octave, a 12th or two octaves down reads its own pitch on the full look)
+      // A piano key's attack has a hammer leap or a top-end leap (measured: 9 in 10 real answers have each; talking, 1 in 6). Without one:
+      // the same key struck again (its own test, in the vote), or the asked key's partials appearing under a ringing chord with 4 looks within
+      // 0.06 semitone, piano-steady (a voice wobbles more than that).
+      const ham=m.hit||m.hard, need=ham||m.same?TPN:4, spr=nv>=need?Math.max(...v.slice(-need))-Math.min(...v.slice(-need)):9;
+      // ...and it has peaked: a struck key peaks within ~80 ms and is already fading; a voice keeps swelling (the answer waits a look or two)
+      const E=m.envS, pk0=Math.max(...E), fading=m.clip||E.indexOf(pk0)<=4&&E[E.length-1]<=0.97*pk0;
+      if(nv>=need&&fading&&spr<=(ham||m.same?(tg<FAST_LOW?0.25:0.2):0.06)&&(m.sub<2||m.sub<0.25*nv)&&(ham||m.same||m.tOn)){ learn(v.slice(-need)); return fin(tg,"asked-key path: "+nv+" matching looks"+(m.same?", asked key was already ringing: own partials "+Math.round(100*m.own)+"% new, jump "+(m.jmp||0).toFixed(1)+"x"+(m.hit?", top-end leap":"")+(m.hard?", hammer":""):"")) }
+      const nc=m.fc.length, best=nc?m.fc[nc-1]:null; let k=0; while(k<nc&&m.fc[nc-1-k]===best) k++;
+      const fx=m.fr.slice(nc-Math.min(k,FASTN)), es=m.envS, pk=Math.max(...es);
+      if(best===tg&&k>=FASTN&&Math.max(...fx)-Math.min(...fx)<=(tg<FAST_LOW?0.15:0.08)&&struck()&&(m.hit||m.hard)&&(m.clip||es.indexOf(pk)<=3&&es[es.length-1]-m.preS<=(pk-m.preS)*0.97)){ learn(fx); return fin(best,"fast look") } }
+    if(m.armed&&m.slow&&(m.slow-1)%2===0&&now-m.armedAt>=70){
       const cnt={}; let best=null, bc=0; for(const v of m.cand){cnt[v]=(cnt[v]||0)+1; if(cnt[v]>bc){bc=cnt[v];best=v}}
       const bx=bc?m.res.filter((_,i)=>m.cand[i]===best):[], stdy=a=>a.length>=4&&Math.max(...a)-Math.min(...a)<=0.22&&Math.abs(a[a.length-1]-a[0])<=0.15, steady=stdy(bx)||bx.length>=5&&stdy(bx.slice(1));   // (the attack look itself may sit a little off)
-      if(bc>=4&&bc>=0.8*m.cand.length&&steady&&decays(m.env)&&struck()){ learn(bx); return fin(best) }
-      else if(now-m.armedAt>900){ m.armed=false;
-        // a steady pitch that sits between two keys = the piano itself is off: re-centre on it and ask for the note again
-        const rr=[...m.raw].sort((a,b)=>a-b), md=rr[rr.length>>1], rx=[...m.rawX].sort((a,b)=>a-b), mx=rx[rx.length>>1];
-        if(rx.length>=6&&rx.filter(v=>Math.abs(v-mx)<0.1).length>=0.8*rx.length&&Math.abs(md)>0.3){ tuneOff=Math.max(-0.6,Math.min(0.6,tuneOff+md)); store.set("tuneOff",tuneOff); heardMsg("Tuning to your piano. Play that key again.") }
-        else if(rx.length>=4&&rx.filter(v=>Math.abs(v-mx)<0.15).length>=0.7*rx.length) heardMsg("Didn't catch that one. Play the key again, a little firmer.") } }
+      // a WRONG key is only named this strictly: 4 steady looks, 80% of all looks, a struck and decaying sound. (The asked key never waits for this.)
+      if(bc>=4&&bc>=0.8*m.cand.length&&steady&&decays(m.env)&&struck()){ learn(bx); return fin(best,"full look") }
+      else if(now-m.armedAt>900) endAttack(now,null,{bc,n:m.cand.length,best,steady,dec:decays(m.env),st:struck()}) }
+    // NOTHING HEARD AT ALL: the asked key sounding for 300 ms+ with no attack ever seen (logged, never answered: it may be the last key ringing)
+    if(!m.armed&&tgNow!=null&&!A.heard&&!A.said&&now-A.st>300&&r>thr&&m.tickN%5===0){ const fT=440*Math.pow(2,(tgNow+tuneOff-69)/12), f=pitch(b,sr,gate,Math.max(MINHZ,fT*0.8),Math.min(4400,fT*1.25)); if(f>0&&lastAp<AP&&Math.round(69+12*Math.log2(f/440)-tuneOff)===tgNow){ A.nh=(A.nh||0)+1; if(A.nh>=3){ A.said=true; dlog(m,{t:now,lv:r,rd:dkn(tgNow),tg:dkn(tgNow),dec:"no attack seen",why:m.lastMd===tgNow?"asked key heard steadily, but it is the last key still ringing: waiting for a new strike":"asked key heard steadily, but no attack was ever detected"}) } } else A.nh=0 }
+    // give up on an attack: if the asked key was what it read, that is never a silent miss
+    function endAttack(t,why,gt){ if(!m.armed) return; m.armed=false; const Q=askAt(m,t), tq=mine(m,Q)?Q.tg:null;
+      const rx=[...m.rawX].sort((a,b)=>a-b), mx=rx[rx.length>>1], cons=rx.length>=4&&rx.filter(v=>Math.abs(v-mx)<0.15).length>=0.7*rx.length;
+      if(tq!=null&&(m.hit||m.hard)&&decays(m.env)&&struck()&&!sameRing(tq)&&(m.tv.length>=2||cons&&Math.round(mx)===tq)&&Q.id===micAskId()){ m.armed=true; return fin(tq,"rescue: the asked key was heard ("+m.tv.length+" votes"+(cons?", steady":"")+") but no gate decided") }
+      const wsum=gt?`looks ${gt.n}, best ${gt.best!=null?dkn(gt.best):"-"} x${gt.bc}, steady ${gt.steady?"y":"n"}, decays ${gt.dec?"y":"n"}, struck ${gt.st?"y":"n"}, asked-key votes ${m.tv.length}${m.sub?", lower key "+m.sub:""}${m.same?", asked key was already ringing":""}, jump ${(m.jmp||0).toFixed(1)}x${m.hit?", top-end leap":""}${m.hard?", hammer":""}${m.same?", own "+Math.round(100*m.own)+"%":""}, by ${m.by}`:why;
+      dlog(m,{rd:rx.length?dkn(Math.round(mx))+(cons?" (steady)":""):"no pitch",tg:tq!=null?dkn(tq):"-",dec:"no answer",why:wsum});
+      if(why) return;
+      // a steady pitch that sits between two keys = the piano itself is off: re-centre on it and ask for the note again
+      const rr=[...m.raw].sort((a,b)=>a-b), md=rr[rr.length>>1];
+      if(rx.length>=6&&rx.filter(v=>Math.abs(v-mx)<0.1).length>=0.8*rx.length&&Math.abs(md)>0.3){ tuneOff=Math.max(-0.6,Math.min(0.6,tuneOff+md)); store.set("tuneOff",tuneOff); heardMsg("Tuning to your piano. Play that key again.") }
+      else if(cons&&tq!=null&&(m.by==="level"||m.by==="re-strike")&&m.pk>thr) heardMsg("Didn't catch that one. Play the key again, a little firmer.") }
     if(!m.last){ m.last=new Float32Array(L); m.last2=new Float32Array(L) } const t2=m.last2; m.last2=m.last; m.lastR2=m.lastR; m.last=t2; m.last.set(b); m.lastR=r }
+  // the asked key's strongest partial is a real peak in this look: 15%+ of the loudest peak anywhere from 50 Hz to 5 kHz (not room noise)
+  function realPeak(P,S){ S=S||spS; const bw=mic.sr/SPN; let top=0; for(let k=Math.floor(50/bw);k<Math.min(SPN/2,Math.ceil(5000/bw));k++) if(S[k]>top) top=S[k]; return Math.max(...P)>=0.15*top&&top>0 }
+  // the asked key's partials 1-8 (their peak magnitudes), in this look or (pre) in the one 40 ms before the attack
+  const tbS=new Float32Array(SPN/2+1);
+  function tband(buf,k,sr,other,each){ let S=spS; if(other){ mag(buf,SPN,tbS); S=tbS } else if(spT!==mic.tickN){ mag(buf,SPN,spS); spT=mic.tickN } const bw=sr/SPN, f0=440*Math.pow(2,(k+tuneOff-69)/12); let P=0; const E=[];
+    for(let h=1;h<=8;h++){ const fh=h*f0*Math.sqrt(1+0.0004*h*h), k0=Math.floor(fh*0.98/bw), k1=Math.ceil(fh*1.02/bw); if(k1>=SPN/2) break; let v=0; for(let q=k0;q<=k1;q++) v=Math.max(v,S[q]); P+=v; E.push(v) } return each?E:P }
+  // A read an octave BELOW the asked key, where that lower key's own odd partials (1st, 3rd, 5th...) hold almost none of the (new) sound:
+  // the asked key itself, read at its double period (a ringing neighbour or a weak bass can do that). A real lower key keeps ~half its
+  // sound in its odd partials, so a wrong key an octave down is still heard as wrong.
+  function lowOct(md,tg,buf,sr){ if(tg==null||md!==tg-12) return md; const m=mic; if(spT!==m.tickN){ mag(buf,SPN,spS); spT=m.tickN } const bw=sr/SPN, f0=440*Math.pow(2,(md+tuneOff-69)/12), pre=m.tail?m.pre:null; let od=0, al=0;
+    for(let h=1;h<=16;h++){ const fh=h*f0*Math.sqrt(1+0.0004*h*h), k0=Math.floor(fh*0.985/bw), k1=Math.ceil(fh*1.015/bw); if(k1>=SPN/2) break; let v=0; for(let k=k0;k<=k1;k++) v=Math.max(v,pre?spS[k]-pre[k]:spS[k]); v=Math.max(0,v); al+=v; if(h&1) od+=v }
+    return al>0&&od<LOWO*al?tg:md }
+  // A read an octave ABOVE a low asked key (below C4: a small speaker drops the fundamental, and the odd partials can be weak), where the
+  // asked key's own odd partials still hold 20%+ of the (new) sound: the asked key. A real key an octave up has nothing there.
+  function upOct(md,tg,buf,sr){ if(tg==null||tg>=60||tg<36||md!==tg+12) return md;   /* (from C2: lower, the spectrum is too coarse to tell partials apart) */ const m=mic; if(spT!==m.tickN){ mag(buf,SPN,spS); spT=m.tickN } const bw=sr/SPN, f0=440*Math.pow(2,(tg+tuneOff-69)/12), pre=m.tail?m.pre:null; let od=0, al=0;
+    for(let h=1;h<=16;h++){ const fh=h*f0*Math.sqrt(1+0.0004*h*h), k0=Math.floor(fh*0.985/bw), k1=Math.ceil(fh*1.015/bw); if(k1>=SPN/2) break; let v=0; for(let k=k0;k<=k1;k++) v=Math.max(v,pre?spS[k]-pre[k]:spS[k]); v=Math.max(0,v); al+=v; if(h&1) od+=v }
+    return al>0&&od>=UPO*al?tg:md }
+  // SIEVE: the NEW sound (this look minus the look before the attack) sits on the asked key's partials, with a fair share on its odd ones
+  // (not the key an octave up), little on the own partials of the keys an octave, a 12th or two octaves down, and less on any neighbour
+  // (a step or two away). Used only when a thick ringing mixture (pedal down, several keys) leaves no clean pitch to read.
+  function sieve(tg,buf,pre,sr){ const m=mic; if(spT!==m.tickN){ mag(buf,SPN,spS); spT=m.tickN } const bw=sr/SPN, F=k=>440*Math.pow(2,(k+tuneOff-69)/12);
+    const nw=(f)=>{ const k0=Math.floor(f*0.985/bw), k1=Math.ceil(f*1.015/bw); if(k1>=SPN/2) return 0; let v=0; for(let k=k0;k<=k1;k++) v=Math.max(v,spS[k]-pre[k]); return Math.max(0,v) };
+    const f0=F(tg); let A=0, Ao=0; for(let h=1;h<=8;h++){ const v=nw(h*f0*Math.sqrt(1+0.0004*h*h)); A+=v; if(h&1) Ao+=v } if(!(A>0)||Ao<0.25*A) return false;
+    for(const [d,q] of [[12,2],[19,3],[24,4]]){ const fl=F(tg-d); let o=0; for(let h=1;h<=8*q;h++) if(h%q) o+=nw(h*fl*Math.sqrt(1+0.0004*h*h)); if(o>0.3*A) return false }
+    for(const d of [-2,-1,1,2]){ const fn=F(tg+d); let o=0; for(let h=2;h<=8;h++) o+=nw(h*fn*Math.sqrt(1+0.0004*h*h)); if(o>0.4*A) return false }
+    return true }
+  // share of the NEW sound (vs the look before the attack) sitting at key md's own odd partials (1st, 3rd, 5th...)
+  function ownNew(md,buf,pre,sr){ if(spT!==mic.tickN){ mag(buf,SPN,spS); spT=mic.tickN } const bw=sr/SPN, f0=440*Math.pow(2,(md+tuneOff-69)/12); let fn=0, fa=0;
+    for(let h=1;h<=15;h+=2){ const fh=h*f0*Math.sqrt(1+0.0004*h*h), k0=Math.floor(fh*0.985/bw), k1=Math.ceil(fh*1.015/bw); if(k1>=SPN/2) break; let v=0, w=0; for(let k=k0;k<=k1;k++){ v=Math.max(v,spS[k]-pre[k]); w=Math.max(w,spS[k]) } fn+=Math.max(0,v); fa+=w } return fa>0?fn/fa:0 }
   function heardNote(md){ const h=$("heard"); h.classList.remove("msg"); h.textContent=mname(md) }
   function heardMsg(t){ const h=$("heard"); h.classList.add("msg"); h.textContent=t }
+  // diagnostics: ?debug=1, the "Show details" link, or holding the status line for 2 seconds
+  function micDiag(on){ micDiagOn=on; $("micDiag").hidden=!on; $("micDiagLink").hidden=on; if(on) micDiagShow() }
+  $("micDiagLink").addEventListener("click",e=>{ e.preventDefault(); micDiag(true) });
+  $("micDiagClose").addEventListener("click",()=>micDiag(false));
+  $("micDiagCopy").addEventListener("click",async()=>{ const t=micDiagText(), b=$("micDiagCopy"); let ok=false; try{ await navigator.clipboard.writeText(t); ok=true }catch(e){}
+    if(!ok){ try{ const a=document.createElement("textarea"); a.value=t; document.body.appendChild(a); a.select(); ok=document.execCommand("copy"); a.remove() }catch(e){} } b.textContent=ok?"Copied":"Select the text and copy"; setTimeout(()=>b.textContent="Copy log",1600) });
+  { let hold=null; const st=$("micStat"); st.addEventListener("pointerdown",()=>{ hold=setTimeout(()=>micDiag(true),2000) }); ["pointerup","pointerleave","pointercancel"].forEach(t=>st.addEventListener(t,()=>clearTimeout(hold))) }
+  if(QS.get("debug")==="1") micDiag(true);
   // the key the app is waiting for right now (top note first on the grand staff), or null
   // which question (and which of its two notes) is open right now; an answer must come from an attack that began while it was open
   function micAskId(){ return q?qTok+"/"+idx+"/"+(locked||q.wait?1:0):"-" }
@@ -953,7 +1179,7 @@ input[type=range],input[type=checkbox],input[type=radio]{accent-color:var(--c-ac
   $("resetBtn").addEventListener("click",()=>{resetScore();newQuestion(true)});
 
   // ---------- round clock (Challenge mode is the only timed mode; free practice has no clock) ----------
-  const chalLabel=on=>{ $("chalBtn").textContent=on?"Stop":"Start Challenge" };
+  const chalLabel=on=>{ $("chalBtn").textContent=on?"Stop":"Start Challenge"; document.body.classList.toggle("running",on) };
   function stopTimer(){ if(timer){clearInterval(timer);timer=null} sprintOver=false; arcEnd(); $("clockrow").hidden=true; chalLabel(false) }
   function showClock(){ const t=Math.max(0,timeLeft); $("clock").textContent=t;
     $("ring").style.strokeDashoffset=String(326.7*(1-t/timeMax)); $("watch").classList.toggle("hot",t<=10) }
@@ -971,7 +1197,7 @@ input[type=range],input[type=checkbox],input[type=radio]{accent-color:var(--c-ac
       for(let i=P.length-1;i>=0;i--) if(P[i].life<=0) P.splice(i,1);
       if(el<2600||P.length) requestAnimationFrame(frame); else c.remove() })(t0);
     try{ chime() }catch(e){} }
-  function sheet(on){ $("results").hidden=!on; [...$("card").children].forEach(c=>{ if(c!==$("results")) c.inert=on }) }
+  function sheet(on){ $("results").hidden=!on; [...$("card").children].forEach(c=>{ if(c!==$("results")) c.inert=on }); $("actbar").inert=on; $("actbar").hidden=on }
   function showResults(){ sheet(true); const r=$("card").getBoundingClientRect(); if(r.top<0||r.top>innerHeight*0.4) try{ $("card").scrollIntoView({block:"start"}) }catch(e){} $("results").scrollTop=0; try{ $("rTitle").focus({preventScroll:true}) }catch(e){} }
   $("chalBtn").addEventListener("click",()=>{ if(timer||arc){stopTimer();newQuestion(true)} else arcStart() });   // one button: Start Challenge, Stop while a challenge runs
   $("againBtn").addEventListener("click",()=>arcStart());
