@@ -4,7 +4,7 @@ Original music games by [Clarendon Hills Music Academy](https://clarendonhillsmu
 
 - `note-sprint/` — Note Sprint (source of truth: piano_rebellion_curriculum- `apps/note-sprint.html`)
 - `drum-machine/` — Modal Metronome (drum machine + bass, from the Notion embed on the Evan dashboard; recorded-sample credits are in the app footer)
-- `guitar-tuner/` — Guitar Revolution Strobe Tuner (true strobe: heterodyne phase vs exact reference at f, 2f, 4f in an AudioWorklet; YIN note finder; tunings, A4 430–450, reference tone; vintage design).
+- `guitar-tuner/` — Guitar Revolution Strobe Tuner (true strobe: heterodyne phase vs exact reference at f, 2f, 4f in an AudioWorklet; YIN note finder; tunings, A4 430–450; one screen, starts on its own, always auto; vintage design).
 - `song-player/` — Song Dissector (Capo-style play-along: studio-grade speed 40–130% and key ±6 via Signalsmith Stretch (MIT, `song-player/vendor/`, patched to mix parts in the worklet), A-B loop, speed-up trainer, PARTS mixer with mute/solo). One player for every song: `?s=<song id>`. Parts: split offline with Demucs htdemucs_6s, residual redistributed so parts sum to the record; ship `audio/<id>/mix.mp3` (320k) + parts at half volume (`boost:2`), `rest` = record minus parts. Songs without parts: one MP3 + one line in `SONGS`.
 - `rhythm-trainer/` — Rhythm Trainer (tap or clap rhythms, timing graded against the written notes; 8 levels incl. 3 syncopation levels)
 
@@ -21,5 +21,5 @@ Every app shows its version at the bottom of the page: `Version YYYY-MM-DD.N` (d
 | Hanon Speed Trainer | 2026-11-11.7 |
 | Major 7th Play-Along | 2026-11-11.8 |
 | Song Dissector | 2026-11-11.14 |
-| Strobe Tuner (Guitar Revolution) | 2026-11-11.6 |
+| Strobe Tuner (Guitar Revolution) | 2026-11-12.1 |
 | Music Games (home) | 2026-11-11.6 |
