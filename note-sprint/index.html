@@ -94,6 +94,12 @@ button:focus-visible,input:focus-visible{outline:3px solid var(--accent);outline
 .heard.msg{font-family:var(--display);font-weight:600;font-size:17px;line-height:1.3;text-align:center;color:var(--muted);display:flex;align-items:center;justify-content:center;gap:8px;padding:10px 14px;margin:0 auto;max-width:420px;border:1px dashed var(--border);border-radius:12px}
 .micstat{font-size:13px;color:var(--muted);text-align:center;max-width:420px;line-height:1.4}
 .micstat a{color:var(--accent);font-weight:700}
+.diaglink{font-size:12px;color:var(--muted);text-decoration:underline;text-underline-offset:2px}
+.micdiag{width:100%;max-width:560px;border:1px solid var(--border);border-radius:12px;background:var(--panel);padding:10px 12px;box-sizing:border-box}
+.micdiag .dhead{display:flex;justify-content:space-between;align-items:center;gap:8px;font-size:14px;color:var(--ink)}
+.micdiag .dhead button{font:inherit;font-size:13px;padding:6px 10px;border-radius:8px;border:1px solid var(--border);background:var(--bg,transparent);color:var(--ink);cursor:pointer}
+.micdiag .dnote{font-size:12px;color:var(--muted);margin:6px 0}
+.micdiag pre{font-family:var(--mono);font-size:11px;line-height:1.45;white-space:pre-wrap;word-break:break-word;max-height:300px;overflow:auto;margin:0;color:var(--ink)}
 a.primary{display:inline-flex;align-items:center;justify-content:center;min-height:44px;border-radius:10px;border:1px solid;text-decoration:none;text-align:center}
 .meter{width:100%;max-width:320px;height:6px;border-radius:3px;background:var(--border);overflow:hidden}
 .meter i{display:block;height:100%;width:0;background:var(--good)}
@@ -302,6 +308,12 @@ input[type=range],input[type=checkbox],input[type=radio]{accent-color:var(--c-ac
         <span>Level</span><div class="meter" style="max-width:none"><i id="meterFill"></i><span class="thr" id="thr"></span></div>
       </div>
       <div class="micstat" id="micStat" aria-live="polite">Play the note on your piano. One note at a time, the right octave.</div>
+      <a href="#" class="diaglink" id="micDiagLink" hidden>Mic not catching notes? Show details</a>
+      <div class="micdiag" id="micDiag" hidden>
+        <div class="dhead"><b>Mic details</b><span><button type="button" id="micDiagCopy">Copy log</button> <button type="button" id="micDiagClose">Close</button></span></div>
+        <p class="dnote">The last 20 sounds the microphone heard, newest last. Something missed? Tap Copy log and paste it to your teacher.</p>
+        <pre id="micDiagLog">Nothing heard yet.</pre>
+      </div>
     </div>
     <div id="pianoPad" hidden><div class="pianoWrap" id="pianoWrap"><div class="pianoScroll" id="pianoScroll"><div class="piano" id="piano"></div></div></div><p class="swipe" id="rotateHint" hidden>Swipe the keyboard to see more keys</p></div>
 
@@ -310,7 +322,7 @@ input[type=range],input[type=checkbox],input[type=radio]{accent-color:var(--c-ac
       <button class="primary" id="chalBtn" title="Challenge mode: one try per note, no second chances">Start Challenge</button>
     </div>
     <p class="tip" id="kbTip">Keyboard: A–G to answer. In a key with sharps or flats, tap ♯ or ♭ first (or press = / −). Piano keys must be the exact key, right octave.</p>
-    <p class="tip" id="appVer"><span class="appver">Note Sprint · Version 2026-11-11.13</span></p>
+    <p class="tip" id="appVer"><span class="appver">Note Sprint · Version 2026-11-12.1</span></p>
 
     <div class="arcsplash" id="arcSplash" hidden><div class="boom"></div><div id="arcPcs"></div><div class="pre" id="arcSplashP"></div><b id="arcSplashT">ROUND 2</b><span id="arcSplashS"></span></div><div class="hitstamp" id="hitStamp">TARGET HIT!</div>
     <div class="results" id="results" hidden>
@@ -553,7 +565,7 @@ input[type=range],input[type=checkbox],input[type=radio]{accent-color:var(--c-ac
       const clef=s.staffMode==="mix"?both[Math.floor(Math.random()*both.length)]:s.staffMode; q={grand:false,key,notes:[makeNote(clef,s,s.acc,prev&&prev.notes[0],key)]}}
     q.marks=[null,null]; q.tried=[false,false]; $("choice").hidden=true; $("staffbox").className="staffbox"; setPrompt(); draw();
   }
-  function setPrompt(cls,text,coach){const el=$("prompt");el.className="prompt"+(cls?" "+cls:""); el.textContent="";
+  function setPrompt(cls,text,coach){ try{ micAsk() }catch(e){} const el=$("prompt");el.className="prompt"+(cls?" "+cls:""); el.textContent="";
     const t=text!=null?text:(q.grand?(idx===0?"Top note first (right hand)":"Now the bottom note (left hand)"):"");
     if(coach!=null){const v=document.createElement("div");v.className="verdict";v.textContent=t;const c=document.createElement("div");c.className="coach";c.textContent=coach;el.append(v,c)}
     else el.textContent=t}
@@ -829,9 +841,11 @@ input[type=range],input[type=checkbox],input[type=radio]{accent-color:var(--c-ac
     if(my!==micTry||$("micPad").hidden){ stream.getTracks().forEach(t=>t.stop()); if(my===micTry) fail("Play the note on your piano. One note at a time, the right octave."); return }   // mode changed while the audio woke up: never leave a hidden mic listening
     const src=audio.createMediaStreamSource(stream), g=audio.createGain(), an=audio.createAnalyser(), mute=audio.createGain();
     g.gain.value=micG($("micGain").value); an.fftSize=4096; mute.gain.value=0; src.connect(g); g.connect(an); an.connect(mute); mute.connect(audio.destination);
-    mic={stream,g,an,src,mute,buf:new Float32Array(an.fftSize),hist:[],armed:false,armedAt:0,cand:[],cool:0};
+    mic=Object.assign(micInit(audio.sampleRate,g),{stream,an,src,mute});
+    // every sample to the ear (the analyser stays as the fallback until the first block arrives)
+    micTap(g,mute).then(tp=>{ if(tp&&mic&&mic.g===g){ mic.tap=tp.n; mic.mode=tp.mode } else if(tp) try{ tp.n.disconnect() }catch(e){} });
     stream.getAudioTracks().forEach(t=>t.addEventListener("ended",micLost));
-    mic.timer=setInterval(micTick,TICK); micBusy=false; $("micBtn").textContent="Microphone on"; $("micBtn").disabled=true; $("micBtn").hidden=false; $("micOpen").hidden=true; $("micCtl").hidden=false;
+    mic.timer=setInterval(micTick,TICK); micBusy=false; $("micBtn").textContent="Microphone on"; $("micBtn").disabled=true; $("micBtn").hidden=false; $("micOpen").hidden=true; $("micCtl").hidden=false; if(!micDiagOn) $("micDiagLink").hidden=false;
     setThr(THR);
     $("micStat").textContent="Listening. Play any key: the Level bar should jump past the line. Too low? Raise Sensitivity.";
     try{ const devs=(await navigator.mediaDevices.enumerateDevices()).filter(d=>d.kind==="audioinput"), cur=stream.getAudioTracks()[0].getSettings().deviceId;
@@ -847,7 +861,7 @@ input[type=range],input[type=checkbox],input[type=radio]{accent-color:var(--c-ac
   function micLost(){ if(!mic) return; micStop(); $("micStat").textContent="The microphone stopped (screen locked or another app took it). Tap the button to turn it back on." }
   document.addEventListener("visibilitychange",()=>{ if(document.hidden) return; if(audio&&audio.state!=="running") audio.resume().catch(()=>{});
     if(mic&&mic.stream.getAudioTracks().some(t=>t.readyState==="ended")) micLost() });
-  function micStop(keepUi){ if(!mic)return; clearInterval(mic.timer); mic.stream.getTracks().forEach(t=>t.stop()); try{mic.mute.disconnect()}catch(e){} mic=null; if(!keepUi) try{ if(navigator.audioSession) navigator.audioSession.type="playback" }catch(e){}
+  function micStop(keepUi){ if(!mic)return; clearInterval(mic.timer); try{ if(mic.tap){ mic.tap.disconnect(); if(mic.tap.port) mic.tap.port.onmessage=null; else mic.tap.onaudioprocess=null } }catch(e){} mic.stream.getTracks().forEach(t=>t.stop()); try{mic.mute.disconnect()}catch(e){} mic=null; if(!keepUi) try{ if(navigator.audioSession) navigator.audioSession.type="playback" }catch(e){}
     if(!keepUi){ $("micBtn").textContent="Turn on the microphone"; $("micBtn").disabled=false; $("micCtl").hidden=true } }
   $("micOpen").addEventListener("click",()=>{ $("micOpen").href=fullUrl() });
   $("micSel").addEventListener("change",e=>micStart(e.target.value));
@@ -856,28 +870,71 @@ input[type=range],input[type=checkbox],input[type=radio]{accent-color:var(--c-ac
   // round-screen music (shared/hype.js): the mic ignores it while it plays and for 250 ms after, so it never counts as a note
   function hypePlay(ms){ try{ if(window.chmaHype&&$("hypeOn").checked){ const a=AC(); chmaHype.play(ms,{ctx:a,round:arc?arc.round:1,bonus:!!(arc&&arc.bonus),enabled:true,micSafe:readSettings().mode==="mic"}) } }catch(e){} }
   function hypeStop(f){ try{ window.chmaHype&&chmaHype.stop(f) }catch(e){} }
-  const hypeQuiet=()=>{ try{ return !!(window.chmaHype&&(chmaHype.isPlaying()||performance.now()<chmaHype.endsAt+250)) }catch(e){ return false } };
-  function micTick(){ const m=mic, b=m.buf; m.an.getFloatTimeDomainData(b); m.tickN=(m.tickN||0)+1; const L=b.length, sr=audio.sampleRate, g=m.g.gain.value||1;
+  const hypeQuiet=w=>{ try{ return !!(window.chmaHype&&(chmaHype.isPlaying()||(w||performance.now())<chmaHype.endsAt+250)) }catch(e){ return false } };
+  // every sample to the ear: an AudioWorklet (or, on older browsers, a ScriptProcessor) copies each 512-sample block into the ring
+  async function micTap(g,mute){ const ctx=audio;
+    try{ if(ctx.audioWorklet&&window.AudioWorkletNode){ if(!micTap.mod){ const code="registerProcessor('ns-tap',class extends AudioWorkletProcessor{constructor(){super();this.b=new Float32Array(512);this.n=0}process(i){const c=i[0]&&i[0][0];if(c){for(let k=0;k<c.length;k++){this.b[this.n++]=c[k];if(this.n===512){this.port.postMessage(this.b,[this.b.buffer]);this.b=new Float32Array(512);this.n=0}}}return true}})";
+          const u=URL.createObjectURL(new Blob([code],{type:"application/javascript"})); micTap.mod=Promise.race([ctx.audioWorklet.addModule(u),new Promise((_,j)=>setTimeout(()=>j(new Error("slow")),2500))]) }
+        await micTap.mod; const n=new AudioWorkletNode(ctx,"ns-tap",{numberOfInputs:1,numberOfOutputs:1,outputChannelCount:[1],channelCount:1,channelCountMode:"explicit"});
+        n.port.onmessage=e=>{ if(mic&&mic.tap===n) micFeed(e.data) }; g.connect(n); n.connect(mute); return {n,mode:"worklet"} } }catch(e){ micTap.mod=null }
+    try{ const sp=ctx.createScriptProcessor(1024,1,1); sp.onaudioprocess=e=>{ if(mic&&mic.tap===sp) micFeed(new Float32Array(e.inputBuffer.getChannelData(0))) }; g.connect(sp); sp.connect(mute); return {n:sp,mode:"script"} }catch(e){} return null }
+  let micDiagOn=false; const dkn=k=>["C","C♯","D","E♭","E","F","F♯","G","A♭","A","B♭","B"][((k%12)+12)%12]+(Math.floor(k/12)-1);
+  function micDiagText(){ const m=mic; const head=`${(document.querySelector(".appver")||{}).textContent||"Note Sprint"} | ${m?m.mode+" "+m.sr+" Hz":"mic off"} | Sens ${$("micGain").value} | tune ${tuneOff.toFixed(2)} | late tick max ${m?Math.round(m.lateMax):0} ms | ${navigator.userAgent||""}`;
+    const rows=(m?m.dlog:[]).map(e=>`+${e.t.toFixed(2)}s  level ${e.lv.toFixed(3)}  heard ${e.rd}  asked ${e.tg}  -> ${e.dec}${e.why?"  ["+e.why+"]":""}`); return head+"\n"+(rows.length?rows.join("\n"):"Nothing heard yet.") }
+  function micDiagShow(){ const el=$("micDiagLog"); if(el) el.textContent=micDiagText() }
+  // ---- THE EAR. It hears every sample: the audio thread hands each block to a ring (AudioWorklet, else ScriptProcessor) and the ear takes
+  // one look per 20 ms OF SOUND, not of clock. A busy or throttled page answers a little later; it can never skip a key's attack.
+  // (Browsers with neither fall back to one look at the analyser per timer tick, the old way.)
+  const HOPMS=20, COOL=120, REARM=150, EARLY=150, TPN=3, TOWN=0.15, LEAPH=1.7, LEAPE=1.25;
+  function micInit(sr,g){ return {g,sr,hop:Math.round(sr*HOPMS/1000),ring:new Float32Array(1<<17),w:0,h:0,fw:0,s0:0,buf:new Float32Array(4096),hist:[],armed:false,armedAt:0,cand:[],cool:0,asks:[],dlog:[],fe:[],fh:[],lateMax:0,mode:"analyser"} }
+  function micFeed(x){ const m=mic; if(!m) return; const R=m.ring, N=R.length; if(m.w===0) m.s0=performance.now()-x.length/m.sr*1000; for(let i=0;i<x.length;i++) R[(m.w+i)&(N-1)]=x[i]; m.w+=x.length; m.fw=performance.now() }
+  // sound time (ms) of a moment on the page clock; with no ring, sound time IS the page clock
+  const sNow=(m,wall)=>m.w>0?m.s0+m.w/m.sr*1000+(wall-m.fw):wall, wallOf=(m,t)=>m.w>0?t-(m.s0+m.w/m.sr*1000)+m.fw:t;
+  // every question change, stamped in sound time: an attack belongs to the question that was open when it began (or opened up to 150 ms after:
+  // students anticipate)
+  function micAsk(){ const m=mic; if(!m) return; const id=micAskId(), a=m.asks; if(a.length&&a[a.length-1].id===id) return; a.push({id,tg:micTarget(),st:sNow(m,performance.now()),heard:false,said:false}); if(a.length>8) a.shift() }
+  const askAt=(m,t)=>{ let A=null; for(const a of m.asks) if(a.st<=t) A=a; return A };
+  const mine=(m,A)=>A&&A.tg!=null&&m.armedAt>=A.st-EARLY;
+  // ---- diagnostics: the last 20 attacks, each with its level, what was read, what was asked, what was decided and why
+  function dlog(m,o){ const e={t:((o.t!=null?o.t:m.armedAt)-(m.t0||0))/1000,lv:m.pk||0,sens:+$("micGain").value,...o}; m.dlog.push(e); if(m.dlog.length>20) m.dlog.shift(); if(micDiagOn) micDiagShow() }
+  function micLog(){ return mic?mic.dlog:[] }
+  function micTick(){ const m=mic; if(!m) return; micAsk(); const wn=performance.now(); if(m.lastWall) m.lateMax=Math.max(m.lateMax*0.999,wn-m.lastWall); m.lastWall=wn;
+    if(m.w>0){ const H=m.hop, Lb=m.buf.length, N=m.ring.length, sr=m.sr;
+      if(m.w-m.h>sr*1.5){ m.h=m.w-H; m.armed=false; m.hist=[]; m.fe=[]; m.fh=[] }   // the page slept (tab hidden): start fresh at the newest sound
+      let n=0; while(m.w-m.h>=H&&n++<120){ m.h+=H; const b=m.buf, R=m.ring, o=m.h-Lb; for(let i=0;i<Lb;i++){ const k=o+i; b[i]=k>=0?R[k&(N-1)]:0 } look(b,m.s0+m.h/sr*1000) } }
+    else{ m.an.getFloatTimeDomainData(m.buf); look(m.buf,performance.now()) }
+    // a right key decided a moment before its question appeared (anticipation): it answers that question if it began no more than 150 ms early
+    const p=m.pend, A=m.asks[m.asks.length-1]; if(p&&A&&A.tg!=null&&A.id===micAskId()){ if(p.at>=A.st-EARLY&&p.md===A.tg){ m.pend=null; dlog(m,{t:p.at,rd:dkn(p.md),tg:dkn(A.tg),dec:"right (played just before the note showed)",why:""}); heardNote(p.md); answerHeard(p.md) } else if(A.st-p.at>EARLY) m.pend=null } }
+  function look(b,now){ const m=mic; m.tickN=(m.tickN||0)+1; const L=b.length, sr=m.sr, g=m.g.gain.value||1, wall=wallOf(m,now);
     let r=0, pkA=0; for(let i=0;i<L;i++){ const v=b[i]; r+=v*v; if(v>pkA) pkA=v; else if(-v>pkA) pkA=-v } r=Math.sqrt(r/L);
     // attack detector on the newest ~20 ms only, so a new key is caught even while the last one still rings
     let rs=0; const S=1024; for(let i=L-S;i<L;i++) rs+=b[i]*b[i]; rs=Math.sqrt(rs/S); let p1=m.ps||0, p2=m.ps2||0; m.ps2=p1; m.ps=rs;
+    // fine 5 ms envelope of the sound and of its top end (2nd difference) over this look's new samples: a key struck again while it still rings
+    // barely moves the overall level, but its hammer/attack lifts the top end several-fold within a few ms
+    { const W=256, nw=Math.min(16,Math.max(1,Math.ceil(m.hop/W||4))); for(let j=nw;j>=1;j--){ const s0=L-j*W; let e=0,h=0; for(let i=s0;i<s0+W;i++){ e+=b[i]*b[i]; const d=b[i]-2*b[i-1]+b[i-2]; h+=d*d } m.fe.push(Math.sqrt(e/W)); m.fh.push(Math.sqrt(h/W)) } if(m.fe.length>24){ m.fe.splice(0,m.fe.length-24); m.fh.splice(0,m.fh.length-24) } }
     // clipping: the microphone's converter hit full scale (at any Sensitivity), or this page's own gain pushed the level past full scale
     const clipped=pkA/g>=0.985||pkA>=0.999;
-    $("meterFill").style.width=Math.min(100,r*600)+"%";
-    if(hypeQuiet()){ m.quiet=true; m.armed=false; m.hist=[]; return }
+    m.mv=Math.max(r,(m.mv||0)*0.94); $("meterFill").style.width=Math.min(100,m.mv*600)+"%";   // peak-held, so a short note stays visible
+    if(hypeQuiet(wall)){ m.quiet=true; m.armed=false; m.hist=[]; return }
     // the music window just closed: start the ear fresh, levels taken from now, nothing ringing on record, so no music frame counts as a note
     if(m.quiet){ m.quiet=false; m.hist=[]; m.fl=null; m.hold=rs; m.ps=m.ps2=rs; m.lastR=m.lastR2=0; m.lastMd=null; p1=p2=rs }
-    const now=performance.now(); if(!m.t0){ m.t0=now; m.cool=now+400 }   // the first looks after the mic opens go from silence to room sound: never an attack
+    if(!m.t0){ m.t0=now; m.cool=now+400 }
+    if(m.w>0&&m.h<L+3*m.hop){ m.cool=Math.max(m.cool,now+1); m.ps=m.ps2=m.hold=rs }   // the ring just took over: its first windows are part zeros   // the first looks after the mic opens go from silence to room sound: never an attack
     // room noise floor = the quietest recent look. Pitch is read down to 3x that (never above the old fixed 0.008), so a top-of-the-staff note
     // like F5, which fades in a fraction of a second, still gives enough steady looks for a decision.
     // (a slow follower: drops at once to anything quieter, creeps up 10% a second, so a key ringing for seconds is never mistaken for the room)
-    m.hist.push(r); if(m.hist.length>2000/TICK) m.hist.shift(); if(r>1e-6) m.fl=m.fl==null||r<m.fl?r:m.fl*1.002;   /* (the analyser hands back pure zeros for a moment at start: never a floor) */ const gate=Math.min(0.008,Math.max(0.002,3*(m.fl||0)));
+    m.hist.push(r); if(m.hist.length>2000/HOPMS) m.hist.shift(); if(r>1e-6) m.fl=m.fl==null||r<m.fl?r:m.fl*1.002;   /* (the analyser hands back pure zeros for a moment at start: never a floor) */ const gate=Math.min(0.008,Math.max(0.002,3*(m.fl||0)));
     // a new key = the newest 20 ms jumps well past both of the last two looks AND past the fading peak of what was already ringing. A string that
-    // swells back as its 2-3 strings beat (strongest in the upper treble) never climbs over its own earlier peak, so it never re-arms and never
-    // answers the next question by itself. Over a key that is still ringing, a 1.5x jump is enough (a softer repeat of a loud low note).
+    // swells back as its 2-3 strings beat never climbs over its own earlier peak, so it never re-arms and never answers by itself.
     const hold=m.hold||0; m.hold=Math.max(rs,hold*HOLDK);
-    if(!m.armed&&now>m.cool&&Math.max(r,rs)>thr&&rs>(hold>0.25*rs&&hold>4*m.fl?1.5:1.8)*Math.min(p1,p2)&&rs>HOLDR*hold){
-      m.armed=true;m.ask=micAskId();m.sharp=false;m.hard=false;m.sharpLv=0;m.clip=false;m.armedAt=now;m.cand=[];m.res=[];m.raw=[];m.rawX=[];m.env=[];m.envS=[];m.fc=[];m.fr=[];m.slow=0;
+    const A=askAt(m,now), tgNow=A&&A.tg!=null?A.tg:null;
+    const bOn=now>m.cool&&Math.max(r,rs)>thr&&rs>(hold>0.25*rs&&hold>4*m.fl?1.5:1.8)*Math.min(p1,p2)&&rs>HOLDR*hold;
+    // ...or, while a question is open, a re-strike: within one 5 ms step the top end leaps 1.7x and the level 1.25x over the 10-20 ms before,
+    // landing near the ringing peak (a beat's swell climbs out of a notch far below it, and never this fast at the top end)
+    let leap=false; if(tgNow!=null&&now>m.cool&&Math.max(r,rs)>thr){ const fe=m.fe, fh=m.fh, n=fe.length, nw=Math.max(1,Math.ceil(m.hop/256)); for(let k=Math.max(4,n-nw);k<n;k++){ const pe=Math.min(fe[k-2],fe[k-3],fe[k-4]), ph=Math.min(fh[k-2],fh[k-3],fh[k-4]); if(fh[k]>=LEAPH*ph&&fe[k]>=LEAPE*pe&&fe[k]>=0.5*hold&&fe[k]>thr) leap=true } }
+    if(m.armed&&now-m.armedAt>=REARM&&(bOn||leap)){ endAttack(now,"a new key came before this one was decided") }
+    if(!m.armed&&(bOn||leap)){
+      m.armed=true;m.sharp=false;m.hard=false;m.sharpLv=0;m.clip=false;m.armedAt=now;m.cand=[];m.res=[];m.raw=[];m.rawX=[];m.env=[];m.envS=[];m.fc=[];m.fr=[];m.slow=0;m.tv=[];m.tvF=0;m.own=0;m.sub=0;m.pk=0;m.by=bOn?"level":"re-strike";
       // what was sounding just before this attack, so a still-ringing key can be told apart from the new one
       // (two looks back, 40 ms: the look just before can already hold the first ms of this attack when the attack straddles two looks)
       m.tail=m.last2&&m.lastR2>Math.max(0.0015,4*m.fl)?mag(m.last2,SPN,m.pre||(m.pre=new Float32Array(SPN/2+1))):null;
@@ -886,7 +943,7 @@ input[type=range],input[type=checkbox],input[type=radio]{accent-color:var(--c-ac
       // strings beat, sympathetic ringing) is ignored. The live G5-read-as-F4 / D4 failure was exactly that.
       m.first=null; m.preS=p2; m.preR=m.lastR2||0; m.notch=p2<0.6*hold; m.old=m.lastMd!=null&&now-m.lastAt<8000?m.lastMd:null;
       if(m.old==null&&m.last2&&m.lastR2>Math.max(0.0008,2*m.fl)){ const fo=pitch(m.last2,sr,0.0005); if(fo>0&&lastAp<AP) m.old=Math.round(69+12*Math.log2(fo/440)-tuneOff) } }
-    if(m.armed){ m.env.push(r); m.envS.push(rs); if(clipped) m.clip=true;
+    if(m.armed){ m.env.push(r); m.envS.push(rs); m.pk=Math.max(m.pk,r); if(clipped) m.clip=true;
       // a hammer hits: inside the frame the level leaps SHK x within ~10 ms, landing near the note's full level. A voice (or a swelling string)
       // ramps up over tens of ms: its only quick leaps are at the very start of a syllable, far below where it is 60 ms later (SHL).
       { const H=256, nb=Math.floor(L/H)-1, a=new Float32Array(nb); let pk=0; for(let i=0;i<nb;i++){ let e=0; for(let j=i*H;j<i*H+2*H;j++) e+=b[j]*b[j]; a[i]=Math.sqrt(e); if(a[i]>pk) pk=a[i] }
@@ -906,37 +963,73 @@ input[type=range],input[type=checkbox],input[type=radio]{accent-color:var(--c-ac
       // the first look that names a key other than the old one fixes this attack's key; old-key looks taken before it are thrown out
       if(m.first==null){ m.first=md; if(m.old!=null) for(const [c,q2] of [[m.fc,m.fr],[m.cand,m.res]]) for(let i=c.length-1;i>=0;i--) if(c[i]===m.old){ c.splice(i,1); q2.splice(i,1) } }
       return !(oldish(md)&&md!==m.first) };
-    const fin=md=>{ m.armed=false; m.cool=now+250; m.lastMd=md; m.lastAt=now; if(m.ask!==micAskId()) return;   // this attack began before the current question appeared: it can't answer it
-      if(m.clipSaid&&!m.clip){ m.clipSaid=false; $("micStat").textContent="Listening. Play any key: the Level bar should jump past the line. Too low? Raise Sensitivity." } heardNote(md); answerHeard(md) };
+    function fin(md,how){ m.armed=false; m.cool=now+COOL; m.lastMd=md; m.lastAt=now; const Q=askAt(m,now);
+      if(mine(m,Q)&&m.armedAt<Q.st&&md!==Q.tg){ dlog(m,{rd:dkn(md),tg:dkn(Q.tg),dec:"not counted: began before this note showed",why:how}); return }   // an early hit only ever counts as RIGHT
+      if(!mine(m,Q)||Q.id!==micAskId()){ const early=!Q||Q.tg==null;
+        if(early) m.pend={md,at:m.armedAt}; dlog(m,{rd:dkn(md),tg:Q&&Q.tg!=null?dkn(Q.tg):"-",dec:early?"heard between notes (kept 150 ms in case the note was about to show)":"not counted: began before this note showed",why:how}); return }
+      Q.heard=true; if(m.clipSaid&&!m.clip){ m.clipSaid=false; $("micStat").textContent="Listening. Play any key: the Level bar should jump past the line. Too low? Raise Sensitivity." }
+      dlog(m,{rd:dkn(md),tg:dkn(Q.tg),dec:md===Q.tg?"right":"wrong key",why:how}); heardNote(md); answerHeard(md) }
     const learn=rs=>{ rs=rs.slice().sort((a,b)=>a-b); const med=rs[Math.floor(rs.length/2)]||0; tuneOff=Math.max(-0.6,Math.min(0.6,tuneOff+0.5*med)); store.set("tuneOff",tuneOff) };
     // a struck string only fades after its peak; a voice swells and dips. Beating strings may lift the level a little between looks
     // (up to ~35%, seen on real upper-treble recordings, where the old 12% limit threw away good F5s) but never back above the peak.
     // A clipped (very loud) strike sits flat at full scale for a while, so it is exempt: the sharp attack already proved it was struck.
     const struck=()=>m.sharp&&m.sharpLv>=SHL*Math.max(...m.envS.slice(m.sharpI,m.sharpI+4)), decays=ev=>{ const pk=Math.max(...ev), pi=ev.indexOf(pk); return m.clip||ev.slice(pi).every((v,i,a)=>i===0||v<=a[i-1]*1.35)&&ev[ev.length-1]<=pk*0.97 };
-    // FAST LOOK: the app knows which key it asked, so it listens closely around it (an octave and a step below to an octave and a fifth above)
-    // on just the newest few periods. Three agreeing looks 20 ms apart on the asked key = an answer about 70 ms after the strike. Any other
-    // key (or talking near it) goes to the stricter full-range look below, so a wrong key is still heard and marked wrong.
+    // the key this attack may answer: the question open now, if the attack began no more than 150 ms before it appeared
+    const QA=m.armed?askAt(m,now):null, tg=m.armed&&mine(m,QA)?QA.tg:null;
+    // ASKED-KEY PATH. The app knows which key it asked, so a look that reads THAT key is a vote for it, whatever the stricter gates below
+    // think of the attack (they exist to name a WRONG key safely, and each of them has, at some time, thrown away a right one).
+    // A vote needs the look to read the asked key (or, below C3, its octave with the asked key's own period as clean: weak bass through a
+    // small speaker). When the asked key is the one still ringing, the vote also needs new sound at that key's own odd partials, which a
+    // re-strike gives and an octave-higher wrong key (all even partials) does not.
+    const vote=(x,f)=>{ if(tg==null) return; let md=Math.round(x); if(Math.abs(x-md)>0.45) return; md=bassOct(md,tg,f,sr); if(md===tg){ if(m.tail&&m.old===tg){ const o=ownNew(tg,b,m.pre,sr); m.own=Math.max(m.own,o); if(o<TOWN) return } m.tv.push(x-Math.round(x)) } else if(tg-md>=12&&[12,19,24,28,31].includes(tg-md)&&md!==m.old) m.sub++ };
+    // FAST LOOK: listen closely around the asked key (an octave and a step below to an octave and a fifth above) on just the newest few periods.
     // Keys below C3 wait 80 ms first: right after the hammer, a low string's 2nd partial can outshine its 1st and read an octave high.
-    const tg=m.armed?micTarget():null;
     if(m.armed&&tg!=null&&now-m.armedAt>=(tg<FAST_LOW?FAST_MS_LOW:FAST_MS)){ const fT=440*Math.pow(2,(tg+tuneOff-69)/12), fLo=Math.max(MINHZ,fT*Math.pow(2,-14/12)), fHi=Math.min(4400,fT*Math.pow(2,20/12)),
         ml=Math.ceil(sr/fLo)+2, n=Math.min(L,ml+Math.max(1024,2*ml)); m.ut=false; let f=m.tail?pitchT(b,sr,gate,fLo,fHi,m):pitch(b.subarray(L-n),sr,gate,fLo,fHi);
-      if(f>0&&lastAp<AP){ const x=69+12*Math.log2(f/440)-tuneOff; let md=Math.round(x); if(Math.abs(x-md)<=0.45){ md=bassOct(md,tg,f,sr); if(m.tail) md=tailFix(md,b,m.pre,sr,m.lastMd); if(take(md)){ m.fc.push(md); m.fr.push(x-Math.round(x)) } } }
-      const nc=m.fc.length, best=nc?m.fc[nc-1]:null; let k=0; while(k<nc&&m.fc[nc-1-k]===best) k++;
-      const fx=m.fr.slice(nc-Math.min(k,FASTN)), es=m.envS, pk=Math.max(...es);
-      if(best===tg&&k>=FASTN&&Math.max(...fx)-Math.min(...fx)<=(tg<FAST_LOW?0.15:0.08)&&struck()&&(m.clip||es.indexOf(pk)<=3&&es[es.length-1]-m.preS<=(pk-m.preS)*0.97)){ learn(fx); return fin(best) } }
-    // FULL LOOK (every other tick, the whole keyboard): the original steady-4-looks rule, the fallback for anything the fast look can't settle
+      if(f>0&&lastAp<AP){ const x=69+12*Math.log2(f/440)-tuneOff; vote(x,f); let md=Math.round(x); if(Math.abs(x-md)<=0.45){ md=bassOct(md,tg,f,sr); if(m.tail) md=tailFix(md,b,m.pre,sr,m.lastMd); if(take(md)){ m.fc.push(md); m.fr.push(x-Math.round(x)) } } } }
+    // FULL LOOK (every other look, the whole keyboard): names any key, right or wrong
     if(m.armed&&now-m.armedAt>=70&&(m.slow++)%2===0){ m.ut=false; const f=pitchT(b,sr,gate,0,0,m);
       // tuneOff = how sharp/flat this piano sits (semitones), learned from every confirmed note, so a home piano that's a bit off still reads exactly
-      if(f>MINHZ*0.9&&f<4400&&lastAp<AP){ const x=69+12*Math.log2(f/440)-tuneOff; let md=Math.round(x); m.raw.push(x-md); m.rawX.push(x); if(Math.abs(x-md)<=0.45){ md=bassOct(md,tg,f,sr); if(m.tail) md=tailFix(md,b,m.pre,sr,m.lastMd); if(take(md)){ m.cand.push(md); m.res.push(x-Math.round(x)) } } }
+      if(f>MINHZ*0.9&&f<4400&&lastAp<AP){ const x=69+12*Math.log2(f/440)-tuneOff; let md=Math.round(x); m.raw.push(x-md); m.rawX.push(x); vote(x,f); if(m.tv.length) m.tvF++; if(Math.abs(x-md)<=0.45){ md=bassOct(md,tg,f,sr); if(m.tail) md=tailFix(md,b,m.pre,sr,m.lastMd); if(take(md)){ m.cand.push(md); m.res.push(x-Math.round(x)) } } } }
+    if(m.armed&&tg!=null){ const v=m.tv, nv=v.length;
+      // the asked key, read the same way 3 times (within 0.2 semitone), from an attack that was struck (a hammer leap, or a re-strike's top-end
+      // leap over the ringing key), and no lower key under it (a wrong key an octave, a 12th or two octaves down reads its own pitch on the full look)
+      if(nv>=TPN&&Math.max(...v.slice(-TPN))-Math.min(...v.slice(-TPN))<=(tg<FAST_LOW?0.25:0.2)&&m.sub<2&&(struck()||m.by==="re-strike"||m.tail)){ learn(v.slice(-TPN)); return fin(tg,"asked-key path: "+nv+" matching looks"+(m.old===tg&&m.tail?", own partials "+Math.round(100*m.own)+"% new":"")) }
+      const nc=m.fc.length, best=nc?m.fc[nc-1]:null; let k=0; while(k<nc&&m.fc[nc-1-k]===best) k++;
+      const fx=m.fr.slice(nc-Math.min(k,FASTN)), es=m.envS, pk=Math.max(...es);
+      if(best===tg&&k>=FASTN&&Math.max(...fx)-Math.min(...fx)<=(tg<FAST_LOW?0.15:0.08)&&struck()&&(m.clip||es.indexOf(pk)<=3&&es[es.length-1]-m.preS<=(pk-m.preS)*0.97)){ learn(fx); return fin(best,"fast look") } }
+    if(m.armed&&m.slow&&(m.slow-1)%2===0&&now-m.armedAt>=70){
       const cnt={}; let best=null, bc=0; for(const v of m.cand){cnt[v]=(cnt[v]||0)+1; if(cnt[v]>bc){bc=cnt[v];best=v}}
       const bx=bc?m.res.filter((_,i)=>m.cand[i]===best):[], stdy=a=>a.length>=4&&Math.max(...a)-Math.min(...a)<=0.22&&Math.abs(a[a.length-1]-a[0])<=0.15, steady=stdy(bx)||bx.length>=5&&stdy(bx.slice(1));   // (the attack look itself may sit a little off)
-      if(bc>=4&&bc>=0.8*m.cand.length&&steady&&decays(m.env)&&struck()){ learn(bx); return fin(best) }
-      else if(now-m.armedAt>900){ m.armed=false;
-        // a steady pitch that sits between two keys = the piano itself is off: re-centre on it and ask for the note again
-        const rr=[...m.raw].sort((a,b)=>a-b), md=rr[rr.length>>1], rx=[...m.rawX].sort((a,b)=>a-b), mx=rx[rx.length>>1];
-        if(rx.length>=6&&rx.filter(v=>Math.abs(v-mx)<0.1).length>=0.8*rx.length&&Math.abs(md)>0.3){ tuneOff=Math.max(-0.6,Math.min(0.6,tuneOff+md)); store.set("tuneOff",tuneOff); heardMsg("Tuning to your piano. Play that key again.") }
-        else if(rx.length>=4&&rx.filter(v=>Math.abs(v-mx)<0.15).length>=0.7*rx.length) heardMsg("Didn't catch that one. Play the key again, a little firmer.") } }
+      // a WRONG key is only named this strictly: 4 steady looks, 80% of all looks, a struck and decaying sound. (The asked key never waits for this.)
+      if(bc>=4&&bc>=0.8*m.cand.length&&steady&&decays(m.env)&&struck()){ learn(bx); return fin(best,"full look") }
+      else if(now-m.armedAt>900) endAttack(now,null,{bc,n:m.cand.length,best,steady,dec:decays(m.env),st:struck()}) }
+    // NOTHING HEARD AT ALL: the asked key sounding for 300 ms+ with no attack ever seen (logged, never answered: it may be the last key ringing)
+    if(!m.armed&&tgNow!=null&&!A.heard&&!A.said&&now-A.st>300&&r>thr&&m.tickN%5===0){ const fT=440*Math.pow(2,(tgNow+tuneOff-69)/12), f=pitch(b,sr,gate,Math.max(MINHZ,fT*0.8),Math.min(4400,fT*1.25)); if(f>0&&lastAp<AP&&Math.round(69+12*Math.log2(f/440)-tuneOff)===tgNow){ A.nh=(A.nh||0)+1; if(A.nh>=3){ A.said=true; dlog(m,{t:now,lv:r,rd:dkn(tgNow),tg:dkn(tgNow),dec:"no attack seen",why:m.lastMd===tgNow?"asked key heard steadily, but it is the last key still ringing: waiting for a new strike":"asked key heard steadily, but no attack was ever detected"}) } } else A.nh=0 }
+    // give up on an attack: if the asked key was what it read, that is never a silent miss
+    function endAttack(t,why,gt){ if(!m.armed) return; m.armed=false; const Q=askAt(m,t), tq=mine(m,Q)?Q.tg:null;
+      const rx=[...m.rawX].sort((a,b)=>a-b), mx=rx[rx.length>>1], cons=rx.length>=4&&rx.filter(v=>Math.abs(v-mx)<0.15).length>=0.7*rx.length;
+      const own=!(m.tail&&m.old===tq)||m.own>=TOWN;
+      if(tq!=null&&(m.tv.length>=2||cons&&Math.round(mx)===tq)&&own&&Q.id===micAskId()){ m.armed=true; return fin(tq,"rescue: the asked key was heard ("+m.tv.length+" votes"+(cons?", steady":"")+") but no gate decided") }
+      const wsum=gt?`looks ${gt.n}, best ${gt.best!=null?dkn(gt.best):"-"} x${gt.bc}, steady ${gt.steady?"y":"n"}, decays ${gt.dec?"y":"n"}, struck ${gt.st?"y":"n"}, asked-key votes ${m.tv.length}${m.sub?", lower key "+m.sub:""}`:why;
+      dlog(m,{rd:rx.length?dkn(Math.round(mx))+(cons?" (steady)":""):"no pitch",tg:tq!=null?dkn(tq):"-",dec:"no answer",why:wsum});
+      if(why) return;
+      // a steady pitch that sits between two keys = the piano itself is off: re-centre on it and ask for the note again
+      const rr=[...m.raw].sort((a,b)=>a-b), md=rr[rr.length>>1];
+      if(rx.length>=6&&rx.filter(v=>Math.abs(v-mx)<0.1).length>=0.8*rx.length&&Math.abs(md)>0.3){ tuneOff=Math.max(-0.6,Math.min(0.6,tuneOff+md)); store.set("tuneOff",tuneOff); heardMsg("Tuning to your piano. Play that key again.") }
+      else if(cons) heardMsg("Didn't catch that one. Play the key again, a little firmer.") }
     if(!m.last){ m.last=new Float32Array(L); m.last2=new Float32Array(L) } const t2=m.last2; m.last2=m.last; m.lastR2=m.lastR; m.last=t2; m.last.set(b); m.lastR=r }
+  // share of the NEW sound (vs the look before the attack) sitting at key md's own odd partials (1st, 3rd, 5th...)
+  function ownNew(md,buf,pre,sr){ if(spT!==mic.tickN){ mag(buf,SPN,spS); spT=mic.tickN } const bw=sr/SPN, f0=440*Math.pow(2,(md+tuneOff-69)/12); let fn=0, fa=0;
+    for(let h=1;h<=15;h+=2){ const fh=h*f0*Math.sqrt(1+0.0004*h*h), k0=Math.floor(fh*0.985/bw), k1=Math.ceil(fh*1.015/bw); if(k1>=SPN/2) break; let v=0, w=0; for(let k=k0;k<=k1;k++){ v=Math.max(v,spS[k]-pre[k]); w=Math.max(w,spS[k]) } fn+=Math.max(0,v); fa+=w } return fa>0?fn/fa:0 }
+  // diagnostics: ?debug=1, the "Show details" link, or holding the status line for 2 seconds
+  function micDiag(on){ micDiagOn=on; $("micDiag").hidden=!on; $("micDiagLink").hidden=on; if(on) micDiagShow() }
+  $("micDiagLink").addEventListener("click",e=>{ e.preventDefault(); micDiag(true) });
+  $("micDiagClose").addEventListener("click",()=>micDiag(false));
+  $("micDiagCopy").addEventListener("click",async()=>{ const t=micDiagText(), b=$("micDiagCopy"); let ok=false; try{ await navigator.clipboard.writeText(t); ok=true }catch(e){}
+    if(!ok){ try{ const a=document.createElement("textarea"); a.value=t; document.body.appendChild(a); a.select(); ok=document.execCommand("copy"); a.remove() }catch(e){} } b.textContent=ok?"Copied":"Select the text and copy"; setTimeout(()=>b.textContent="Copy log",1600) });
+  { let hold=null; const st=$("micStat"); st.addEventListener("pointerdown",()=>{ hold=setTimeout(()=>micDiag(true),2000) }); ["pointerup","pointerleave","pointercancel"].forEach(t=>st.addEventListener(t,()=>clearTimeout(hold))) }
+  if(QS.get("debug")==="1") micDiag(true);
   function heardNote(md){ const h=$("heard"); h.classList.remove("msg"); h.textContent=mname(md) }
   function heardMsg(t){ const h=$("heard"); h.classList.add("msg"); h.textContent=t }
   // the key the app is waiting for right now (top note first on the grand staff), or null
