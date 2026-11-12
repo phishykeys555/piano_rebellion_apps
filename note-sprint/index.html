@@ -6,6 +6,7 @@
 <title>Note Sprint</title><meta name="description" content="Note-reading challenge rounds: a 30-second warm-up sets your targets, then beat each round's target to unlock the next, all the way to a bonus round. Tap the answer or play your real piano and the app listens."><meta property="og:type" content="website"><meta property="og:site_name" content="Clarendon Hills Music Academy"><meta property="og:title" content="Note Sprint · Clarendon Hills Music Academy"><meta property="og:description" content="Note-reading challenge rounds: a 30-second warm-up sets your targets, then beat each round's target to unlock the next, all the way to a bonus round. Tap the answer or play your real piano and the app listens."><meta property="og:url" content="https://phishykeys555.github.io/piano_rebellion_apps/note-sprint/"><meta property="og:image" content="https://phishykeys555.github.io/piano_rebellion_apps/share/note-sprint.png"><meta property="og:image:width" content="1200"><meta property="og:image:height" content="630"><meta property="og:image:alt" content="Note Sprint · Clarendon Hills Music Academy"><meta name="twitter:card" content="summary_large_image"><meta name="twitter:title" content="Note Sprint · Clarendon Hills Music Academy"><meta name="twitter:description" content="Note-reading challenge rounds: a 30-second warm-up sets your targets, then beat each round's target to unlock the next, all the way to a bonus round. Tap the answer or play your real piano and the app listens."><meta name="twitter:image" content="https://phishykeys555.github.io/piano_rebellion_apps/share/note-sprint.png">
 <link rel="stylesheet" href="../shared/chma.css">
 <script src="../shared/brand.js"></script>
+<script src="../shared/hype.js"></script>
 
 </head>
 <body>
@@ -309,7 +310,7 @@ input[type=range],input[type=checkbox],input[type=radio]{accent-color:var(--c-ac
       <button class="primary" id="chalBtn" title="Challenge mode: one try per note, no second chances">Start Challenge</button>
     </div>
     <p class="tip" id="kbTip">Keyboard: A–G to answer. In a key with sharps or flats, tap ♯ or ♭ first (or press = / −). Piano keys must be the exact key, right octave.</p>
-    <p class="tip" id="appVer"><span class="appver">Note Sprint · Version 2026-11-11.10</span></p>
+    <p class="tip" id="appVer"><span class="appver">Note Sprint · Version 2026-11-11.13</span></p>
 
     <div class="arcsplash" id="arcSplash" hidden><div class="boom"></div><div id="arcPcs"></div><div class="pre" id="arcSplashP"></div><b id="arcSplashT">ROUND 2</b><span id="arcSplashS"></span></div><div class="hitstamp" id="hitStamp">TARGET HIT!</div>
     <div class="results" id="results" hidden>
@@ -363,8 +364,9 @@ input[type=range],input[type=checkbox],input[type=radio]{accent-color:var(--c-ac
       <fieldset><legend>Notes</legend>
         <label><input type="checkbox" id="accOn"> Add sharps and flats</label>
         <label><input type="checkbox" id="soundOn" checked> Play the note after I answer</label>
+        <label><input type="checkbox" id="hypeOn" checked> Music on round screens</label>
         <label><input type="checkbox" id="ivOn"> Intervals (two notes at once)</label>
-        <label><input type="checkbox" id="retryOn" checked> Second try on a miss (½ point)</label>
+        <label><input type="checkbox" id="retryOn"> Second try on a miss (½ point)</label>
       </fieldset>
       <fieldset><legend>Answer with</legend>
         <label><input type="radio" name="mode" id="mLetters" value="letters" checked> Letter buttons</label>
@@ -449,13 +451,13 @@ input[type=range],input[type=checkbox],input[type=radio]{accent-color:var(--c-ac
     const near=LM.filter(l=>lmOn.includes(l.id)&&LMCLEF[n.clef].includes(l.id)).map(l=>({l,o:d-l.dia})).filter(x=>Math.abs(x.o)<=2).sort((a,b)=>Math.abs(a.o)-Math.abs(b.o))[0];
     if(!near) return ""; return ` ${Math.abs(near.o)===1?"One step":"A skip"} ${near.o>0?"above":"below"} ${near.l.name}.` }
   const custom=store.get("custom",null);
-  $("soundOn").checked=store.get("sound",true); $("retryOn").checked=store.get("retry",true); { const MODES=["letters","piano","mic"], qm=QS.get("mode"), m=MODES.includes(qm)?qm:store.get("mode","letters"); setRadio("mode",MODES.includes(m)?m:"letters"); if(MODES.includes(qm)) store.set("mode",qm) }
+  $("soundOn").checked=store.get("sound",true); $("hypeOn").checked=store.get("hype",true); $("retryOn").checked=store.get("retry2",false); { const MODES=["letters","piano","mic"], qm=QS.get("mode"), m=MODES.includes(qm)?qm:store.get("mode","letters"); setRadio("mode",MODES.includes(m)?m:"letters"); if(MODES.includes(qm)) store.set("mode",qm) }
   function saveCustom(){ const s=readSettings(); store.set("custom",{staffMode:s.staffMode,acc:s.acc,iv:s.iv,b:s.b,lm:s.lm,ls:s.ls}); selectLevel("C",true) }
   ["tLo","tHi","bLo","bHi","lmSel","lsSel"].forEach(id=>$(id).addEventListener("change",()=>{ lmUi(); saveCustom(); layout(); newQuestion(true) }));
   document.querySelectorAll(".rngq button").forEach(b=>b.addEventListener("click",()=>{ const r=+b.dataset.r; setBounds({treble:rb(r),bass:rb(r)}); saveCustom(); layout(); newQuestion(true) }));
   document.querySelectorAll('.settings input').forEach(el=>el.addEventListener("change",()=>{
     const s=readSettings(); store.set("sound",s.sound); store.set("mode",s.mode);
-    if(el.id==="retryOn"){store.set("retry",el.checked); return}
+    if(el.id==="retryOn"){store.set("retry2",el.checked); return} if(el.id==="hypeOn"){store.set("hype",el.checked); if(!el.checked) hypeStop(120); return}
     if(el.name!=="mode"&&el.id!=="soundOn") saveCustom()
     layout(); newQuestion(true)}));
 
@@ -717,15 +719,18 @@ input[type=range],input[type=checkbox],input[type=radio]{accent-color:var(--c-ac
   // Far fewer octave slips than plain autocorrelation on piano, whose 2nd harmonic is often louder than the fundamental.
   // The difference function comes from one FFT cross-correlation (d(t) = energy + shifted energy - 2 x correlation), not a lag-by-lag loop:
   // about 6x less work, so the whole piano down to A0 stays light on an old phone.
-  let fN=0, fRe, fIm, fCs, fSn, fRv;
-  function fftInit(N){ fN=N; fRe=new Float64Array(N); fIm=new Float64Array(N); fCs=new Float64Array(N>>1); fSn=new Float64Array(N>>1); fRv=new Uint32Array(N);
-    for(let i=0;i<N>>1;i++){ fCs[i]=Math.cos(2*Math.PI*i/N); fSn[i]=Math.sin(2*Math.PI*i/N) } const B=Math.round(Math.log2(N)); for(let i=0;i<N;i++){ let r=0; for(let k=0;k<B;k++) r|=((i>>k)&1)<<(B-1-k); fRv[i]=r } }
+  let fN=0, fRe, fIm, fCs, fSn, fRv; const FT={};
+  function fftInit(N){ fN=N; const t=FT[N]||(FT[N]=(()=>{ const t={re:new Float64Array(N),im:new Float64Array(N),cs:new Float64Array(N>>1),sn:new Float64Array(N>>1),rv:new Uint32Array(N)};
+      for(let i=0;i<N>>1;i++){ t.cs[i]=Math.cos(2*Math.PI*i/N); t.sn[i]=Math.sin(2*Math.PI*i/N) } const B=Math.round(Math.log2(N)); for(let i=0;i<N;i++){ let r=0; for(let k=0;k<B;k++) r|=((i>>k)&1)<<(B-1-k); t.rv[i]=r } return t })());
+    fRe=t.re; fIm=t.im; fCs=t.cs; fSn=t.sn; fRv=t.rv }
   function fft(re,im,inv){ const N=fN, sg=inv?1:-1; for(let i=0;i<N;i++){ const j=fRv[i]; if(j>i){ let t=re[i]; re[i]=re[j]; re[j]=t; t=im[i]; im[i]=im[j]; im[j]=t } }
     for(let s=2;s<=N;s<<=1){ const h=s>>1, st=N/s; for(let i=0;i<N;i+=s) for(let k=0;k<h;k++){ const c=fCs[k*st], sn=sg*fSn[k*st], a=i+k, b=a+h, xr=re[b]*c-im[b]*sn, xi=re[b]*sn+im[b]*c; re[b]=re[a]-xr; im[b]=im[a]-xi; re[a]+=xr; im[a]+=xi } } }
+  // magnitude spectrum (Hann window) of the newest n samples, into out[0..n/2]
+  function mag(buf,n,out){ fftInit(n); const o=buf.length-n; for(let i=0;i<n;i++){ fRe[i]=buf[o+i]*(0.5-0.5*Math.cos(2*Math.PI*i/n)); fIm[i]=0 } fft(fRe,fIm,false); for(let k=0;k<=n>>1;k++) out[k]=Math.hypot(fRe[k],fIm[k]); return out }
   // fLo..fHi = the pitch range this pass may answer with (lags outside it are never picked)
   function acf(buf,sr,gate,fLo,fHi){ const n=buf.length; let rms=0; for(let i=0;i<n;i++) rms+=buf[i]*buf[i]; rms=Math.sqrt(rms/n); if(rms<(gate||0.008)) return -1;
     const maxLag=Math.min(Math.floor(sr/(fLo||MINHZ)),Math.floor(n/2)), minLag=Math.max(2,Math.floor(sr/(fHi||4400))), W=n-maxLag-1;
-    let N=1; while(N<2*n) N<<=1; if(fN!==N) fftInit(N);
+    let N=1; while(N<2*n) N<<=1; fftInit(N);
     for(let i=0;i<N;i++){ fRe[i]=i<n?buf[i]:0; fIm[i]=i<W?buf[i]:0 }   // two real signals in one complex FFT: the frame, and its first W samples
     fft(fRe,fIm,false);
     for(let k=0;k<=N>>1;k++){ const j=(N-k)&(N-1), zr=fRe[k], zi=fIm[k], wr=fRe[j], wi=fIm[j], xr=(zr+wr)/2, xi=(zi-wi)/2, yr=(zi+wi)/2, yi=(wr-zr)/2, pr=yr*xr+yi*xi, pi=yr*xi-yi*xr;
@@ -739,19 +744,47 @@ input[type=range],input[type=checkbox],input[type=radio]{accent-color:var(--c-ac
     if(T<0){ let mv=1,mp=-1; for(let t=minLag;t<=maxLag;t++) if(c[t]<mv){mv=c[t];mp=t} if(mp<0||mv>0.3) return -1; T=mp }
     // octave guard: a piano's 2nd harmonic can beat its fundamental (low notes); if the double period is clearly cleaner, it's the real note
     if(2*T<=maxLag&&T>=sr/OCTG&&c[2*T]<c[T]*0.5){ let t2=2*T; while(t2+1<=maxLag&&c[t2+1]<c[t2]) t2++; T=t2 }
-    lastAp=c[T];
+    lastAp=c[T]; lastC=c;
     const x1=c[T-1],x2=c[T],x3=c[T+1],a=(x1+x3-2*x2)/2,b=(x3-x1)/2, Tf=a>0?T-b/(2*a):T; return sr/Tf }
   // Real pianos defeat one plain pass at both ends. Bass strings are stiff, so their upper partials run sharp and blur the period: a low-passed copy
   // keeps only the clean low partials. The top octaves are tiny periods under a big low "thunk" from the hammer and case: a sharpened copy
   // (second difference, +12 dB per octave) lifts the note above the thunk. Each extra pass may only answer in its own register.
-  let lpB=null, hpB=null;
-  function pitch(buf,sr,gate){ let f=acf(buf,sr,gate); if(f>0&&lastAp<AP) return f;
-    const n=buf.length; if(!lpB||lpB.length!==n){ lpB=new Float32Array(n); hpB=new Float32Array(n) }
-    const k=1-Math.exp(-2*Math.PI*LPHZ/sr); let y1=0,y2=0,y3=0; for(let i=0;i<n;i++){ y1+=k*(buf[i]-y1); y2+=k*(y1-y2); y3+=k*(y2-y3); lpB[i]=y3 }
-    let best=-1, ap=1; const fl=acf(lpB,sr,gate*0.3,MINHZ,LPHZ*0.75); if(fl>0&&lastAp<AP){ best=fl; ap=lastAp }
-    hpB[0]=hpB[1]=0; for(let i=2;i<n;i++) hpB[i]=buf[i]-2*buf[i-1]+buf[i-2];
-    const fh=acf(hpB,sr,gate*0.05,HPHZ,4400); if(fh>0&&lastAp<Math.min(ap,AP)){ best=fh; ap=lastAp }
+  const LB={};
+  let lastC=null, pC=null;   // the difference curve behind the last answer (pC)
+  function pitch(buf,sr,gate,fLo,fHi){ fLo=fLo||MINHZ; fHi=fHi||4400; let f=acf(buf,sr,gate,fLo,fHi); if(f>0&&lastAp<AP){ pC=lastC; return f }
+    const n=buf.length, B=LB[n]||(LB[n]={lp:new Float32Array(n),hp:new Float32Array(n)}), lpB=B.lp, hpB=B.hp; let best=-1, ap=1;
+    if(fLo<LPHZ*0.75){ const k=1-Math.exp(-2*Math.PI*LPHZ/sr); let y1=0,y2=0,y3=0; for(let i=0;i<n;i++){ y1+=k*(buf[i]-y1); y2+=k*(y1-y2); y3+=k*(y2-y3); lpB[i]=y3 }
+      const fl=acf(lpB,sr,gate*0.3,fLo,Math.min(fHi,LPHZ*0.75)); if(fl>0&&lastAp<AP){ best=fl; ap=lastAp; pC=lastC } }
+    if(fHi>HPHZ){ hpB[0]=hpB[1]=0; for(let i=2;i<n;i++) hpB[i]=buf[i]-2*buf[i-1]+buf[i-2];
+      const fh=acf(hpB,sr,gate*0.05,Math.max(fLo,HPHZ),fHi); if(fh>0&&lastAp<Math.min(ap,AP)){ best=fh; ap=lastAp; pC=lastC } }
     lastAp=ap; return best }
+  // A key played while the last one still rings: the two together repeat at a shared lower period (D3 ringing + D4 = D3; A5 + F5 = F3), so
+  // the plain pitch can name a key nobody just played. Take away what was already sounding before the attack (spectrum of the look just
+  // before it) and ask which of the octave-related keys accounts for the NEW sound.
+  const SPN=4096, spS=new Float32Array(SPN/2+1);
+  // Below C3 a string's 2nd partial can outshine its 1st for the whole note, so the plain pitch reads an octave high. When that is exactly the
+  // asked key's octave and the asked key's own period is about as clean (within BASSG), it was the asked key. (Real low notes measured: the
+  // octave-high reading is never more than ~1.9x cleaner; a true higher key's double period is at least 0.9x as clean in 95% of looks.)
+  function bassOct(md,tg,f,sr){ if(tg==null||tg>=FAST_LOW||md!==tg+12||!pC) return md; const T=sr/f, mn=(a,b)=>{ let v=1; for(let t=Math.floor(a);t<=Math.ceil(b)&&t<pC.length;t++) v=Math.min(v,pC[t]); return v };
+    if(2*T*1.03>=pC.length) return md; return mn(2*T*0.97,2*T*1.03)<=BASSG*mn(T*0.97,T*1.03)?tg:md }
+  // It also catches a look that only hears the OLD key (a finger or key-release thump arms the ear while the last key rings): when almost none
+  // of the key's sound is new since before the attack, the look is dropped (-1) instead of answering with the old key.
+  function tailFix(md,buf,pre,sr,last){ mag(buf,SPN,spS); const bw=sr/SPN, base=md, f0=440*Math.pow(2,(base+tuneOff-69)/12), N=[], A=[];
+    // new energy (and all energy) at each partial of the plain pitch: every candidate's partials are a subset of these
+    for(let h=1;h<=16;h++){ const fh=h*f0*Math.sqrt(1+0.0004*h*h), k0=Math.floor(fh*0.985/bw), k1=Math.ceil(fh*1.015/bw); if(k1>=SPN/2) break; let v=0, w=0; for(let k=k0;k<=k1;k++){ v=Math.max(v,spS[k]-pre[k]); w=Math.max(w,spS[k]) } N.push(Math.max(0,v)); A.push(w) }
+    const sum=(arr,r)=>arr.reduce((t,v,i)=>(i+1)%r?t:t+v,0), tot=sum(N,1); if(!(tot>0)) return -1;
+    // the answer = the HIGHEST of these keys whose own partials hold at least TAILX of all the new energy (octave 2x, octave+fifth 3x, two octaves 4x)
+    const sub=last!=null&&[0,12,19,24,28,31,34,36].includes(last-md); let r=md;
+    if(sub) for(const [c,k] of [[md+24,4],[md+19,3],[md+12,2],[md,1]]){ if(c>108||c===last&&c!==md) continue; if(sum(N,k)>=TAILX*tot){ r=c; break } }
+    const kk={0:1,12:2,19:3,24:4}[r-md]; return sum(N,kk)<STALE*sum(A,kk)?-1:r }
+  // Two keys sounding at once with no shared period (A1 still ringing, A2 struck) read as no pitch at all. Take the old key's spectrum out
+  // (keeping the new sound's phase), back to a waveform, undo the window over its middle 2/3, and read the pitch of what is left.
+  const utB=new Float32Array(SPN), HW=new Float32Array(SPN).map((_,i)=>0.5-0.5*Math.cos(2*Math.PI*i/SPN));
+  function untail(buf,pre){ fftInit(SPN); const o=buf.length-SPN; for(let i=0;i<SPN;i++){ fRe[i]=buf[o+i]*HW[i]; fIm[i]=0 } fft(fRe,fIm,false);
+    for(let k=0;k<SPN;k++){ const kk=k<=SPN/2?k:SPN-k, a=Math.hypot(fRe[k],fIm[k]), g=a>0?Math.max(0,a-pre[kk])/a:0; fRe[k]*=g; fIm[k]*=g } fft(fRe,fIm,true);
+    const a=Math.ceil(SPN/6), z=Math.floor(SPN*5/6); for(let i=a;i<z;i++) utB[i-a]=fRe[i]/SPN/HW[i]; return utB.subarray(0,z-a) }
+  function pitchT(b,sr,gate,fLo,fHi,m){ let f=pitch(m?b:b,sr,gate,fLo,fHi); if(m&&m.tail&&!(f>0&&lastAp<AP)){ const u=untail(b,m.pre), fl=Math.max(fLo||MINHZ,3*sr/u.length);
+      if((fHi||4400)>fl){ f=pitch(u,sr,gate*0.5,fl,fHi||4400); m.ut=true } } return f }
   // Routed source -> gain (sensitivity) -> analyser -> muted output: Safari/iOS only process nodes that reach the destination.
   // Talking never counts: a note must be clearly pitched (low aperiodicity, lastAp) and hold one steady pitch for 5+ frames
   // (~200 ms) without sliding. Speech glides between pitches and is breathier; clatter has no pitch at all.
@@ -759,7 +792,7 @@ input[type=range],input[type=checkbox],input[type=radio]{accent-color:var(--c-ac
   // older versions could learn a bad tuning from talking: start every device fresh once
   if(store.get("tuneV",0)!==2){ tuneOff=0; store.set("tuneOff",0); store.set("tuneV",2) }
   const micG=x=>0.25*Math.pow(48,(+x)/100);
-  const THR=0.015, AP=0.12, HOLDK=0.9, HOLDR=1.2, SHK=2.5, OCTG=1e9, LPHZ=700, HPHZ=900; let thr=THR, lastAp=1;
+  const THR=0.015, AP=0.12, TICK=20, HOLDK=0.95, HOLDR=1.2, SHK=2.5, OCTG=1e9, LPHZ=700, HPHZ=900, FAST_MS=15, FAST_LOW=48, FAST_MS_LOW=80, FASTN=3, BASSG=0.9, TAILX=0.8, STALE=0.2; let thr=THR, lastAp=1;
   function setThr(v){ thr=v; $("thr").style.left=Math.min(100,thr*600)+"%" }
   // Embedded pages (Notion and most sites) usually do not pass the microphone through to the app. Spot it before the tap where the browser can tell,
   // and always offer a one-tap way out: the same app in its own tab, opened in mic mode with this level and key.
@@ -790,7 +823,7 @@ input[type=range],input[type=checkbox],input[type=radio]{accent-color:var(--c-ac
     g.gain.value=micG($("micGain").value); an.fftSize=4096; mute.gain.value=0; src.connect(g); g.connect(an); an.connect(mute); mute.connect(audio.destination);
     mic={stream,g,an,src,mute,buf:new Float32Array(an.fftSize),hist:[],armed:false,armedAt:0,cand:[],cool:0};
     stream.getAudioTracks().forEach(t=>t.addEventListener("ended",micLost));
-    mic.timer=setInterval(micTick,40); micBusy=false; $("micBtn").textContent="Microphone on"; $("micBtn").disabled=true; $("micBtn").hidden=false; $("micOpen").hidden=true; $("micCtl").hidden=false;
+    mic.timer=setInterval(micTick,TICK); micBusy=false; $("micBtn").textContent="Microphone on"; $("micBtn").disabled=true; $("micBtn").hidden=false; $("micOpen").hidden=true; $("micCtl").hidden=false;
     setThr(THR);
     $("micStat").textContent="Listening. Play any key: the Level bar should jump past the line. Too low? Raise Sensitivity.";
     try{ const devs=(await navigator.mediaDevices.enumerateDevices()).filter(d=>d.kind==="audioinput"), cur=stream.getAudioTracks()[0].getSettings().deviceId;
@@ -812,40 +845,73 @@ input[type=range],input[type=checkbox],input[type=radio]{accent-color:var(--c-ac
   $("micSel").addEventListener("change",e=>micStart(e.target.value));
   $("micGain").addEventListener("input",e=>{ if(mic) mic.g.gain.value=micG(e.target.value); store.set("gain2",e.target.value) });
   { const old=store.get("gain",null); $("micGain").value=store.get("gain2",old!=null?String(Math.round(100*Math.log(Math.max(0.25,+old)/0.25)/Math.log(48))):"64") }
-  function micTick(){ const m=mic; m.an.getFloatTimeDomainData(m.buf); let r=0; for(let i=0;i<m.buf.length;i++) r+=m.buf[i]*m.buf[i]; r=Math.sqrt(r/m.buf.length);
+  // round-screen music (shared/hype.js): the mic ignores it while it plays and for 250 ms after, so it never counts as a note
+  function hypePlay(ms){ try{ if(window.chmaHype&&$("hypeOn").checked){ const a=AC(); chmaHype.play(ms,{ctx:a,round:arc?arc.round:1,bonus:!!(arc&&arc.bonus),enabled:true,micSafe:readSettings().mode==="mic"}) } }catch(e){} }
+  function hypeStop(f){ try{ window.chmaHype&&chmaHype.stop(f) }catch(e){} }
+  const hypeQuiet=()=>{ try{ return !!(window.chmaHype&&(chmaHype.isPlaying()||performance.now()<chmaHype.endsAt+250)) }catch(e){ return false } };
+  function micTick(){ const m=mic, b=m.buf; m.an.getFloatTimeDomainData(b); const L=b.length, sr=audio.sampleRate, g=m.g.gain.value||1;
+    let r=0, pkA=0; for(let i=0;i<L;i++){ const v=b[i]; r+=v*v; if(v>pkA) pkA=v; else if(-v>pkA) pkA=-v } r=Math.sqrt(r/L);
     // attack detector on the newest ~20 ms only, so a new key is caught even while the last one still rings
-    let rs=0; const L=m.buf.length, S=1024; for(let i=L-S;i<L;i++) rs+=m.buf[i]*m.buf[i]; rs=Math.sqrt(rs/S); const p1=m.ps||0, p2=m.ps2||0; m.ps2=p1; m.ps=rs;
-    $("meterFill").style.width=Math.min(100,r*600)+"%"; const now=performance.now();
+    let rs=0; const S=1024; for(let i=L-S;i<L;i++) rs+=b[i]*b[i]; rs=Math.sqrt(rs/S); let p1=m.ps||0, p2=m.ps2||0; m.ps2=p1; m.ps=rs;
+    // clipping: the microphone's converter hit full scale (at any Sensitivity), or this page's own gain pushed the level past full scale
+    const clipped=pkA/g>=0.985||pkA>=0.999;
+    $("meterFill").style.width=Math.min(100,r*600)+"%";
+    if(hypeQuiet()){ m.quiet=true; m.armed=false; m.hist=[]; return }
+    // the music window just closed: start the ear fresh, levels taken from now, nothing ringing on record, so no music frame counts as a note
+    if(m.quiet){ m.quiet=false; m.hist=[]; m.hold=rs; m.ps=m.ps2=rs; m.lastR=m.lastR2=0; m.lastMd=null; p1=p2=rs }
+    const now=performance.now();
     // room noise floor = the quietest look in the last ~2 s. Pitch is read down to 3x that (never above the old fixed 0.008), so a top-of-the-staff note
-    // like F5, which fades in a fraction of a second, still gives the 4 steady looks a decision needs.
-    m.hist.push(r); if(m.hist.length>50) m.hist.shift(); const gate=Math.min(0.008,Math.max(0.002,3*Math.min(...m.hist)));
+    // like F5, which fades in a fraction of a second, still gives enough steady looks for a decision.
+    m.hist.push(r); if(m.hist.length>2000/TICK) m.hist.shift(); const gate=Math.min(0.008,Math.max(0.002,3*Math.min(...m.hist)));
     // a new key = the newest 20 ms jumps well past both of the last two looks AND past the fading peak of what was already ringing. A string that
     // swells back as its 2-3 strings beat (strongest in the upper treble) never climbs over its own earlier peak, so it never re-arms and never
     // answers the next question by itself.
     const hold=m.hold||0; m.hold=Math.max(rs,hold*HOLDK);
-    if(!m.armed&&now>m.cool&&Math.max(r,rs)>thr&&rs>1.8*Math.min(p1,p2)&&rs>HOLDR*hold){m.armed=true;m.sharp=false;m.armedAt=now;m.cand=[];m.res=[];m.raw=[];m.rawX=[];m.env=[]}
-    if(m.armed){ m.env.push(r);
+    if(!m.armed&&now>m.cool&&Math.max(r,rs)>thr&&rs>1.8*Math.min(p1,p2)&&rs>HOLDR*hold){
+      m.armed=true;m.sharp=false;m.clip=false;m.armedAt=now;m.cand=[];m.res=[];m.raw=[];m.rawX=[];m.env=[];m.envS=[];m.fc=[];m.fr=[];m.slow=0;
+      // what was sounding just before this attack, so a still-ringing key can be told apart from the new one
+      // (two looks back, 40 ms: the look just before can already hold the first ms of this attack when the attack straddles two looks)
+      m.tail=m.last2&&m.lastR2>Math.max(0.004,4*Math.min(...m.hist))?mag(m.last2,SPN,m.pre||(m.pre=new Float32Array(SPN/2+1))):null }
+    if(m.armed){ m.env.push(r); m.envS.push(rs); if(clipped) m.clip=true;
       // a hammer hits: inside the frame the level leaps SHK x within ~10 ms. A voice (or a swelling string) ramps up over tens of ms.
-      if(!m.sharp){ const b=m.buf, H=256, nb=Math.floor(b.length/H)-1, a=new Float32Array(nb); let pk=0; for(let i=0;i<nb;i++){ let e=0; for(let j=i*H;j<i*H+2*H;j++) e+=b[j]*b[j]; a[i]=Math.sqrt(e); if(a[i]>pk) pk=a[i] }
-        for(let i=2;i<nb;i++) if(a[i]>=0.4*pk&&a[i]>SHK*a[i-2]){ m.sharp=true; break } } }
-    if(m.armed&&now-m.armedAt>=70){ const f=pitch(m.buf,audio.sampleRate,gate);
+      if(!m.sharp){ const H=256, nb=Math.floor(L/H)-1, a=new Float32Array(nb); let pk=0; for(let i=0;i<nb;i++){ let e=0; for(let j=i*H;j<i*H+2*H;j++) e+=b[j]*b[j]; a[i]=Math.sqrt(e); if(a[i]>pk) pk=a[i] }
+        // over a still-ringing key the leap starts from that key's level, so there a quick 1.5x jump that adds 30% of the peak counts too
+        for(let i=2;i<nb;i++) if(a[i]>=0.4*pk&&(a[i]>SHK*a[i-2]||m.tail&&a[i]>1.5*a[i-2]&&a[i]-a[i-2]>0.3*pk)){ m.sharp=true; break } } }
+    if(clipped&&m.armed&&!m.clipSaid){ m.clipSaid=true; $("micStat").textContent=g>1.05&&pkA>=0.999?"Very loud: lower Sensitivity a little.":"Very loud: move the device a little farther from the piano (or play a bit softer)." }
+    const fin=md=>{ m.armed=false; m.cool=now+250; m.lastMd=md; if(m.clipSaid&&!m.clip){ m.clipSaid=false; $("micStat").textContent="Listening. Play any key: the Level bar should jump past the line. Too low? Raise Sensitivity." } heardNote(md); answerHeard(md) };
+    const learn=rs=>{ rs=rs.slice().sort((a,b)=>a-b); const med=rs[Math.floor(rs.length/2)]||0; tuneOff=Math.max(-0.6,Math.min(0.6,tuneOff+0.5*med)); store.set("tuneOff",tuneOff) };
+    // a struck string only fades after its peak; a voice swells and dips. Beating strings may lift the level a little between looks
+    // (up to ~35%, seen on real upper-treble recordings, where the old 12% limit threw away good F5s) but never back above the peak.
+    // A clipped (very loud) strike sits flat at full scale for a while, so it is exempt: the sharp attack already proved it was struck.
+    const decays=ev=>{ const pk=Math.max(...ev), pi=ev.indexOf(pk); return m.clip||ev.slice(pi).every((v,i,a)=>i===0||v<=a[i-1]*1.35)&&ev[ev.length-1]<=pk*0.97 };
+    // FAST LOOK: the app knows which key it asked, so it listens closely around it (an octave and a step below to an octave and a fifth above)
+    // on just the newest few periods. Three agreeing looks 20 ms apart on the asked key = an answer about 70 ms after the strike. Any other
+    // key (or talking near it) goes to the stricter full-range look below, so a wrong key is still heard and marked wrong.
+    // Keys below C3 wait 80 ms first: right after the hammer, a low string's 2nd partial can outshine its 1st and read an octave high.
+    const tg=m.armed?micTarget():null;
+    if(m.armed&&tg!=null&&now-m.armedAt>=(tg<FAST_LOW?FAST_MS_LOW:FAST_MS)){ const fT=440*Math.pow(2,(tg+tuneOff-69)/12), fLo=Math.max(MINHZ,fT*Math.pow(2,-14/12)), fHi=Math.min(4400,fT*Math.pow(2,20/12)),
+        ml=Math.ceil(sr/fLo)+2, n=Math.min(L,ml+Math.max(1024,2*ml)); m.ut=false; let f=pitch(b.subarray(L-n),sr,gate,fLo,fHi); if(m.tail&&!(f>0&&lastAp<AP)) f=pitchT(b,sr,gate,fLo,fHi,m);
+      if(f>0&&lastAp<AP){ const x=69+12*Math.log2(f/440)-tuneOff; let md=Math.round(x); if(Math.abs(x-md)<=0.45){ md=bassOct(md,tg,f,sr); if(m.tail) md=tailFix(md,b,m.pre,sr,m.lastMd); if(md>0){ m.fc.push(md); m.fr.push(x-Math.round(x)) } } }
+      const nc=m.fc.length, best=nc?m.fc[nc-1]:null; let k=0; while(k<nc&&m.fc[nc-1-k]===best) k++;
+      const fx=m.fr.slice(nc-Math.min(k,FASTN)), es=m.envS, pk=Math.max(...es);
+      if(best===tg&&k>=FASTN&&Math.max(...fx)-Math.min(...fx)<=0.08&&m.sharp&&(m.clip||es.indexOf(pk)<=3&&es[es.length-1]<=pk*0.97)){ learn(fx); return fin(best) } }
+    // FULL LOOK (every other tick, the whole keyboard): the original steady-4-looks rule, the fallback for anything the fast look can't settle
+    if(m.armed&&now-m.armedAt>=70&&(m.slow++)%2===0){ m.ut=false; const f=pitchT(b,sr,gate,0,0,m);
       // tuneOff = how sharp/flat this piano sits (semitones), learned from every confirmed note, so a home piano that's a bit off still reads exactly
-      if(f>MINHZ*0.9&&f<4400&&lastAp<AP){ const x=69+12*Math.log2(f/440)-tuneOff, md=Math.round(x); m.raw.push(x-md); m.rawX=(m.rawX||[]); m.rawX.push(x); if(Math.abs(x-md)<=0.45){ m.cand.push(md); m.res.push(x-md) } }
+      if(f>MINHZ*0.9&&f<4400&&lastAp<AP){ const x=69+12*Math.log2(f/440)-tuneOff; let md=Math.round(x); m.raw.push(x-md); m.rawX.push(x); if(Math.abs(x-md)<=0.45){ md=bassOct(md,tg,f,sr); if(m.tail) md=tailFix(md,b,m.pre,sr,m.lastMd); if(md>0){ m.cand.push(md); m.res.push(x-Math.round(x)) } } }
       const cnt={}; let best=null, bc=0; for(const v of m.cand){cnt[v]=(cnt[v]||0)+1; if(cnt[v]>bc){bc=cnt[v];best=v}}
       const bx=bc?m.res.filter((_,i)=>m.cand[i]===best):[], steady=bx.length>=4&&Math.max(...bx)-Math.min(...bx)<=0.22&&Math.abs(bx[bx.length-1]-bx[0])<=0.15;
-      // a struck string only fades after its peak; a voice swells and dips. Beating strings may lift the level a little between looks
-      // (up to ~35%, seen on real upper-treble recordings, where the old 12% limit threw away good F5s) but never back above the peak.
-      const ev=m.env, pk=Math.max(...ev), pi=ev.indexOf(pk), dec=ev.slice(pi).every((v,i,a)=>i===0||v<=a[i-1]*1.35)&&ev[ev.length-1]<=pk*0.97;
-      if(bc>=4&&bc>=0.8*m.cand.length&&steady&&dec&&m.sharp){ const rs=m.res.filter((_,i)=>m.cand[i]===best).sort((a,b)=>a-b), med=rs[Math.floor(rs.length/2)]||0;
-        tuneOff=Math.max(-0.6,Math.min(0.6,tuneOff+0.5*med)); store.set("tuneOff",tuneOff);
-        m.armed=false; m.cool=now+250; heardNote(best); answerHeard(best) }
+      if(bc>=4&&bc>=0.8*m.cand.length&&steady&&decays(m.env)&&m.sharp){ learn(bx); return fin(best) }
       else if(now-m.armedAt>900){ m.armed=false;
         // a steady pitch that sits between two keys = the piano itself is off: re-centre on it and ask for the note again
-        const rr=[...m.raw].sort((a,b)=>a-b), md=rr[rr.length>>1], rx=[...(m.rawX||[])].sort((a,b)=>a-b), mx=rx[rx.length>>1];
+        const rr=[...m.raw].sort((a,b)=>a-b), md=rr[rr.length>>1], rx=[...m.rawX].sort((a,b)=>a-b), mx=rx[rx.length>>1];
         if(rx.length>=6&&rx.filter(v=>Math.abs(v-mx)<0.1).length>=0.8*rx.length&&Math.abs(md)>0.3){ tuneOff=Math.max(-0.6,Math.min(0.6,tuneOff+md)); store.set("tuneOff",tuneOff); heardMsg("Tuning to your piano. Play that key again.") }
-        else if(rx.length>=4&&rx.filter(v=>Math.abs(v-mx)<0.15).length>=0.7*rx.length) heardMsg("Didn't catch that one. Play the key again, a little firmer.") } } }
+        else if(rx.length>=4&&rx.filter(v=>Math.abs(v-mx)<0.15).length>=0.7*rx.length) heardMsg("Didn't catch that one. Play the key again, a little firmer.") } }
+    if(!m.last){ m.last=new Float32Array(L); m.last2=new Float32Array(L) } const t2=m.last2; m.last2=m.last; m.lastR2=m.lastR; m.last=t2; m.last.set(b); m.lastR=r }
   function heardNote(md){ const h=$("heard"); h.classList.remove("msg"); h.textContent=mname(md) }
   function heardMsg(t){ const h=$("heard"); h.classList.add("msg"); h.textContent=t }
+  // the key the app is waiting for right now (top note first on the grand staff), or null
+  function micTarget(){ const n=q&&!q.iv&&!locked&&!q.wait&&q.notes&&q.notes[idx]; return n?midiOf(n):null }
   function answerHeard(md){ if(!q||locked||q.wait)return; const t=midiOf(q.notes[idx]); grade(md===t,{midi:md,label:mname(md)}) }
   $("micBtn").addEventListener("click",()=>micStart($("micSel").value||undefined));
   document.querySelectorAll("#seg button").forEach(b=>b.addEventListener("click",()=>{setRadio("mode",b.dataset.mode);store.set("mode",b.dataset.mode);layout();newQuestion(true)}));
@@ -897,10 +963,10 @@ input[type=range],input[type=checkbox],input[type=radio]{accent-color:var(--c-ac
     $("arcFill").style.width=pct+"%"; const hit=st.points>=need; $("arcHit").textContent=arc.bonus?"✓ BONUS TARGET HIT · 2x POINTS":"✓ TARGET HIT";
     if(hit&&!arc.hit){ arc.hit=true; m.classList.remove("flash"); void m.offsetWidth; m.classList.add("flash"); const hs=$("hitStamp"); hs.classList.remove("go"); void hs.offsetWidth; hs.classList.add("go"); chime(); $("card")&&$("card").classList.add("met"); $("staffbox").classList.add("hitglow"); setTimeout(()=>$("staffbox").classList.remove("hitglow"),900) }
     m.classList.toggle("hit",hit) }
-  function arcSplash(t,sub,ms,then,pre){ $("arcSplashT").textContent=t; $("arcSplashS").textContent=sub; $("arcSplashP").textContent=pre||""; const sp=$("arcSplash"); sp.hidden=false; locked=true; $("card")&&$("card").classList.remove("met");
+  function arcSplash(t,sub,ms,then,pre){ ms=Math.max(4500,2500+String(sub||"").length*30);   /* long enough to read (students said the round screens flashed by); tap to go sooner */ $("arcSplashT").textContent=t; $("arcSplashS").textContent=sub; $("arcSplashP").textContent=pre||""; const sp=$("arcSplash"); sp.hidden=false; locked=true; $("card")&&$("card").classList.remove("met");
     const pcs=$("arcPcs"); pcs.innerHTML=""; const cols=["var(--accent)","var(--good)","#ff8a1f","#ffd23f"]; for(let i=0;i<22;i++){const a=Math.random()*Math.PI*2,d=110+Math.random()*170,e=document.createElement("i");e.className="pc";e.style.cssText=`background:${cols[i%4]};--dx:${Math.cos(a)*d}px;--dy:${Math.sin(a)*d}px;--r:${Math.random()*720-360}deg`;pcs.appendChild(e)}
-    sp.classList.remove("go"); void sp.offsetWidth; sp.classList.add("go"); whoosh();
-    const tok=++splashTok; setTimeout(()=>{ if(tok!==splashTok) return; $("arcSplash").hidden=true; if(arc) then() },ms) }   // a stopped or restarted challenge never wakes an old splash
+    sp.classList.remove("go"); void sp.offsetWidth; sp.classList.add("go"); whoosh(); hypePlay(ms);
+    const tok=++splashTok, t0=performance.now(), go=()=>{ if(tok!==splashTok) return; splashTok++; hypeStop(120); sp.onclick=null; $("arcSplash").hidden=true; if(arc) then() }; sp.onclick=()=>{ if(performance.now()-t0>900) go() }; let hint=sp.querySelector('.tapgo'); if(!hint){ hint=document.createElement('small'); hint.className='tapgo'; hint.style.cssText='display:block;margin-top:14px;opacity:.6;font-size:12px'; hint.textContent='Tap to start'; ($("arcSplashS").parentNode||sp).appendChild(hint) } setTimeout(go,ms) }   // a stopped or restarted challenge never wakes an old splash
   let splashTok=0;
   function arcStart(){ resetScore(); sheet(false); arc={round:1,bonus:false,warm:true,needs:[]};
     $("arcbar").hidden=false; $("arcMeter").hidden=false; chalLabel(true);
@@ -934,7 +1000,7 @@ input[type=range],input[type=checkbox],input[type=radio]{accent-color:var(--c-ac
     const L=LEVELS.find(x=>x.id===level); const d=new Date();
     $("rStamp").textContent=`CHALLENGE MODE · High score ${half(best)} · Level ${L.id==="C"?"Custom":L.id} · ${L.name} · Key ${keySetting()==="mix"?"Mix":keyName(+keySetting())} · ${d.toLocaleDateString(undefined,{weekday:"short",month:"short",day:"numeric"})} ${d.toLocaleTimeString([], {hour:"numeric",minute:"2-digit"})}`;
     showResults(); celebrate() }
-  function arcEnd(){ splashTok++; if(!arc) return; arc=null; st={correct:0,points:0,total:0,streak:0,best:0,misses:{}}; render();   /* challenge points (2x on fire) never leak into the practice score */ $("arcbar").hidden=true; $("arcMeter").hidden=true; $("arcSplash").hidden=true; $("watch").classList.remove("fire"); chalLabel(false) }
+  function arcEnd(){ splashTok++; hypeStop(120); if(!arc) return; arc=null; st={correct:0,points:0,total:0,streak:0,best:0,misses:{}}; render();   /* challenge points (2x on fire) never leak into the practice score */ $("arcbar").hidden=true; $("arcMeter").hidden=true; $("arcSplash").hidden=true; $("watch").classList.remove("fire"); chalLabel(false) }
   $("closeResults").addEventListener("click",()=>{sheet(false); resetScore(); newQuestion(true); try{ $("chalBtn").focus({preventScroll:true}) }catch(e){} });
   try{store.set("name","")}catch(e){} // no names stored (privacy)
 
