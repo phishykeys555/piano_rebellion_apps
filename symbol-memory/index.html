@@ -1,0 +1,561 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Symbol Memory · Clarendon Hills Music Academy</title>
+<meta name="description" content="Symbol Memory: a memory card game that matches music symbols to their names. Learn, Play or Challenge. Built by Clarendon Hills Music Academy.">
+<link rel="preload" href="fonts/Bravura.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="../shared/chma.css">
+<script src="../shared/brand.js"></script>
+<script src="../shared/hype.js"></script>
+<style>
+/* Music symbols: Bravura (SMuFL) by Steinberg, SIL Open Font License 1.1, vendored in fonts/ with its license */
+@font-face{font-family:"Bravura";src:url("fonts/Bravura.woff2") format("woff2");font-display:block}
+*{box-sizing:border-box} [hidden]{display:none!important}
+html,body{height:100%}
+body{margin:0;background:var(--c-page);color:var(--c-ink);font-family:var(--f-body);font-size:15px;-webkit-font-smoothing:antialiased;overflow:hidden}
+:root{--paper:#fbfaf5;--paper-ink:#141519;--good:var(--c-ok);--bad:var(--c-bad)}
+.wrap{height:100vh;height:100dvh;display:flex;flex-direction:column;background:var(--c-panel);overflow:hidden;position:relative}
+.chma-headwrap{flex:none}
+.cols{flex:1;min-height:0;display:flex;gap:16px}
+h1{font-family:var(--f-title);font-weight:700;font-size:30px;letter-spacing:-.01em;line-height:1.05;margin:0} h1 em{font-style:normal;color:var(--c-act)}
+.sub{color:var(--c-mut);font-size:14px;margin:6px 0 0;line-height:1.4}
+.lbl{font:700 14px var(--f-body);letter-spacing:.08em;text-transform:uppercase;color:var(--c-mut)}
+.sect{display:flex;flex-direction:column;gap:8px}
+button{font:inherit;touch-action:manipulation;-webkit-tap-highlight-color:transparent}
+.k{font:600 15px var(--f-body);color:var(--c-ink);background:var(--c-key);border:1px solid var(--c-key-b);border-radius:12px;box-shadow:0 3px 0 var(--c-key-sh);min-height:44px;padding:8px 12px;cursor:pointer;transition:transform .05s,box-shadow .05s;-webkit-user-select:none;user-select:none}
+.k:active{transform:translateY(2px);box-shadow:0 1px 0 var(--c-key-sh)}
+.k[aria-pressed="true"]{background:var(--c-sel);border-color:var(--c-sel);color:var(--c-sel-ink)}
+.k[aria-disabled="true"]{opacity:.45;cursor:not-allowed}
+.k.primary{background:var(--c-act);border-color:var(--c-act);color:var(--c-act-ink);box-shadow:0 3px 0 var(--c-act-sh)}
+.k.primary:active{box-shadow:0 1px 0 var(--c-act-sh)}
+.pick{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.pick .k{display:flex;align-items:baseline;text-align:left;gap:8px;padding:8px 12px}
+.pick .k b{font-family:var(--f-num);font-size:14px} .pick .k span{font-size:14px;font-weight:500;opacity:.85}
+.seg{display:flex;gap:8px} .seg .k{flex:1;padding:8px 6px}
+details{background:var(--c-panel2);border:1px solid var(--c-line);border-radius:14px;padding:12px 14px}
+summary{font-weight:700;cursor:pointer;margin:-12px -14px;padding:12px 14px;border-radius:14px} details[open] summary{margin-bottom:0}
+details label{display:flex;gap:10px;align-items:center;margin-top:10px;font-size:15px}
+details p{margin:10px 0 0;font-size:14px;line-height:1.45;color:var(--c-ink)}
+input[type=checkbox]{accent-color:var(--c-act);width:18px;height:18px}
+.appver{font:500 14px var(--f-num);color:var(--c-mut);margin:0}
+.credit{font-size:14px;color:var(--c-mut);margin:0;line-height:1.4} .credit a{color:inherit}
+button:focus-visible,summary:focus-visible,input:focus-visible,a:focus-visible{outline:3px solid var(--c-sel);outline-offset:2px}
+
+/* ---- setup column (desktop) / drawer (phone) ---- */
+.setup{display:flex;flex-direction:column;gap:14px;min-width:0;overflow:auto}
+.drawhead{display:none}
+/* ---- play column ---- */
+.play{flex:1;min-width:0;min-height:0;display:flex;flex-direction:column;gap:10px}
+.card{position:relative;flex:1;min-height:0;display:flex;flex-direction:column;gap:8px;background:var(--c-panel2);border:1px solid var(--c-line);border-radius:18px;padding:12px}
+.card.met{border-color:var(--good);box-shadow:0 0 0 2px var(--good),0 0 28px color-mix(in srgb,var(--good) 35%,transparent)}
+.stats{flex:none;display:flex;align-items:center;gap:6px 18px;flex-wrap:wrap;background:var(--c-lcd);border:1px solid var(--c-lcd-b);border-radius:12px;box-shadow:inset 0 2px 8px rgba(0,0,0,.55);padding:6px 10px 6px 12px}
+.stats div{display:flex;align-items:baseline;gap:6px}
+.stats b{font:700 18px var(--f-num);color:var(--c-led);text-shadow:var(--c-led-glow)}
+.stats span{font-size:14px;color:#9aa3b2}
+.stats .mute{margin-left:auto;background:none;border:1px solid #3a3d45;border-radius:10px;color:#cfd3da;min-height:32px;min-width:40px;display:flex;align-items:center;justify-content:center;cursor:pointer;padding:0 8px}
+.stats .mute svg{width:20px;height:20px}
+.stats .mute[aria-pressed="false"]{color:#ff8a8a;border-color:#6a3a3a}
+.info{flex:none;min-height:38px;max-height:38px;overflow:hidden;font-size:14px;line-height:1.35;display:flex;align-items:center;color:var(--c-mut)}
+.info b{color:var(--c-ink)} .info.good{color:var(--c-ink)} .info.good b{color:var(--good)} .info.bad b{color:var(--bad)}
+/* board: sized in JS so every card fits the space (no scrolling) */
+.boardwrap{flex:1;min-height:0;position:relative;display:flex;align-items:center;justify-content:center}
+.board{display:grid;gap:var(--gap,8px);justify-content:center;align-content:center}
+.board.scroll{overflow:auto;max-height:100%}
+.mc{position:relative;padding:0;border:0;background:none;cursor:pointer;perspective:700px;border-radius:12px;color:inherit}
+.mc .in{position:absolute;inset:0;transition:transform .34s cubic-bezier(.3,.7,.3,1);transform-style:preserve-3d}
+.mc.up .in{transform:rotateY(180deg)}
+.face{position:absolute;inset:0;border-radius:11px;backface-visibility:hidden;-webkit-backface-visibility:hidden;display:flex;align-items:center;justify-content:center;overflow:hidden}
+.back{background:var(--c-sel);border:1px solid color-mix(in srgb,var(--c-sel) 70%,#000);box-shadow:0 3px 0 color-mix(in srgb,var(--c-sel) 55%,#000);
+  background-image:repeating-linear-gradient(45deg,rgba(255,255,255,.07) 0 6px,transparent 6px 12px)}
+.back svg{width:42%;height:52%;color:rgba(255,255,255,.5)}
+.front{transform:rotateY(180deg);border:1px solid var(--c-key-b)}
+.front.sym{background:var(--paper);color:var(--paper-ink)}
+.front.sym svg{width:88%;height:84%;overflow:visible}
+.front.nm{background:var(--c-key);color:var(--c-ink);padding:2px 3px}
+.front.nm span{display:block;width:100%;text-align:center;font-weight:700;line-height:1.05;hyphens:manual;-webkit-hyphens:manual;overflow-wrap:normal;letter-spacing:-.01em}
+.mc.done .front{box-shadow:0 0 0 3px var(--good) inset}
+.mc.done .front::after{content:"✓";position:absolute;top:3px;right:6px;font:700 13px var(--f-body);color:var(--good)}
+.mc.miss .front{box-shadow:0 0 0 3px var(--bad) inset}
+.mc.glow .front{box-shadow:0 0 0 4px var(--c-act) inset}
+.mc:focus-visible{outline:3px solid var(--c-act);outline-offset:2px}
+.board.peek .mc .in{transition-duration:.2s}
+.intro{max-width:30em;text-align:center;display:flex;flex-direction:column;gap:12px;align-items:center;padding:12px}
+.intro h2{font-family:var(--f-title);margin:0;font-size:26px} .intro p{margin:0;color:var(--c-mut);font-size:15px;line-height:1.45}
+/* action bar under the card */
+.actbar{flex:none;display:flex;gap:8px}
+.actbar .k{min-height:50px;font-size:16px;flex:1 1 0}
+.actbar .k.primary{flex:2 1 0}
+.actbar .only-phone{display:none}
+/* ---- challenge: round pills, target meter, splash, TARGET HIT (same pattern as the other studio apps) ---- */
+.arcrow{flex:none;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.arcbar{display:flex;gap:8px;align-items:center;font-family:var(--f-num);font-weight:700;font-size:14px;letter-spacing:.04em;flex-wrap:wrap}
+.arcbar .pill{border:1px solid var(--c-lcd-b);border-radius:999px;padding:3px 10px;background:var(--c-lcd);color:var(--c-led);text-shadow:var(--c-led-glow)}
+.arcbar .need.met{background:var(--c-ok);border-color:var(--c-ok);color:#fff;text-shadow:none}
+.arcbar .fire{color:#ff8a1f;border-color:#ff8a1f;text-shadow:none}
+.arcmeter{flex:1 1 140px;position:relative;height:22px;border-radius:999px;background:var(--c-lcd);overflow:hidden}
+.arcmeter i{position:absolute;left:0;top:0;bottom:0;width:0;background:var(--c-act);border-radius:999px;transition:width .25s ease,background .25s}
+.arcmeter b{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-family:var(--f-num);font-size:13px;font-weight:700;letter-spacing:.14em;color:#fff;opacity:0;transition:opacity .2s;text-shadow:0 1px 2px rgba(0,0,0,.35)}
+.arcmeter.hit i{background:var(--good)} .arcmeter.hit b{opacity:1}
+.arcmeter.flash{animation:hitflash .7s ease-out}
+@keyframes hitflash{0%{box-shadow:0 0 0 0 color-mix(in srgb,var(--good) 70%,transparent)}100%{box-shadow:0 0 0 14px transparent}}
+.arcsplash{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;background:radial-gradient(circle at 50% 45%,color-mix(in srgb,var(--c-act) 28%,var(--c-panel2)) 0%,var(--c-panel2) 70%);border-radius:18px;z-index:8;text-align:center;padding:20px;overflow:hidden;cursor:pointer}
+.arcsplash .pre{font-family:var(--f-num);font-size:14px;letter-spacing:.14em;color:var(--good);font-weight:700;min-height:16px}
+.arcsplash b{font-family:var(--f-title);font-weight:700;font-size:44px;line-height:1}
+.arcsplash span{font-size:16px;color:var(--c-mut);max-width:30em;line-height:1.4}
+.arcsplash small{display:block;margin-top:14px;opacity:.6;font-size:14px}
+.arcsplash.go .pre{animation:fadeup .35s .05s both}
+.arcsplash.go b{animation:swoop .75s .25s cubic-bezier(.2,1.4,.3,1) both}
+.arcsplash.go span{animation:fadeup .4s .75s both}
+.arcsplash .boom{position:absolute;left:50%;top:46%;width:24px;height:24px;margin:-12px;border-radius:50%;border:5px solid var(--c-act);opacity:0;pointer-events:none}
+.arcsplash.go .boom{animation:boom .85s .2s ease-out}
+.arcsplash .pc{position:absolute;left:50%;top:46%;width:8px;height:14px;border-radius:2px;opacity:0;pointer-events:none}
+.arcsplash.go .pc{animation:pc 1.1s .22s cubic-bezier(.15,.8,.3,1) forwards}
+@keyframes swoop{0%{opacity:0;transform:translateX(130%) skewX(-28deg) scale(.6)}60%{opacity:1;transform:translateX(-6%) skewX(8deg) scale(1.1)}100%{opacity:1;transform:none}}
+@keyframes fadeup{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+@keyframes boom{0%{opacity:.95;transform:scale(.2)}100%{opacity:0;transform:scale(24)}}
+@keyframes pc{0%{opacity:1;transform:translate(0,0) rotate(0)}100%{opacity:0;transform:translate(var(--dx),var(--dy)) rotate(var(--r))}}
+.hitstamp{position:absolute;left:50%;top:40%;z-index:9;pointer-events:none;font-family:var(--f-title);font-weight:700;font-size:42px;line-height:1;color:#fff;background:var(--good);padding:12px 24px;border-radius:14px;box-shadow:0 10px 40px color-mix(in srgb,var(--good) 60%,transparent);opacity:0;white-space:nowrap;transform:translate(-50%,-50%)}
+.hitstamp.go{animation:stamp 1.7s cubic-bezier(.2,1.5,.4,1) forwards}
+@keyframes stamp{0%{opacity:0;transform:translate(-50%,-50%) scale(2.8) rotate(-14deg)}16%{opacity:1;transform:translate(-50%,-50%) scale(1) rotate(-6deg)}75%{opacity:1;transform:translate(-50%,-50%) scale(1) rotate(-6deg)}100%{opacity:0;transform:translate(-50%,-50%) scale(.7) rotate(-6deg)}}
+/* ---- results sheet (inside the card) ---- */
+.results{position:absolute;inset:0;background:var(--c-panel2);border-radius:18px;padding:18px;display:flex;flex-direction:column;gap:12px;z-index:7;overflow:auto}
+.results h2{margin:0;font-family:var(--f-title)}
+.results .score{font:700 40px var(--f-num);color:var(--c-led);text-shadow:var(--c-led-glow);background:var(--c-lcd);border:1px solid var(--c-lcd-b);border-radius:14px;box-shadow:inset 0 2px 8px rgba(0,0,0,.55);padding:10px 16px}
+.results .score small{font-size:14px;color:#9aa3b2;text-shadow:none}
+.rgrid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+.rgrid div{background:var(--c-lcd);border-radius:10px;padding:8px 10px} .rgrid b{display:block;font:700 22px var(--f-num);color:var(--c-led);text-shadow:var(--c-led-glow)} .rgrid span{font-size:14px;color:#9aa3b2}
+.why{font-weight:600;margin:0} .stamp{font-size:14px;color:var(--c-mut);margin:0}
+.rlist{margin:0;padding:0;list-style:none;display:flex;flex-direction:column;gap:6px;font-size:14px;line-height:1.4}
+.rlist b{color:var(--c-ink)}
+.ractions{display:flex;gap:8px;flex-wrap:wrap} .ractions .k{flex:1 1 140px;min-height:48px}
+/* ---- symbol sheet: every symbol of a level with its name and meaning ---- */
+.sheet{position:fixed;inset:0;z-index:60;background:var(--c-page);overflow:auto;padding:16px}
+.sheet .in2{max-width:1180px;margin:0 auto;display:flex;flex-direction:column;gap:14px}
+.sheet header{display:flex;align-items:center;gap:12px;justify-content:space-between;flex-wrap:wrap}
+.sheet h2{margin:0;font-family:var(--f-title);font-size:26px}
+.sheetgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(330px,1fr));gap:10px}
+.tile{display:grid;grid-template-columns:150px 1fr;gap:10px;align-items:center;background:var(--c-panel);border:1px solid var(--c-line);border-radius:14px;padding:8px}
+.tile .pic{height:110px;background:var(--paper);color:var(--paper-ink);border-radius:10px;display:flex;align-items:center;justify-content:center}
+.tile .pic svg{width:90%;height:86%;overflow:visible}
+.tile b{display:block;font-size:15px} .tile p{margin:2px 0 0;font-size:14px;line-height:1.35;color:var(--c-mut)}
+.tile small{font:600 12px var(--f-num);color:var(--c-mut);letter-spacing:.06em}
+.sheetfoot{font-size:14px;color:var(--c-mut)}
+h2[tabindex]:focus{outline:none}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+.scrim{display:none}
+
+/* ---- desktop / wide: setup left, board right ---- */
+@media (min-width:900px){
+  body{padding:12px 24px}
+  .wrap{max-width:1240px;margin:0 auto;height:calc(100vh - 24px);height:calc(100dvh - 24px);border-radius:var(--r-card);box-shadow:var(--shadow-card);padding:0 16px 16px}
+  .chma-headwrap{margin:0 -16px 12px}
+  .setup{flex:0 0 300px;padding-right:4px}
+}
+/* ---- phone / tablet: the board fills the screen, setup is a drawer, actions in a bottom bar ---- */
+@media (max-width:899px){
+  .wrap{padding:0 12px calc(8px + env(safe-area-inset-bottom,0px))}
+  .chma-headwrap{margin:0 -12px 8px}
+  .chma-ver{display:none}
+  .ptitle{position:absolute;top:17px;right:12px;line-height:40px;font-family:var(--f-title);font-weight:700;font-size:22px}
+  .ptitle em{font-style:normal;color:var(--c-act)}
+  .cols{flex-direction:column;gap:0}
+  .play{gap:8px}
+  .card{padding:8px;gap:6px;border-radius:14px}
+  .stats{flex-wrap:nowrap;gap:10px;padding:3px 4px 3px 10px} .stats b{font-size:16px} .stats .tl{display:none} .stats .mute{min-height:30px;min-width:36px}
+  body.running .stats{display:none} #arcTotal,#arcFire{display:none!important}
+  .arcrow{flex-wrap:nowrap} .arcbar{flex:none;flex-wrap:nowrap;gap:6px} .arcbar .pill{padding:3px 8px}
+  .actbar .only-phone{display:block}
+  .actbar .k{min-height:48px;padding:6px 8px}
+  .setup{position:fixed;z-index:50;top:0;bottom:0;right:0;width:min(420px,100%);background:var(--c-panel);padding:14px 16px calc(20px + env(safe-area-inset-bottom,0px));box-shadow:-12px 0 40px rgba(0,0,0,.35);transform:translateX(105%);transition:transform .25s ease;visibility:hidden}
+  body.drawer .setup{transform:none;visibility:visible}
+  body.drawer .scrim{display:block;position:fixed;inset:0;z-index:45;background:rgba(0,0,0,.45)}
+  .drawhead{display:flex;justify-content:space-between;align-items:center;gap:10px}
+  .setup header .sub{display:none}
+  .arcsplash b{font-size:36px} .hitstamp{font-size:32px;padding:10px 18px}
+}
+@media (min-width:900px){.ptitle{display:none}}
+@media (prefers-reduced-motion:reduce){
+  .mc .in{transition:none!important}
+  .arcsplash.go *,.hitstamp.go{animation-duration:.01s!important;animation-delay:0s!important}
+  .arcmeter.flash{animation:none!important} .arcmeter i{transition:none}
+  .setup{transition:none!important}
+}
+</style></head>
+<body>
+<div class="scrim" id="scrim"></div>
+<div class="wrap">
+  <div data-chma-head></div>
+  <div class="ptitle" aria-hidden="true">Symbol <em>Memory</em></div>
+  <div class="cols">
+  <aside class="setup" id="setup" aria-label="Setup">
+    <div class="drawhead"><span class="lbl">Setup</span><button class="k primary" id="drawClose">Done</button></div>
+    <header>
+      <h1>Symbol <em>Memory</em></h1>
+      <p class="sub">Flip two cards. Match each music symbol to its name. Every match tells you what the symbol does.</p>
+    </header>
+    <div class="sect"><span class="lbl" id="lvlLbl">Symbols</span>
+      <div class="pick" id="levels" role="group" aria-labelledby="lvlLbl"></div></div>
+    <div class="sect"><span class="lbl" id="sizeLbl">Pairs</span>
+      <div class="seg" id="sizes" role="group" aria-labelledby="sizeLbl"></div></div>
+    <div class="sect"><span class="lbl" id="modeLbl">Mode</span>
+      <div class="seg" id="modes" role="group" aria-labelledby="modeLbl">
+        <button class="k" data-mode="learn">Learn</button><button class="k" data-mode="play">Play</button><button class="k" data-mode="chal">Challenge</button>
+      </div></div>
+    <button class="k" id="sheetBtn">See every symbol in this level</button>
+    <details class="how"><summary>How it works</summary>
+      <p>Each pair is one symbol card and one name card. Flip two cards. If the symbol matches its name, they stay up and you see what the symbol does. If not, they flip back. Remember where things are.</p>
+      <p><b>Learn:</b> press Peek to see every card for 3 seconds before you start. Tap a matched pair any time to read (and hear) its meaning again.</p>
+      <p><b>Play:</b> the normal game. Fewest moves wins. Your best for each level and size is saved on this device.</p>
+      <p><b>Challenge:</b> five rounds and a bonus round. Points count up from 0 each round toward a target: 100 a match, +50 for every match in a row, plus a speed bonus when you clear the board. Hit the target to unlock the next round. Each round adds pairs or harder symbols.</p>
+      <p>Keyboard: arrow keys move between cards, Enter or Space flips.</p>
+    </details>
+    <details id="settingsBox"><summary>Settings</summary>
+      <label><input type="checkbox" id="soundOn" checked> Sounds</label>
+      <label><input type="checkbox" id="hypeOn" checked> Music on round screens</label>
+      <label><input type="checkbox" id="speakOn" checked> Read meanings aloud in Learn</label>
+    </details>
+    <p class="appver" id="appVer">Symbol Memory · Version 2026-11-12.1</p>
+    <p class="credit">Music symbols: <a href="https://github.com/steinbergmedia/bravura" target="_blank" rel="noopener">Bravura</a> by Steinberg, <a href="fonts/OFL.txt" target="_blank" rel="noopener">SIL Open Font License</a>.</p>
+  </aside>
+
+  <section class="play">
+    <div class="card" id="card">
+      <div class="stats" id="stats">
+        <div id="stA"><b id="sA">0</b><span id="lA">moves</span></div>
+        <div><b id="sT">0:00</b><span class="tl">time</span></div>
+        <div><b id="sP">0/6</b><span>pairs</span></div>
+        <div id="stB"><b id="sB">–</b><span id="lB">best</span></div>
+        <button class="mute" id="muteBtn" aria-pressed="true" aria-label="Sound on" title="Sound"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 9v6h4l5 4V5L8 9H4z" fill="currentColor" stroke="none"/><path id="muteWave" d="M16 9a4 4 0 0 1 0 6M18.5 6.5a7.5 7.5 0 0 1 0 11"/><path id="muteX" d="M16 9l5 6M21 9l-5 6" hidden/></svg></button>
+      </div>
+      <div class="arcrow" id="arcRow" hidden><div class="arcbar"><span class="pill" id="arcRound">ROUND 1 OF 5</span><span class="pill need" id="arcNeed">0 / 700</span><span class="pill" id="arcTotal">TOTAL 0</span><span class="pill fire" id="arcFire" hidden>BONUS 2X</span></div><div class="arcmeter" id="arcMeter" hidden><i id="arcFill"></i><b id="arcHit">✓ TARGET HIT</b></div></div>
+      <div class="info" id="info" aria-live="polite"></div>
+      <div class="boardwrap" id="boardWrap"><div class="board" id="board" role="group" aria-label="Cards"></div></div>
+
+      <div class="arcsplash" id="arcSplash" hidden><div class="boom"></div><div id="arcPcs"></div><div class="pre" id="arcSplashP"></div><b id="arcSplashT">ROUND 1</b><span id="arcSplashS"></span><small>Tap to start</small></div>
+      <div class="hitstamp" id="hitStamp" aria-hidden="true">TARGET HIT!</div>
+      <div class="results" id="results" hidden role="dialog" aria-labelledby="rTitle">
+        <h2 id="rTitle" tabindex="-1">Board cleared!</h2>
+        <div class="score" id="rScore"></div>
+        <div class="rgrid"><div><b id="r1">0</b><span id="r1l">Moves</span></div><div><b id="r2">0:00</b><span>Time</span></div><div><b id="r3">–</b><span id="r3l">Best</span></div></div>
+        <p class="why" id="rWhy"></p>
+        <div class="ractions"><button class="k" id="closeBtn">Back</button><button class="k primary" id="againBtn">Play again</button></div>
+        <p class="stamp" id="rStamp"></p>
+        <ul class="rlist" id="rList"></ul>
+      </div>
+    </div>
+    <div class="actbar" id="actbar">
+      <button class="k only-phone" id="setupBtn" aria-controls="setup" aria-expanded="false">Setup</button>
+      <button class="k" id="peekBtn">Peek 3 s</button>
+      <button class="k primary" id="goBtn">New game</button>
+    </div>
+  </section>
+  </div>
+</div>
+
+<div class="sheet" id="sheet" hidden role="dialog" aria-labelledby="sheetT"><div class="in2">
+  <header><h2 id="sheetT" tabindex="-1">Symbols</h2><button class="k primary" id="sheetClose">Close</button></header>
+  <div class="sheetgrid" id="sheetGrid"></div>
+  <p class="sheetfoot">Music symbols drawn with Bravura (Steinberg, SIL Open Font License).</p>
+</div></div>
+
+<script>
+(()=>{
+const $=id=>document.getElementById(id);
+const VERSION="2026-11-12.1";
+const qs=new URLSearchParams(location.search), FAST=qs.has("fast");
+const store={get(k,d){try{const v=localStorage.getItem("sm-"+k);return v==null?d:JSON.parse(v)}catch(e){return d}},set(k,v){try{localStorage.setItem("sm-"+k,JSON.stringify(v))}catch(e){}}};
+const reduced=()=>!!(window.matchMedia&&matchMedia("(prefers-reduced-motion: reduce)").matches);
+
+/* =====================================================================
+   SYMBOL DRAWING: SMuFL glyphs from Bravura inside inline SVG.
+   1 staff space = 10 units, font-size 40 (SMuFL em = 4 staff spaces).
+   Staff lines at y = 0 (bottom line, E4 in treble) up to -40 (top line, F5).
+   ===================================================================== */
+const U={gClef:0xE050,fClef:0xE062,cClef:0xE05C,whole:0xE1D2,halfUp:0xE1D3,qUp:0xE1D5,qDown:0xE1D6,e8Up:0xE1D7,s16Up:0xE1D9,dot:0xE1E7,
+  rWhole:0xE4E3,rHalf:0xE4E4,rQ:0xE4E5,r8:0xE4E6,sharp:0xE262,flat:0xE260,nat:0xE261,ts4:0xE084,common:0xE08A,cut:0xE08B,
+  dynP:0xE520,dynF:0xE522,dynMP:0xE52C,dynMF:0xE52D,dynPP:0xE52B,dynFF:0xE52F,stacc:0xE4A2,accent:0xE4A0,tenuto:0xE4A4,fermata:0xE4C0,
+  segno:0xE047,coda:0xE048,dc:0xE046,ds:0xE045,ottava:0xE511,ped:0xE650,pedUp:0xE655,trill:0xE566,mordent:0xE56D,turn:0xE567,breath:0xE4CE,
+  grace:0xE560,head:0xE0A4,tup3:0xE883,repR:0xE041};
+const G=(cp,x,y)=>`<text x="${x}" y="${y}" font-family="Bravura" font-size="40" fill="currentColor">${String.fromCodePoint(cp)}</text>`;
+const staff=(x0,x1)=>{let s="";for(let i=0;i<5;i++)s+=`<line x1="${x0}" x2="${x1}" y1="${-10*i}" y2="${-10*i}" stroke="currentColor" stroke-width="1.3"/>`;return s};
+const vl=(x,y1,y2,w)=>`<rect x="${x-w/2}" y="${Math.min(y1,y2)}" width="${w}" height="${Math.abs(y2-y1)}" fill="currentColor"/>`;
+const ledger=(x,y,w)=>`<rect x="${x}" y="${y-0.8}" width="${w}" height="1.6" fill="currentColor"/>`;
+const TXT=(s,x,y,size,anchor)=>`<text x="${x}" y="${y}" font-family="'Century Schoolbook','New Century Schoolbook','TeX Gyre Schola',Georgia,'Times New Roman',serif" font-style="italic" font-weight="700" font-size="${size}" fill="currentColor"${anchor?` text-anchor="${anchor}"`:""}>${s}</text>`;
+const vbS=(W,top=-62,bot=18)=>`-8 ${top} ${W+16} ${bot-top}`;
+// note-head centre for the stemmed note glyphs (from Bravura's metadata)
+const HC=6.2, WC=9.18;
+const above=(cp,halfw,x)=>G(cp,x+WC-halfw,-48);   // ornament centred over a whole note, above the staff
+
+const S=[
+ // ---------- L1 Basics ----------
+ {id:"treble",lv:1,name:"Treble clef",meaning:"Also called the G clef: it curls around the G line. Used for higher notes, usually the right hand.",look:"a tall curly clef",vb:vbS(56),draw:()=>staff(0,56)+G(U.gClef,10,-10),cps:[U.gClef]},
+ {id:"bass",lv:1,name:"Bass clef",meaning:"Also called the F clef: its two dots sit on either side of the F line. Used for lower notes, usually the left hand.",look:"a curl with two dots",vb:vbS(56),draw:()=>staff(0,56)+G(U.fClef,10,-30),cps:[U.fClef]},
+ {id:"whole",lv:1,name:"Whole note",meaning:"An open note with no stem. Gets 4 beats in 4/4 time.",look:"an open oval with no stem",vb:vbS(50),draw:()=>staff(0,50)+G(U.whole,16,-15),cps:[U.whole]},
+ {id:"half",lv:1,name:"Half note",meaning:"An open note with a stem. Gets 2 beats in 4/4 time.",look:"an open notehead with a stem",vb:vbS(50),draw:()=>staff(0,50)+G(U.halfUp,18,-15),cps:[U.halfUp]},
+ {id:"quarter",lv:1,name:"Quarter note",meaning:"A filled-in note with a stem. Gets 1 beat in 4/4 time.",look:"a filled notehead with a stem",vb:vbS(50),draw:()=>staff(0,50)+G(U.qUp,18,-15),cps:[U.qUp]},
+ {id:"eighth",lv:1,name:"Eighth note",meaning:"A filled note with a stem and one flag. Gets half a beat; two eighth notes make one beat.",look:"a filled note with one flag",vb:vbS(50),draw:()=>staff(0,50)+G(U.e8Up,14,-15),cps:[U.e8Up]},
+ {id:"qrest",lv:1,name:"Quarter rest",meaning:"1 beat of silence.",look:"a squiggly zig-zag rest",vb:vbS(50),draw:()=>staff(0,50)+G(U.rQ,20,-20),cps:[U.rQ]},
+ {id:"hrest",lv:1,name:"Half rest",meaning:"2 beats of silence. It sits on top of the middle line, like a hat.",look:"a small block sitting on the middle line",vb:vbS(50),draw:()=>staff(0,50)+G(U.rHalf,19,-20),cps:[U.rHalf]},
+ {id:"wrest",lv:1,name:"Whole rest",meaning:"A whole measure of silence (4 beats in 4/4). It hangs down from the fourth line, like a hole.",look:"a small block hanging from the fourth line",vb:vbS(50),draw:()=>staff(0,50)+G(U.rWhole,19,-30),cps:[U.rWhole]},
+ {id:"sharp",lv:1,name:"Sharp",meaning:"Raises a note a half step.",look:"a sharp sign before a note",vb:vbS(56),draw:()=>staff(0,56)+G(U.sharp,10,-25)+G(U.whole,26,-25),cps:[U.sharp]},
+ {id:"flat",lv:1,name:"Flat",meaning:"Lowers a note a half step.",look:"a flat sign before a note",vb:vbS(56),draw:()=>staff(0,56)+G(U.flat,11,-20)+G(U.whole,26,-20),cps:[U.flat]},
+ {id:"natural",lv:1,name:"Natural",meaning:"Cancels a sharp or flat. Play the plain white-key note.",look:"a natural sign before a note",vb:vbS(56),draw:()=>staff(0,56)+G(U.nat,12,-15)+G(U.whole,26,-15),cps:[U.nat]},
+ {id:"barline",lv:1,name:"Bar line",meaning:"A single line that divides the music into measures.",look:"one thin line across the staff",vb:vbS(72),draw:()=>staff(0,72)+G(U.whole,7,-15)+vl(36,-40,0,1.6)+G(U.whole,47,-15),cps:[U.whole]},
+ {id:"dbar",lv:1,name:"Double bar line",meaning:"Two thin lines mark the end of a section. (Thin plus thick marks the end of the piece.)",look:"two thin lines across the staff",vb:vbS(76),draw:()=>staff(0,76)+G(U.whole,7,-15)+vl(37,-40,0,1.6)+vl(42.4,-40,0,1.6)+G(U.whole,52,-15),cps:[U.whole]},
+ {id:"repeat",lv:1,name:"Repeat sign",meaning:"Two dots before a double bar: go back and play that section again.",look:"two dots before a thin and a thick line",vb:vbS(60),draw:()=>staff(0,60)+G(U.whole,8,-15)+G(U.repR,60-14.68,0),cps:[U.repR]},
+ {id:"timesig",lv:1,name:"Time sig\u00ADnature",meaning:"4/4: the top 4 means 4 beats in each measure; the bottom 4 means the quarter note gets one beat.",look:"the numbers 4 over 4",vb:vbS(44),draw:()=>staff(0,44)+G(U.ts4,13,-30)+G(U.ts4,13,-10),cps:[U.ts4]},
+ // ---------- L2 Expression ----------
+ {id:"p",lv:2,name:"Piano",say:"Piano, the letter p",meaning:"p = piano: play soft.",look:"the letter p",dyn:[-.356,1.464],draw:()=>G(U.dynP,0,0),cps:[U.dynP]},
+ {id:"f",lv:2,name:"Forte",say:"Forte, the letter f",meaning:"f = forte: play loud.",look:"the letter f",dyn:[-.564,1.456],draw:()=>G(U.dynF,0,0),cps:[U.dynF]},
+ {id:"mp",lv:2,name:"Mezzo piano",meaning:"mp = mezzo piano: medium soft.",look:"the letters m p",dyn:[-.08,3.3],draw:()=>G(U.dynMP,0,0),cps:[U.dynMP]},
+ {id:"mf",lv:2,name:"Mezzo forte",meaning:"mf = mezzo forte: medium loud.",look:"the letters m f",dyn:[-.08,3.272],draw:()=>G(U.dynMF,0,0),cps:[U.dynMF]},
+ {id:"pp",lv:2,name:"Pianis­simo",meaning:"pp = pianissimo: very soft.",look:"the letters p p",dyn:[-.328,2.912],draw:()=>G(U.dynPP,0,0),cps:[U.dynPP]},
+ {id:"ff",lv:2,name:"Fortis­simo",meaning:"ff = fortissimo: very loud.",look:"the letters f f",dyn:[-.54,2.44],draw:()=>G(U.dynFF,0,0),cps:[U.dynFF]},
+ {id:"cresc",lv:2,cps:[],name:"Cre\u00ADscendo",meaning:"The hairpin opens up: gradually get louder.",look:"a hairpin that opens to the right",vb:"-4 -14 72 28",draw:()=>`<path d="M62 -8 L2 0 L62 8" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="miter"/>`},
+ {id:"decresc",lv:2,cps:[],name:"Decre­scendo / dimi­nuendo",meaning:"The hairpin closes: gradually get softer. Decrescendo and diminuendo mean the same thing.",look:"a hairpin that closes to the right",vb:"-4 -14 72 28",draw:()=>`<path d="M2 -8 L62 0 L2 8" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="miter"/>`},
+ {id:"staccato",lv:2,name:"Staccato",meaning:"A dot over or under the note: play it short and detached.",look:"a dot above a note",vb:vbS(50),draw:()=>staff(0,50)+G(U.qDown,18,-25)+G(U.stacc,18+HC-1.68,-33.3),cps:[U.stacc]},
+ {id:"accent",lv:2,name:"Accent",meaning:"Play that note with extra emphasis, louder than the notes around it.",look:"a sideways V above a note",vb:vbS(50),draw:()=>staff(0,50)+G(U.qDown,18,-25)+G(U.accent,18+HC-6.78,-45),cps:[U.accent]},
+ {id:"tenuto",lv:2,name:"Tenuto",meaning:"A short line over or under the note: hold it for its full value, with a little weight.",look:"a short line above a note",vb:vbS(50),draw:()=>staff(0,50)+G(U.qDown,18,-25)+G(U.tenuto,18+HC-6.76,-34.04),cps:[U.tenuto]},
+ {id:"fermata",lv:2,name:"Fermata",meaning:"Hold the note longer than its value.",look:"a curve with a dot over a note",vb:vbS(50,-64),draw:()=>staff(0,50)+G(U.qDown,18,-25)+G(U.fermata,18+HC-12.1,-47),cps:[U.fermata]},
+ {id:"tie",lv:2,name:"Tie",meaning:"A curve joining two notes on the same pitch: play once and hold for both values.",look:"a curve joining two notes on the same line",vb:vbS(70),draw:()=>staff(0,70)+G(U.halfUp,10,-15)+G(U.halfUp,46,-15)+`<path d="M18 -7.5 Q34 0.5 50 -7.5 Q34 -1.7 18 -7.5 Z" fill="currentColor"/>`,cps:[U.halfUp]},
+ {id:"slur",lv:2,name:"Slur",meaning:"A curve over or under different notes: play them smoothly and connected (legato).",look:"a curve joining notes on different lines",vb:vbS(74),draw:()=>staff(0,74)+G(U.qUp,6,-10)+G(U.qUp,30,-15)+G(U.qUp,54,-20)+`<path d="M11 -3 Q36 9 61 -13 Q36 6.6 11 -3 Z" fill="currentColor"/>`,cps:[U.qUp]},
+ {id:"dhalf",lv:2,name:"Dotted half note",meaning:"A half note with a dot. Gets 3 beats (the dot adds half the note's value).",look:"an open note with a stem and a dot",vb:vbS(50),draw:()=>staff(0,50)+G(U.halfUp,12,-15)+G(U.dot,12+13.64+3,-15),cps:[U.halfUp,U.dot]},
+ {id:"erest",lv:2,name:"Eighth rest",meaning:"Half a beat of silence.",look:"a slanted line with one curl",vb:vbS(50),draw:()=>staff(0,50)+G(U.r8,20,-20),cps:[U.r8]},
+ // ---------- L3 Navigation and advanced ----------
+ {id:"segno",lv:3,name:"Segno",say:"Segno, the sign",meaning:"The sign. D.S. (dal segno) sends you back to it.",look:"an S with a slash and two dots",auto:1,gb:[0,-30.4,22,1.1],draw:()=>G(U.segno,0,0),cps:[U.segno]},
+ {id:"coda",lv:3,name:"Coda",meaning:"The ending section. When the music says To Coda, jump to this sign.",look:"a circle with a cross through it",auto:1,gb:[0,-35.9,38.2,6.3],draw:()=>G(U.coda,0,0),cps:[U.coda]},
+ {id:"dcfine",lv:3,name:"D.C. al Fine",say:"Da capo al fine",meaning:"Da capo al Fine: go back to the beginning and play until you reach Fine.",look:"the words D.C. al Fine",auto:1,gb:[0,-17.7,43.3,0.4],draw:()=>G(U.dc,0,0)+TXT("al Fine",48,0,22),cps:[U.dc]},
+ {id:"dscoda",lv:3,name:"D.S. al Coda",say:"Dal segno al coda",meaning:"Dal segno al Coda: go back to the sign, play to To Coda, then jump to the Coda.",look:"the words D.S. al Coda",auto:1,gb:[0,-17.7,43.3,0.4],draw:()=>G(U.ds,0,0)+TXT("al Coda",48,0,22),cps:[U.ds]},
+ {id:"fine",lv:3,name:"Fine",say:"Fee-nay",meaning:"Fine (say “fee-nay”): the end. Stop here after a D.C. or D.S.",look:"the word Fine",auto:1,draw:()=>TXT("Fine",0,0,30),cps:[]},
+ {id:"endings",lv:3,name:"1st and 2nd endings",say:"First and second endings",meaning:"Play the 1st ending the first time. On the repeat, skip it and play the 2nd ending.",look:"brackets numbered 1 and 2 over the staff",vb:vbS(112,-66),draw:()=>staff(0,112)+G(U.whole,10,-15)+G(U.repR,40,0)+`<path d="M2 -49 V-59 H54.5 V-49 M60 -49 V-59 H110" fill="none" stroke="currentColor" stroke-width="1.6"/>`+TXT("1.",6,-45,13).replace('font-style="italic" font-weight="700"','font-weight="700"')+TXT("2.",64,-45,13).replace('font-style="italic" font-weight="700"','font-weight="700"')+G(U.whole,74,-15),cps:[U.repR]},
+ {id:"ottava",lv:3,name:"Ottava (8va)",say:"Ottava",meaning:"8va: play the notes under the dashed line one octave higher than written.",look:"8va with a dashed line over notes",vb:vbS(84,-80,12),draw:()=>staff(0,84)+G(U.whole,12,-35)+G(U.whole,48,-45)+G(U.ottava,0,-58)+`<path d="M40 -70 H80 V-62" fill="none" stroke="currentColor" stroke-width="1.6" stroke-dasharray="5 3.5"/>`,cps:[U.ottava]},
+ {id:"ped",lv:3,name:"Pedal mark",say:"Pedal mark",meaning:"Ped.: press the damper (right) pedal down. Let it up at the star (*) or where the line ends.",look:"the letters Ped. and a star",auto:1,gb:[0,-22.2,70,0.3],draw:()=>G(U.ped,0,0)+G(U.pedUp,52,0),cps:[U.ped,U.pedUp]},
+ {id:"trill",lv:3,name:"Trill",meaning:"tr: rapidly alternate the note with the note above it.",look:"tr over a note",vb:vbS(50,-66),draw:()=>staff(0,50)+G(U.whole,16,-15)+above(U.trill,10.42,16),cps:[U.trill]},
+ {id:"mordent",lv:3,name:"Mordent",meaning:"A short squiggle with a line through it: quickly play the note, the note below, then the note again.",look:"a short squiggle with a line through it",vb:vbS(50,-66),draw:()=>staff(0,50)+G(U.whole,16,-15)+above(U.mordent,14.58,16),cps:[U.mordent]},
+ {id:"turn",lv:3,name:"Turn",meaning:"A sideways S: play the note above, the note, the note below, then the note.",look:"a sideways S over a note",vb:vbS(50,-66),draw:()=>staff(0,50)+G(U.whole,16,-15)+above(U.turn,9.2,16),cps:[U.turn]},
+ {id:"breath",lv:3,name:"Breath mark",meaning:"A comma above the staff: take a quick breath, or a tiny lift in the sound.",look:"a comma above the staff",vb:vbS(66),draw:()=>staff(0,66)+G(U.qUp,6,-15)+G(U.breath,28,-44)+G(U.qUp,42,-15),cps:[U.breath]},
+ {id:"sixteenth",lv:3,name:"Six­teenth note",say:"Sixteenth note",meaning:"A filled note with two flags. Gets a quarter of a beat; four sixteenths make one beat.",look:"a filled note with two flags",vb:vbS(50),draw:()=>staff(0,50)+G(U.s16Up,14,-15),cps:[U.s16Up]},
+ {id:"dquarter",lv:3,name:"Dotted quarter note",meaning:"A quarter note with a dot. Gets 1½ beats.",look:"a filled note with a stem and a dot",vb:vbS(50),draw:()=>staff(0,50)+G(U.qUp,12,-15)+G(U.dot,12+13.28+3,-15),cps:[U.qUp,U.dot]},
+ {id:"triplet",lv:3,name:"Triplet",meaning:"A 3 over the notes: three notes in the time of two. Three triplet eighths fill one beat.",look:"three beamed notes with a 3",vb:vbS(70,-74),draw:()=>{const xs=[8,30,52];let s=staff(0,70);xs.forEach(x=>{s+=G(U.head,x,-15)+vl(x+11.8-0.6,-16.7,-50,1.2)});s+=`<rect x="${xs[0]+11.2-0.6}" y="-50" width="${xs[2]-xs[0]+1.2}" height="5" fill="currentColor"/>`+G(U.tup3,xs[1]+11.2-6.1,-55);return s},cps:[U.head,U.tup3]},
+ {id:"grace",lv:3,name:"Grace note (acciac­catura)",say:"Grace note, acciaccatura",meaning:"A tiny note with a slash: crush it in quickly, just before the main note.",look:"a small slashed note before a normal note",vb:vbS(56),draw:()=>staff(0,56)+G(U.grace,6,-30)+`<path d="M13.5 -24 Q19 -18.5 25.5 -22" fill="none" stroke="currentColor" stroke-width="1.2"/>`+G(U.qDown,28,-25),cps:[U.grace]},
+ {id:"common",lv:3,name:"Common time",meaning:"The C time signature means the same as 4/4: four quarter-note beats in each measure.",look:"a C on the staff",vb:vbS(44),draw:()=>staff(0,44)+G(U.common,13,-20),cps:[U.common]},
+ {id:"cut",lv:3,name:"Cut time",meaning:"A C with a line through it means 2/2: two beats in each measure, and the half note gets the beat.",look:"a C with a vertical line through it",vb:vbS(44),draw:()=>staff(0,44)+G(U.cut,13,-20),cps:[U.cut]},
+ {id:"keysig",lv:3,name:"Key signature",meaning:"The sharps or flats right after the clef. They apply to those notes all the way through (this one: F♯ and C♯, D major).",look:"a treble clef followed by two sharps",vb:vbS(62),draw:()=>staff(0,62)+G(U.gClef,2,-10)+G(U.sharp,32,-40)+G(U.sharp,44,-25),cps:[U.gClef,U.sharp]},
+ {id:"ledger",lv:3,name:"Ledger lines",meaning:"Short extra lines for notes above or below the staff, like middle C below the treble staff.",look:"notes with short extra lines above and below the staff",vb:vbS(64,-62,20),draw:()=>staff(0,64)+ledger(6,10,26.4)+G(U.whole,10,10)+ledger(40,-50,26.4)+G(U.whole,44,-50),cps:[U.whole]},
+ {id:"alto",lv:3,name:"Alto clef",meaning:"A C clef: its center points to middle C on the middle line. The viola reads it.",look:"a clef shaped like two backward Cs",vb:vbS(56),draw:()=>staff(0,56)+G(U.cClef,10,-20),cps:[U.cClef]},
+];
+const plain=s=>s.replace(/­/g,"");
+S.forEach(s=>{ s.plain=plain(s.name); if(s.dyn) s.vb=`${s.dyn[0]*10-3} -24 ${(s.dyn[1]-s.dyn[0])*10+6} 34` });
+const LEVELS=[
+  {id:"1",name:"Basics",sub:"16 symbols",pool:()=>S.filter(s=>s.lv===1)},
+  {id:"2",name:"Expression",sub:"16 symbols",pool:()=>S.filter(s=>s.lv===2)},
+  {id:"3",name:"Navigation",sub:"21 symbols",pool:()=>S.filter(s=>s.lv===3)},
+  {id:"all",name:"Mixed",sub:"All 53",pool:()=>S.slice()}];
+const SIZES=[6,8,10,12];
+const svgOf=(s)=>`<svg viewBox="${s.vb||"0 0 10 10"}" preserveAspectRatio="xMidYMid meet" aria-hidden="true" focusable="false">${s.draw()}</svg>`;
+// text-based symbols (D.C., Fine, Ped., segno, coda): the viewBox is the union of the SMuFL glyph box (Bravura metadata, in staff spaces x10)
+// and the measured box of any word set in the text font, padded to at least 4 staff spaces tall so every card reads at a similar size
+function fitAuto(){ const m=document.createElementNS("http://www.w3.org/2000/svg","svg"); m.setAttribute("style","position:absolute;left:-9999px;top:0;width:400px;height:200px"); document.body.appendChild(m);
+  S.filter(s=>s.auto).forEach(s=>{ let [x0,y0,x1,y1]=s.gb||[Infinity,Infinity,-Infinity,-Infinity];
+    m.innerHTML=s.draw(); [...m.querySelectorAll("text")].filter(t=>t.getAttribute("font-family")!=="Bravura").forEach(t=>{ try{ const b=t.getBBox(); const asc=b.height*0.72; x0=Math.min(x0,b.x); x1=Math.max(x1,b.x+b.width); y0=Math.min(y0,+t.getAttribute("y")-asc); y1=Math.max(y1,+t.getAttribute("y")+b.height*0.06) }catch(e){} });
+    if(!isFinite(x0)){ x0=-4; y0=-30; x1=116; y1=4 }
+    const p=4; let h=y1-y0+2*p, w=x1-x0+2*p; const cy=(y0+y1)/2; if(h<40) h=40;
+    s.vb=`${(x0-p).toFixed(1)} ${(cy-h/2).toFixed(1)} ${w.toFixed(1)} ${h.toFixed(1)}` }); m.remove() }
+
+/* ============================ SOUND ============================ */
+let ac=null;
+function AC(){ if(!ac){ try{ if(navigator.audioSession) navigator.audioSession.type="playback" }catch(e){} try{ ac=new (window.AudioContext||window.webkitAudioContext)() }catch(e){ return null } } if(ac.state!=="running") ac.resume().catch(()=>{}); return ac }
+const soundOn=()=>$("soundOn").checked;
+function note(m,t,dur,gain,type){ const f=440*Math.pow(2,(m-69)/12), o=ac.createOscillator(), g=ac.createGain(); o.type=type||"sine"; o.frequency.value=f;
+  g.gain.setValueAtTime(0.0001,t); g.gain.exponentialRampToValueAtTime(gain,t+0.012); g.gain.exponentialRampToValueAtTime(0.0001,t+dur); o.connect(g); g.connect(ac.destination); o.start(t); o.stop(t+dur+0.05) }
+function sfx(kind){ if(!soundOn()) return; try{ if(!AC()) return; const t=ac.currentTime+0.01;
+  if(kind==="flip"){ // soft paper tick: a short band of noise and a tiny falling blip
+    const len=0.05, b=ac.createBuffer(1,Math.floor(ac.sampleRate*len),ac.sampleRate), d=b.getChannelData(0); for(let i=0;i<d.length;i++) d[i]=(Math.random()*2-1)*(1-i/d.length);
+    const src=ac.createBufferSource(), bp=ac.createBiquadFilter(), g=ac.createGain(); src.buffer=b; bp.type="bandpass"; bp.frequency.value=2400; bp.Q.value=1.2; g.gain.value=0.16; src.connect(bp); bp.connect(g); g.connect(ac.destination); src.start(t);
+    const o=ac.createOscillator(), og=ac.createGain(); o.frequency.setValueAtTime(1300,t); o.frequency.exponentialRampToValueAtTime(700,t+0.05); og.gain.setValueAtTime(0.05,t); og.gain.exponentialRampToValueAtTime(0.0001,t+0.06); o.connect(og); og.connect(ac.destination); o.start(t); o.stop(t+0.08) }
+  else if(kind==="match"){ note(76,t,0.45,0.12,"triangle"); note(83,t+0.08,0.55,0.10,"triangle"); note(88,t+0.08,0.5,0.03,"sine") }
+  else if(kind==="miss"){ note(57,t,0.22,0.07,"triangle"); note(53,t+0.11,0.3,0.06,"triangle") }
+  else if(kind==="win"){ [72,76,79,84,88].forEach((m,i)=>{ note(m,t+i*0.09,0.7,0.09,"triangle"); note(m+12,t+i*0.09,0.4,0.02,"sine") }) }
+  else if(kind==="hit"){ [79,84].forEach((m,i)=>note(m,t+i*0.07,0.5,0.1,"triangle")) }
+  else if(kind==="whoosh"){ const len=0.7, b=ac.createBuffer(1,Math.floor(ac.sampleRate*len),ac.sampleRate), d=b.getChannelData(0); for(let i=0;i<d.length;i++) d[i]=Math.random()*2-1;
+    const src=ac.createBufferSource(), bp=ac.createBiquadFilter(), g=ac.createGain(); src.buffer=b; bp.type="bandpass"; bp.Q.value=0.9; bp.frequency.setValueAtTime(350,t); bp.frequency.exponentialRampToValueAtTime(2600,t+0.38); bp.frequency.exponentialRampToValueAtTime(900,t+len);
+    g.gain.setValueAtTime(0.0001,t); g.gain.exponentialRampToValueAtTime(0.28,t+0.3); g.gain.exponentialRampToValueAtTime(0.0001,t+len); src.connect(bp); bp.connect(g); g.connect(ac.destination); src.start(t); src.stop(t+len+0.05) }
+ }catch(e){} }
+function hypePlay(ms){ try{ if(window.chmaHype&&soundOn()&&$("hypeOn").checked) chmaHype.play(ms,{ctx:AC(),round:arc?Math.min(5,arc.round):1,bonus:!!(arc&&arc.bonus),enabled:true}) }catch(e){} }
+function hypeStop(f){ try{ window.chmaHype&&chmaHype.stop(f) }catch(e){} }
+function speak(text){ try{ if(!$("speakOn").checked||!soundOn()||!("speechSynthesis" in window)) return; speechSynthesis.cancel(); const u=new SpeechSynthesisUtterance(text); u.rate=0.95; speechSynthesis.speak(u) }catch(e){} }
+const sayOf=s=>`${s.say||s.plain}. ${s.meaning.replace(/♯/g," sharp").replace(/\(\*\)/,"")}`;
+document.addEventListener("visibilitychange",()=>{ if(document.hidden){ hypeStop(60); try{speechSynthesis.cancel()}catch(e){} } else if(ac&&ac.state!=="running") ac.resume().catch(()=>{}) });
+
+/* ============================ STATE ============================ */
+let level=String(store.get("level","1")), pairs=+store.get("pairs",6), mode=store.get("mode","learn");
+if(!LEVELS.some(l=>l.id===level)) level="1"; if(!SIZES.includes(pairs)) pairs=6; if(!["learn","play","chal"].includes(mode)) mode="learn";
+let deck=[], open=[], moves=0, matched=0, t0=0, elapsed=0, tick=null, lockT=null, peeked=false, peekT=null, busy=false, combo=0, cols=4, focusI=0, gameOver=false;
+let arc=null, splashTok=0;
+const L=()=>LEVELS.find(l=>l.id===level);
+const fmt=s=>{ s=Math.floor(s); return `${Math.floor(s/60)}:${String(s%60).padStart(2,"0")}` };
+const shuffle=a=>{ for(let i=a.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [a[i],a[j]]=[a[j],a[i]] } return a };
+
+/* ============================ BOARD ============================ */
+const BACK=`<svg viewBox="-3 -38 29 44" aria-hidden="true">${G(U.e8Up,0,0)}</svg>`;
+function deal(pool,n){ clearTimeout(lockT); clearTimeout(peekT); stopClock(); $("board").classList.remove("peek");
+  const pick=shuffle(pool.slice()).slice(0,n); deck=shuffle(pick.flatMap(s=>[{s,k:"sym"},{s,k:"name"}])).map((c,i)=>({...c,i,up:false,done:false}));
+  open=[]; moves=0; matched=0; elapsed=0; t0=0; peeked=false; busy=false; combo=0; gameOver=false; focusI=0;
+  const b=$("board"); b.innerHTML="";
+  deck.forEach((c,i)=>{ const el=document.createElement("button"); el.className="mc"; el.dataset.i=i; el.tabIndex=i===0?0:-1;
+    el.innerHTML=`<span class="in"><span class="face back" aria-hidden="true">${BACK}</span><span class="face front ${c.k==="sym"?"sym":"nm"}" aria-hidden="true">${c.k==="sym"?svgOf(c.s):`<span>${c.s.name}</span>`}</span></span>`;
+    el.addEventListener("click",()=>tap(i)); b.appendChild(el); label(i) });
+  info(mode==="learn"?"Press <b>Peek 3 s</b> to see every card first, or just start flipping.":mode==="chal"?"Find the pairs. Every match in a row is worth more.":"Flip two cards. Match each symbol to its name.");
+  render(); layout(); }
+function label(i){ const c=deck[i], el=$("board").children[i]; if(!el) return; const pos=`Card ${i+1} of ${deck.length}`;
+  const what=c.k==="sym"?`symbol card: ${c.s.plain}, ${c.s.look}`:`name card: ${c.s.plain}`;
+  el.setAttribute("aria-label",c.up||c.done?`${pos}, ${what}${c.done?", matched":""}`:`${pos}, face down`) }
+function cardEl(i){ return $("board").children[i] }
+function setUp(i,up){ deck[i].up=up; cardEl(i).classList.toggle("up",up); label(i) }
+function info(html,cls){ const el=$("info"); el.innerHTML=`<span>${html}</span>`; el.className="info"+(cls?" "+cls:"") }
+function startClock(){ if(tick) return; t0=performance.now()-elapsed*1000; tick=setInterval(()=>{ elapsed=(performance.now()-t0)/1000; $("sT").textContent=fmt(elapsed) },250) }
+function stopClock(){ if(tick){ clearInterval(tick); tick=null; elapsed=(performance.now()-t0)/1000 } }
+function tap(i){ const c=deck[i]; if(!c||busy||gameOver) return; focusI=i; rove();
+  if(c.done){ if(mode==="learn") explain(c.s,true); return }
+  if(c.up) return;
+  if(open.length===2){ clearTimeout(lockT); flipBack() }   // a third tap closes the last miss right away
+  startClock(); if(mode==="learn"){ peeked=true; $("peekBtn").setAttribute("aria-disabled","true") }
+  setUp(i,true); sfx("flip"); open.push(i);
+  if(open.length<2){ info(c.k==="sym"?"Now find its name.":"Now find its symbol."); return }
+  moves++; const [a,b]=open, A=deck[a], B=deck[b];
+  if(A.s.id===B.s.id&&A.k!==B.k){ A.done=B.done=true; open=[]; matched++; [a,b].forEach(j=>{ cardEl(j).classList.add("done"); label(j) }); sfx("match");
+    let gain=0; if(arc){ gain=(100+50*combo)*(arc.bonus?2:1); arc.pts+=gain; arc.total+=gain }
+    combo++; explain(A.s,false,gain);
+    render(); if(matched===deck.length/2) win() }
+  else { combo=0; sfx("miss"); [a,b].forEach(j=>cardEl(j).classList.add("miss")); info(`Not a pair. ${A.k===B.k?"Two "+(A.k==="sym"?"symbols":"names")+": match a symbol with a name.":"Remember where those were."}`,"bad");
+    render(); lockT=setTimeout(flipBack,FAST?150:(mode==="learn"?1400:1000)) } }
+function flipBack(){ open.forEach(j=>{ cardEl(j).classList.remove("miss"); setUp(j,false) }); open=[] }
+function explain(s,again,gain){ info(`<b>${s.plain}:</b>&nbsp;${s.meaning}${gain?` <b>+${gain}</b>`:""}`,"good");
+  if(mode==="learn") speak(sayOf(s));
+  if(again){ deck.forEach((c,j)=>{ if(c.s.id===s.id){ const el=cardEl(j); el.classList.remove("glow"); void el.offsetWidth; el.classList.add("glow"); setTimeout(()=>el.classList.remove("glow"),1200) } }) } }
+function peek(){ if(mode!=="learn"||peeked||busy||gameOver) return; peeked=true; busy=true; $("peekBtn").setAttribute("aria-disabled","true"); $("board").classList.add("peek");
+  deck.forEach((c,i)=>{ if(!c.done) setUp(i,true) }); sfx("flip"); info("Peek: remember where things are…");
+  peekT=setTimeout(()=>{ deck.forEach((c,i)=>{ if(!c.done) setUp(i,false) }); open=[]; busy=false; $("board").classList.remove("peek"); info("Go! Flip two cards.") },FAST?300:3000) }
+
+// fit the grid to the space: try every column count for this card count, keep the biggest cards (aspect between 0.72 and 1.4)
+function layout(){ const wrap=$("boardWrap"), b=$("board"); if(!deck.length||b.hidden) return; const n=deck.length, W=wrap.clientWidth, H=wrap.clientHeight; if(!W||!H) return;
+  const g=W<520?6:8, opts={12:[3,4,6],16:[4,8],20:[4,5],24:[4,6,8]}[n]||[4];
+  let best=null; opts.forEach(c=>{ const r=Math.ceil(n/c); let w=(W-(c-1)*g)/c, h=(H-(r-1)*g)/r; if(w/h>1.4) w=h*1.4; if(h/w>1/0.72) h=w/0.72; const area=w*h; if(!best||area>best.area) best={c,r,w,h,area} });
+  let {c,w,h}=best; const scroll=w<64||h<64; if(scroll){ w=Math.max(64,w); h=Math.max(64,h) } cols=c;
+  b.classList.toggle("scroll",scroll); b.style.setProperty("--gap",g+"px"); b.style.gridTemplateColumns=`repeat(${c},${Math.floor(w)}px)`; b.style.gridAutoRows=`${Math.floor(h)}px`;
+  fitNames() }
+function fitNames(){ document.querySelectorAll("#board .front.nm span").forEach(sp=>{ const box=sp.parentNode, H=box.clientHeight-4, W=box.clientWidth-6;
+  let fs=Math.max(14,Math.min(22,Math.round(Math.min(H*0.26,W*0.2)))); sp.style.fontSize=fs+"px";
+  while(fs>14&&(sp.scrollHeight>H||sp.scrollWidth>W)){ fs--; sp.style.fontSize=fs+"px" } }) }
+let rz=null; window.addEventListener("resize",()=>{ cancelAnimationFrame(rz); rz=requestAnimationFrame(layout) });
+// keyboard: arrows move between cards (one tab stop for the whole board)
+function rove(){ [...$("board").children].forEach((el,i)=>el.tabIndex=i===focusI?0:-1) }
+$("board").addEventListener("keydown",e=>{ const n=deck.length; let i=focusI; const k=e.key;
+  if(k==="ArrowRight") i=Math.min(n-1,i+1); else if(k==="ArrowLeft") i=Math.max(0,i-1); else if(k==="ArrowDown") i=Math.min(n-1,i+cols); else if(k==="ArrowUp") i=Math.max(0,i-cols); else if(k==="Home") i=0; else if(k==="End") i=n-1; else return;
+  e.preventDefault(); focusI=i; rove(); cardEl(i).focus() });
+$("board").addEventListener("focusin",e=>{ const el=e.target.closest(".mc"); if(el){ focusI=+el.dataset.i; rove() } });
+
+/* ============================ STATS / RESULTS ============================ */
+const bestKey=()=>`best-${mode}-${level}-${pairs}`;
+function render(){ $("sT").textContent=fmt(elapsed); $("sP").textContent=`${matched}/${deck.length/2||0}`;
+  if(arc){ $("lA").textContent="points"; $("sA").textContent=arc.pts; $("lB").textContent="total"; $("sB").textContent=arc.total; arcBar() }
+  else { $("lA").textContent="moves"; $("sA").textContent=moves; $("lB").textContent="best"; const b=store.get(bestKey(),null); $("sB").textContent=b&&b.moves?`${b.moves}`:"–"; $("stB").title=b?`Best: ${b.moves} moves, ${fmt(b.time)}`:"" } }
+function win(){ stopClock(); gameOver=true; sfx("win");
+  if(arc) return arcRoundClear();
+  const key=bestKey(), prev=store.get(key,null), now={moves,time:Math.round(elapsed)};
+  const isNew=!prev||!(prev.moves>0)||now.moves<prev.moves||(now.moves===prev.moves&&now.time<prev.time); if(isNew) store.set(key,now);
+  const best=isNew?now:prev; render();
+  setTimeout(()=>{ $("rTitle").textContent="Board cleared!"; $("rScore").innerHTML=`${moves} <small>moves · ${fmt(elapsed)}${isNew?" · new best!":""}</small>`;
+    $("r1").textContent=moves; $("r1l").textContent="Moves"; $("r2").textContent=fmt(elapsed); $("r3").textContent=`${best.moves}`; $("r3l").textContent="Best moves";
+    $("rWhy").textContent=moves===pairs?"Perfect memory: not a single miss.":`A perfect game is ${pairs} moves. ${isNew?"That is your new best for this level and size.":`Your best here is ${best.moves} moves.`}`;
+    listMatched(); stampIt(`${mode==="learn"?"Learn":"Play"} · ${L().name} · ${pairs} pairs`); $("againBtn").textContent="Play again"; $("closeBtn").textContent="Back";
+    sheet(true) },FAST?50:900) }
+function listMatched(){ const seen=new Set(); $("rList").innerHTML=deck.filter(c=>!seen.has(c.s.id)&&seen.add(c.s.id)).map(c=>`<li><b>${c.s.plain}:</b> ${c.s.meaning}</li>`).join("") }
+function stampIt(what){ const d=new Date(); $("rStamp").textContent=`Symbol Memory · ${what} · ${d.toLocaleDateString(undefined,{weekday:"short",month:"short",day:"numeric"})} ${d.toLocaleTimeString([],{hour:"numeric",minute:"2-digit"})} · Screenshot this and send it to your Instructor.` }
+function sheet(on){ $("results").hidden=!on; [...$("card").children].forEach(c=>{ if(c!==$("results")) c.inert=on }); if(on){ $("results").scrollTop=0; try{ $("rTitle").focus({preventScroll:true}) }catch(e){} } }
+
+/* ============================ CHALLENGE ============================ */
+// Each round adds pairs or harder symbols. Points count up from 0 every round toward that round's target.
+// 100 a match, +50 for each match in a row, and a speed bonus when the board is clear (10 a second under par). Bonus round: everything x2.
+const ROUNDS=[
+  {n:6, lv:"1",  t:700,  what:"6 pairs · Basics"},
+  {n:8, lv:"1",  t:1000, what:"8 pairs · Basics"},
+  {n:8, lv:"2",  t:1000, what:"8 pairs · Expression"},
+  {n:10,lv:"12", t:1350, what:"10 pairs · Basics + Expression"},
+  {n:12,lv:"3",  t:1700, what:"12 pairs · Navigation"},
+  {n:12,lv:"all",t:3400, what:"12 pairs · every symbol", bonus:true}];
+const poolFor=lv=>lv==="12"?S.filter(s=>s.lv<3):lv==="all"?S.slice():S.filter(s=>s.lv===+lv);
+const R=()=>ROUNDS[arc.round-1];
+function arcUI(on){ $("arcRow").hidden=!on; $("arcMeter").hidden=!on; document.body.classList.toggle("running",on); if(!on){ $("card").classList.remove("met"); $("arcMeter").classList.remove("hit","flash") } buttons(); requestAnimationFrame(layout) }
+function arcBar(){ if(!arc) return; const r=R(), hit=arc.pts>=r.t;
+  $("arcRound").textContent=arc.bonus?"BONUS ROUND":`ROUND ${arc.round} OF 5`; $("arcNeed").textContent=`${hit?"✓ ":""}${arc.pts} / ${r.t}`; $("arcNeed").classList.toggle("met",hit);
+  $("arcTotal").textContent=`TOTAL ${arc.total}`; $("arcFire").hidden=!arc.bonus; $("arcFill").style.width=Math.min(100,arc.pts/r.t*100)+"%"; $("arcHit").textContent=arc.bonus?"✓ BONUS TARGET HIT":"✓ TARGET HIT";
+  const m=$("arcMeter"); if(hit&&!arc.hit){ arc.hit=true; m.classList.remove("flash"); void m.offsetWidth; m.classList.add("flash"); const hs=$("hitStamp"); hs.classList.remove("go"); void hs.offsetWidth; hs.classList.add("go"); sfx("hit"); $("card").classList.add("met") }
+  m.classList.toggle("hit",hit) }
+function arcSplash(t,sub,then,pre){ const ms=FAST?600:Math.max(4500,2500+String(sub||"").length*30); clearTimeout(lockT); $("arcSplashT").textContent=t; $("arcSplashS").textContent=sub; $("arcSplashP").textContent=pre||"";
+  const sp=$("arcSplash"); sp.hidden=false; $("card").classList.remove("met"); busy=true;
+  const pcs=$("arcPcs"); pcs.innerHTML=""; const colsC=["var(--c-sel)","var(--good)","#ff8a1f","#ffd23f"]; if(!reduced()) for(let i=0;i<22;i++){ const a=Math.random()*Math.PI*2,d=110+Math.random()*170,e=document.createElement("i"); e.className="pc"; e.style.cssText=`background:${colsC[i%4]};--dx:${Math.cos(a)*d}px;--dy:${Math.sin(a)*d}px;--r:${Math.random()*720-360}deg`; pcs.appendChild(e) }
+  sp.classList.remove("go"); void sp.offsetWidth; sp.classList.add("go"); sfx("whoosh"); hypePlay(ms); window.__lastHype={ms,round:arc?arc.round:0,bonus:!!(arc&&arc.bonus),at:Date.now()};
+  const tok=++splashTok, t00=performance.now(), go=()=>{ if(tok!==splashTok) return; splashTok++; hypeStop(120); sp.onclick=null; sp.hidden=true; busy=false; if(arc) then() };
+  sp.onclick=()=>{ if(performance.now()-t00>900) go() }; setTimeout(go,ms) }
+function arcStart(){ stopChallenge(); sheet(false); arc={round:1,bonus:false,pts:0,total:0,hit:false,log:[]}; arcUI(true); render();
+  arcSplash("ROUND 1",`${ROUNDS[0].what}. Target: ${ROUNDS[0].t} points. 100 a match, more for matches in a row, plus a speed bonus.`,arcDeal,"CHALLENGE MODE") }
+function arcDeal(){ const r=R(); arc.pts=0; arc.hit=false; deal(poolFor(r.lv),r.n); render() }
+function arcRoundClear(){ const r=R(), par=r.n*6, speed=Math.max(0,Math.round(par-elapsed))*10*(arc.bonus?2:1); arc.pts+=speed; arc.total+=speed; render();
+  arc.log.push({round:arc.round,pts:arc.pts,target:r.t,moves,time:Math.round(elapsed)});
+  info(`<b>Board clear!</b>&nbsp;Speed bonus +${speed}. Round score ${arc.pts} / ${r.t}.`,"good");
+  const ok=arc.pts>=r.t;
+  setTimeout(()=>{ if(!arc) return;
+    if(!ok) return arcFinish(false);
+    if(arc.bonus) return arcFinish(true);
+    const cleared=arc.round; arc.round++; const nr=R(); if(nr.bonus) arc.bonus=true; arc.pts=0; arc.hit=false; render();
+    arcSplash(nr.bonus?"BONUS ROUND":`ROUND ${arc.round}`,`${nr.what}. Target: ${nr.t} points.${nr.bonus?" Every point counts double.":""}`,arcDeal,`ROUND ${cleared} CLEARED ✓`) },FAST?100:1400) }
+function arcFinish(won){ const r=R(), reached=arc.bonus?"Bonus round":`Round ${arc.round}`, total=arc.total, prev=Math.max(0,+store.get("chalbest",0)||0), isNew=total>prev; if(isNew) store.set("chalbest",total);
+  splashTok++; hypeStop(120); const got=arc.pts, need=r.t, rn=arc.round; arc=null; arcUI(false); gameOver=true;
+  $("rTitle").textContent=won?"Challenge cleared!":"Challenge over"; $("rScore").innerHTML=`${total} <small>points · ${reached}${isNew?" · new high score":""}</small>`;
+  $("r1").textContent=total; $("r1l").textContent="Points"; $("r2").textContent=fmt(elapsed); $("r3").textContent=Math.max(prev,total); $("r3l").textContent="High score";
+  $("rWhy").textContent=won?"All five rounds and the bonus round cleared.":`Round ${rn} target was ${need}. You had ${got}. Matches in a row and a fast clear push the score up.`;
+  listMatched(); stampIt(`Challenge · ${reached}`); $("againBtn").textContent="Challenge again"; $("closeBtn").textContent="Back"; sheet(true) }
+function stopChallenge(){ splashTok++; hypeStop(120); $("arcSplash").hidden=true; busy=false; arc=null; arcUI(false) }
+
+/* ============================ WIRING ============================ */
+function buttons(){ document.querySelectorAll("#levels .k").forEach(b=>{ b.setAttribute("aria-pressed",String(b.dataset.id===level)); b.setAttribute("aria-disabled",String(mode==="chal")) });
+  document.querySelectorAll("#sizes .k").forEach(b=>{ b.setAttribute("aria-pressed",String(+b.dataset.n===pairs)); b.setAttribute("aria-disabled",String(mode==="chal")) });
+  document.querySelectorAll("#modes .k").forEach(b=>b.setAttribute("aria-pressed",String(b.dataset.mode===mode)));
+  $("peekBtn").hidden=mode!=="learn"; $("peekBtn").setAttribute("aria-disabled",String(peeked));
+  $("goBtn").textContent=mode==="chal"?(arc?"Stop":"Start Challenge"):"New game" }
+function newGame(){ if(mode==="chal"){ stopChallenge(); sheet(false); chalIntro(); return } sheet(false); $("board").hidden=false; $("intro")&&$("intro").remove(); deal(L().pool(),pairs); buttons() }
+function chalIntro(){ deck=[]; stopClock(); elapsed=0; moves=0; matched=0; $("board").innerHTML=""; $("board").hidden=true; let el=$("intro"); if(!el){ el=document.createElement("div"); el.id="intro"; el.className="intro"; $("boardWrap").appendChild(el) }
+  const best=+store.get("chalbest",0)||0;
+  el.innerHTML=`<h2>Challenge</h2><p>Five rounds and a bonus round. Points count up from 0 each round toward a target. Each round adds pairs or harder symbols, from Basics to every symbol.</p><p>100 a match · +50 for every match in a row · speed bonus when the board is clear.</p>${best?`<p>High score: <b>${best}</b></p>`:""}<button class="k primary" id="introGo">Start Challenge</button>`;
+  $("introGo").addEventListener("click",()=>{ AC(); el.remove(); $("board").hidden=false; arcStart() });
+  info("Challenge mode: the rounds pick the symbols and the board size."); render(); buttons() }
+LEVELS.forEach(l=>{ const b=document.createElement("button"); b.className="k"; b.dataset.id=l.id; b.title=l.sub; b.innerHTML=`<b>${l.id==="all"?"MIX":"L"+l.id}</b><span>${l.name}</span>`;
+  b.addEventListener("click",()=>{ if(mode==="chal") return; level=l.id; store.set("level",level); newGame() }); $("levels").appendChild(b) });
+SIZES.forEach(n=>{ const b=document.createElement("button"); b.className="k"; b.dataset.n=n; b.textContent=n; b.setAttribute("aria-label",`${n} pairs`);
+  b.addEventListener("click",()=>{ if(mode==="chal") return; pairs=n; store.set("pairs",n); newGame() }); $("sizes").appendChild(b) });
+document.querySelectorAll("#modes .k").forEach(b=>b.addEventListener("click",()=>{ mode=b.dataset.mode; store.set("mode",mode); newGame() }));
+["soundOn","hypeOn","speakOn"].forEach(id=>{ $(id).checked=!!store.get(id,$(id).checked); $(id).addEventListener("change",()=>{ store.set(id,$(id).checked); if(!$(id).checked&&id!=="speakOn") hypeStop(120); if(id==="soundOn") muteUI() }) });
+function muteUI(){ const on=soundOn(); $("muteBtn").setAttribute("aria-pressed",String(on)); $("muteBtn").setAttribute("aria-label",on?"Sound on":"Sound off"); $("muteWave").toggleAttribute("hidden",!on); $("muteX").toggleAttribute("hidden",on) }
+$("muteBtn").addEventListener("click",()=>{ $("soundOn").checked=!soundOn(); store.set("soundOn",soundOn()); if(!soundOn()){ hypeStop(80); try{speechSynthesis.cancel()}catch(e){} } else AC(); muteUI() });
+$("peekBtn").addEventListener("click",()=>{ AC(); peek() });
+$("goBtn").addEventListener("click",()=>{ AC(); if(mode==="chal"){ if(arc){ stopChallenge(); chalIntro() } else { const i=$("intro"); i&&i.remove(); $("board").hidden=false; arcStart() } return } newGame() });
+$("againBtn").addEventListener("click",()=>{ AC(); if($("againBtn").textContent.startsWith("Challenge")){ sheet(false); const i=$("intro"); i&&i.remove(); $("board").hidden=false; arcStart() } else newGame() });
+$("closeBtn").addEventListener("click",()=>{ sheet(false); if(mode==="chal") chalIntro(); else newGame() });
+function drawer(on){ document.body.classList.toggle("drawer",on); $("setupBtn").setAttribute("aria-expanded",String(on)); if(on) setTimeout(()=>{ try{ $("drawClose").focus() }catch(e){} },30); else try{ $("setupBtn").focus({preventScroll:true}) }catch(e){} }
+$("setupBtn").addEventListener("click",()=>drawer(true)); $("drawClose").addEventListener("click",()=>drawer(false)); $("scrim").addEventListener("click",()=>drawer(false));
+function openSheet(lvId){ const lv=LEVELS.find(l=>l.id===lvId)||L(); $("sheetT").textContent=`${lv.id==="all"?"All levels":"Level "+lv.id+" · "+lv.name}: ${lv.pool().length} symbols`;
+  $("sheetGrid").innerHTML=lv.pool().map(s=>`<div class="tile" data-id="${s.id}"><div class="pic">${svgOf(s)}</div><div><small>L${s.lv}</small><b>${s.plain}</b><p>${s.meaning}</p></div></div>`).join("");
+  $("sheet").hidden=false; try{ $("sheetT").focus({preventScroll:true}) }catch(e){} }
+$("sheetBtn").addEventListener("click",()=>openSheet(level)); $("sheetClose").addEventListener("click",()=>{ $("sheet").hidden=true; $("sheetBtn").focus() });
+document.addEventListener("keydown",e=>{ if(e.key!=="Escape") return; if(!$("sheet").hidden){ $("sheet").hidden=true; return } if(document.body.classList.contains("drawer")) drawer(false) });
+
+// start once Bravura is in (never deal blank cards); a slow font server still starts after 4 s
+const fontReady=Promise.race([document.fonts?document.fonts.load('40px "Bravura"',""):Promise.resolve(),new Promise(r=>setTimeout(r,4000))]).catch(()=>{});
+fontReady.then(()=>{ fitAuto(); muteUI(); newGame(); if(qs.get("sheet")) openSheet(qs.get("sheet")) });
+
+// test hook
+window.__sm={S,LEVELS,ROUNDS,state:()=>({level,pairs,mode,moves,matched,n:deck.length/2,elapsed,busy,gameOver,cols,arc:arc?{...arc}:null,results:!$("results").hidden,splash:!$("arcSplash").hidden,peeked}),
+  deck:()=>deck.map(c=>({id:c.s.id,k:c.k,up:c.up,done:c.done})), tap, newGame, openSheet, layout, ready:fontReady};
+})();
+</script>
+</body></html>
