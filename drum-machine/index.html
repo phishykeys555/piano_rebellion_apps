@@ -228,28 +228,39 @@ input[type=range]:active::-moz-range-thumb{transform:scale(1.12)}
 .psq p{margin:0 0 8px;color:var(--c-ink)}.psq .row{margin:0}.psq label{text-transform:none;letter-spacing:0;font-size:12px;font-weight:600}
 .psx-ready{border:1px solid var(--c-sel);border-radius:12px;padding:10px 12px;margin:6px 0;font-size:13px;color:var(--c-ink)}
 </style>
+<style>/* 2026-11-11.16: SVG icons sized to the text */
+.ic{display:inline-block;width:1.1em;height:1.1em;vertical-align:middle;flex:none;position:relative;top:-.08em;overflow:visible}
+button .ic{margin-right:.4em}button .ic+.ic,button .ic:last-child:not(:first-child){margin:0 0 0 .3em}
+.ic-medal{width:1.25em;height:1.25em}
+.medal{display:inline-flex;align-items:center;vertical-align:middle}.medal .ic-medal{width:28px;height:28px;top:0}
+body.emb .medal .ic-medal{width:24px;height:24px}
+.log .ic-medal{width:20px;height:20px}
+.blm .ic{width:1.15em;height:1.15em}.blm .ic-medal{width:22px;height:22px;top:-.05em}
+button .ic{width:1.2em;height:1.2em}
+.hint .ic{width:1em;height:1em;margin:0 .05em}
+</style>
 
 </head><body><div class="wrap">
 <div data-chma-head></div>
 <h1 class="mmt">Modal <em>Metronome</em></h1>
 <div class="top"><div class="bpm"><span id="v" role="button" tabindex="0" title="Tap to type a tempo" aria-label="Tempo 80 BPM. Tap to type a tempo">80</span><input id="bpmIn" type="text" inputmode="numeric" pattern="[0-9]*" maxlength="3" enterkeyhint="done" autocomplete="off" spellcheck="false" aria-label="Type a tempo, 40 to 280 BPM" hidden> <small>BPM</small> <span class="medal" id="m"></span></div>
 </div>
-<div class="beat" id="beat"><div class="dots" id="dots" aria-hidden="true"></div><div class="blm" id="blm">Press ▶ Play or Space</div><div class="chord" id="chord"></div></div>
+<div class="beat" id="beat"><div class="dots" id="dots" aria-hidden="true"></div><div class="blm" id="blm">Press <span data-ic="play"></span> Play or Space</div><div class="chord" id="chord"></div></div>
 <input id="s" type="range" aria-label="Tempo in BPM" min="40" max="280" step="1" value="80">
 <div class="row">
-<button class="play" id="p">▶ Play</button>
+<button class="play" id="p"><span data-ic="play"></span>Play</button>
 <button id="d5" aria-label="Slower by 5 BPM">−5</button><button id="d1" aria-label="Slower by 1 BPM">−1</button><button id="u1" aria-label="Faster by 1 BPM">+1</button><button id="u5" aria-label="Faster by 5 BPM">+5</button>
-<button id="tap" aria-label="Tap tempo">Tap</button><button id="fnow">🥁 Fill now</button>
+<button id="tap" aria-label="Tap tempo">Tap</button><button id="fnow"><span data-ic="drum"></span>Fill now</button>
 <label class="vol"><input type="range" id="mv" aria-label="Master volume" data-s min="0" max="100" value="50"><span id="mvt">50%</span></label>
 </div>
-<div class="row exp"><label title="Renders your current groove, bass, chords, fills and tempo into an MP3 you can keep">Export MP3 <select id="xlen" data-s><option value="2">2 min</option><option value="3" selected>3 min</option><option value="4">4 min</option><option value="5">5 min</option><option value="6">6 min</option><option value="7">7 min</option></select></label><button id="xbtn">⬇ Export loop</button><span id="xst" role="status" style="font-size:12px;opacity:.8"></span></div>
+<div class="row exp"><label title="Renders your current groove, bass, chords, fills and tempo into an MP3 you can keep">Export MP3 <select id="xlen" data-s><option value="2">2 min</option><option value="3" selected>3 min</option><option value="4">4 min</option><option value="5">5 min</option><option value="6">6 min</option><option value="7">7 min</option></select></label><button id="xbtn"><span data-ic="download"></span>Export loop</button><span id="xst" role="status" style="font-size:12px;opacity:.8"></span></div>
 
 <div class="sec"><h4>My presets</h4>
 <div class="row">
 <label>My presets <select id="ps"><option value="">— choose —</option></select></label><button id="psl">Load</button><button id="psd">Delete</button>
-<input type="text" id="psn" placeholder="Name it (e.g. Blue Rondo slow)" style="width:170px"><button id="pss">💾 Save</button><span id="psm" role="status" style="font-size:12px;color:var(--mut)"></span>
+<input type="text" id="psn" placeholder="Name it (e.g. Blue Rondo slow)" style="width:170px"><button id="pss"><span data-ic="save"></span>Save</button><span id="psm" role="status" style="font-size:12px;color:var(--mut)"></span>
 </div>
-<div class="row psio"><button type="button" id="psx">⬇ Export presets</button><button type="button" id="psi">⬆ Import presets</button><input type="file" id="psf" accept=".metronome,application/json" multiple hidden></div>
+<div class="row psio"><button type="button" id="psx"><span data-ic="download"></span>Export presets</button><button type="button" id="psi"><span data-ic="upload"></span>Import presets</button><input type="file" id="psf" accept=".metronome,application/json" multiple hidden></div>
 <div id="psq" class="psq" role="group" aria-label="Preset name clash" hidden></div>
 <div id="psxm" class="psxm" role="status"></div>
 <div class="hint">Save everything you set up (groove, tempo, time, sounds, chords) under a name. It stays on this device. Pick one from the list to load it. Export saves all your presets to a .metronome file you can import on another device or browser.</div>
@@ -283,7 +294,7 @@ input[type=range]:active::-moz-range-thumb{transform:scale(1.12)}
 <label><input type="checkbox" id="crash" data-s> Crash every 4 bars</label>
 </div>
 <div class="hint vch"><span id="vchs">Want the groove to switch between a verse and a chorus?</span> <button type="button" id="vcgo">Verse / Chorus is in the Song tab</button></div>
-<div class="row rsrow"><button id="reset" title="Back to the starting settings. Your practice log and presets stay.">↺ Reset all settings</button></div></div>
+<div class="row rsrow"><button id="reset" title="Back to the starting settings. Your practice log and presets stay."><span data-ic="reset"></span>Reset all settings</button></div></div>
 
 <div class="sec"><h4>Practice</h4>
 <div class="row">
@@ -301,7 +312,7 @@ input[type=range]:active::-moz-range-thumb{transform:scale(1.12)}
 <div class="sec"><h4>Fills</h4>
 <div class="row">
 <label>Fills <select id="fe" data-s><option value="0">Off</option><option value="2">Every 2 bars</option><option value="4" selected>Every 4 bars</option><option value="8">Every 8 bars</option></select></label>
-<label class="adv">Style <select id="fs" data-s><option value="mixed" selected>Snare + Toms</option><option value="toms">Tom Run (high → low)</option><option value="snare">Snare Roll</option><option value="build">Build-Up (EDM / pop)</option><option value="random">Surprise Me (random)</option></select></label>
+<label class="adv">Style <select id="fs" data-s><option value="mixed" selected>Snare + Toms</option><option value="toms">Tom Run (high to low)</option><option value="snare">Snare Roll</option><option value="build">Build-Up (EDM / pop)</option><option value="random">Surprise Me (random)</option></select></label>
 <label title="Low = short, simple fill. High = full-bar, busy fill with doubles.">Amount <input type="range" id="fa" data-s min="0" max="100" value="40" style="width:100px"><span id="fat" style="min-width:110px"></span></label>
 <label class="adv"><input type="checkbox" id="fc" data-s checked> Crash after fill</label>
 </div></div>
@@ -327,7 +338,7 @@ input[type=range]:active::-moz-range-thumb{transform:scale(1.12)}
 <label title="Keeps the bass from getting repetitive: writes a fresh bass line every few bars while you play">Change it up <select id="bauto" data-s><option value="0">Off</option><option value="4">New line every 4 bars</option><option value="8" selected>New line every 8 bars</option><option value="16">New line every 16 bars</option><option value="surprise">Surprise me (new line, feel and busyness)</option></select></label>
 <label title="How often the bass adds passing notes, octave jumps and pickups">Variation <input type="range" id="bvar" data-s min="0" max="100" value="35" style="width:90px"></label>
 <label>Bass volume <input type="range" id="bv" data-s min="0" max="150" value="100" style="width:90px"></label>
-<button id="bnew">🎲 New bass line</button>
+<button id="bnew"><span data-ic="dice"></span>New bass line</button>
 </div></div>
 
 <div class="sec"><h4>Keys</h4>
@@ -382,7 +393,7 @@ input[type=range]:active::-moz-range-thumb{transform:scale(1.12)}
 </select></label><label><select id="cb" data-s><option>2</option><option>4</option><option selected>8</option><option>16</option></select> bars</label>
 </div>
 
-<div class="row"><button id="cx">📋 Copy pattern code</button><button id="ci2">⬇ Load code</button><span id="cmsg" role="status" style="font-size:12px;color:var(--mut)"></span></div>
+<div class="row"><button id="cx"><span data-ic="copy"></span>Copy pattern code</button><button id="ci2"><span data-ic="upload"></span>Load code</button><span id="cmsg" role="status" style="font-size:12px;color:var(--mut)"></span></div>
 <textarea id="code" placeholder="Pattern code appears here. Paste a code here and press “Load code”."></textarea>
 </div>
 
@@ -390,7 +401,7 @@ input[type=range]:active::-moz-range-thumb{transform:scale(1.12)}
 <div class="row">
 <label>Output <select id="mode" data-s><option value="direct" selected>Direct (recommended)</option><option value="compat">Compatibility</option></select></label>
 <label>Device <select id="dev"><option value="">System default</option></select></label>
-<button id="test">🔔 Test sound</button>
+<button id="test"><span data-ic="bell"></span>Test sound</button>
 </div>
 <div class="row"><span id="st" role="status" style="font-size:12px;color:var(--mut)"></span><span id="sv" style="font-size:12px;color:var(--mut)"></span></div>
 </div>
@@ -398,15 +409,47 @@ input[type=range]:active::-moz-range-thumb{transform:scale(1.12)}
 <div class="sec adv"><h4>Pattern</h4>
 <label style="margin-bottom:4px"><input type="checkbox" id="showall" data-s> Show all drums (otherwise only drums used in this groove)</label>
 <div class="grid" id="g"></div>
-<div class="hint">Tap a square to add a hit, again for a soft (ghost) hit, again to remove. On a phone, swipe the pattern sideways to see every beat. Click a drum name to hear it. Keys: Space play/stop · ←/→ ±1 BPM · ↑/↓ ±5 BPM · F fill · T tap.</div>
+<div class="hint">Tap a square to add a hit, again for a soft (ghost) hit, again to remove. On a phone, swipe the pattern sideways to see every beat. Click a drum name to hear it. Keys: Space play/stop · <span data-ic="left:Left arrow"></span>/<span data-ic="right:Right arrow"></span> ±1 BPM · <span data-ic="up:Up arrow"></span>/<span data-ic="down:Down arrow"></span> ±5 BPM · F fill · T tap.</div>
 </div>
 
 <div class="sec"><h4>Practice log</h4>
 <div class="log" id="log"></div>
-<div class="row" style="margin-top:6px"><button id="rset">↺ Reset settings (keeps your practice log and presets)</button><button id="logclr" class="adv">Clear log</button></div>
+<div class="row" style="margin-top:6px"><button id="rset"><span data-ic="reset"></span>Reset settings (keeps your practice log and presets)</button><button id="logclr" class="adv">Clear log</button></div>
 </div>
 <details class="credit adv"><summary>Credits</summary>Black Pearl, vintage Ludwig and Blonde Bop jazz kits: AVL Drumkits by Glen MacArthur (CC BY-SA). Fingered, flatwound and picked electric basses: GeneralUser GS by S. Christian Collins (free for any use). Studio slap bass: FluidR3 GM by Frank Wen (MIT), 3 velocity layers, rendered per note. Upright jazz bass, bowed upright and Rhodes electric piano: FluidR3 GM by Frank Wen (MIT), 3 velocity layers, rendered per note. Grand piano: Salamander Grand Piano V3 by Alexander Holm (CC BY 3.0), 4 of its 16 velocity layers. Upright piano, FM electric piano, drawbar and rock organs, sweep pad and synth strings: FreePats (CC0). Old Squier set: Karoryfer Growlybass (Squier Jazz Bass) and D. Smolken's 1958 Rubner double bass, via sfzinstruments (CC0). 80s FM Lately Bass and analog synth basses: FreePats (CC0). Recorded samples: LinnDrum LM-2 and Roland CR-78 (public domain); Pearl Master Studio kit (incl. ride &amp; bell) by enoe (CC BY 3.0); studio hi-hats and Zildjian / Sabian rides from AVL Drumkits by Glen MacArthur (CC BY-SA 4.0); EMT 140 plate reverb impulse by Greg Hopkins (CC BY), via oramics/sampled. Fingered and picked bass: Andrea Biasior’s Yamaha RBX via FreePats (CC0). Electric upright: Karoryfer Ergo by D. Smolken (CC0). Slap &amp; fretless: MusyngKite SoundFont (CC BY-SA 3.0); synth bass: FluidR3 GM by Frank Wen (CC BY 3.0); both via gleitz/midi-js-soundfonts.</details>
 </div>
+<script>/* 2026-11-11.16: one icon set for the whole app (no emoji). 24x24 grid, 2px round strokes in currentColor so the icons follow the theme;
+   the medals are solid metal discs with a ribbon and a 1 / 2 / 3, readable at 16 px in both themes. mmIcon(name, label): label = meaningful (role img), none = decorative. */
+(function(){
+ const S=(d,extra)=>'<path d="'+d+'"'+(extra||'')+'/>',F=' fill="currentColor" stroke="none"';
+ const P={
+  play:S('M7 4.5v15l12.5-7.5z',F),
+  stop:'<rect x="6" y="6" width="12" height="12" rx="1.6" fill="currentColor" stroke="none"/>',
+  drum:'<ellipse cx="12" cy="11.5" rx="8.5" ry="3"/>'+S('M3.5 11.5v6.5c0 1.6 3.8 3 8.5 3s8.5-1.4 8.5-3v-6.5M8 14.3v6M16 14.3v6')+S('M3.5 2.5l6 6.5M20.5 2.5l-6 6.5'),
+  save:S('M5 5a1 1 0 0 1 1-1h10.2L20 7.8V19a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1z')+S('M8.5 4v4.5h6V4M8 20v-5.5h8V20'),
+  download:S('M12 4v11M7 10.5l5 5 5-5M5 20h14'),
+  upload:S('M12 15.5V4.5M7 9l5-5 5 5M5 20h14'),
+  reset:S('M4.5 12a7.5 7.5 0 1 0 2.2-5.3')+S('M4.5 4v4.5H9'),
+  dice:'<rect x="4" y="4" width="16" height="16" rx="3.5"/><circle cx="8.6" cy="8.6" r="1.5" fill="currentColor" stroke="none"/><circle cx="12" cy="12" r="1.5" fill="currentColor" stroke="none"/><circle cx="15.4" cy="15.4" r="1.5" fill="currentColor" stroke="none"/>',
+  copy:'<rect x="5.5" y="5" width="13" height="16" rx="2"/>'+S('M9 3.5h6v3H9z')+S('M9 11.5h6M9 15.5h4'),
+  bell:S('M6 16.5V11a6 6 0 0 1 12 0v5.5l1.5 1.5h-15z')+S('M10 20.5a2.2 2.2 0 0 0 4 0'),
+  check:S('M5 12.5l4.5 4.5L19 7.5'),
+  flag:S('M5.5 21V4M5.5 4.5h12l-2.5 4 2.5 4h-12'),
+  hush:S('M4 9.5h3.5L12 5.5v13l-4.5-4H4z',' stroke-linejoin="round"')+S('M15.5 9.5l5 5M20.5 9.5l-5 5'),
+  right:S('M5 12h14M13 6l6 6-6 6'),left:S('M19 12H5M11 6l-6 6 6 6'),up:S('M12 19V5M6 11l6-6 6 6'),down:S('M12 5v14M6 13l6 6 6-6')};
+ // Medals: fixed metal colours (not the theme), dark numeral strokes, ribbon in the CHMA blue and orange.
+ const ribbon='<path d="M5 .6h5l3 7.2-3.8 1.2z" fill="#2f6bff"/><path d="M19 .6h-5l-3 7.2 3.8 1.2z" fill="#ff6a1a"/>';
+ const DIG={1:'M10.4 11.9l2.3-1.7v8.6',2:'M9.6 12.1a2.45 2.35 0 0 1 4.9.15c0 1.25-.85 2-1.9 3L9.5 18.8h5.2',3:'M9.7 10.5h4.6l-2.5 3.1c1.6 0 2.8 1 2.8 2.45 0 1.55-1.25 2.75-2.85 2.75-1.05 0-1.9-.4-2.4-1.05'};
+ const disc=(n,fill,rim,hi,ink)=>ribbon+'<g transform="translate(12 14.4) scale(1.15) translate(-12 -14.6)"><circle cx="12" cy="14.6" r="8" fill="'+fill+'" stroke="'+rim+'" stroke-width="1.3"/><path d="M6.6 12.2a6 6 0 0 1 4-4.1" fill="none" stroke="'+hi+'" stroke-width="1.2" stroke-linecap="round" opacity=".9"/><path d="'+DIG[n]+'" fill="none" stroke="'+ink+'" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></g>';
+ const M={gold:[disc(1,'#f2c21b','#9a6c00','#fff2b0','#4a3300'),'Gold medal, 1st: 190 BPM and up'],
+  silver:[disc(2,'#d3d8df','#6f7783','#ffffff','#262b33'),'Silver medal, 2nd: 120 to 189 BPM'],
+  bronze:[disc(3,'#d38a4a','#7d4316','#f6c79a','#3a1904'),'Bronze medal, 3rd: under 120 BPM'],
+  trophy:['<path d="M7 2.8h10v5.4a5 5 0 0 1-10 0z" fill="#f2c21b" stroke="#9a6c00" stroke-width="1.2"/><path d="M7 4.5H4.2c0 2.6 1.3 4.2 3.4 4.6M17 4.5h2.8c0 2.6-1.3 4.2-3.4 4.6" fill="none" stroke="#9a6c00" stroke-width="1.5" stroke-linecap="round"/><path d="M10.6 13h2.8v3.6h-2.8z" fill="#c99a0e"/><rect x="7.2" y="16.6" width="9.6" height="4.4" rx="1" fill="#2f6bff" stroke="#163a99" stroke-width="1"/><path d="M12 4.6l.9 1.8 2 .3-1.45 1.4.35 2-1.8-.95-1.8.95.35-2-1.45-1.4 2-.3z" fill="#fff6c8"/>','Trophy: 260 BPM and up']};
+ window.mmIcon=function(n,label){const m=M[n];const body=m?m[0]:P[n];if(!body)return '';label=label||(m?m[1]:'');
+  return '<svg class="ic'+(m?' ic-medal':'')+'" viewBox="0 0 24 24" '+(m?'':'fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" ')+'focusable="false" '+(label?'role="img" aria-label="'+label.replace(/"/g,'&quot;')+'"><title>'+label+'</title>':'aria-hidden="true">')+body+'</svg>'};
+ // Static markup carries <span data-ic="name"> or <span data-ic="name:Label">; swap each for its icon.
+ document.querySelectorAll('[data-ic]').forEach(e=>{const [n,l]=e.dataset.ic.split(':');e.outerHTML=mmIcon(n,l)});
+})();</script>
 <script>/* On a slow connection the sounds below take a while to arrive: say so on Play instead of a dead button. */
 (function(){const b=document.getElementById('p');if(b){b.disabled=true;b.textContent='Loading sounds…'}})();</script>
 <script>
@@ -777,8 +820,10 @@ function draw(){g.innerHTML='';cells={};const n=steps();g.style.gridTemplateColu
   cells[k]=[];for(let i=0;i<n;i++){const c=document.createElement('div');c.className=cls(grid[k][i],i);c.setAttribute('role','button');c.tabIndex=-1;c.dataset.k=k;c.dataset.i=i;c.setAttribute('aria-label',cellLbl(name,i,grid[k][i]));c.onclick=()=>{const x=grid[k][i];grid[k][i]=x>=1?.35:x>0?0:1;c.className=cls(grid[k][i],i);c.setAttribute('aria-label',cellLbl(name,i,grid[k][i]));save()};g.appendChild(c);cells[k].push(c)}});
  {const f0=g.querySelector('.c');if(f0)f0.tabIndex=0}
  const d=$('dots');d.innerHTML='';for(let b=0;b<beats;b++){const e=document.createElement('div');e.className='dot';d.appendChild(e)}}
-function medal(b){return b>=260?'🏆':b>=190?'🥇':b>=120?'🥈':'🥉'}
-function setBpm(x){x=+x;if(!isFinite(x))x=bpm||80;bpm=Math.max(40,Math.min(280,Math.round(x)));s.value=bpm;v.textContent=bpm;v.setAttribute('aria-label','Tempo '+bpm+' BPM. Tap to type a tempo');if(window.mmRng)mmRng(s);m.textContent=medal(bpm);save()}
+// Tempo medals (SVG, see mmIcons): 260+ trophy, 190+ gold "1", 120+ silver "2", below that bronze "3".
+function medalKey(b){return b>=260?'trophy':b>=190?'gold':b>=120?'silver':'bronze'}
+function medal(b){return mmIcon(medalKey(b))}
+function setBpm(x){x=+x;if(!isFinite(x))x=bpm||80;bpm=Math.max(40,Math.min(280,Math.round(x)));s.value=bpm;v.textContent=bpm;v.setAttribute('aria-label','Tempo '+bpm+' BPM. Tap to type a tempo');if(window.mmRng)mmRng(s);m.innerHTML=medal(bpm);save()}
 // ===== music theory / chords =====
 const SHARP=['C','C♯','D','D♯','E','F','F♯','G','G♯','A','A♯','B'],FLAT=['C','D♭','D','E♭','E','F','G♭','G','A♭','A','B♭','B'];
 const LTR='CDEFGAB',ACCN={'-2':'𝄫','-1':'♭','0':'','1':'♯','2':'𝄪'};const LET={C:0,D:2,E:4,F:5,G:7,A:9,B:11},MAJ=[0,2,4,5,7,9,11],MIN=[0,2,3,5,7,8,10],ROM=['I','II','III','IV','V','VI','VII'];
@@ -1200,7 +1245,7 @@ function barStart(){isCount=cin>0;if(isCount)return;pocketBar();
  if($('arr').checked){const A=+$('ab').value,C=+$('cb').value,pb=barN%(A+C),sec=pb<A?'VERSE':'CHORUS',gname=$(sec==='VERSE'?'av':'ac').value;
   secName=sec;if(curName!==gname){preset(gname);$('pre').value=gname}secEnd=pb==A-1||pb==A+C-1}else secName='';
  if($('tr').checked&&barN>0&&barN%(+$('trb').value)==0){const goal=Math.max(40,Math.min(280,+$('trg').value||bpm)),inc=Math.max(1,+$('tri').value||1);
-  if(bpm<goal){const om=medal(bpm),nb=Math.min(goal,bpm+inc);setBpm(nb);trMsg=nb===goal?'🎉 Goal reached: '+goal+' BPM':'Trainer → '+nb+' BPM';if(medal(nb)!==om&&nb>bpm-1)trMsg+=' · '+medal(nb)+' new medal!'}}
+  if(bpm<goal){const om=medal(bpm),nb=Math.min(goal,bpm+inc);setBpm(nb);trMsg=nb===goal?'{flag} Goal reached: '+goal+' BPM':'Trainer: up to '+nb+' BPM';if(medal(nb)!==om&&nb>bpm-1)trMsg+=' · {'+medalKey(nb)+'} new medal!'}}
  const dm=$('do').value;muted=dm==='1of4'?barN%4==3:dm==='2of8'?barN%8>=6:dm==='rand'?(barN>=2&&!muted&&Math.random()<0.25):false;
  crashNow=prevFill&&$('fc').checked&&!muted;
  const fe=+$('fe').value;fillBar=!muted&&((fe>0&&(barN+1)%fe==0)||barN===forceBar||secEnd);
@@ -1268,9 +1313,9 @@ function anim(){if(!playing)return;const now=ctx.currentTime;let e=null,eb=null;
  rafId=requestAnimationFrame(anim)}
 function blUI(e){let h='';
  if(e.cnt)h='<span class="tag cnt">COUNT-IN</span>'+e.cnt+(e.cb>1?' <small style="font-weight:500">('+e.cb+' bars left)</small>':'');
- else{if(e.sec)h+='<span class="tag sec">'+e.sec+'</span>';if(e.mu)h+='<span class="tag mute">DROP-OUT</span>🤫 Keep going!';else if(e.f)h+='<span class="tag">FILL</span>';if(e.tr)h+=' '+esc(e.tr)}
+ else{if(e.sec)h+='<span class="tag sec">'+e.sec+'</span>';if(e.mu)h+='<span class="tag mute">DROP-OUT</span>'+mmIcon('hush')+' Keep going!';else if(e.f)h+='<span class="tag">FILL</span>';if(e.tr)h+=' '+esc(e.tr).replace(/\{(\w+)\}/g,(x,n)=>mmIcon(n))}
  $('blm').innerHTML=h||'&nbsp;';
- $('chord').innerHTML=e.ch&&($('bon').checked||$('kon').checked)?esc(e.ch.label)+(e.ch.rn?' <small>'+esc(e.ch.rn)+'</small>':'')+' <small style="color:var(--acc,#ffb020)">· '+esc(chordMode(e.ch))+'</small>'+(e.nx?' <small>→ '+esc(e.nx.label)+'</small>':''):''}
+ $('chord').innerHTML=e.ch&&($('bon').checked||$('kon').checked)?esc(e.ch.label)+(e.ch.rn?' <small>'+esc(e.ch.rn)+'</small>':'')+' <small style="color:var(--acc,#ffb020)">· '+esc(chordMode(e.ch))+'</small>'+(e.nx?' <small>'+mmIcon('right','then')+' '+esc(e.nx.label)+'</small>':''):''}
 // The mode to play over a chord: its number in the parent key (vi = Aeolian), or by chord quality when it's borrowed
 const MODENAME={ionian:'Ionian',dorian:'Dorian',phrygian:'Phrygian',lydian:'Lydian',mixolydian:'Mixolydian',aeolian:'Aeolian',locrian:'Locrian',phrdom:'Phrygian dominant'};
 function chordMode(ch){const nm=ch.name||'';if(ch.dia&&ch.deg>=0)return nm+' '+MODENAME[DEGMODE[ch.deg]];
@@ -1305,7 +1350,7 @@ async function exportMp3(){const mins=+$('xlen').value,secs=mins*60,SR=44100,xst
   const fn=('Modal Metronome - '+gname.replace(/\s*\(.*\)/,'')+' - '+bpm+' BPM - '+mins+' min').replace(/\//g,'-').replace(/[^\w\- ]+/g,'').replace(/\s+/g,' ').trim()+'.mp3';
   // Saving needs a fresh tap (browsers block saves that start after a long render), so offer a Save button
   lastExport={blob,fn,url};
-  xst.innerHTML='Ready: '+(blob.size/1048576).toFixed(1)+' MB · <button type="button" id="xsave" class="btn" style="font-weight:800">⬇ Save MP3…</button>';
+  xst.innerHTML='Ready: '+(blob.size/1048576).toFixed(1)+' MB · <button type="button" id="xsave" class="btn" style="font-weight:800">'+mmIcon('download')+'Save MP3…</button>';
   $('xsave').addEventListener('click',saveExport);
  }catch(err){let em=(err&&err.message)||String(err);if(/Failed to fetch|NetworkError|Load failed|decode/i.test(em))em='some sounds could not load. Check your internet connection and tap Export again.';xst.textContent='Export failed: '+em;console.error(err);if(ctx instanceof OfflineAudioContext)location.reload()}
  finally{btn.disabled=false;xBusy=false}}
@@ -1320,7 +1365,7 @@ async function saveExport(){const X=lastExport,xst=$('xst');if(!X)return;
   if(/iPad|iPhone|iPod/.test(navigator.userAgent)||(navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1)){if(navigator.canShare&&navigator.canShare({files:[file]})){await navigator.share({files:[file],title:X.fn});xst.textContent='Shared: pick "Save to Files" to keep it.';return}}
   const a=document.createElement('a');a.href=X.url;a.download=X.fn;document.body.appendChild(a);a.click();a.remove();
   xst.innerHTML='Download started: '+X.fn+' (check your Downloads) · <button type="button" id="xsave" class="btn">Save again</button>';$('xsave').addEventListener('click',saveExport)
- }catch(err){if(err&&err.name==='AbortError'){xst.innerHTML='Not saved. <button type="button" id="xsave" class="btn">⬇ Save MP3…</button>';$('xsave').addEventListener('click',saveExport);return}
+ }catch(err){if(err&&err.name==='AbortError'){xst.innerHTML='Not saved. <button type="button" id="xsave" class="btn">'+mmIcon('download')+'Save MP3…</button>';$('xsave').addEventListener('click',saveExport);return}
   const a=document.createElement('a');a.href=X.url;a.download=X.fn;document.body.appendChild(a);a.click();a.remove();xst.innerHTML='Download started: '+X.fn+'. Not in Downloads? <a href="'+X.url+'" download="'+X.fn+'">Tap here</a>'}}
 let clockW=null,initP=null;
 function startClock(){lastTick=0;LA=0.35;try{if(!clockW){const u=URL.createObjectURL(new Blob(["let t=null;onmessage=e=>{clearInterval(t);if(e.data>0)t=setInterval(()=>postMessage(0),e.data)}"],{type:'text/javascript'}));clockW=new Worker(u);clockW.onmessage=()=>{if(playing)sched()}}clockW.postMessage(25);return null}catch(e){return setInterval(sched,25)}}
@@ -1342,8 +1387,8 @@ function wake(){if(!ctx||!playing||ctx.state==='running')return;ctx.resume().the
 window.addEventListener('focus',wake);['pointerdown','keydown'].forEach(t=>document.addEventListener(t,wake,true));
 let starting=null; // one start at a time: a second Space/tap while the sounds load must not start a second loop
 function start(){if(playing)return Promise.resolve();if(xBusy){$('blm').textContent='Building your MP3. Play works again when it is ready.';return Promise.resolve()}return starting||(starting=start0().finally(()=>{starting=null}))}
-async function start0(){await init();if(xBusy||playing)return;playing=true;pos=0;barN=0;surStyle=null;surV=null;cin=+$('ci').value;muted=false;prevFill=false;fillBar=false;forceBar=-1;secName='';lastBassM=null;bassPrevM=null;bassPlan=null;bassRun=0;bassLastCk='';trMsg='';q=[];next=ctx.currentTime+0.08;timer=startClock();sched();cancelAnimationFrame(rafId);anim();p.textContent='■ Stop';if(ctx.state!=='running')$('blm').textContent='Sound paused by the device. Tap anywhere to bring it back.';logStart()}
-function stop(){playing=false;stopClock();if(ctx&&master)swapBuses(ctx.currentTime+0.01);q=[];forceBar=-1;document.querySelectorAll('.now').forEach(c=>c.classList.remove('now'));[...$('dots').children].forEach(d=>d.classList.remove('on'));$('blm').innerHTML='Press ▶ Play or Space';p.textContent='▶ Play';chordPreview();logStop()}
+async function start0(){await init();if(xBusy||playing)return;playing=true;pos=0;barN=0;surStyle=null;surV=null;cin=+$('ci').value;muted=false;prevFill=false;fillBar=false;forceBar=-1;secName='';lastBassM=null;bassPrevM=null;bassPlan=null;bassRun=0;bassLastCk='';trMsg='';q=[];next=ctx.currentTime+0.08;timer=startClock();sched();cancelAnimationFrame(rafId);anim();p.innerHTML=mmIcon('stop')+'Stop';if(ctx.state!=='running')$('blm').textContent='Sound paused by the device. Tap anywhere to bring it back.';logStart()}
+function stop(){playing=false;stopClock();if(ctx&&master)swapBuses(ctx.currentTime+0.01);q=[];forceBar=-1;document.querySelectorAll('.now').forEach(c=>c.classList.remove('now'));[...$('dots').children].forEach(d=>d.classList.remove('on'));$('blm').innerHTML='Press '+mmIcon('play')+' Play or Space';p.innerHTML=mmIcon('play')+'Play';chordPreview();logStop()}
 function fillNow(){if(!playing){start().then(()=>{forceBar=0});return}if(isCount){forceBar=0;return}const n=steps(),fl=fillBeats()*sub;
  if(pos<n-fl&&!muted){fillBar=true;curFill=genFill(fl);prevFill=true}else forceBar=barN+1}
 // ===== practice log =====
@@ -1430,22 +1475,22 @@ function applyState0(st){if(!st||!st.c)return false;restoring=true;const c=st.c;
 function uiRefresh(){if(window.mmRng)document.querySelectorAll('input[type=range]').forEach(mmRng);fatUI();swUI();if(window.mmVcUI)mmVcUI();$('mvt').textContent=$('mv').value+'%';$('cpl').style.display=$('prog').value==='custom'?'':'none';$('beat').classList.toggle('big',$('bigl').checked);
  if(out&&!xBusy)out.gain.setTargetAtTime(volG($('mv').value),ctx.currentTime,0.02);if(revSend&&!xBusy)revSend.gain.setTargetAtTime($('room').value/100*0.5,ctx.currentTime,0.05);chordPreview()}
 addEventListener('pagehide',()=>{if(saveT&&!restoring){clearTimeout(saveT);try{store.setItem(SKEY,JSON.stringify(getState(true)))}catch(e){}}});
-function save(){if(restoring)return;clearTimeout(saveT);saveT=setTimeout(()=>{try{store.setItem(SKEY,JSON.stringify(getState(true)));$('sv').textContent=store.mem?'Settings kept until reload':'✓ Settings saved'}catch(e){$('sv').textContent='Saving not available here'}},300)}
+function save(){if(restoring)return;clearTimeout(saveT);saveT=setTimeout(()=>{try{store.setItem(SKEY,JSON.stringify(getState(true)));$('sv').innerHTML=store.mem?'Settings kept until reload':mmIcon('check')+'Settings saved'}catch(e){$('sv').textContent='Saving not available here'}},300)}
 // Song presets from the link: ?pk=1&pre=rock&bpm=80&key=C&md=aeolian&prog=custom&cprog=Am%20G&bon=1&bs=pedal&tr=1&trg=108 ...
 // key = the major PARENT key. Links without pk=1 are older: their key was the mode's own starting note and is converted.
-// Any control id works. Used only until the student changes something; ↺ Reset goes back to the link's settings.
+// Any control id works. Used only until the student changes something; Reset goes back to the link's settings.
 function applyParams(){const sp=new URLSearchParams(location.search);if(![...sp.keys()].length)return false;restoring=true;if(sp.get('bass')==='1'&&$('bon'))$('bon').checked=true;
  if(PROG2[sp.get('prog')])sp.set('prog',PROG2[sp.get('prog')]);if(!sp.get('pk')){const c={key:sp.get('key'),md:sp.get('md'),prog:sp.get('prog')};legacyKey(c);if(c.key)sp.set('key',c.key);if(c.prog)sp.set('prog',c.prog)}
  preset(sp.get('pre')&&P[sp.get('pre')]?sp.get('pre'):'rock');$('pre').value=curName;
  sp.forEach((val,k)=>{if(k==='pre'||k==='bpm'||k==='view'||k==='pk')return;const e=$(k);if(!e||!e.hasAttribute('data-s'))return;
   if(e.type==='checkbox')e.checked=val==='1'||val==='true';else if(e.tagName==='SELECT')setSel(e,val);else e.value=val});
  if(sp.get('sw'))setSwing(+sp.get('sw'));
- setBpm(+sp.get('bpm')||80);uiRefresh();draw();restoring=false;$('sv').textContent='✓ Song settings loaded';return true}
+ setBpm(+sp.get('bpm')||80);uiRefresh();draw();restoring=false;$('sv').innerHTML=mmIcon('check')+'Song settings loaded';return true}
 /* A song page link sets the groove and tempo; saved changes on this device win after that. When they differ from the song, offer a one-tap way back. */
-function songBtn(){try{const sp=new URLSearchParams(location.search),ks=[...sp.keys()].filter(k=>k!=='_v'&&k!=='_r'&&k!=='dm');if(!ks.length)return;const want=+sp.get('bpm')||80,wp=sp.get('pre');if(bpm===want&&(!wp||$('pre').value===wp))return;let b=$('songBack');if(!b){b=document.createElement('button');b.id='songBack';b.type='button';b.style.cssText='margin:6px 0 0;font-size:12px;padding:6px 10px';const anchor=$('fnow')&&$('fnow').parentNode;(anchor&&anchor.parentNode?anchor.parentNode.insertBefore(b,anchor.nextSibling):document.body.prepend(b));b.onclick=()=>{if(typeof playing!=='undefined'&&playing&&$('p'))$('p').click();try{store.removeItem(SKEY)}catch(e){}applyParams();save();b.remove()}}const pn=wp&&$('pre').querySelector('option[value="'+wp+'"]');b.textContent='↺ Back to this song\'s settings ('+(pn?pn.textContent.replace(/\s*\(.*\)$/,'')+' · ':'')+want+' BPM)'}catch(e){}}
+function songBtn(){try{const sp=new URLSearchParams(location.search),ks=[...sp.keys()].filter(k=>k!=='_v'&&k!=='_r'&&k!=='dm');if(!ks.length)return;const want=+sp.get('bpm')||80,wp=sp.get('pre');if(bpm===want&&(!wp||$('pre').value===wp))return;let b=$('songBack');if(!b){b=document.createElement('button');b.id='songBack';b.type='button';b.style.cssText='margin:6px 0 0;font-size:12px;padding:6px 10px';const anchor=$('fnow')&&$('fnow').parentNode;(anchor&&anchor.parentNode?anchor.parentNode.insertBefore(b,anchor.nextSibling):document.body.prepend(b));b.onclick=()=>{if(typeof playing!=='undefined'&&playing&&$('p'))$('p').click();try{store.removeItem(SKEY)}catch(e){}applyParams();save();b.remove()}}const pn=wp&&$('pre').querySelector('option[value="'+wp+'"]');b.innerHTML=mmIcon('reset')+esc('Back to this song\'s settings ('+(pn?pn.textContent.replace(/\s*\(.*\)$/,'')+' · ':'')+want+' BPM)')}catch(e){}}
 function restore(){const st=readStore(SKEY);
  // Saved settings from an old version (or a damaged copy) must never stop the page: fall back to the link, then to Basic Rock.
- try{if(applyState(st)){$('sv').textContent='✓ Restored your last settings';songBtn();return}}catch(e){console.warn('Saved settings skipped',e)}
+ try{if(applyState(st)){$('sv').innerHTML=mmIcon('check')+'Restored your last settings';songBtn();return}}catch(e){console.warn('Saved settings skipped',e)}
  try{if(applyParams())return}catch(e){console.warn('Link settings skipped',e)}
  restoring=true;try{$('pre').value='rock';preset('rock');setBpm(80);uiRefresh();draw()}catch(e){}restoring=false}
 const PKEY='drumMachine:presets';
@@ -1473,7 +1518,7 @@ $('xbtn').onclick=()=>{if(!inFrame)return exportMp3();
  const u=location.origin+location.pathname+'?dm='+encodeURIComponent(encodeCode())+'&xp='+$('xlen').value;
  const w=window.open(u,'_blank');
  $('xst').innerHTML=w?'Opened full screen to export and save your MP3 (Notion blocks downloads inside the page).':'Notion blocks downloads here. <a href="'+u+'" target="_blank" rel="noopener">Open full screen to export</a>'};
-p.onclick=async()=>{if(playing){stop();return}if(xBusy){start();return}p.disabled=true;p.textContent='Loading sounds…';try{await start()}catch(e){p.textContent='▶ Play';status('Audio could not start. Try again.');console.error(e)}finally{p.disabled=false;if(!playing)p.textContent='▶ Play'}};
+p.onclick=async()=>{if(playing){stop();return}if(xBusy){start();return}p.disabled=true;p.textContent='Loading sounds…';try{await start()}catch(e){p.innerHTML=mmIcon('play')+'Play';status('Audio could not start. Try again.');console.error(e)}finally{p.disabled=false;if(!playing)p.innerHTML=mmIcon('play')+'Play'}};
 s.oninput=e=>setBpm(+e.target.value);
 $('mv').oninput=e=>{$('mvt').textContent=e.target.value+'%';if(out&&!xBusy)out.gain.setTargetAtTime(volG(e.target.value),ctx.currentTime,0.02)};
 [['d5',-5],['d1',-1],['u1',1],['u5',5]].forEach(([id,n])=>$(id).onclick=()=>setBpm(bpm+n));
@@ -1500,7 +1545,7 @@ const previewBass=async()=>{await init();if(LIB[$('bt').value])await loadLib($('
 $('bt').addEventListener('change',previewBass);$('btone').addEventListener('change',()=>{applyTone();previewBass()});$('kon').addEventListener('change',()=>{chordPreview();if($('kon').checked&&ctx&&LIB[$('ksnd').value])loadLib($('ksnd').value)});$('ksnd').addEventListener('change',()=>{if(/^(pad|sweeppad|strings)/.test($('ksnd').value))$('kcomp').value='sustain';if($('kon').checked&&ctx&&LIB[$('ksnd').value])loadLib($('ksnd').value)});
 $('md').addEventListener('change',async()=>{chordPreview();if($('bon').checked){await init();parseProg();const k=tonicNow,seq=MODES[modeNow].concat([12]);seq.forEach((x,i)=>bassNote(ctx.currentTime+0.05+i*0.17,bassRoot(k)+x,0.15,0.85))}});
 $('key').addEventListener('change',async()=>{chordPreview();await init();if($('bon').checked)previewBass();else hit(ELEC.includes($('kk').value)?36:35,ctx.currentTime+0.02,1)});
-$('bnew').onclick=async()=>{bassSeed=Math.floor(Math.random()*1e6);save();$('bnew').textContent='🎲 New line ✓';setTimeout(()=>$('bnew').textContent='🎲 New bass line',900)};
+$('bnew').onclick=async()=>{bassSeed=Math.floor(Math.random()*1e6);save();$('bnew').innerHTML=mmIcon('dice')+'New line '+mmIcon('check');setTimeout(()=>$('bnew').innerHTML=mmIcon('dice')+'New bass line',900)};
 $('mode').onchange=async()=>{await init();route()};
 $('dev').onchange=async()=>{await init();applyDev()};
 $('dev').onfocus=listDevs;
@@ -1518,7 +1563,7 @@ $('psd').onclick=()=>{const {raw:P2}=readPresets(),k=$('ps').value;if(!k){psMsg(
  if(psDelArm!==k){psDelArm=k;$('psd').textContent='Sure? Tap again';psMsg('Tap Delete again to erase “'+k+'”');clearTimeout(psDelT);psDelT=setTimeout(()=>{psDelArm='';$('psd').textContent='Delete'},3500);return}
  psDelArm='';clearTimeout(psDelT);$('psd').textContent='Delete';delete P2[k];try{writePresets(P2)}catch(e){}psUI();psMsg('Deleted “'+k+'”')};
 $('cx').onclick=async()=>{const c=encodeCode();$('code').value=c;let ok=false;try{const pp=document.permissionsPolicy||document.featurePolicy;if(pp&&pp.allowsFeature&&!pp.allowsFeature('clipboard-write'))throw 0;await navigator.clipboard.writeText(c);ok=true}catch(e){try{$('code').select();ok=document.execCommand('copy')}catch(e2){}}cmsg(ok?'Copied! Paste it into another drum machine.':'Code ready — select and copy it from the box.')};
-$('ci2').onclick=()=>{try{applyState(decodeCode($('code').value));save();cmsg('Pattern loaded ✓')}catch(e){cmsg('That code did not work: '+e.message)}};
+$('ci2').onclick=()=>{try{applyState(decodeCode($('code').value));save();$('cmsg').innerHTML='Pattern loaded '+mmIcon('check')}catch(e){cmsg('That code did not work: '+e.message)}};
 // Space is Play/Stop: also cancel its keyup, or a button the mouse last clicked (Tap, +1) fires a second time.
 let spaceKey=false,kbNav=false;document.addEventListener('pointerdown',()=>{kbNav=false},true);document.addEventListener('keydown',e=>{if(e.key==='Tab')kbNav=true},true);
 document.addEventListener('keyup',e=>{if(e.code==='Space'&&spaceKey){spaceKey=false;e.preventDefault()}});
@@ -1536,11 +1581,11 @@ document.addEventListener('keydown',e=>{const tg=e.target.tagName,ty=e.target.ty
  else if(k==='ArrowUp'){e.preventDefault();setBpm(bpm+5)}else if(k==='ArrowDown'){e.preventDefault();setBpm(bpm-5)}
  else if(k==='KeyF')fillNow();else if(k==='KeyT')tap()});
 // ===== boot =====
-p.disabled=false;p.textContent='▶ Play';$('av').value='rock';$('ac').value='pop';psUI();restore();uiRefresh();logUI();restoring=false;listDevs();
+p.disabled=false;p.innerHTML=mmIcon('play')+'Play';$('av').value='rock';$('ac').value='pop';psUI();restore();uiRefresh();logUI();restoring=false;listDevs();
 {const sp=new URLSearchParams(location.search),dm=sp.get('dm');if(dm){try{applyState(decodeCode(dm));uiRefresh();save()}catch(e){console.error(e)}
   if(sp.get('xp')){setSel($('xlen'),sp.get('xp'));history.replaceState(null,'',location.pathname);$('xst').textContent='Your settings from Notion are loaded. Tap Export to build and save your MP3.';setTimeout(()=>{if(window.mmShowTab)mmShowTab('Export');$('xbtn').scrollIntoView({block:'center'});$('xbtn').focus()},300)}}}
 
-</script><script>(function(){const C=['#e8412c','#f28c28','#f6c33b','#efe6d2'];document.querySelectorAll('.sec>h4').forEach((h,i)=>h.style.setProperty('--band',C[i%4]))})();</script><p class="appver" style="text-align:center;font-size:11px;opacity:.6;margin:18px 0 10px;font-family:ui-monospace,Menlo,monospace">Modal Metronome · Version 2026-11-11.15</p>
+</script><script>(function(){const C=['#e8412c','#f28c28','#f6c33b','#efe6d2'];document.querySelectorAll('.sec>h4').forEach((h,i)=>h.style.setProperty('--band',C[i%4]))})();</script><p class="appver" style="text-align:center;font-size:11px;opacity:.6;margin:18px 0 10px;font-family:ui-monospace,Menlo,monospace">Modal Metronome · Version 2026-11-11.16</p>
 <script>/* Setting help: hover the name on a computer, tap it on a phone or iPad */
 (function(){const T={"mv": "Master volume for everything: drums, bass and keys. Saved on this device only, not in presets or links.", "xlen": "How long the MP3 will be. It records the groove, bass, chords, fills and tempo exactly as they are set now, so you can practice with it anywhere.", "ps": "Your saved setups. Pick one to load it. Type a name and tap Save to store everything you have set right now. Presets live on this device and never get erased by Reset.", "pre": "The drum pattern. Each groove is written the way real drummers play that style. Changing it also sets the time signature the groove is written in.", "ts": "Time signature: how many beats are in a bar and what kind. 4/4 = four quarter-note beats. 6/8, 9/8 (3+3+3) and 12/8 = beats split in three. In 5/8, 7/8, 9/8 (2+2+2+3) and 11/8 each beat is one 8th note, so the BPM counts 8ths.", "sdv": "Subdivide: the steady in-between notes that keep time. \"As written\" plays the groove's own hi-hat or ride part. Pick Quarter notes, 8ths, 16ths, Triplets or Off-beats to replace it with a steady pulse. Off = no subdivision at all, just the kick and snare.", "cy": "Subdivide with: the instrument that plays the subdivision. Hi-hat is tight and dry, ride is washy, ride bell cuts through, shaker and tambourine are soft and bright, cowbell, side stick, claves and woodblock are clicky and easy to hear.", "fb": "First beat: adds an extra sound on beat 1 of every bar so you always know where the bar starts. Great for odd meters like 7/8 and 9/8.", "sw": "Swing pushes every second note late. 50% = straight, even notes. About 67% = triplet swing, like jazz and blues shuffles.", "pkt": "Pocket: where the drummer sits on the beat. Auto uses the real feel of the groove: backbeat a hair behind, hats leading. Machine = perfectly on the grid.", "gdyn": "Ghost notes are the very soft snare taps between the backbeats. \"4 levels\" plays them softer or louder depending on where they fall, like a real drummer. Flat = all the same.", "groll": "Adds soft snare drags and buzz rolls leading into the backbeat, built from real stick bounces.", "hu": "Humanize adds tiny random changes in timing and volume so the drums don't sound like a machine. Zero = perfectly even.", "crash": "Plays a crash cymbal on beat 1 every 4 bars to mark the phrase.", "ci": "Count-in: clicks before the band starts so you can come in on time.", "do": "Drop-out: the drums and bass go silent for some bars while you keep playing. When they come back, you find out if you kept the time yourself.", "bigl": "Makes the beat light big and flashes the screen on every beat, so you can see the pulse from across the room.", "tr": "Tempo trainer: speeds the metronome up a little every few bars until it reaches your goal. It never slows down.", "trg": "The tempo the trainer stops at.", "tri": "How many BPM to add each time.", "trb": "How many bars to play before each speed-up.", "fe": "How often the drummer plays a fill (a short drum break) at the end of a phrase.", "fs": "The kind of fill: toms, snare, or a mix.", "fa": "How busy the fill is. Low = short and simple. High = full bar with doubles.", "fc": "Plays a crash on the beat right after every fill, like a drummer landing the fill.", "key": "The major parent key: the \"1\" of the scale. The studio names every mode from its parent major key.", "md": "The mode: which note of the parent key the music sits on. The bass and keys use it for passing notes and voicings.", "prog": "The chord progression the bass and keys play, written in Roman numerals from the parent key.", "bpc": "How long each chord lasts. Normal = one bar. Double time = two chords per bar. Half time = each chord lasts two bars.", "cprog": "Type your own chords, separated by spaces (for example: ii V I vi or Dm7 G7 Cmaj7).", "bon": "Turns the bass player on. The bass follows the chords and the groove.", "bt": "The bass sound: electric, upright, synth and more.", "btone": "Shapes the bass like a mixing engineer: EQ and compression on the bass channel.", "bs": "How the bass plays: root notes, walking lines, pedal tones and more, matched to the style.", "bauto": "Writes a fresh bass line every few bars so it never gets repetitive.", "bvar": "How often the bass adds passing notes, octave jumps and pickups.", "bv": "Bass volume, separate from the drums.", "kon": "Turns the keyboard player on. The keys play the chords in the progression.", "ksnd": "The keyboard sound: piano, electric piano, organ, pads.", "kcomp": "Comping = how the keys play the chords: held, pushed, stabs. Auto matches the groove.", "kvoice": "Voicing = which chord notes the keys play. Pop/rock uses triads. Jazz plays the 3rd, 5th, 7th and 9th and leaves the root to the bass.", "kv": "Keys volume, separate from the drums.", "kit": "Picks the whole drum kit at once. You can still change each drum below.", "kk": "The kick drum sound.", "sn": "The snare drum sound.", "rv": "The ride cymbal sound.", "hh": "The hi-hat sound.", "hfeel": "Tight = closed and choked. Loose = hats a little open and sloshy.", "sfeel": "Tight = damped, higher crack. Open = lower, fatter, more ring.", "kfeel": "Tight = short and punchy. Boomy = lower and longer.", "tm": "The tom sounds used in fills.", "pc": "The percussion sounds: shaker, tambourine, cowbell, congas and more.", "room": "How much room echo (reverb) is on the whole band.", "arr": "Song mode: switches between a verse groove and a chorus groove, so practice feels like a real song.", "av": "The groove for the verse.", "ac": "The groove for the chorus.", "ab": "How many bars the verse lasts.", "cb": "How many bars the chorus lasts.", "mode": "Direct is fastest. Pick Compatibility only if the sound crackles or won't play on your device.", "dev": "Which speaker or headphones the sound plays through.", "showall": "Shows every drum in the pattern grid, not just the drums this groove uses."};
  const tip=document.createElement('div');tip.id='tip';document.body.appendChild(tip);let cur=null;
@@ -1585,7 +1630,7 @@ p.disabled=false;p.textContent='▶ Play';$('av').value='rock';$('ac').value='po
    if(user&&dock){const pnl=byName[g[1].find(n=>byName[n])],t=pnl.getBoundingClientRect().top,lim=dock.getBoundingClientRect().bottom;if(t<lim)scrollBy(0,t-lim-8)}}
   function moreUI(){bar.classList.toggle('more',bar.scrollLeft+bar.clientWidth<bar.scrollWidth-4)}
   bar.addEventListener('scroll',moreUI,{passive:true});addEventListener('resize',moreUI);
-  // Arrow keys move between tabs here (elsewhere ←/→ change the tempo).
+  // Arrow keys move between tabs here (elsewhere the left and right arrows change the tempo).
   bar.addEventListener('keydown',e=>{const t=[...bar.children],i=t.indexOf(document.activeElement);if(i<0)return;let k=-1;
    if(e.key==='ArrowRight')k=(i+1)%t.length;else if(e.key==='ArrowLeft')k=(i-1+t.length)%t.length;else if(e.key==='Home')k=0;else if(e.key==='End')k=t.length-1;else return;
    e.preventDefault();e.stopPropagation();t[k].focus();show(t[k].dataset.t,true)});
@@ -1646,7 +1691,7 @@ p.disabled=false;p.textContent='▶ Play';$('av').value='rock';$('ac').value='po
  (async()=>{try{const m=location.hash.match(/^#mmpx=([A-Za-z0-9_.-]+)/);let t=null;
    if(m){t=m[1];try{sessionStorage.setItem('mmpx',t)}catch(e){}history.replaceState(null,'',location.pathname+location.search)}else{try{t=sessionStorage.getItem('mmpx')}catch(e){}}
    if(!t)return;const P=JSON.parse(await unpack(t));if(!isObj(P))return;const n=Object.keys(P).length;
-   const box=document.createElement('div');box.className='psx-ready';box.innerHTML='<span></span> <button type="button">⬇ Save presets file</button>';box.firstChild.textContent=n+' preset'+(n==1?'':'s')+' from Notion are ready.';
+   const box=document.createElement('div');box.className='psx-ready';box.innerHTML='<span></span> <button type="button">'+mmIcon('download')+'Save presets file</button>';box.firstChild.textContent=n+' preset'+(n==1?'':'s')+' from Notion are ready.';
    box.querySelector('button').onclick=async()=>{const r=await saveFile(fileText(P),fname());msg(r);if(!/^Not saved/.test(r)){try{sessionStorage.removeItem('mmpx')}catch(e){}box.remove()}};
    $('psxm').before(box);if(window.mmShowTab)mmShowTab('Presets');box.querySelector('button').focus({preventScroll:true});box.scrollIntoView({block:'center'})}catch(e){console.warn('Preset hand-off skipped',e)}})();
  // Import. Reads one or more files; every preset is checked on its own, so one bad preset never stops the good ones.
