@@ -24,5 +24,6 @@ Every app shows its version at the bottom of the page: `Version YYYY-MM-DD.N` (d
 | Song Dissector | 2026-11-11.12 |
 | Strobe Tuner (Guitar Revolution) | 2026-11-11.6 |
 | Groupies (find the four bands of four) | 2026-11-12.1 |
+| Ear Trainer | 2026-11-12.1 |
 | Music Games (home) | 2026-11-12.1 |
 | Round music (`shared/hype.js`) | 2026-11-12.1 |

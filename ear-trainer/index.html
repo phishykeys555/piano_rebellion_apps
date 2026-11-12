@@ -240,11 +240,14 @@ details.how p{margin:10px 0 0}
 #pad2 button{display:flex;flex-direction:column;align-items:center;justify-content:center;line-height:1.05;font-size:15px}
 .cues{font-size:14px;color:var(--c-mut);border-top:1px solid var(--c-line);padding-top:8px}
 .cues b{color:var(--c-ink)} .cues ul{margin:4px 0 0;padding-left:18px} .cues li{margin:2px 0}
+.arcrow .arcbar{flex:1 1 auto;flex-wrap:wrap;min-width:0;justify-content:center}
 .actbar .btn:disabled{opacity:.45;cursor:default}
 .actbar .btn .sh{display:none}
 .lifeline{font-size:14px;color:var(--c-mut);margin:0}
 .credit{font-size:14px;color:var(--c-mut);margin:0;line-height:1.4}
 .credit a{color:inherit}
+.seg.ex i{font-style:normal}.seg.ex .shx{display:none}
+summary{min-height:44px;display:flex;align-items:center;box-sizing:border-box}
 .setrow{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-top:10px}
 .setrow .seg{flex:1 1 auto} .setrow .seg button{min-height:44px;padding:6px 10px}
 select{font:inherit;font-size:15px;min-height:44px;border-radius:10px;border:1px solid var(--c-key-b);background:var(--c-key);color:var(--c-ink);padding:0 10px}
@@ -258,7 +261,7 @@ details .note{font-size:14px;color:var(--c-mut);margin:8px 0 0}
 @media (max-width:899px){
   .setup header{order:1}.s-ex{order:2}.s-level{order:3}.s-game{order:4}.play{order:5}.how{order:6}.setup details:not(.how){order:7}.setup .appver{order:8}.setup .credit{order:9}.setup .lifeline{display:none}
   body.running .s-ex{display:none}
-  .seg.ex button span{display:none}
+  .seg.ex button span,.seg.ex .lgx{display:none} .seg.ex .shx{display:inline}
   .seg.ex button{min-height:44px}
   .legend{display:none}
 }
@@ -267,7 +270,12 @@ details .note{font-size:14px;color:var(--c-mut);margin:8px 0 0}
   .actbar .btn{font-size:15px;padding:8px 6px}
   .card.padmode:not(.answered) .pianoWrap,.card.padmode:not(.answered) .swipe{display:none}
   .card.padmode.answered #padWrap,.card.padmode.answered .cues{display:none}
-  .card.kbmode .piano{height:clamp(110px,calc(100svh - 520px),170px)}
+  .card.kbmode .piano{height:clamp(100px,calc(100svh - 560px),170px)}
+  .piano{height:clamp(90px,calc(100svh - 580px),170px)}
+  .swipe{display:none!important}
+  .card{gap:8px}
+  .stats div{display:flex;align-items:baseline;gap:5px;justify-content:center}.stats b{display:inline}.stats span{font-size:14px}
+  .prompt{min-height:0;font-size:17px}.prompt small{font-size:14px}
   #pad button small{display:none}
   .fb{font-size:14px}
   .stats{padding:6px 10px}.stats b{font-size:17px}
@@ -286,8 +294,8 @@ details .note{font-size:14px;color:var(--c-mut);margin:8px 0 0}
 
   <div class="sect s-ex"><span class="lbl" aria-hidden="true">Exercise</span>
   <div class="seg ex" id="exSeg" role="group" aria-label="Exercise">
-    <button data-ex="1"><b>Mystery note</b><span>Reference, then name the note</span></button>
-    <button data-ex="2"><b>Scale degree</b><span>I – IV – V – I, then the degree</span></button>
+    <button data-ex="1"><b><i class="lgx">Mystery note</i><i class="shx">Note</i></b><span>Reference, then name the note</span></button>
+    <button data-ex="2"><b><i class="lgx">Scale degree</i><i class="shx">Degree</i></b><span>I – IV – V – I, then the degree</span></button>
     <button data-ex="3"><b>Interval</b><span>Two notes, name the distance</span></button>
   </div>
   <p class="lifeline" id="lifeLine"></p></div>
@@ -438,10 +446,11 @@ const CUE={1:["Two notes almost touching: creepy, rubbing.","Für Elise (Beethov
 // question generator (pure: also used by the automated tests)
 function gen(ex,lv,opt){ opt=opt||{}; const L=EXS[ex].levels[lv-1];
   if(ex===1){
-    if(!L.rand){ const m=pick(L.pool), s=m-60, sp=spellFrom(C4,60,s); return {ex,lv,ref:60,refSp:C4,notes:[m],sps:[sp],semis:[s],win:[48,72]} }
-    const ref=54+rnd(12), k=L.two?2:1, notes=[]; let last=null;
+    if(!L.rand){ const m=pick(L.pool), s=m-60, sp=spellFrom(C4,60,s); return {ex,lv,ref:60,refSp:C4,notes:[m],sps:[sp],semis:[s],win:L.dir==="up"?[60,84]:[48,72]} }
+    let ref,notes,semis,refSp,sps,tries=0; do{ ref=54+rnd(12); const k=L.two?2:1; notes=[]; let last=null;
     for(let i=0;i<k;i++){ let m,t=0; do{ m=ref-12+rnd(25) }while((m===last||(i===0&&k===2&&m===ref))&&t++<30); notes.push(m); last=m }
-    const semis=notes.map(m=>m-ref), refSp=refSpell(ref,semis); return {ex,lv,ref,refSp,notes,sps:semis.map(s=>spellFrom(refSp,ref,s)),semis,win:[ref-12,ref+12]} }
+    semis=notes.map(m=>m-ref); refSp=refSpell(ref,semis); sps=semis.map(s=>spellFrom(refSp,ref,s)) }while(sps.some(x=>Math.abs(x.a)>1)&&tries++<60);   // re-roll: one reference spelling must keep every answer at one sharp or flat
+    return {ex,lv,ref,refSp,notes,sps:semis.map(s=>spellFrom(refSp,ref,s)),semis,win:[ref-12,ref+12]} }
   if(ex===2){ const K=L.minor?MIN_KEYS:MAJ_KEYS, kk=opt.keyChg===false?K[0]:pick(K), pc=kk[0], T=55+mod(pc-55,12), tSp={l:kk[1],a:kk[2]};
     const deg=pick(L.deg), s=DEG_SEMI[deg], m=T+s, num=+deg.replace(/[♭♯]/g,""), l=mod(tSp.l+num-1,7); let a=mod(m-NAT[l],12); if(a>6) a-=12;
     const lo=T-mod(T,12); return {ex,lv,ref:T,refSp:tSp,minor:!!L.minor,deg,notes:[m],sps:[{l,a}],semis:[s],win:[lo,lo+24]} }
@@ -492,7 +501,7 @@ const padMode=()=>ex!==1||ansMode==="names";
 // ================= KEYBOARD =================
 let win=[0,0];
 function buildPiano(lo,hi){ while(isBlack(lo)) lo--; while(isBlack(hi)) hi++; win=[lo,hi]; const el=$("piano"); el.innerHTML="";
-  const whites=range(lo,hi,m=>!isBlack(m)), n=whites.length, w=100/n; el.style.minWidth=(n*44)+"px";
+  const whites=range(lo,hi,m=>!isBlack(m)), n=whites.length, w=100/n; el.style.minWidth=(n*(innerWidth<600?38:44))+"px";
   whites.forEach((m,i)=>{ const b=document.createElement("button"); b.className="w"; b.dataset.midi=m; b.setAttribute("aria-label",SH[mod(m,12)]+(Math.floor(m/12)-1)); keyLabel(b,m); b.addEventListener("click",()=>keyTap(m)); el.appendChild(b);
     if(isBlack(m+1)&&m+1<hi){ const k=document.createElement("button"); k.className="b"; k.dataset.midi=m+1; k.style.width=(w*0.6)+"%"; k.style.left=((i+1)*w-w*0.3)+"%";
       k.setAttribute("aria-label",`${SH[mod(m+1,12)]}${Math.floor((m+1)/12)-1} / ${FL[mod(m+1,12)]}${Math.floor((m+1)/12)-1}`); k.addEventListener("click",()=>keyTap(m+1)); el.appendChild(k) } });
@@ -519,7 +528,7 @@ function buildPad(){ const p=$("pad"), p2=$("pad2"); p.innerHTML=""; p2.innerHTM
     wh.forEach(pc=>add(p,`<b>${SH[pc]}</b>`,pc)); n=wh.length; p.style.gridTemplateColumns=`repeat(${Math.max(3,n)},1fr)`;
     if(bl.length){ p2.hidden=false; bl.forEach(pc=>add(p2,`<span>${SH[pc]}</span><span>${FL[pc]}</span>`,pc,keyName(pc))) } }
   else if(ex===2){ lv.deg.forEach(d=>add(p,`<b>${d}</b>${$("solfOn").checked?`<small>${SOLF[d]}</small>`:""}`,d,"Scale degree "+d+" ("+SOLF[d]+")")); n=lv.deg.length; p.style.gridTemplateColumns=`repeat(${n>7?6:Math.max(3,n)},1fr)` }
-  else if(ex===3){ lv.iv.forEach(s=>add(p,`<b>${IV[s].sh}</b><small>${s===12?"octave":IV[s].nm}</small>`,s,ivName(s))); n=lv.iv.length; p.style.gridTemplateColumns=`repeat(${n>6?6:Math.max(2,n)},1fr)` }
+  else if(ex===3){ lv.iv.forEach(s=>add(p,`<b>${IV[s].sh}</b><small>${s===12?"octave":IV[s].nm}</small>`,s,ivName(s))); n=lv.iv.length; p.style.gridTemplateColumns=`repeat(${n>7?6:Math.max(2,n)},1fr)` }
   cueSheet() }
 function cueSheet(){ const c=$("cues"); if(ex!==3||!$("cueOn").checked){ c.hidden=true; return } const dir=$("dirSel").value, di=dir==="down"?1:0;
   c.hidden=false; c.innerHTML=`<b>Song cues</b> (${dir==="down"?"going down":dir==="both"?"up / down":dir==="harm"?"together: think of them going up":"going up"})<ul>`+L().iv.map(s=>`<li><b>${IV[s].sh}</b>: ${dir==="both"?CUE[s][0]+" / "+CUE[s][1]:CUE[s][di]}</li>`).join("")+"</ul>" }
@@ -531,8 +540,8 @@ function refText(){ if(ex===2) return `Listen: <b class="nm">${q.minor?"i – iv
   if(ex===3) return q.harm?"Two notes together…":`Note 1… <small>(the reference)</small>`;
   return `This is <b class="nm">${spName(q.refSp)}</b>.` }
 function askText(){ const lv=L();
-  if(ex===1){ const how=ansMode==="kb"?"Tap it on the keyboard.":"Tap its name."; if(lv.two) return `Which two notes, in order? <small>${how}</small>`;
-    return `Which note was it? <small>${lv.dir==="up"?`It's higher than ${spName(q.refSp)} (or the same). `:lv.dir==="both"?`Higher or lower than ${spName(q.refSp)}. `:""}${how}</small>` }
+  if(ex===1){ const how=ansMode==="kb"?"Tap the key.":"Tap its name."; if(lv.two) return `Which two notes, in order? <small>${how}</small>`;
+    return `Which note was it? <small>${lv.dir==="up"?`Higher than ${spName(q.refSp)}, or the same. `:lv.dir==="both"?`Higher or lower than ${spName(q.refSp)}. `:""}${how}</small>` }
   if(ex===2) return `Which scale degree? <small>Key of ${spName(q.refSp)} ${q.minor?"minor":"major"}</small>`;
   return `Which interval? <small>${q.harm?"Played together":q.semis[0]>0?"Going up":"Going down"}</small>` }
 // the audio for a question, or one part of it
@@ -574,7 +583,7 @@ function explain(){ const R=spFull(q.refSp,q.ref);
   if(ex===1){ return q.notes.map((m,i)=>{ const sp=q.sps[i], s=q.semis[i], dg=degreeOf(q.refSp,q.ref,sp,m), en=spName(sp)!==SH[mod(m,12)]&&spName(sp)!==FL[mod(m,12)]?` (the ${keyName(mod(m,12))} key)`:"";
       return `${q.notes.length>1?`Note ${i+1}: `:""}<b>${spFull(sp,m)}</b>${en}: ${dist(s,sp.n)}. Scale degree ${dg} (${SOLF[dg]||"–"}) in ${spName(q.refSp)} major.` }).join("<br>") }
   if(ex===2){ const sp=q.sps[0], s=q.semis[0]; return `<b>${spName(sp)}</b> is scale degree ${q.deg} (${SOLF[q.deg]}) in ${spName(q.refSp)} ${q.minor?"minor":"major"}${s?`: ${dist(s,sp.n)} from ${spName(q.refSp)}.`:": home, the tonic."}` }
-  const sp=q.sps[0], s=q.semis[0], n=sp.n; return `${R} ${q.harm?"with":s>0?"up to":"down to"} <b>${spFull(sp,q.notes[0])}</b>: ${Math.abs(s)} half steps = <b>${ivName(s,n)}</b>.` }
+  const sp=q.sps[0], s=q.semis[0], n=sp.n; return `${R} ${q.harm?"with":s>0?"up to":"down to"} <b>${spFull(sp,q.notes[0])}</b>: ${Math.abs(s)===1?"1 half step":Math.abs(s)+" half steps"} = <b>${ivName(s,n)}</b>.` }
 function pairSeq(){ const ev=[{at:0,ms:[q.ref],d:0.9}]; if(ex===3&&q.harm){ ev.push({at:1.1,ms:[q.notes[0]],d:0.9},{at:2.3,ms:[q.ref,q.notes[0]],d:1.4}); return ev } q.notes.forEach((m,i)=>ev.push({at:1.1+i*0.9,ms:[m],d:i===q.notes.length-1?1.2:0.8})); return ev }
 function finish(ok,v,btn){ phase="done"; clearTimers(); $("card").classList.add("answered"); clearMarks(); mark(q.ref,"ref");
   q.notes.forEach((m,i)=>mark(m,"ans",q.notes.length>1?String(i+1):null));
@@ -592,8 +601,8 @@ function resetScore(){ st={pts:0,correct:0,total:0,streak:0,best:0,miss:{}}; ren
 function render(){ if(arc) arcBar(); $("sPts").textContent=st.pts; $("sPct").textContent=st.total?Math.round(100*st.correct/st.total)+"%":"–"; $("sStreak").textContent=life[ex].streak; $("sBest").textContent=life[ex].best;
   const lf=life[ex]; $("lifeLine").textContent=lf.n?`All time on this exercise: ${lf.n} answered · ${Math.round(100*lf.ok/lf.n)}% · best streak ${lf.best}`:"" }
 function btns(){ const cap=arc?1:Infinity, can=q&&(phase==="answer"||phase==="done"&&!arc);
-  const rl=ex===2?["Play cadence again","↻ Cadence"]:["Play reference again","↻ Reference"], ml=ex===1&&q&&q.notes.length>1?["Play mystery notes again","↻ Mystery"]:["Play mystery again","↻ Mystery"];
-  const lab=(b,l,k)=>{ const left=arc&&q?cap-q.rep[k]:null; b.querySelector(".lg").textContent=l[0]+(left!=null?` (${left} left)`:""); b.querySelector(".sh").textContent=l[1]+(left!=null?` ${left}`:"") };
+  const rl=ex===2?["Play cadence again","↻ Cadence","↻ Key"]:["Play reference again","↻ Reference","↻ Ref"], ml=ex===1&&q&&q.notes.length>1?["Play mystery notes again","↻ Mystery","↻ Mys"]:["Play mystery again","↻ Mystery","↻ Mys"];
+  const lab=(b,l,k)=>{ const left=arc&&q?cap-q.rep[k]:null; b.querySelector(".lg").textContent=l[0]+(left!=null?` (${left} left)`:""); b.querySelector(".sh").textContent=left!=null?l[2]+` (${left})`:l[1] };
   lab($("refBtn"),rl,"ref"); lab($("mysBtn"),ml,"mys");
   $("refBtn").disabled=!can||(q&&q.rep.ref>=cap); $("mysBtn").disabled=!can||(q&&q.rep.mys>=cap);
   const g=$("goBtn"); g.disabled=phase==="loading";
@@ -613,7 +622,7 @@ function whoosh(){ try{ AC(); const t=ac.currentTime+0.15, len=0.7, sr=ac.sample
 function arcUI(on){ $("arcRow").hidden=!on; $("arcMeter").hidden=!on; document.body.classList.toggle("running",on); if(!on){ $("card").classList.remove("met"); $("arcMeter").classList.remove("hit","flash") } btns() }
 function arcBar(){ if(!arc) return; $("arcQ").textContent=`Q ${Math.min(QN,arc.qn+(phase==="done"?0:1))} / ${QN}`; $("arcFire").hidden=!arc.bonus;
   const rp=st.pts-arc.start;
-  if(arc.warm){ $("arcRound").textContent="ROUND 1 OF 5 · WARM-UP"; $("arcNeed").textContent=`${rp} POINTS`; $("arcNeed").classList.remove("met"); $("arcFill").style.width=(100*arc.qn/QN)+"%"; $("arcMeter").classList.remove("hit"); return }
+  if(arc.warm){ $("arcRound").textContent="ROUND 1 · WARM-UP"; $("arcNeed").textContent=`${rp} POINTS`; $("arcNeed").classList.remove("met"); $("arcFill").style.width=(100*arc.qn/QN)+"%"; $("arcMeter").classList.remove("hit"); return }
   const rn=arc.need, hit=rp>=rn; $("arcRound").textContent=arc.bonus?"BONUS ROUND":`ROUND ${arc.round} OF 5`; $("arcNeed").textContent=(hit?"✓ ":"")+`${rp} / ${rn}`; $("arcNeed").classList.toggle("met",hit);
   const m=$("arcMeter"); $("arcFill").style.width=Math.min(100,rp/rn*100)+"%"; $("arcHit").textContent=arc.bonus?"✓ BONUS TARGET HIT":"✓ TARGET HIT";
   if(hit&&!arc.hit){ arc.hit=true; m.classList.remove("flash"); void m.offsetWidth; m.classList.add("flash"); const hs=$("hitStamp"); hs.classList.remove("go"); void hs.offsetWidth; hs.classList.add("go"); chime(); $("card").classList.add("met") }
@@ -653,7 +662,7 @@ function stopChallenge(){ splashTok++; hypeStop(120); clearTimers(); hush(); $("
 
 // ================= SETUP + WIRING =================
 function idle(){ clearTimers(); hush(); q=null; phase="idle"; $("card").classList.remove("answered"); const lv=L();
-  buildPiano(48,72); clearMarks(); if(ex===1&&!lv.rand) mark(60,"ref");
+  if(ex===1&&!lv.rand&&lv.dir==="up") buildPiano(60,84); else buildPiano(48,72); clearMarks(); if(ex===1&&!lv.rand) mark(60,"ref");
   $("fb").innerHTML=""; document.querySelectorAll("#padWrap button").forEach(b=>b.classList.remove("hit","miss"));
   $("prompt").innerHTML=gmode==="chal"?`Challenge: 5 rounds of 8 questions, then a bonus round. <small>Press Start Challenge.</small>`:`${EXS[ex].name} · Level ${level}: ${lv.name} <small>Press Play to hear the first question.</small>`;
   requestAnimationFrame(()=>centerOn(60,72,true)); btns() }
