@@ -222,6 +222,7 @@ function registerWorkletProcessor(Module, audioNodeKey) {
 				this.wasmModule._presetDefault(this.channels, sampleRate);
 			}
 			this.updateBuffers();
+			this.viewMemory = null; // the buffers moved: process() makes new views
 			this.inputLatencySeconds = this.wasmModule._inputLatency()/sampleRate;
 			this.outputLatencySeconds = this.wasmModule._outputLatency()/sampleRate;
 		}
@@ -229,7 +230,10 @@ function registerWorkletProcessor(Module, audioNodeKey) {
 		updateBuffers() {
 			let wasmModule = this.wasmModule;
 			// longer than one STFT block, so we can seek smoothly
-			this.bufferLength = (wasmModule._inputLatency() + wasmModule._outputLatency());
+			// Studio patch (2026-11-11.13): at least one block + one interval, the span seek() reads. The default preset's
+			// latencies add up to one block only, so the first interval of every seek was zeros: the engine's look at the
+			// previous frame (its phase reference) was half silence, and the stretched sound smeared.
+			this.bufferLength = Math.max(wasmModule._inputLatency() + wasmModule._outputLatency(), wasmModule._blockSamples() + wasmModule._intervalSamples());
 			
 			let lengthBytes = this.bufferLength*4;
 			let bufferPointer = wasmModule._setBuffers(this.channels, this.bufferLength);
@@ -241,16 +245,33 @@ function registerWorkletProcessor(Module, audioNodeKey) {
 			}
 		}
 
+		// Studio patch (2026-11-11.13): the views on the wasm memory are made once and reused (rebuilt only when the memory
+		// or the buffers change) and nothing below runs a closure, so process() allocates nothing per call and the
+		// garbage collector has no reason to pause the audio thread.
+		views(outputBlockSize) {
+			let wasmModule = this.wasmModule;
+			let memory = wasmModule.exports ? wasmModule.exports.memory.buffer : wasmModule.HEAP8.buffer;
+			if (this.viewMemory !== memory || this.viewBlock !== outputBlockSize || this.viewsIn.length !== this.buffersIn.length) {
+				this.viewMemory = memory;
+				this.viewBlock = outputBlockSize;
+				this.viewsIn = this.buffersIn.map(p => new Float32Array(memory, p, this.bufferLength));
+				this.viewsOut = this.buffersOut.map(p => new Float32Array(memory, p, outputBlockSize));
+			}
+		}
+		viewMemory = null;
+		viewBlock = 0;
+		viewsIn = [];
+		viewsOut = [];
+
 		process(inputList, outputList, parameters) {
+			let outputs = outputList[0];
 			if (!this.wasmReady) {
-				outputList.forEach(output => {
-					output.forEach(channel => {
-						channel.fill(0);
-					});
-				});
+				for (let o = 0; o < outputList.length; o++) {
+					for (let c = 0; c < outputList[o].length; c++) outputList[o][c].fill(0);
+				}
 				return true;
 			}
-			if (!outputList[0]?.length) return false;
+			if (!outputs?.length) return false;
 
 			let outputTime = currentTime + this.outputLatencySeconds;
 			while (this.timeMap.length > 1 && this.timeMap[1].output <= outputTime) {
@@ -264,34 +285,30 @@ function registerWorkletProcessor(Module, audioNodeKey) {
 			wasmModule._setFormantBase(currentMapSegment.formantBaseHz/sampleRate);
 
 			// Check the input/output channel counts
-			if (outputList[0].length != this.channels) {
-				this.channels = outputList[0]?.length || 0;
-				configure();
+			if (outputs.length != this.channels) {
+				this.channels = outputs.length;
+				this.configure();
 			}
-			let outputBlockSize = outputList[0][0].length;
+			let outputBlockSize = outputs[0].length;
 
-			let memory = wasmModule.exports ? wasmModule.exports.memory.buffer : wasmModule.HEAP8.buffer;
+			this.views(outputBlockSize);
+			let buffers = this.viewsIn, nChannels = buffers.length;
 			// Buffer list (one per channel)
 			let inputs = inputList[0];
 			if (!currentMapSegment.active) {
-				outputList[0].forEach((_, c) => {
-					let channelBuffer = inputs[c%inputs.length];
-					let buffer = new Float32Array(memory, this.buffersIn[c], outputBlockSize);
-					buffer.fill(0);
-				});
+				for (let c = 0; c < nChannels; c++) buffers[c].fill(0, 0, outputBlockSize);
 				// Should detect silent input and skip processing
 				wasmModule._process(outputBlockSize, outputBlockSize);
 			} else if (inputs?.length) {
 				// Live input
-				outputList[0].forEach((_, c) => {
+				for (let c = 0; c < nChannels; c++) {
 					let channelBuffer = inputs[c%inputs.length];
-					let buffer = new Float32Array(memory, this.buffersIn[c], outputBlockSize);
 					if (channelBuffer) {
-						buffer.set(channelBuffer);
+						buffers[c].set(channelBuffer);
 					} else {
-						buffer.fill(0);
+						buffers[c].fill(0, 0, outputBlockSize);
 					}
-				})
+				}
 				wasmModule._process(outputBlockSize, outputBlockSize);
 			} else {
 				let inputTime = currentMapSegment.input + (outputTime - currentMapSegment.output)*currentMapSegment.rate;
@@ -303,46 +320,44 @@ function registerWorkletProcessor(Module, audioNodeKey) {
 				
 				inputTime += this.inputLatencySeconds;
 				let inputSamplesEnd = Math.round(inputTime*sampleRate);
+				let bufferLength = this.bufferLength;
 
 				// Fill the buffer with previous input
-				let buffers = outputList[0].map((_, c) => new Float32Array(memory, this.buffersIn[c], this.bufferLength));
-
 				let blockSamples = 0; // current write position in the temporary input buffer
 				let audioBufferIndex = 0;
 				let audioSamples = this.audioBuffersStart; // start of current audio buffer
 				// zero-pad until the start of the audio data
-				let inputSamples = inputSamplesEnd - this.bufferLength;
+				let inputSamples = inputSamplesEnd - bufferLength;
 				if (inputSamples < audioSamples) {
 					blockSamples = audioSamples - inputSamples;
-					buffers.forEach(b => b.fill(0, 0, blockSamples));
+					for (let c = 0; c < nChannels; c++) buffers[c].fill(0, 0, blockSamples);
 					inputSamples = audioSamples;
 				}
 				if (this.stems) {
 					// glide gains (no clicks when a part is muted or soloed)
 					for (let i = 0; i < this.gains.length; i++) this.gainsNow[i] += (this.gains[i] - this.gainsNow[i])*0.08;
-					buffers.forEach(b => b.fill(0, blockSamples));
+					for (let c = 0; c < nChannels; c++) buffers[c].fill(0, blockSamples);
 					let to = Math.min(inputSamplesEnd, this.stemLen), n = to - inputSamples;
 					if (n > 0) for (let st = 0; st < this.stems.length; st++) {
 						let g = this.gainsNow[st]/16384; if (Math.abs(g) < 1e-9) continue;
 						let parts = this.stems[st];
-						for (let c = 0; c < buffers.length; c++) {
+						for (let c = 0; c < nChannels; c++) {
 							let src = parts[c%parts.length], b = buffers[c];
 							for (let i = 0, j = blockSamples, k = inputSamples; i < n; i++, j++, k++) b[j] += g*src[k];
 						}
 					}
-					blockSamples = this.bufferLength;
+					blockSamples = bufferLength;
 				}
 				while (!this.stems && audioBufferIndex < this.audioBuffers.length && audioSamples < inputSamplesEnd) {
 					let audioBuffer = this.audioBuffers[audioBufferIndex];
 					let startIndex = inputSamples - audioSamples; // start index within the audio buffer
-					let bufferEnd = audioSamples + audioBuffer[0].length;
 					// how many samples to copy: min(how many left in the buffer, how many more we need)
 					let count = Math.min(audioBuffer[0].length - startIndex, inputSamplesEnd - inputSamples);
 					if (count > 0) {
-						buffers.forEach((buffer, c) => {
+						for (let c = 0; c < nChannels; c++) {
 							let channelBuffer = audioBuffer[c%audioBuffer.length];
-							buffer.subarray(blockSamples).set(channelBuffer.subarray(startIndex, startIndex + count));
-						});
+							buffers[c].subarray(blockSamples).set(channelBuffer.subarray(startIndex, startIndex + count));
+						}
 						audioSamples += count;
 						blockSamples += count;
 					} else { // we're already past this buffer - skip it
@@ -350,12 +365,12 @@ function registerWorkletProcessor(Module, audioNodeKey) {
 					}
 					++audioBufferIndex;
 				}
-				if (blockSamples < this.bufferLength) {
-					buffers.forEach(buffer => buffer.subarray(blockSamples).fill(0));
+				if (blockSamples < bufferLength) {
+					for (let c = 0; c < nChannels; c++) buffers[c].fill(0, blockSamples);
 				}
 
 				// constantly seeking, so we don't have to worry about the input buffers needing to be a rate-dependent size
-				wasmModule._seek(this.bufferLength, currentMapSegment.rate);
+				wasmModule._seek(bufferLength, currentMapSegment.rate);
 				wasmModule._process(0, outputBlockSize);
 
 				this.timeIntervalCounter -= outputBlockSize;
@@ -366,11 +381,9 @@ function registerWorkletProcessor(Module, audioNodeKey) {
 			}
 			
 			// Re-fetch in case the memory changed (even though there *shouldn't* be any allocations)
-			memory = wasmModule.exports ? wasmModule.exports.memory.buffer : wasmModule.HEAP8.buffer;
-			outputList[0].forEach((channelBuffer, c) => {
-				let buffer = new Float32Array(memory, this.buffersOut[c], outputBlockSize);
-				channelBuffer.set(buffer);
-			});
+			this.views(outputBlockSize);
+			let out = this.viewsOut;
+			for (let c = 0; c < outputs.length; c++) outputs[c].set(out[c]);
 			
 			return true;
 		}

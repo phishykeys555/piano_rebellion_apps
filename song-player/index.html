@@ -131,7 +131,11 @@ try{if(navigator.audioSession)navigator.audioSession.type='playback'}catch(e){}
 function unlock(){if(!ctx){const AC=window.AudioContext||window.webkitAudioContext;ctx=new AC({latencyHint:'playback'});ctx.onstatechange=onState}if(ctx.state!=='running')ctx.resume().catch(()=>{})}
 // Phone locked, a call came in, or Siri spoke: iOS stops the audio clock. Pause at the right spot so the button never shows pause over silence.
 function onState(){if(ctx.state!=='running'&&playing&&ready){stop();status('Paused: the sound was interrupted (screen lock or a call). Tap ▶ to keep going.')}}
-let engP=null;async function engine(){if(node)return node;unlock();if(!engP)engP=Stretch(ctx);node=await engP;gain=ctx.createGain();gain.gain.value=vol();node.connect(gain);gain.connect(ctx.destination);an=ctx.createAnalyser();an.fftSize=2048;gain.connect(an);
+// Engine setup: 120 ms blocks, and a hop (the step between analyses, about 30 ms) that is a whole number of the 128-sample audio callbacks.
+// The engine re-reads its input once per callback, so a hop that split a callback put each analysis up to 127 samples off the beat (blurred time).
+// Live, each hop's work is spread over its callbacks (split): the stock setup did it all in one callback every 30 ms, a spike that stalled slower devices.
+const engCfg=(sr,split)=>({blockMs:120,intervalMs:128*Math.max(1,Math.round(0.03*sr/128))/sr*1000,splitComputation:split});
+let engP=null;async function engine(){if(node)return node;unlock();if(!engP)engP=Stretch(ctx).then(async n=>{await n.configure(engCfg(ctx.sampleRate,true));return n});node=await engP;gain=ctx.createGain();gain.gain.value=vol();node.connect(gain);gain.connect(ctx.destination);an=ctx.createAnalyser();an.fftSize=2048;gain.connect(an);
  // the engine's report can land a hair outside the track (a speed or key change reports without its output delay: -0.02 s right after a loop wrap)
  node.setUpdateInterval(0.04,t=>{if(performance.now()<jumpUntil||!isFinite(t))return;pos=Math.max(0,Math.min(dur||0,t));posAt=performance.now()});return node}
 // A jump (play, pause, seek): the engine's position reports already on their way are from before it, so they are ignored until the engine
@@ -245,7 +249,7 @@ async function exportMp3(){if(xRun){cancelX();return}if(!ready||!curList)return;
    const s1=Math.min(d.length,Math.ceil((a1+pad)*SR)),ch=[];for(let c=0;c<Math.min(2,d.numberOfChannels);c++)ch.push(toI16(d.getChannelData(c).subarray(s0,s1),p.boost||curBoost));stems.push(ch)}
   const len=Math.min(...stems.map(x=>x[0].length));stems.forEach((x,i)=>stems[i]=x.map(c=>c.length>len?c.slice(0,len):c));
   // the engine's message port keeps the whole render (parts, wasm memory) alive until it is closed, so it is closed when the render ends
-  const oc=new OfflineAudioContext(2,Math.ceil((outLen+0.1)*SR),SR);const n=await Stretch(oc);X.n=n;const g=oc.createGain();g.gain.value=vol();n.connect(g);g.connect(oc.destination);
+  const oc=new OfflineAudioContext(2,Math.ceil((outLen+0.1)*SR),SR);const n=await Stretch(oc);X.n=n;await n.configure(engCfg(SR,false));const g=oc.createGain();g.gain.value=vol();n.connect(g);g.connect(oc.destination);
   await n.setStems(stems,stems.flat().map(x=>x.buffer));await n.setGains(engineGains());
   // await: an offline render does not deliver worklet messages until its first suspend, so an unawaited schedule started the MP3 with seconds of silence
   await n.schedule({active:true,output:0,input:a0-off,rate:r,semitones:k,loopStart:sec?a0-off:0,loopEnd:sec?a1-off:0});
@@ -291,5 +295,5 @@ $('xbtn').onclick=()=>{if(!inFrame||own||xRun||!ready)return exportMp3();
 document.querySelector('.ghostbtn').addEventListener('click',()=>{try{unlock()}catch(e){}});
 document.querySelector('.ghostbtn').addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();e.stopPropagation();$('file').click()}});
 window.__sp={exp:exportMp3,ctx:()=>ctx,lastX:()=>lastX,level:()=>{if(!an)return 0;const b=new Float32Array(2048);an.getFloatTimeDomainData(b);let q=0;for(const v of b)q+=v*v;return Math.sqrt(q/2048)},solo:i=>{solo=i;sendGains()},state:()=>({ready,playing,pos:now(),dur,A,B,parts,gains:gains(),eng:engineGains()}),seek,start,stop};
-</script><p class="appver" style="text-align:center;font-size:11px;opacity:.6;margin:12px 0 8px;font-family:ui-monospace,Menlo,monospace">Song Dissector · Version 2026-11-11.12</p>
+</script><p class="appver" style="text-align:center;font-size:11px;opacity:.6;margin:12px 0 8px;font-family:ui-monospace,Menlo,monospace">Song Dissector · Version 2026-11-11.13</p>
 </body></html>
