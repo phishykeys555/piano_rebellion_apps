@@ -411,7 +411,8 @@ button:focus-visible,select:focus-visible,summary:focus-visible,input:focus-visi
   function tockF(){ const base=[587,440,740,330]; if(inMode!=="note") return 587; const tg=+$("noteSel").value, far=f=>{ const m=69+12*Math.log2(f/440); return [0,5].every(k=>{ const d=Math.abs(((m+k-tg)%12+12)%12); return Math.min(d,12-d)>=2 })&&Math.abs(m-tg)>=4 };
     return base.find(far)||330 }
   // amp: 1 = a normal beat; 6/8 uses 1.3 for beat 4 (the secondary accent) and 0.7 for the eighths between the beats
-  function click(t,accent,soft,amp){ amp=amp||1; outT.push(t); if(outT.length>64) outT.shift(); const a=ctx(), f=tockF()*(accent?1.335:1), out=a.createBiquadFilter(); out.type="lowpass"; out.frequency.value=2600; out.connect(a.destination);
+  const outG=new Map(); // each click's own loudness (accent, soft in your bar), so the strike detector knows how loud that click should sound
+  function click(t,accent,soft,amp){ amp=amp||1; outT.push(t); if(outT.length>64) outT.shift(); outG.set(t,(accent?0.55:0.38)*(soft?0.35:1)*amp); if(outG.size>64) outG.delete(outG.keys().next().value); const a=ctx(), f=tockF()*(accent?1.335:1), out=a.createBiquadFilter(); out.type="lowpass"; out.frequency.value=2600; out.connect(a.destination);
     const o=a.createOscillator(), g=a.createGain(), o2=a.createOscillator(), g2=a.createGain(); o.type="sine"; o2.type="sine";
     o.frequency.setValueAtTime(f*1.35,t); o.frequency.exponentialRampToValueAtTime(f,t+0.012); o2.frequency.setValueAtTime(f*2.76,t);
     g.gain.setValueAtTime(0.0001,t); g.gain.exponentialRampToValueAtTime((accent?0.55:0.38)*(soft?0.35:1)*amp,t+0.0015); g.gain.exponentialRampToValueAtTime(0.0001,t+0.09);
@@ -432,6 +433,8 @@ button:focus-visible,select:focus-visible,summary:focus-visible,input:focus-visi
   // ---------- run a bar: 1 count-in bar of clicks, then the rhythm bar ----------
   // In a challenge each round has its own tempo (arc.bpm); the selected tempo (bpm) is never changed by it.
   const curBpm=()=>arc&&arc.bpm?arc.bpm:bpm, spb=()=>60/curBpm(), u16=()=>spb()/MT().beatU; let starting=false;
+  // One note mode: the shortest gap between two hits of your note, under 60% of a 16th at this tempo (16ths at 160 BPM are 94 ms apart)
+  const noteRefr=()=>Math.min(0.08,0.55*u16());
   const countWords=()=>{ const M=MT(); return M.compound?"1 2 3 4 5 6":[...Array(M.beats)].map((_,i)=>i+1).join(" · ") };
   async function play(mode){ // mode: "test" | "hear"
     if(run||starting||calHook) return; const S0=sess; starting=true; let a;
@@ -444,7 +447,7 @@ button:focus-visible,select:focus-visible,summary:focus-visible,input:focus-visi
     } finally{ starting=false }
     if(run||calHook||sess!==S0||(S0&&S0.stopped)) return;
     if(document.hidden){ if(sess||arc) abortRun(); return } // a page hidden while waiting never starts a bar it can't draw (a challenge stops, as it does when hidden mid-bar)
-    taps=[]; $("results").hidden=true; $("again").hidden=true; $("go").disabled=!sess; $("hear").disabled=true;
+    taps=[]; if(mic&&mic.nd) try{ mic.nd.port.postMessage({refr:Math.max(0.03,noteRefr()-0.01)}) }catch(e){} $("results").hidden=true; $("again").hidden=true; $("go").disabled=!sess; $("hear").disabled=true;
     const M=MT(), SP=spb(), U=SP/M.beatU; // this bar's tempo, fixed for the whole bar (count-in, clicks, cursor and grading)
     const t0=a.currentTime+0.15-(mode==="hear"?M.beats*SP:0), start=t0+M.beats*SP, end=start+M.units*U; // Hear it starts right away (no silent bar)
     // while you play into the mic, the clicks in your bar are softer so the mic hears you, not them
@@ -469,7 +472,7 @@ button:focus-visible,select:focus-visible,summary:focus-visible,input:focus-visi
   const autoLag=src=>{ const a=audio; const o=a?((a.outputLatency||0)+(a.baseLatency||0)):0; return Math.min(0.25,o+(src==="mic"?0.015:0.03)) };
   const manLag=src=>src!=="mic"?latency:inMode==="note"?latNote:latClap;
   const hitLog=[]; // test hook: every raw hit (tap or mic) as it arrives, before any correction
-  function tapAt(tsec,src,info){ if(src==="mic"&&hypeWait()>0){ hypeSup++; return } hitLog.push({t:tsec,src:src||"tap",mode:inMode}); if(hitLog.length>400) hitLog.shift(); if(calHook){ calHook(tsec,info); return } if(!run||run.mode!=="test") return; const man=manLag(src); const t=tsec-(man!=null?man/1000:autoLag(src)); if(t<run.start-0.3||t>run.end+0.2) return; taps.push(t);
+  function tapAt(tsec,src,info){ if(src==="mic"&&hypeWait()>0){ hypeSup++; return } hitLog.push({t:tsec,src:src||"tap",mode:inMode,via:info&&info.via}); if(hitLog.length>400) hitLog.shift(); if(calHook){ calHook(tsec,info); return } if(!run||run.mode!=="test") return; const man=manLag(src); const t=tsec-(man!=null?man/1000:autoLag(src)); if(t<run.start-0.3||t>run.end+0.2) return; taps.push(t);
     $("pad").classList.add("hit"); setTimeout(()=>$("pad").classList.remove("hit"),90) }
   $("pad").addEventListener("pointerdown",e=>{ e.preventDefault(); if(audio) tapAt(audio.currentTime) });
   document.addEventListener("keydown",e=>{ const tg=e.target.tagName; if(e.code!=="Space"||tg==="INPUT"||tg==="SELECT"||tg==="TEXTAREA"||tg==="SUMMARY"||tg==="A") return;
@@ -708,7 +711,30 @@ button:focus-visible,select:focus-visible,summary:focus-visible,input:focus-visi
      if(!this.cap&&this.f>thr&&this.f>this.sl*4&&this.f>this.mn*3){this.cap={t:currentTime+i/sampleRate,pk:this.f,bg:this.sl,n:Math.round(0.012*sampleRate),buf:new Float32Array(512),k:0};this.hold=Math.round((this.cal?0.006:0.07)*sampleRate);continue}
      this.sl=this.sl*this.rs+this.f*(1-this.rs)}
     this.ln+=x.length;if(this.ln>=1536){this.port.postMessage({lv:this.lv});this.lv=0;this.ln=0}return true}}
-  registerProcessor('rt-onset',Onset);`;
+  registerProcessor('rt-onset',Onset);
+  // One note mode: re-strikes of a key that is still ringing. The level detector misses these (a new strike on top of a loud ring barely moves the
+  // level), so this listens for the strike itself: a linear predictor (order 20, refit every 256 samples on the last 1024) follows the ring of the
+  // note already sounding, and a new hammer strike is exactly what it can't predict. Per 0.67 ms block of the prediction error, "s" = the last 1.3 ms
+  // against the 9 ms before it. Candidates go to the page with a time and a score; the page decides (it knows whether your note was sounding and where
+  // the written notes are). refr (from the page) = the shortest gap between two candidates, under 60% of a 16th at the tempo.
+  class NoteOn extends AudioWorkletProcessor{constructor(){super();this.refr=0.05;const P=this.P=20,N=this.N=1024;
+    this.y=new Float64Array(N);this.yi=0;this.pe=0;this.a=new Float64Array(P+1);this.a[0]=1;this.hw=new Float64Array(N).map((_,i)=>0.5-0.5*Math.cos(2*Math.PI*i/(N-1)));this.w=new Float64Array(N);this.r=new Float64Array(P+1);
+    this.B=Math.max(16,Math.round(sampleRate/1500));this.acc=0;this.sx=0;this.n=0;this.h=0;this.E=new Float64Array(512);this.X=new Float64Array(512);this.bi=0;this.nf=0;this.last=-1;this.cap=null;this.port.onmessage=e=>Object.assign(this,e.data)}
+   lpc(){const N=this.N,P=this.P,w=this.w,y=this.y,r=this.r;for(let i=0;i<N;i++)w[i]=y[(this.yi+i)%N]*this.hw[i];
+    for(let k=0;k<=P;k++){let s=0;for(let i=k;i<N;i++)s+=w[i]*w[i-k];r[k]=s}if(r[0]<=1e-12)return;r[0]*=1.0001;
+    const a=new Float64Array(P+1);a[0]=1;let e=r[0];for(let i=1;i<=P;i++){let k=-r[i];for(let j=1;j<i;j++)k-=a[j]*r[i-j];k/=e;const t=a.slice();for(let j=1;j<i;j++)a[j]=t[j]+k*t[i-j];a[i]=k;e*=1-k*k;if(e<=0)return}this.a=a}
+   process(ins){const x=ins[0]&&ins[0][0];if(!x)return true;const B=this.B,N=this.N,P=this.P,y=this.y;
+    for(let i=0;i<x.length;i++){const a=this.a,v=x[i]-0.9*this.pe;this.pe=x[i];let e=v;for(let k=1;k<=P;k++)e+=a[k]*y[(this.yi-k+N)%N];y[this.yi]=v;this.yi=(this.yi+1)%N;
+     this.acc+=e*e;this.sx+=x[i]*x[i];if(++this.n===B){this.blk((currentFrame+i+1)/sampleRate);this.acc=0;this.sx=0;this.n=0}if(++this.h>=256){this.h=0;this.lpc()}}return true}
+   blk(t){const E=this.E,X=this.X,b=this.bi++,at=k=>E[(b-k)&511],dt=this.B/sampleRate;E[b&511]=this.acc/this.B;X[b&511]=this.sx/this.B;if(b<64){this.nf=this.nf?Math.min(this.nf,at(0)):at(0);return}
+    let ref=0;for(let k=6;k<20;k++)ref+=at(k);ref=ref/14+1e-13;const s=(at(0)+at(1))/2/ref;
+    this.nf=ref<this.nf?ref:this.nf+(ref-this.nf)*0.001;const c=this.cap;
+    if(c){if(s>c.s){c.s=s;c.sb=b;c.ref=ref}c.e=Math.max(c.e,(at(0)+at(1))/2);
+     if(b>=c.b0+6){let j=c.sb;while(j>c.sb-6&&E[(j-1)&511]>c.ref*1.6)j--;const tt=t-(b-j+1)*dt;let A=0,Z=0;for(let k=0;k<6;k++)A+=X[(b-k)&511];for(let k=14;k<30;k++)Z+=X[(b-k)&511];
+      this.port.postMessage({no:1,t:tt,s:c.s,e:c.e,nf:this.nf,g:(A/6)/(Z/16+1e-13)}); /* g: the level after against before (a strike adds sound, a damper takes it away) */this.cap=null;this.last=tt;this.lastE=c.e}return}
+    if(t-this.last<this.refr&&!(s>=1.5&&(at(0)+at(1))/2>6*this.lastE))return; // inside the gap only a much louder strike (your note right after a click) gets through
+    if(s>=1.5&&(at(0)+at(1))/2>this.nf*3)this.cap={b0:b,s,sb:b,ref,e:(at(0)+at(1))/2}}}
+  registerProcessor('rt-note',NoteOn);`;
   let detURL=null; async function detNode(a){ if(!a.__det){ detURL=detURL||URL.createObjectURL(new Blob([DET_SRC],{type:"text/javascript"})); a.__det=a.audioWorklet.addModule(detURL) } await a.__det; return new AudioWorkletNode(a,"rt-onset",{numberOfInputs:1,numberOfOutputs:1,outputChannelCount:[1]}) }
   const DET_THR=0.025, BAND_LAG=0; // BAND_LAG: ms the two band-pass stages add to a note's start (measured on the bench)
   const ckLevel=()=>mic&&mic.ck?mic.ck():0;
@@ -775,6 +801,12 @@ button:focus-visible,select:focus-visible,summary:focus-visible,input:focus-visi
       src.connect(hp); hp.connect(g); g.connect(an); an.connect(mute); mute.connect(a.destination);
       const buf=new Float32Array(an.fftSize), noteHist=[]; let last=0, prev=0, pend=null, ckR=0, ckN=0;
       let det=null; try{ det=await detNode(a); src.connect(det); det.connect(mute); det.port.postMessage({g:+$("micGain").value,thr:DET_THR}) }catch(e){ det=null }
+      let nd=null; if(wantNote) try{ detURL=detURL||URL.createObjectURL(new Blob([DET_SRC],{type:"text/javascript"})); a.__det=a.__det||a.audioWorklet.addModule(detURL); await a.__det; nd=new AudioWorkletNode(a,"rt-note",{numberOfInputs:1,numberOfOutputs:1,outputChannelCount:[1]}); src.connect(nd); nd.connect(mute) }catch(e){ nd=null }
+      // One note mode: every hit of your note, from either detector, is kept for a moment so one strike is never counted twice
+      const accN=[]; let ckS=0, pick=null, pickT=0; const flushPick=()=>{ const c=pick; pick=null; if(c&&!dupe(c.t)) takeN(c.t,"re") }; const dupe=t=>accN.some(x=>Math.abs(x-t)<Math.max(0.035,0.5*noteRefr()));
+      const takeN=(t,via)=>{ accN.push(t); if(accN.length>32) accN.shift(); tapAt(t,"mic",{via}); $("pad").classList.add("hit"); setTimeout(()=>$("pad").classList.remove("hit"),90) };
+      // is t close to a written note of the bar being played (taking off the same latency the grading takes off)?
+      const expWin=t=>{ if(!run||run.mode!=="test"||!bar) return false; const lag=latNote!=null?latNote/1000:autoLag("mic"), W=Math.min(0.07,0.45*run.u); return bar.notes.some(n=>Math.abs(t-lag-(run.start+n.s*run.u))<W) };
       mic={s,g,mute,an,buf,timer:setInterval(()=>{ an.getFloatTimeDomainData(buf); let r=0, pk=0; for(let i=0;i<buf.length;i++){ r+=buf[i]*buf[i]; pk=Math.max(pk,Math.abs(buf[i])) } r=Math.sqrt(r/buf.length);
         if(!(det&&inMode!=="note")) $("meterFill").style.width=Math.min(100,r*300)+"%"; const now=a.currentTime;
         // judge a hit ~20 ms in, when the analyser window is full of the new sound
@@ -798,13 +830,15 @@ button:focus-visible,select:focus-visible,summary:focus-visible,input:focus-visi
           if(run&&run.mode==="test"&&p.t<run.start-0.1){ ckR=ckN?Math.min(ckR,p.r):p.r; ckN++; return true }
           return ckR>0&&p.r<ckR*(det?2.2:1.6) };
         mic.ownClick=ownClick; mic.ck=()=>ckR;
-        if(pend&&inMode==="note"&&now-pend.at>=0.11){ const p=pend; pend=null; const m=pitch(), tg=+$("noteSel").value;
+        const resolveNote=p=>{ const m=pitch(), tg=+$("noteSel").value;
           const own=ownClick(p), was=noteHist.filter(h=>h[0]<=p.t-0.004).pop(), fresh=was&&(!was[1]||p.r>was[2]*4||p.r-was[2]>ckR*1.3)&&!(run&&p.t<run.start-0.1); // not sounding before, or a jump far bigger than a click could make
-          if((!own||fresh)&&((m>0&&Math.abs(m-tg)<=0.6)||hasNote(tg))){ tapAt(p.t,"mic"); $("pad").classList.add("hit"); setTimeout(()=>$("pad").classList.remove("hit"),90) } }
+          if(nd&&own&&was&&was[1]) return; // a click landing on your ringing note (over a rest, say) is not a new note; a real re-strike there is the strike detector's to count
+          if((!own||fresh)&&((m>0&&Math.abs(m-tg)<=0.6)||hasNote(tg))&&!dupe(p.t)) takeN(p.t,"lvl") };
+        if(pend&&inMode==="note"&&now-pend.at>=0.11){ const p=pend; pend=null; resolveNote(p) }
         if(pend&&inMode!=="note"&&det){ pend=null }
         if(pend&&inMode!=="note"&&now-pend.at>=0.02){ const fl=flat(), h=hb(), p=pend; pend=null;
           if(!ownClick(p)&&(fl>=FLAT_MIN||h>hbBase*10)){ tapAt(p.t,"mic"); $("pad").classList.add("hit"); setTimeout(()=>$("pad").classList.remove("hit"),90) } }
-        /* a re-struck piano key over its own ring only jumps ~1.4x */ if(r>thr&&r>prev*(inMode==="note"?1.35:2)&&now-last>0.08){ let k=0; const lim=Math.max(thr*1.5,pk*0.3); while(k<buf.length&&Math.abs(buf[k])<lim) k++;
+        /* a re-struck piano key over its own ring only jumps ~1.4x */ if(r>thr&&r>prev*(inMode==="note"?1.35:2)&&now-last>(inMode==="note"?noteRefr():0.08)){ if(pend&&inMode==="note"){ const p0=pend; pend=null; resolveNote(p0) } /* a new note before the last one was checked: check that one now instead of dropping it */ let k=0; const lim=Math.max(thr*1.5,pk*0.3); while(k<buf.length&&Math.abs(buf[k])<lim) k++;
           let t=now-(buf.length-k)/a.sampleRate; last=now; if(inMode==="note"){ const o=noteOnset(); if(o!=null) t=o }
           // a pure tone (the app's own click or beep) is not a clap: decide once the sound has filled the window
           pend={t,at:now,r:rn,r0:rn,rmax:rn,ck:outT.some(o=>Math.abs(t-o)<0.06),b0:inMode==="note"&&calHook?band():null} }
@@ -813,7 +847,19 @@ button:focus-visible,select:focus-visible,summary:focus-visible,input:focus-visi
         if(pend&&inMode==="note") pend.rmax=Math.max(pend.rmax||0,rn);
         prev=r*0.5+prev*0.5 },8)};
       // after the round-screen music: start the onset detectors and the learned click level fresh (the count-in teaches the click again)
-      mic.reset=()=>{ prev=0; last=a.currentTime; pend=null; ckR=0; ckN=0; hbBase=0; noteHist.length=0; if(det) try{ det.port.postMessage({sl:0,mn:0,hold:0,hp:0,cap:null,warm:Math.round(0.15*a.sampleRate)}) }catch(e){} };
+      mic.reset=()=>{ prev=0; last=a.currentTime; pend=null; ckR=0; ckN=0; hbBase=0; noteHist.length=0; accN.length=0; ckS=0; if(det) try{ det.port.postMessage({sl:0,mn:0,hold:0,hp:0,cap:null,warm:Math.round(0.15*a.sampleRate)}) }catch(e){} };
+      // re-strikes: a hammer strike on your note while it is still ringing counts at once (no fresh 110 ms pitch check: the pitch is already yours).
+      // Score needed: 8 (and louder after than before) anywhere, 1.8 within a written note's window. Never on a click unless clearly louder than the click; a fresh note is left to the level path.
+      if(nd){ mic.nd=nd; nd.port.postMessage({refr:Math.max(0.03,noteRefr()-0.01)}); nd.port.onmessage=e=>{ const m=e.data; if(inMode!=="note"||calHook||hypeWait()>0) return; const t=m.t, near=outT.some(o=>Math.abs(t-o)<0.03);
+        const ck=outT.filter(o=>Math.abs(t-o)<0.03).sort((x,y)=>Math.abs(t-x)-Math.abs(t-y))[0], cg=ck==null?0:(outG.get(ck)||0.6);
+        // count-in: how loud a click looks to this detector, per unit of click volume (the quietest one, so one stray sound can't raise it)
+        if(run&&run.mode==="test"&&t<run.start-0.1){ if(near&&cg) ckS=ckS?Math.min(ckS,m.e/(cg*cg)):m.e/(cg*cg); return }
+        const was=noteHist.filter(h=>h[0]<=t-0.004&&h[0]>=t-0.08).pop(); if(!was||!was[1]) return;
+        const win=expWin(t); if(m.s<(win?1.8:8)||(!win&&m.g<1.2)) return; // away from the written notes: only a sharp strike that also makes it louder
+        // on a click: a click over your ringing note is a sudden sound too, so there it takes a far sharper strike (or one much louder than that click), and never outside a written note
+        if(near&&(!win||(m.s<10&&!(ckS&&m.e>=2.5*ckS*cg*cg)))) return;
+        // two candidates within 80 ms are one strike (a small noise just before it, say): the sharper one counts, decided 90 ms later
+        if(pick&&Math.abs(t-pick.t)<0.08){ if(m.s>pick.s) pick={t,s:m.s} } else { flushPick(); pick={t,s:m.s} } clearTimeout(pickT); pickT=setTimeout(flushPick,90) } }
       if(det){ mic.det=det; det.port.onmessage=e=>{ const m=e.data; if(inMode==="note") return;
         if(m.lv!=null){ $("meterFill").style.width=Math.min(100,m.lv/DET_THR*15)+"%"; return }
         const p={t:m.t,r:m.pk}, fl=hitFlat(m.buf,a.sampleRate), near=outT.some(o=>Math.abs(p.t-o)<0.06);
@@ -837,7 +883,7 @@ button:focus-visible,select:focus-visible,summary:focus-visible,input:focus-visi
       else if(n==="NotReadableError"||n==="AbortError") micMsg("Another app is using the microphone. Close it (or end the call), then tap the button again.");
       else micMsg("No microphone found. Plug one in or pick another, then tap the button again.");
       return false } }
-  function micStop(){ if(!mic) return; aSess("playback"); clearInterval(mic.timer); mic.s.getTracks().forEach(t=>t.stop()); try{mic.mute.disconnect()}catch(e){} mic=null;
+  function micStop(){ if(!mic) return; aSess("playback"); clearInterval(mic.timer); mic.s.getTracks().forEach(t=>t.stop()); try{mic.mute.disconnect()}catch(e){} if(mic.nd) try{ mic.nd.port.onmessage=null; mic.nd.disconnect() }catch(e){} mic=null;
     $("micBtn").textContent="Turn on the microphone"; $("micBtn").disabled=false; $("micCtl").hidden=true; micHint() }
   $("micBtn").addEventListener("click",()=>micStart($("micSel").value||undefined));
   $("micSel").addEventListener("change",e=>micStart(e.target.value));
@@ -856,6 +902,6 @@ button:focus-visible,select:focus-visible,summary:focus-visible,input:focus-visi
   if(document.fonts) document.fonts.ready.then(()=>{ if(!run) drawBar(curRes) });
 })();
 </script>
-<p class="appver" style="text-align:center;font-size:11px;opacity:.6;margin:18px 0 10px;font-family:ui-monospace,Menlo,monospace">Rhythm Trainer · Version 2026-11-11.21</p>
+<p class="appver" style="text-align:center;font-size:11px;opacity:.6;margin:18px 0 10px;font-family:ui-monospace,Menlo,monospace">Rhythm Trainer · Version 2026-11-11.22</p>
 </body>
 </html>
