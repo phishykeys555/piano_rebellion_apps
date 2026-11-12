@@ -242,7 +242,7 @@ button:focus-visible,select:focus-visible,summary:focus-visible,input:focus-visi
     {id:"8",name:"Syncopation 4",cells:{EE:2,SSSS:1,SES:3,DES:3,SDE:2,RSE:2,EQE:1}}];
   const FEAT={"2":["EE"],"3":["QR","HR","RE","ER"],"4":["DQE","DH"],"5":["SSSS","ESS","SSE"],"6":["EQE","RERE"],"7":["ETIE","ANT","C332","MID"],"8":["SES","SDE","RSE"],"9":["DES","SES"]};
   const TEMPOS=[60,72,84,96,108,120];
-  const MT=()=>({id:"4/4",beats:4,compound:false}), tl=b=>`${b} BPM`, arcMax=()=>ARC_MAX; // (time signatures arrive in .21)
+  let meterId="4/4"; const MT=()=>({id:"4/4",beats:4,compound:false}), tl=b=>`${b} BPM`, arcMax=()=>ARC_MAX; // (time signatures arrive in .21)
   let level=store.get("level","1"), bpm=store.get("bpm",72), latency=store.get("lat",null), latClap=store.get("latClap",store.get("latMic",null)), latNote=store.get("latNote",null), inMode=store.get("in","tap"); // each input keeps its own offset (an old shared mic offset carries over to Clap only)
   let bar=null, taps=[], run=null, round=[], best=store.get("best",null), audio=null, mic=null;
   // saved settings from older versions (or a broken save) can hold anything: keep only values this version understands

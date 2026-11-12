@@ -868,16 +868,16 @@ input[type=range],input[type=checkbox],input[type=radio]{accent-color:var(--c-ac
     // answers the next question by itself.
     const hold=m.hold||0; m.hold=Math.max(rs,hold*HOLDK);
     if(!m.armed&&now>m.cool&&Math.max(r,rs)>thr&&rs>1.8*Math.min(p1,p2)&&rs>HOLDR*hold){
-      m.armed=true;m.sharp=false;m.clip=false;m.armedAt=now;m.cand=[];m.res=[];m.raw=[];m.rawX=[];m.env=[];m.envS=[];m.fc=[];m.fr=[];m.slow=0;
+      m.armed=true;m.sharp=false;m.sharpLv=0;m.clip=false;m.armedAt=now;m.cand=[];m.res=[];m.raw=[];m.rawX=[];m.env=[];m.envS=[];m.fc=[];m.fr=[];m.slow=0;
       // what was sounding just before this attack, so a still-ringing key can be told apart from the new one
       // (two looks back, 40 ms: the look just before can already hold the first ms of this attack when the attack straddles two looks)
       m.tail=m.last2&&m.lastR2>Math.max(0.004,4*Math.min(...m.hist))?mag(m.last2,SPN,m.pre||(m.pre=new Float32Array(SPN/2+1))):null }
     if(m.armed){ m.env.push(r); m.envS.push(rs); if(clipped) m.clip=true;
       // a hammer hits: inside the frame the level leaps SHK x within ~10 ms, landing near the note's full level. A voice (or a swelling string)
       // ramps up over tens of ms: its only quick leaps are at the very start of a syllable, far below where it ends up (checked at decision: SHL).
-      if(!m.sharp){ const H=256, nb=Math.floor(L/H)-1, a=new Float32Array(nb); let pk=0; for(let i=0;i<nb;i++){ let e=0; for(let j=i*H;j<i*H+2*H;j++) e+=b[j]*b[j]; a[i]=Math.sqrt(e); if(a[i]>pk) pk=a[i] }
+      { const H=256, nb=Math.floor(L/H)-1, a=new Float32Array(nb); let pk=0; for(let i=0;i<nb;i++){ let e=0; for(let j=i*H;j<i*H+2*H;j++) e+=b[j]*b[j]; a[i]=Math.sqrt(e); if(a[i]>pk) pk=a[i] }
         // over a still-ringing key the leap starts from that key's level, so there a quick 1.5x jump that adds 30% of the peak counts too
-        for(let i=2;i<nb;i++) if(a[i]>=0.4*pk&&(a[i]>SHK*a[i-2]||m.tail&&a[i]>1.5*a[i-2]&&a[i]-a[i-2]>0.3*pk)){ m.sharp=true; m.sharpI=m.envS.length-1; m.sharpLv=a[i]/Math.sqrt(2*H); break } } }
+        for(let i=2;i<nb;i++) if(a[i]>=0.4*pk&&(a[i]>SHK*a[i-2]||m.tail&&a[i]>1.5*a[i-2]&&a[i]-a[i-2]>0.3*pk)){ if(!m.sharp){ m.sharp=true; m.sharpI=m.envS.length-1 } m.sharpLv=Math.max(m.sharpLv||0,a[i]/Math.sqrt(2*H)) } } }
     if(clipped&&m.armed&&!m.clipSaid){ m.clipSaid=true; $("micStat").textContent=g>1.05&&pkA>=0.999?"Very loud: lower Sensitivity a little.":"Very loud: move the device a little farther from the piano (or play a bit softer)." }
     const fin=md=>{ m.armed=false; m.cool=now+250; m.lastMd=md; if(m.clipSaid&&!m.clip){ m.clipSaid=false; $("micStat").textContent="Listening. Play any key: the Level bar should jump past the line. Too low? Raise Sensitivity." } heardNote(md); answerHeard(md) };
     const learn=rs=>{ rs=rs.slice().sort((a,b)=>a-b); const med=rs[Math.floor(rs.length/2)]||0; tuneOff=Math.max(-0.6,Math.min(0.6,tuneOff+0.5*med)); store.set("tuneOff",tuneOff) };
