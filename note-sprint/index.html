@@ -1124,7 +1124,7 @@ details.how p{margin:0;padding:0 16px 12px;line-height:1.45;color:var(--muted)}
       // a steady pitch that sits between two keys = the piano itself is off: re-centre on it and ask for the note again
       const rr=[...m.raw].sort((a,b)=>a-b), md=rr[rr.length>>1];
       if(rx.length>=6&&rx.filter(v=>Math.abs(v-mx)<0.1).length>=0.8*rx.length&&Math.abs(md)>0.3){ tuneOff=Math.max(-0.6,Math.min(0.6,tuneOff+md)); store.set("tuneOff",tuneOff); heardMsg("Tuning to your piano. Play that key again.") }
-      else if(cons&&(m.by==="level"||m.by==="re-strike")&&m.pk>thr) heardMsg("Didn't catch that one. Play the key again, a little firmer.") }
+      else if(cons&&tq!=null&&(m.by==="level"||m.by==="re-strike")&&m.pk>thr) heardMsg("Didn't catch that one. Play the key again, a little firmer.") }
     if(!m.last){ m.last=new Float32Array(L); m.last2=new Float32Array(L) } const t2=m.last2; m.last2=m.last; m.lastR2=m.lastR; m.last=t2; m.last.set(b); m.lastR=r }
   // the asked key's strongest partial is a real peak in this look: 15%+ of the loudest peak anywhere from 50 Hz to 5 kHz (not room noise)
   function realPeak(P,S){ S=S||spS; const bw=mic.sr/SPN; let top=0; for(let k=Math.floor(50/bw);k<Math.min(SPN/2,Math.ceil(5000/bw));k++) if(S[k]>top) top=S[k]; return Math.max(...P)>=0.15*top&&top>0 }
