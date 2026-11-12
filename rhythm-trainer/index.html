@@ -105,7 +105,7 @@ button:active{transform:translateY(2px);box-shadow:0 1px 0 var(--c-key-sh)}
 .stats{background:var(--c-lcd);border:1px solid var(--c-lcd-b);border-radius:14px;box-shadow:inset 0 2px 8px rgba(0,0,0,.55);padding:10px 12px}
 .stat b{color:var(--c-led);text-shadow:var(--c-led-glow)} .stat span{color:#9aa3b2}
 .pad{background:var(--c-key);border:1px solid var(--c-key-b);box-shadow:0 4px 0 var(--c-key-sh);color:var(--c-mut);letter-spacing:.15em;font-size:20px}
-.pad.hit{background:var(--c-act);border-color:var(--c-act);color:var(--c-act-ink)}
+.pad.hit,.pad.down{background:var(--c-act);border-color:var(--c-act);color:var(--c-act-ink)}
 .tempo span,.micp{color:var(--c-mut)} .tempo span{font-weight:700;letter-spacing:.16em;font-size:10.5px}
 details{background:var(--c-panel2);border-color:var(--c-line)}
 .results,.arcsplash{background:var(--c-panel2)} .arcsplash em{color:var(--c-ink)} .arcmeter s{background:var(--c-ink)}
@@ -175,6 +175,7 @@ button:focus-visible,select:focus-visible,summary:focus-visible,input:focus-visi
         <span>Level</span><div class="meter"><i id="meterFill"></i><span class="thr" id="thr"></span></div>
       </div>
       <p class="tip" id="micStat" role="status" aria-live="polite" style="margin-top:6px">Clap or snap once: the Level bar should jump past the line and the pad lights up.</p>
+      <p class="tip" style="margin-top:4px">Clap or snap and One note grade when each note starts, not how long you hold it. To grade your holds, use Tap.</p>
     </div>
     <button class="pad" id="pad">TAP</button>
     <div class="row" style="justify-content:space-between">
@@ -182,7 +183,7 @@ button:focus-visible,select:focus-visible,summary:focus-visible,input:focus-visi
       <button class="ghost" id="again" hidden><span aria-hidden="true">↺</span> Try this one again</button>
       <button class="primary" id="go">Start</button>
     </div>
-    <p class="tip">Tap the pad or the space bar, or switch to Clap or snap. Rests are silent: don't tap them. Clapping or playing with speakers? Headphones are best: the mic never hears the clicks at all.</p>
+    <p class="tip">Tap the pad or the space bar, or switch to Clap or snap. Rests are silent: don't tap them. In Tap, hold long notes down for their full length and let go on time. Clapping or playing with speakers? Headphones are best: the mic never hears the clicks at all.</p>
 
     <div class="arcsplash" id="arcSplash" hidden><div class="pre" id="spP"></div><b id="spT"></b><em id="spB" hidden></em><span id="spS"></span><small class="sptap" id="spTap" hidden>Tap to start</small></div><div class="hitstamp" id="hitStamp">ON TARGET!</div>
     <div class="results" id="results" role="region" aria-label="Results" hidden>
@@ -194,6 +195,7 @@ button:focus-visible,select:focus-visible,summary:focus-visible,input:focus-visi
         <div><b id="rPerfect">0</b><span>Perfect hits</span></div>
         <div><b id="rTiming">–</b><span>Average timing</span></div>
         <div><b id="rMissed">0</b><span>Missed / extra</span></div>
+        <div id="rHoldBox" style="grid-column:1/-1" hidden><b id="rHold">–</b><span>Long notes let go on time</span></div>
       </div>
       <div class="stamp" id="rStamp"></div>
       <p class="tip" style="text-align:left">Screenshot this screen and send it to your instructor.</p>
@@ -212,6 +214,8 @@ button:focus-visible,select:focus-visible,summary:focus-visible,input:focus-visi
       <label><input type="checkbox" id="ramp" checked> Challenge: speed up as you play</label>
       <label><input type="checkbox" id="hypeOn" checked> Music on round screens</label>
       <span class="stamp">On: every rhythm you play well nudges the tempo up (95%+: +2 BPM, 80%+: +1, under 60%: −2), up to 8% faster each round, never below where the round started. Off: one steady tempo. A change applies from the next Start.</span>
+      <label><input type="checkbox" id="holds" checked> Grade how long I hold (Tap)</label>
+      <span class="stamp">Tap only: quarter notes and longer, dotted and tied notes, and notes right before a rest are also graded on when you let go (the bar under each note shows how long you held it; the tick is where it ends). Clap or snap and One note grade only when each note starts.</span>
       <div class="row"><button class="ghost" id="cal">Calibrate timing</button><span class="stamp" id="calTxt" role="status" aria-live="polite"></span></div>
       <span class="stamp">Calibrate once per device, and again with Bluetooth headphones: tap (or clap, or play your note) along with 12 clicks. Tap, Clap and One note each keep their own setting.</span>
     </div>
@@ -284,7 +288,7 @@ button:focus-visible,select:focus-visible,summary:focus-visible,input:focus-visi
   const tempoList=()=>MT().compound?TEMPOS_C:TEMPOS, bpmKey=()=>MT().compound?"bpmC":"bpm";
   const tl=b=>MT().compound?`♩. = ${b}`:`${b} BPM`; // how a tempo reads on screen
   let level=store.get("level","1"), bpm=store.get(bpmKey(),MT().compound?56:72), latency=store.get("lat",null), latClap=store.get("latClap",store.get("latMic",null)), latNote=store.get("latNote",null), inMode=store.get("in","tap"); // each input keeps its own offset (an old shared mic offset carries over to Clap only)
-  let bar=null, taps=[], run=null, round=[], best=store.get("best",null), audio=null, mic=null;
+  let bar=null, taps=[], rels=[], run=null, round=[], best=store.get("best",null), audio=null, mic=null;
   // saved settings from older versions (or a broken save) can hold anything: keep only values this version understands
   const okLat=v=>typeof v==="number"&&isFinite(v)&&Math.abs(v)<=250?Math.round(v):null;
   level=String(level); if(!LEVELS.some(L=>L.id===level)) level="1";
@@ -386,6 +390,12 @@ button:focus-visible,select:focus-visible,summary:focus-visible,input:focus-visi
       if(!M.compound&&big&&s<M.units) h+=`<text x="${x}" y="${TY+22}" text-anchor="middle" font-family="JetBrains Mono" font-size="11" fill="#9aa0aa">${s/4+1}</text>`;
       if(M.compound&&s%2===0&&s<M.units) h+=`<text x="${x}" y="${TY+22}" text-anchor="middle" font-family="JetBrains Mono" font-size="11"${big?' font-weight="800"':''} fill="${big?"#6b717c":"#9aa0aa"}">${s/2+1}</text>` }
     bar.notes.forEach(n=>{ h+=`<line x1="${xOf(n.s)}" x2="${xOf(n.s)}" y1="${LY+38}" y2="${TY-10}" stroke="#d7dbe2" stroke-width="1" stroke-dasharray="2 3"/>` });
+    // holds (Tap): a dashed box = the note's written length; the bar inside = how long you held it (start to let go), coloured by the
+    // release grade; the tick = where the note ends (let go there). Still held when the bar was graded: the bar runs off the end.
+    if(res&&res.holds) res.holds.forEach(o=>{ const y=105, xs=xOf(o.s), xe=xOf(o.end), xa=xOf(o.a), xMax=xOf(M.units)+8, xr=o.r==null?xMax:Math.max(xa+2,Math.min(xMax,xOf(o.r)));
+      h+=`<rect x="${xs}" y="${y}" width="${Math.max(2,xe-xs)}" height="8" rx="4" fill="none" stroke="#9aa0aa" stroke-width="1" stroke-dasharray="3 2"/>`;
+      h+=`<rect x="${xa}" y="${y+1.5}" width="${xr-xa}" height="5" rx="2.5" fill="${o.col}" opacity=".9"/>`;
+      h+=`<line x1="${xe}" x2="${xe}" y1="${y-4}" y2="${y+12}" stroke="${o.col}" stroke-width="2.2" stroke-linecap="round"/>` });
     if(res){ res.taps.forEach(t=>{ const x=xOf(t.s16); const c=t.col; h+=`<circle cx="${x}" cy="${TY}" r="6" fill="${c}" stroke="#fff" stroke-width="1.5"/>`;
         if(t.extra) h+=`<text x="${x}" y="${TY-12}" text-anchor="middle" font-size="12" font-weight="800" fill="${c}">×</text>` });
       res.missed.forEach(s=>{ const x=xOf(s); h+=`<circle cx="${x}" cy="${TY}" r="6" fill="none" stroke="#c2352b" stroke-width="2" stroke-dasharray="3 2"/>` }) }
@@ -447,7 +457,7 @@ button:focus-visible,select:focus-visible,summary:focus-visible,input:focus-visi
     } finally{ starting=false }
     if(run||calHook||sess!==S0||(S0&&S0.stopped)) return;
     if(document.hidden){ if(sess||arc) abortRun(); return } // a page hidden while waiting never starts a bar it can't draw (a challenge stops, as it does when hidden mid-bar)
-    taps=[]; if(mic&&mic.nd) try{ mic.nd.port.postMessage({refr:Math.max(0.03,noteRefr()-0.01)}) }catch(e){} $("results").hidden=true; $("again").hidden=true; $("go").disabled=!sess; $("hear").disabled=true;
+    taps=[]; rels=[]; padDown(); if(mic&&mic.nd) try{ mic.nd.port.postMessage({refr:Math.max(0.03,noteRefr()-0.01)}) }catch(e){} $("results").hidden=true; $("again").hidden=true; $("go").disabled=!sess; $("hear").disabled=true;
     const M=MT(), SP=spb(), U=SP/M.beatU; // this bar's tempo, fixed for the whole bar (count-in, clicks, cursor and grading)
     const t0=a.currentTime+0.15-(mode==="hear"?M.beats*SP:0), start=t0+M.beats*SP, end=start+M.units*U; // Hear it starts right away (no silent bar)
     // while you play into the mic, the clicks in your bar are softer so the mic hears you, not them
@@ -457,12 +467,15 @@ button:focus-visible,select:focus-visible,summary:focus-visible,input:focus-visi
       for(let b=0;b<2;b++) click(start+b*SP,b===0,mode==="test"&&inMode!=="tap",b===1?1.3:1) }
     if(mode==="hear"||$("guide").checked) bar.notes.forEach(n=>(mode==="test"&&inMode==="clap"&&mic)?wood(start+n.s*U,n.d*U):hand(start+n.s*U));
     msg(null, mode==="hear"?"Listen…":"Count in: "+countWords(), mode==="hear"?"":"Start tapping on beat 1 of the next bar.");
-    const R=run={mode,start,end,t0,u:U}; if(mode==="test"){ lastStart=start; lastU=U } lockUI();
+    // Tap with "Grade how long I hold" on: releases are graded too. A note that ends with the bar may be let go after the bar ends,
+    // so grading waits (only while it is still held) until that note's Good window has passed.
+    const holds=mode==="test"&&inMode==="tap"&&$("holds").checked, endL=holds?Math.max(0,...holdSpec(bar.ev).filter(h=>h.graded&&h.end===M.units).map(h=>h.len)):0;
+    const R=run={mode,start,end,t0,u:U,holds,grace:Math.min(2,0.35+(endL?holdWin(endL*U,SP).g+0.05:0))}; if(mode==="test"){ lastStart=start; lastU=U; lastHolds=holds } lockUI();
     const tick=()=>{ if(run!==R) return; /* this bar was stopped (or replaced): its frame loop ends here */ const now=a.currentTime; let px=null, pos=null;
       if(now>=start&&now<=end){ pos=(now-start)/U; px=$("cursor").checked?xOf(pos):null; if(mode==="test"&&!run.go){ run.go=true; msg(null,"Go!",inMode==="clap"?"Clap or snap every note.":inMode==="note"?"Play your note for every note.":"Tap every note.") } }
       else if(now<start&&mode==="test"){ const n=M.compound?6:M.beats, left=Math.ceil((start-now)/(M.compound?SP/3:SP)); $("msg").querySelector(".v").textContent=left<=n?"Count in: "+(n+1-left):"Get ready"; }
       drawBar(null,px,pos);
-      if(now>end+0.35){ const m=run.mode; run=null; $("go").disabled=false; lockUI(); $("hear").disabled=!!sess; if(m==="test") grade(); else { drawBar(null); msg(null,"Your turn","Press Start, count in, then tap it.") } return }
+      if(now>end+0.35&&!(R.holds&&now<end+R.grace&&[...held.values()].some(h=>h.arr===taps&&h.i>=0))){ const m=run.mode; run=null; $("go").disabled=false; lockUI(); $("hear").disabled=!!sess; if(m==="test") grade(); else { drawBar(null); msg(null,"Your turn","Press Start, count in, then tap it.") } return }
       requestAnimationFrame(tick) };
     tick() }
 
@@ -472,23 +485,49 @@ button:focus-visible,select:focus-visible,summary:focus-visible,input:focus-visi
   const autoLag=src=>{ const a=audio; const o=a?((a.outputLatency||0)+(a.baseLatency||0)):0; return Math.min(0.25,o+(src==="mic"?0.015:0.03)) };
   const manLag=src=>src!=="mic"?latency:inMode==="note"?latNote:latClap;
   const hitLog=[]; // test hook: every raw hit (tap or mic) as it arrives, before any correction
-  function tapAt(tsec,src,info){ if(src==="mic"&&hypeWait()>0){ hypeSup++; return } hitLog.push({t:tsec,src:src||"tap",mode:inMode,via:info&&info.via}); if(hitLog.length>400) hitLog.shift(); if(calHook){ calHook(tsec,info); return } if(!run||run.mode!=="test") return; const man=manLag(src); const t=tsec-(man!=null?man/1000:autoLag(src)); if(t<run.start-0.3||t>run.end+0.2) return; taps.push(t);
-    $("pad").classList.add("hit"); setTimeout(()=>$("pad").classList.remove("hit"),90) }
-  $("pad").addEventListener("pointerdown",e=>{ e.preventDefault(); if(audio) tapAt(audio.currentTime) });
+  function tapAt(tsec,src,info){ if(src==="mic"&&hypeWait()>0){ hypeSup++; return } hitLog.push({t:tsec,src:src||"tap",mode:inMode,via:info&&info.via}); if(hitLog.length>400) hitLog.shift(); if(calHook){ calHook(tsec,info); return -1 } if(!run||run.mode!=="test") return -1; const man=manLag(src); const t=tsec-(man!=null?man/1000:autoLag(src)); if(t<run.start-0.3||t>run.end+0.2) return -1; taps.push(t); rels.push(null);
+    $("pad").classList.add("hit"); setTimeout(()=>$("pad").classList.remove("hit"),90); return taps.length-1 }
+  // Releases (Tap): every press is kept by its pointer (each finger on its own) or "key" for the space bar, so it can be let go.
+  // The pad captures the pointer, so a finger that slides off the pad still lets go here; a cancelled touch counts as letting go then.
+  // A release takes off the same latency as its press (measured: the browser delivers pointerup and pointerdown, keyup and keydown, through the same path).
+  // A press held past the end of the bar still lets go into that bar; a press from an older bar is ignored.
+  const held=new Map();
+  const padDown=()=>$("pad").classList.toggle("down",[...held.values()].some(h=>h.arr===taps&&h.i>=0));
+  function pressAt(t,id){ if(held.has(id)) releaseAt(t,id); const man=manLag("tap"), lag=man!=null?man/1000:autoLag("tap"), i=tapAt(t); held.set(id,{arr:taps,i,lag}); padDown(); return i }
+  function releaseAt(t,id){ const h=held.get(id); if(!h) return; held.delete(id); if(h.i>=0&&h.arr===taps&&rels[h.i]==null) rels[h.i]=t-h.lag; padDown() }
+  function releaseAll(){ const t=audio?audio.currentTime:0; [...held.keys()].forEach(id=>releaseAt(t,id)) }
+  $("pad").addEventListener("pointerdown",e=>{ e.preventDefault(); try{ $("pad").setPointerCapture(e.pointerId) }catch(_){} if(audio) pressAt(audio.currentTime,e.pointerId) });
+  const lift=e=>{ if(held.has(e.pointerId)) releaseAt(audio?audio.currentTime:0,e.pointerId) };
+  ["pointerup","pointercancel","lostpointercapture"].forEach(k=>$("pad").addEventListener(k,lift)); ["pointerup","pointercancel"].forEach(k=>document.addEventListener(k,lift,true));
+  document.addEventListener("keyup",e=>{ if(e.code==="Space"&&held.has("key")){ e.preventDefault(); releaseAt(audio?audio.currentTime:0,"key") } });
+  window.addEventListener("blur",releaseAll); // a key or finger can't be let go once the page loses focus: count it as let go now
   document.addEventListener("keydown",e=>{ const tg=e.target.tagName; if(e.code!=="Space"||tg==="INPUT"||tg==="SELECT"||tg==="TEXTAREA"||tg==="SUMMARY"||tg==="A") return;
     if(!run&&!calHook&&tg==="BUTTON"&&!["go","pad","again"].includes(e.target.id)) return; // Space still presses the focused button
-    e.preventDefault(); if(e.repeat) return; if(audio&&(run||calHook)) tapAt(audio.currentTime); else if(!run&&!sess&&!arc&&!starting&&!$("go").disabled&&$("results").hidden) $("go").click() }); // in a challenge, Space between bars is a (late) tap, never Stop
+    e.preventDefault(); if(e.repeat) return; if(audio&&(run||calHook)) pressAt(audio.currentTime,"key"); else if(!run&&!sess&&!arc&&!starting&&!$("go").disabled&&$("results").hidden) $("go").click() }); // in a challenge, Space between bars is a (late) tap, never Stop
 
   // Silent spots in the bar: rests, tied-over notes, and beats held inside a long note or rest. A tap nearer one of these than
   // to the note is a reading mistake (tapping the rest, the tie or the held beat), not a "close" hit on the note.
   // (the counted pulse inside a held note: each beat in 2/4, 3/4, 4/4; each eighth in 6/8, where the eighths are counted)
   function silentPts(ev){ const M=MT(), S=[]; ev.forEach(e=>{ if(e.r||e.tie) S.push(e.s); for(let b=Math.floor(e.s/M.cu)*M.cu+M.cu;b<e.s+e.d;b+=M.cu) S.push(b) }); return S.sort((a,b)=>a-b) }
+  // ---------- holds (Tap only): which notes are graded on when you let go ----------
+  // A note's written length runs through its ties. Its release is graded when the length matters musically: a quarter or longer,
+  // a dotted note, a tied note, or a note right before a rest (in every meter, 6/8 dotted quarters included). Plain 8ths and 16ths
+  // followed by another note stay attack-only. The release target is the written end: the next note's start, the rest's start, or the end of the tie chain.
+  function holdSpec(ev){ return ev.filter(e=>!e.r&&!e.tie).map(n=>{ const i=ev.indexOf(n); let j=i+1; while(j<ev.length&&ev[j].tie) j++;
+    const last=ev[j-1], end=last.s+last.d, len=end-n.s, nx=ev[j], tied=j>i+1, beforeRest=!!(nx&&nx.r), dotted=n.d===3||n.d===6||n.d===12;
+    return {s:n.s,end,len,tied,beforeRest,dotted,graded:len>=4||tied||dotted||beforeRest} }) }
+  // windows: Perfect within 15% of the written length, Good within 30%; on long notes never wider than a quarter / half of a beat (a whole note held a
+  // beat too long is "held too long", not good); never tighter than 60 / 120 ms. Otherwise "let go early" / "held too long".
+  const holdWin=(L,beat)=>({p:Math.max(0.06,Math.min(0.15*L,0.25*beat)),g:Math.max(0.12,Math.min(0.3*L,0.5*beat))});
+  const HOLD_PEN={perfect:0,good:0.15,early:0.35,late:0.35,held:0.35}; // taken off that note's attack score (never below 0)
+  const HCOL={perfect:"#1f8a4c",good:"#c98a06",early:"#c2352b",late:"#c2352b",held:"#c2352b"};
   // ---------- grading ----------
   // Each note gets one tap within 250 ms. Perfect ≤ 60 ms = 1, Good ≤ 120 ms = 0.75, Close ≤ 250 ms = 0.4.
   // Extra taps (rests, doubles) cost 0.25 each.
   function grade(){
     const st=lastStart, u=lastU;
-    const notes=bar.notes, used=new Set(), byNote=new Map(), resTaps=[], missed=[]; let pts=0, errs=[], perfect=0, okN=0;
+    const notes=bar.notes, used=new Set(), byNote=new Map(), resTaps=[], missed=[]; let pts=0, errs=[], perfect=0, okN=0, cp=0;
+    const HS=lastHolds?holdSpec(bar.ev):null, holds=[];
     // Pair taps with notes in time order, choosing the pairing that scores best overall (so one missed or doubled
     // note never shifts every later tap onto the wrong note, even with 16ths at fast tempos).
     const T=notes.map(n=>st+n.s*u), order=taps.map((t,i)=>i).sort((a,b)=>taps[a]-taps[b]), N=T.length, M=order.length;
@@ -509,10 +548,17 @@ button:focus-visible,select:focus-visible,summary:focus-visible,input:focus-visi
       if(bi<0){ missed.push(n.s); byNote.set(idx,{col:"#c2352b"}); return }
       used.add(bi); const ms=bd*1000, ad=Math.abs(ms); errs.push(ms);
       let sc, col; if(ad<=60){sc=1;col="#1f8a4c";perfect++} else if(ad<=120){sc=.75;col="#c98a06";okN++} else {sc=.4;col="#e0702c"}
+      // the release (Tap, graded notes only). Not double-punished: a late start held for the right length is a good release too,
+      // so the release is judged by whichever is closer, the written end or the written length from where you started.
+      let hold=null; if(HS&&HS[ni].graded){ const hs=HS[ni], L=hs.len*u, w=holdWin(L,u*MT().beatU), r=rels[bi]; let err=null, g="held";
+        if(r!=null){ const e1=r-(st+hs.end*u), e2=(r-taps[bi])-L; err=Math.abs(e2)<Math.abs(e1)?e2:e1; const a=Math.abs(err); g=a<=w.p?"perfect":a<=w.g?"good":err<0?"early":"late" }
+        sc=Math.max(0,sc-HOLD_PEN[g]); hold={...hs,a:(taps[bi]-st)/u,r:r==null?null:(r-st)/u,err,g,col:HCOL[g]}; holds.push(hold) }
+      // Challenge points: 1 perfect start, ½ good start, then −½ for a long note let go early or held too long (never below 0 for the note)
+      cp+=Math.max(0,(ad<=60?1:ad<=120?0.5:0)-(hold&&HOLD_PEN[hold.g]>=0.35?0.5:0));
       pts+=sc; byNote.set(idx,{col}); resTaps.push({s16:(taps[bi]-st)/u,col}) });
     const UN=MT().units, extras=taps.filter((t,i)=>!used.has(i)); extras.forEach(t=>resTaps.push({s16:Math.max(-0.5,Math.min(UN+0.3,(t-st)/u)),col:"#7a808b",extra:true}));
     const score=Math.max(0,Math.round(100*(pts-0.25*extras.length)/notes.length));
-    const res={byNote,taps:resTaps,missed}; drawBar(res);
+    const res={byNote,taps:resTaps,missed,holds}; drawBar(res);
     // coaching: the biggest problem first, in counting language
     const avg=errs.length?errs.reduce((a,b)=>a+b,0)/errs.length:0;
     // what an extra tap landed on: a rest, a tied note, a beat held inside a longer note, or nothing in particular
@@ -523,21 +569,35 @@ button:focus-visible,select:focus-visible,summary:focus-visible,input:focus-visi
       :`Extra tap on "${CNT(exG[ki])}": the note before it is still sounding. Hold it and count "${CNT(exG[ki])}" in your head.`;
     // a missed note with a wrong tap right next to it is one reading mistake: say which count was tapped instead
     const swap=missed.length?ex.map((x,k)=>({x,k})).filter(o=>Math.abs(o.x-missed[0])<=2&&exG[o.k]>=0&&exG[o.k]<=UN-1&&exG[o.k]!==missed[0]).sort((a,b)=>Math.abs(a.x-missed[0])-Math.abs(b.x-missed[0]))[0]:null;
+    // holds: the one to fix first (a tied note let go early is the classic, then the biggest miss), in counting language
+    const offH=holds.filter(h=>HOLD_PEN[h.g]>=0.35), hx=offH.find(h=>h.tied&&h.g==="early")||offH.sort((a,b)=>(b.err==null?1e9:Math.abs(b.err))-(a.err==null?1e9:Math.abs(a.err)))[0];
+    const hmsg=hx?holdMsg(hx,u):null, holdsClean=holds.every(h=>h.g==="perfect");
     let v, c, cls;
-    if(score>=90){ v=`✓ Locked in · ${score}%`; cls="good"; c=missed.length?`Tight, but you missed the note on "${CNT(missed[0])}".`:extras.length?(why?"Tight. "+why:`Tight, but ${extras.length===1?"one extra tap":extras.length+" extra taps"}. One tap per note.`):perfect===notes.length?"Every note perfect.":"Tight. Keep the same feel at the next tempo." }
+    if(score>=90){ v=`✓ Locked in · ${score}%`; cls="good"; c=missed.length?`Tight, but you missed the note on "${CNT(missed[0])}".`:extras.length?(why?"Tight. "+why:`Tight, but ${extras.length===1?"one extra tap":extras.length+" extra taps"}. One tap per note.`):hmsg?"Tight. "+hmsg:perfect===notes.length&&holdsClean?"Every note perfect.":"Tight. Keep the same feel at the next tempo." }
     else { v=`${score}%`; cls=score>=65?"ok":"bad";
       if(swap) c=`You tapped "${CNT(exG[swap.k])}", but the note is on "${CNT(missed[0])}". Say the counts out loud and tap only the notes.`;
       else if(missed.length) c=`Missed the note on "${CNT(missed[0])}". Count it out loud and tap with the count.`;
       else if(extras.length) c=why||"Extra taps. One tap per note.";
+      else if(hmsg) c=hmsg;
       else if(avg<-45) c=`Rushing: about ${Math.round(-avg)} ms early on average. Wait for the beat.`;
       else if(avg>45) c=`Dragging: about ${Math.round(avg)} ms late on average. Lock onto the click.`;
       else { const worst=bar.notes[errs.map(Math.abs).indexOf(Math.max(...errs.map(Math.abs)))]; c=worst?`Close. Watch "${CNT(worst.s)}". Say the counts out loud while you tap.`:"Close. Say the counts out loud while you tap." } }
     msg(cls,v,c);
-    afterGrade({score,perfect,ok:okN,notes:notes.length,errs,missed:missed.length,extras:extras.length}) }
-  let lastStart=0, lastU=0.25*60/72;
+    lastGrade={score,cpts:Math.max(0,cp-0.5*extras.length),holds:holds.map(h=>({s:h.s,end:h.end,len:h.len,tied:h.tied,g:h.g,err:h.err==null?null:Math.round(h.err*1000)})),v,c};
+    afterGrade({score,perfect,ok:okN,notes:notes.length,errs,missed:missed.length,extras:extras.length,cpts:lastGrade.cpts,holdN:holds.length,holdOk:holds.filter(h=>h.g==="perfect"||h.g==="good").length}) }
+  // "Half note on "3": let go early by 1 beat." (6/8 counts eighths, so it says eighths)
+  const NOTEN={16:"Whole note",12:"Dotted half",8:"Half note",6:"Dotted quarter",4:"Quarter note",3:"Dotted eighth",2:"Eighth note",1:"16th note"};
+  function holdMsg(h,u){ const M=MT(), name=h.tied?"Tied note":(NOTEN[h.len]||"Note"), on=`${name} on "${CNT(h.s)}"`, endW=h.end>=M.units?"the end of the bar":`"${CNT(h.end)}"`;
+    if(h.g==="held") return `${on}: still held after the bar ended. Let go at ${endW}.`;
+    const a16=Math.abs(h.err)/u, unit=M.compound?2:4, q=Math.round(2*a16/unit)/2, word=M.compound?"eighth":"beat";
+    const by=q>=1?`${half(q)} ${word}${q>1?"s":""}`:q===0.5?(M.compound?"a 16th":"half a beat"):`${Math.round(Math.abs(h.err)*1000)} ms`;
+    return h.g==="early"?`${on}: let go early by ${by}. ${h.tied?"Hold it through the tie":"Hold it"} to ${endW}.`:`${on}: held too long by ${by}. Let go ${h.beforeRest?"on the rest":"at "+endW}${h.beforeRest?` (${endW})`:""}.` }
+  let lastStart=0, lastU=0.25*60/72, lastHolds=false, lastGrade=null;
   function msg(cls,v,c){ const el=$("msg"); el.className="msg"+(cls?" "+cls:""); el.querySelector(".v").textContent=v; el.querySelector(".c").textContent=c||"" }
   // ---------- modes: Single tries (default) · Challenge (same shape as Note Sprint) ----------
-  // Points per rhythm: 1 for every perfect note (within 60 ms), ½ for a close one (within 120 ms), −½ for an extra tap.
+  // Points per rhythm: 1 for every perfect note (within 60 ms), ½ for a close one (within 120 ms), −½ for an extra tap,
+  // and in Tap with holds graded, −½ for a long note let go early or held too long (a note never goes below 0). The most a rhythm can earn is still
+  // 1 per note, so the round targets (and the "never reachable in 2 rhythms" rule) keep the same basis.
   // Level, tempo, mode and input are locked while a rhythm plays or a challenge runs (press Stop first), so a change can never re-grade the wrong bar.
   function lockUI(){ const on=!!(run||sess||arc); document.querySelectorAll("#levels button,#tempo button,#meterSeg button,#modeSeg button,#inSeg button").forEach(b=>b.disabled=on) }
   let gmode="practice", sess=null, arc=null; const ARC_T=30;
@@ -574,7 +634,7 @@ button:focus-visible,select:focus-visible,summary:focus-visible,input:focus-visi
     stats() }
   document.querySelectorAll("#modeSeg button").forEach(b=>b.addEventListener("click",()=>setMode(b.dataset.m)));
   function chime(){ const a=ctx(),t=a.currentTime; [784,1047,1319].forEach((f,i)=>{ const o=a.createOscillator(),g=a.createGain(); o.type="triangle"; o.frequency.value=f; g.gain.setValueAtTime(0.0001,t+i*0.08); g.gain.exponentialRampToValueAtTime(0.25,t+i*0.08+0.01); g.gain.exponentialRampToValueAtTime(0.0001,t+i*0.08+0.35); o.connect(g).connect(a.destination); o.start(t+i*0.08); o.stop(t+i*0.08+0.4) }) }
-  function afterGrade(r){ const pts=Math.max(0,r.perfect+0.5*r.ok-0.5*r.extras);
+  function afterGrade(r){ const pts=r.cpts!=null?r.cpts:Math.max(0,r.perfect+0.5*r.ok-0.5*r.extras);
     if(gmode==="practice"){ round.push(r); const hs=bestNum(bestKey()); if(hs==null||r.score>hs) store.set(bestKey(),r.score); $("go").textContent="Next rhythm"; $("again").hidden=false; stats(); return }
     const S=sess; if(!S) return; S.points+=pts; S.bars.push(r);
     if(arc){ arc.rp=(arc.rp||0)+pts; if(arc.ramp){ const d=r.score>=95?2:r.score>=80?1:r.score>=60?0:-2, nb=Math.max(arc.start,Math.min(arc.cap,arc.bpm+d)); arc.dir=Math.sign(nb-arc.bpm); arc.bpm=nb; arc.top=Math.max(arc.top,nb) } }
@@ -589,6 +649,7 @@ button:focus-visible,select:focus-visible,summary:focus-visible,input:focus-visi
     $("rPerfect").textContent=`${bars.reduce((a,b)=>a+b.perfect,0)}/${bars.reduce((a,b)=>a+b.notes,0)}`;
     $("rTiming").textContent=!all.length?"–":Math.abs(mean)<15?"On time":Math.round(Math.abs(mean))+" ms "+(mean<0?"early":"late");
     $("rMissed").textContent=`${bars.reduce((a,b)=>a+b.missed,0)} / ${bars.reduce((a,b)=>a+b.extras,0)}`;
+    const hN=bars.reduce((a,b)=>a+(b.holdN||0),0); $("rHoldBox").hidden=!hN; $("rHold").textContent=hN?`${bars.reduce((a,b)=>a+(b.holdOk||0),0)}/${hN}`:"–";
     const L=LEVELS.find(x=>x.id===level), d=new Date(), how=inMode==="tap"?"Tap":inMode==="clap"?"Clap":"One note";
     $("rStamp").textContent=`${tag} · High score ${half(best)} · Level ${LEVELS.indexOf(L)+1} · ${lvlName(L)} · ${meterId} · ${tempoTxt||tl(bpm)} · ${how} · ${d.toLocaleDateString(undefined,{weekday:"short",month:"short",day:"numeric"})} ${d.toLocaleTimeString([],{hour:"numeric",minute:"2-digit"})}`;
     $("results").hidden=false; stats(); try{ $("rTitle").focus({preventScroll:true}) }catch(e){} }
@@ -649,7 +710,7 @@ button:focus-visible,select:focus-visible,summary:focus-visible,input:focus-visi
   $("close").addEventListener("click",()=>{ $("results").hidden=true; stats(); newBar(); msg(null,"Ready","Press Start."); $("go").focus({preventScroll:true}) });
   $("newRound").addEventListener("click",()=>{ $("results").hidden=true; if(gmode==="chal") arcStart(); else { round=[]; stats(); newBar() } $("go").focus({preventScroll:true}) });
   ["counts","guide"].forEach(id=>{ $(id).checked=store.get(id,id==="counts"); $(id).addEventListener("change",e=>{ store.set(id,e.target.checked); if(!run) drawBar(curRes) }) });
-  ["cursor","lightup","ramp","hypeOn"].forEach(id=>{ $(id).checked=store.get(id,true)!==false; $(id).addEventListener("change",e=>{ store.set(id,e.target.checked); if(id==="hypeOn"&&!e.target.checked) hypeStop(120) }) }); $("ramp").addEventListener("change",()=>stats()); try{store.set("who","")}catch(e){} // no names stored (privacy)
+  ["cursor","lightup","ramp","hypeOn","holds"].forEach(id=>{ $(id).checked=store.get(id,true)!==false; $(id).addEventListener("change",e=>{ store.set(id,e.target.checked); if(id==="hypeOn"&&!e.target.checked) hypeStop(120) }) }); $("ramp").addEventListener("change",()=>stats()); try{store.set("who","")}catch(e){} // no names stored (privacy)
   LEVELS.forEach(L=>{ const b=document.createElement("button"); b.className="lvl"; b.innerHTML=`<b>L${LEVELS.indexOf(L)+1}</b><span>${L.name.replace("Syncopation","Synco&shy;pation")}</span>`;
     b.addEventListener("click",()=>{ hypeStop(120); if(sess||arc) stopSession(true); level=L.id; store.set("level",level); mark(); round=[]; stats(); newBar(); $("go").textContent="Start"; msg(null,"Level "+(LEVELS.indexOf(L)+1)+": "+lvlName(L),"Press Hear it to listen first, or Start.") }); b.dataset.id=L.id; $("levels").appendChild(b) });
   // tempo buttons follow the time signature (quarter-note BPM, or dotted-quarter BPM in 6/8)
@@ -897,11 +958,12 @@ button:focus-visible,select:focus-visible,summary:focus-visible,input:focus-visi
   window.__rt={meter:()=>meterId,setMeter:id=>setMeter(id),meters:()=>METERS,make:(lv,m)=>{const k=level,km=meterId;level=lv;if(m)meterId=m;try{return makeBar()}finally{level=k;meterId=km}},
     beams:(ev,m)=>{const km=meterId;if(m)meterId=m;try{return beamGroups(ev).map(g=>({idx:g.map(e=>e.i),sec:secBeams(g)}))}finally{meterId=km}},cnt:(s,m)=>{const km=meterId;if(m)meterId=m;try{return CNT(s)}finally{meterId=km}},
     svg:()=>$("bar").innerHTML,draw:()=>drawBar(null),hype:()=>({sup:hypeSup,dirty:hypeDirty,wait:hypeWait()}),bpm:()=>bpm,tempos:()=>tempoList(),label:()=>$("bar").getAttribute("aria-label"),bar:()=>bar,start:()=>lastStart,tap:t=>tapAt(t),now:()=>audio&&audio.currentTime,u:()=>u16(),setBar:b=>{bar=b;drawBar(null)},hits:()=>hitLog.slice(),setTempo:v=>{ if(!run&&!sess) bpm=+v },run:()=>run&&{start:run.start,end:run.end,u:run.u},arcInfo:()=>arc&&{round:arc.round,rp:arc.rp,need:arc.need,possible:arc.possible,bpm:arc.bpm,start:arc.start,cap:arc.cap,top:arc.top,dir:arc.dir,bars:arc.deck.length,bi:arc.bi,left:sess&&sess.left},
-    plan:(r,b,lv,m)=>{const k=level,km=meterId;if(lv)level=lv;if(m)meterId=m;try{const P=roundPlan(r,b);return {need:P.need,possible:P.possible,n:P.deck.map(x=>x.notes.length)}}finally{level=k;meterId=km}},st:()=>({run:run?run.mode:null,rid:run?run.t0:null,sess:!!sess,arc:!!arc,starting,cal:!!calHook,mic:!!mic,micBusy,inMode,gmode,live:live.size,left:sess?sess.left:null,points:sess?sess.points:null})}; // test hook
+    plan:(r,b,lv,m)=>{const k=level,km=meterId;if(lv)level=lv;if(m)meterId=m;try{const P=roundPlan(r,b);return {need:P.need,possible:P.possible,n:P.deck.map(x=>x.notes.length)}}finally{level=k;meterId=km}},press:(t,id)=>pressAt(t,id==null?"t":id),release:(t,id)=>releaseAt(t,id==null?"t":id),holdSpec:ev=>holdSpec(ev||bar.ev),grade:()=>lastGrade,rels:()=>rels.slice(),taps:()=>taps.slice(),held:()=>held.size,
+    st:()=>({run:run?run.mode:null,rid:run?run.t0:null,sess:!!sess,arc:!!arc,starting,cal:!!calHook,mic:!!mic,micBusy,inMode,gmode,live:live.size,left:sess?sess.left:null,points:sess?sess.points:null})}; // test hook
   mark(); newBar(); setMode("practice");
   if(document.fonts) document.fonts.ready.then(()=>{ if(!run) drawBar(curRes) });
 })();
 </script>
-<p class="appver" style="text-align:center;font-size:11px;opacity:.6;margin:18px 0 10px;font-family:ui-monospace,Menlo,monospace">Rhythm Trainer · Version 2026-11-11.22</p>
+<p class="appver" style="text-align:center;font-size:11px;opacity:.6;margin:18px 0 10px;font-family:ui-monospace,Menlo,monospace">Rhythm Trainer · Version 2026-11-11.23</p>
 </body>
 </html>
