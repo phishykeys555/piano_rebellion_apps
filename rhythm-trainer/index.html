@@ -119,6 +119,12 @@ input[type=range]{accent-color:var(--c-act)}
 .tempo{display:grid;grid-template-columns:auto repeat(6,minmax(0,1fr))} .tempo button{min-height:40px;padding:6px 2px}
 .set label{min-height:40px} .set input[type=checkbox]{width:20px;height:20px;flex:none;accent-color:var(--c-act)}
 @media (max-width:440px){ .paper{margin:0 -8px} }
+/* time signature row: same look as the tempo row, four buttons */
+.tsig{display:grid;grid-template-columns:auto repeat(4,minmax(0,1fr));gap:6px;align-items:center}
+.tsig span{font-size:10.5px;font-weight:700;letter-spacing:.16em;text-transform:uppercase;color:var(--c-mut);margin-right:4px}
+.tsig button{min-height:40px;padding:6px 2px;font-family:var(--mono);font-size:14px;font-weight:700}
+.tsig button[aria-pressed="true"]{background:var(--c-sel);border-color:var(--c-sel);color:var(--c-sel-ink)}
+.tempo span,.tsig span{min-width:44px} .tempo .tbeat{display:block;margin-top:2px;fill:var(--c-ink)}
 /* the score sits on the LCD so its LED green reads in both themes; results buttons share the row evenly */
 .big{background:var(--c-lcd);border:1px solid var(--c-lcd-b);border-radius:14px;padding:12px 14px;display:flex;flex-wrap:wrap;align-items:baseline;column-gap:10px;row-gap:4px}
 .big small{white-space:nowrap;color:#9aa3b2;text-shadow:none}
@@ -144,7 +150,8 @@ button:focus-visible,select:focus-visible,summary:focus-visible,input:focus-visi
   </header>
 
   <div class="levels" id="levels" role="group" aria-label="Level"></div>
-  <div class="tempo" id="tempo" role="group" aria-label="Tempo"><span>Tempo</span></div>
+  <div class="tempo" id="tempo" role="group" aria-label="Tempo"><span id="tempoLbl">Tempo</span></div>
+  <div class="tsig" id="meterSeg" role="group" aria-label="Time signature"><span>Time</span></div>
 
   <section class="card" id="card">
     <div class="seg modes" id="modeSeg" role="group" aria-label="Mode"><button data-m="practice"><span aria-hidden="true">🎯</span> Single tries</button><button data-m="chal"><span aria-hidden="true">🏆</span> Challenge</button></div>
@@ -226,8 +233,21 @@ button:focus-visible,select:focus-visible,summary:focus-visible,input:focus-visi
     // syncopation 2: notes held across the beat, written as ties (beat stays visible)
     ETIE:[{d:2},{d:2},{d:2,t:true},{d:2}], ANT:[{d:4},{d:2,r:true},{d:2},{d:4,t:true},{d:4}], C332:[{d:6},{d:2},{d:4,t:true},{d:4}], MID:[{d:4},{d:2},{d:2},{d:2,t:true},{d:2},{d:4}],
     // syncopation 3: sixteenth-level
-    SES:[{d:1},{d:2},{d:1}], DES:[{d:3},{d:1}], SDE:[{d:1},{d:3}], RSE:[{d:1,r:true},{d:1},{d:2}]};
-  const SPAN={Q:1,H:2,W:4,EE:1,QR:1,RE:1,ER:1,DQE:2,DH:3,SSSS:1,ESS:1,SSE:1,EQE:2,RERE:2,ETIE:2,ANT:4,C332:4,MID:4,SES:1,DES:1,SDE:1,RSE:1};
+    SES:[{d:1},{d:2},{d:1}], DES:[{d:3},{d:1}], SDE:[{d:1},{d:3}], RSE:[{d:1,r:true},{d:1},{d:2}],
+    // 2/4 and 3/4 ties (each tie lands on a beat, so the beat stays visible)
+    DQRE:[{d:6},{d:2,r:true}], C33:[{d:6},{d:2},{d:4,t:true}], SYN3:[{d:2},{d:2},{d:2,t:true},{d:2},{d:2,t:true},{d:2}],
+    RETIE:[{d:2,r:true},{d:2},{d:2,t:true},{d:2}], ETIER:[{d:2},{d:2},{d:2,t:true},{d:2,r:true}], ETQ:[{d:2},{d:2},{d:4,t:true}],
+    // 6/8 (compound duple): a beat is a dotted quarter = 6 sixteenths = three eighths
+    DQ:[{d:6}], QE:[{d:4},{d:2}], EEE:[{d:2},{d:2},{d:2}], DHC:[{d:12}],
+    DQR:[{d:6,r:true}], QER:[{d:4},{d:2,r:true}], REE:[{d:2,r:true},{d:2},{d:2}], ERE:[{d:2},{d:2,r:true},{d:2}], EER:[{d:2},{d:2},{d:2,r:true}],
+    QRE:[{d:4,r:true},{d:2}], ERR:[{d:2},{d:2,r:true},{d:2,r:true}], // a quarter rest may take the first two eighths of a beat, never the last two
+    SIC:[{d:3},{d:1},{d:2}], S6:[{d:1},{d:1},{d:1},{d:1},{d:1},{d:1}], SSEE:[{d:1},{d:1},{d:2},{d:2}], ESSE:[{d:2},{d:1},{d:1},{d:2}], EESS:[{d:2},{d:2},{d:1},{d:1}], QSS:[{d:4},{d:1},{d:1}],
+    EQ:[{d:2},{d:4}], REQ:[{d:2,r:true},{d:4}], // syncopation inside the beat: short-long
+    T1:[{d:2},{d:2},{d:2},{d:2,t:true},{d:2},{d:2}], T2:[{d:4},{d:2},{d:4,t:true},{d:2}], T3:[{d:2},{d:4},{d:2,t:true},{d:4}], HEM:[{d:4},{d:2},{d:2,t:true},{d:4}], T4:[{d:2},{d:2},{d:2},{d:6,t:true}], T5:[{d:4},{d:2},{d:6,t:true}],
+    SESE:[{d:1},{d:2},{d:1},{d:2}], SDEE:[{d:1},{d:3},{d:2}], RSEE:[{d:1,r:true},{d:1},{d:2},{d:2}]};
+  // SPAN = beats the cell fills (a quarter in 2/4, 3/4, 4/4; a dotted quarter in 6/8)
+  const SPAN={Q:1,H:2,W:4,EE:1,QR:1,RE:1,ER:1,DQE:2,DH:3,SSSS:1,ESS:1,SSE:1,EQE:2,RERE:2,ETIE:2,ANT:4,C332:4,MID:4,SES:1,DES:1,SDE:1,RSE:1,
+    DQRE:2,C33:3,SYN3:3,RETIE:2,ETIER:2,ETQ:2, DQ:1,QE:1,EEE:1,DHC:2,DQR:1,QER:1,REE:1,ERE:1,EER:1,QRE:1,ERR:1,SIC:1,S6:1,SSEE:1,ESSE:1,EESS:1,QSS:1,EQ:1,REQ:1,T1:2,T2:2,T3:2,HEM:2,T4:2,T5:2,SESE:1,SDEE:1,RSEE:1};
   const LEVELS=[
     {id:"1",name:"Quarters & halves",cells:{Q:5,H:2,W:1}},
     {id:"2",name:"Eighths",cells:{Q:4,H:1,EE:4}},
@@ -241,14 +261,34 @@ button:focus-visible,select:focus-visible,summary:focus-visible,input:focus-visi
     {id:"9",name:"Syncopation 3",cells:{Q:2,EE:2,ESS:2,SSE:2,DES:3,SES:2}},
     {id:"8",name:"Syncopation 4",cells:{EE:2,SSSS:1,SES:3,DES:3,SDE:2,RSE:2,EQE:1}}];
   const FEAT={"2":["EE"],"3":["QR","HR","RE","ER"],"4":["DQE","DH"],"5":["SSSS","ESS","SSE"],"6":["EQE","RERE"],"7":["ETIE","ANT","C332","MID"],"8":["SES","SDE","RSE"],"9":["DES","SES"]};
-  const TEMPOS=[60,72,84,96,108,120];
-  let meterId="4/4"; const MT=()=>({id:"4/4",beats:4,compound:false}), tl=b=>`${b} BPM`, arcMax=()=>ARC_MAX; // (time signatures arrive in .21)
-  let level=store.get("level","1"), bpm=store.get("bpm",72), latency=store.get("lat",null), latClap=store.get("latClap",store.get("latMic",null)), latNote=store.get("latNote",null), inMode=store.get("in","tap"); // each input keeps its own offset (an old shared mic offset carries over to Clap only)
+  // ---------- time signatures ----------
+  // units = 16ths in the bar; beatU = 16ths per beat; cu = the counted pulse (beats in simple time, eighths in 6/8)
+  const METERS={"2/4":{id:"2/4",n:2,dn:4,units:8,beatU:4,beats:2,cu:4,compound:false,key:"m24"},
+    "3/4":{id:"3/4",n:3,dn:4,units:12,beatU:4,beats:3,cu:4,compound:false,key:"m34"},
+    "4/4":{id:"4/4",n:4,dn:4,units:16,beatU:4,beats:4,cu:4,compound:false,key:""},
+    "6/8":{id:"6/8",n:6,dn:8,units:12,beatU:6,beats:2,cu:2,compound:true,key:"m68"}};
+  // Each level in each meter: 4/4 uses LEVELS[].cells unchanged; the others swap in cells that fit (weights, then the cells a bar must show)
+  const MCELLS={"2/4":{"1":{Q:5,H:2},"4":{DQE:3,DQRE:1},"6":{Q:1,EE:1,EQE:4,RERE:2,RE:2},"7":{ETIE:3,RETIE:2,ETIER:1,ETQ:2}},
+    "3/4":{"1":{Q:5,H:2,DH:1},"4":{Q:2,EE:3,QR:1,DQE:3,DH:1,RE:1,DQRE:1},"7":{Q:2,EE:2,EQE:2,ETIE:3,C33:1,SYN3:1}},
+    "6/8":{"1":{DQ:5,QE:3,DHC:1},"2":{DQ:2,QE:3,EEE:4},"3":{DQ:2,QE:2,EEE:2,DQR:2,QER:2,REE:2,ERE:1,EER:1,QRE:1,ERR:1},"4":{DQ:2,QE:2,EEE:2,SIC:4,DQR:1},
+      "5":{DQ:1,QE:2,EEE:2,S6:2,SSEE:2,ESSE:2,EESS:2,QSS:1},"6":{DQ:2,QE:2,EEE:2,EQ:4,REQ:2},"7":{T1:3,T2:2,T3:2,HEM:3,T4:1,T5:1},"8":{EEE:1,SIC:2,SESE:3,SDEE:3,RSEE:2,S6:1},"9":{EEE:2,QE:1,SSEE:2,EESS:2,SIC:3,SESE:2}}};
+  const MFEAT={"2/4":{"4":["DQE","DQRE"],"6":["EQE","RERE","RE"],"7":["ETIE","RETIE","ETIER","ETQ"]},"3/4":{"4":["DQE","DH","DQRE"],"7":["ETIE","C33","SYN3"]},
+    "6/8":{"2":["EEE"],"3":["DQR","QER","REE","ERE","EER","QRE","ERR"],"4":["SIC"],"5":["S6","SSEE","ESSE","EESS","QSS"],"6":["EQ","REQ"],"7":["T1","T2","T3","HEM","T4","T5"],"8":["SESE","SDEE","RSEE"],"9":["SIC","SESE"]}};
+  const cellsOf=(L,M)=>(MCELLS[M.id]&&MCELLS[M.id][L.id])||L.cells, featOf=(L,M)=>(MFEAT[M.id]&&MFEAT[M.id][L.id])||FEAT[L.id];
+  const lvlName=L=>meterId==="6/8"&&L.id==="1"?"Dotted quarters":L.name;
+  let meterId=store.get("meter","4/4"); if(!METERS[meterId]) meterId="4/4";
+  const MT=()=>METERS[meterId];
+  // Tempo = beats per minute: quarter notes in 2/4, 3/4, 4/4; dotted quarters in 6/8 (the standard metronome marking for compound time, felt in 2).
+  // 6/8 tempos run 40-80: the same eighth-note speeds as 60-120 in 4/4 (eighths at 120-240 per minute).
+  const TEMPOS=[60,72,84,96,108,120], TEMPOS_C=[40,48,56,64,72,80];
+  const tempoList=()=>MT().compound?TEMPOS_C:TEMPOS, bpmKey=()=>MT().compound?"bpmC":"bpm";
+  const tl=b=>MT().compound?`♩. = ${b}`:`${b} BPM`; // how a tempo reads on screen
+  let level=store.get("level","1"), bpm=store.get(bpmKey(),MT().compound?56:72), latency=store.get("lat",null), latClap=store.get("latClap",store.get("latMic",null)), latNote=store.get("latNote",null), inMode=store.get("in","tap"); // each input keeps its own offset (an old shared mic offset carries over to Clap only)
   let bar=null, taps=[], run=null, round=[], best=store.get("best",null), audio=null, mic=null;
   // saved settings from older versions (or a broken save) can hold anything: keep only values this version understands
   const okLat=v=>typeof v==="number"&&isFinite(v)&&Math.abs(v)<=250?Math.round(v):null;
   level=String(level); if(!LEVELS.some(L=>L.id===level)) level="1";
-  bpm=+bpm; if(!TEMPOS.includes(bpm)) bpm=72;
+  bpm=+bpm; if(!tempoList().includes(bpm)) bpm=MT().compound?56:72;
   if(!["tap","clap","note"].includes(inMode)) inMode="tap";
   latency=okLat(latency); latClap=okLat(latClap); latNote=okLat(latNote);
   const bestNum=k=>{ const v=store.get(k,null); return typeof v==="number"&&isFinite(v)&&v>=0?v:null };
@@ -257,23 +297,30 @@ button:focus-visible,select:focus-visible,summary:focus-visible,input:focus-visi
   function pick(w){ const t=Object.values(w).reduce((a,b)=>a+b,0); let r=Math.random()*t; for(const k in w){ r-=w[k]; if(r<=0) return k } return Object.keys(w)[0] }
   // Engraving by the book (Gould, Behind Bars) for 4/4: rests show each beat, except that two quarter rests filling
   // beats 1-2 or 3-4 become one half rest. Never combine rests across the middle of the bar (beats 2-3): beat 3 stays visible.
-  function engrave(ev){ for(let i=0;i+1<ev.length;i++){ const a=ev[i], b=ev[i+1];
+  // Other meters: 3/4 and 2/4 never combine rests (one rest per beat); 6/8 rests are built per dotted-quarter beat in the cells
+  // (a dotted-quarter rest for a whole beat, a quarter rest only for the first two eighths of a beat). A bar of nothing but rests is a whole rest in every meter.
+  function engrave(ev,M){ M=M||MT(); if(ev.every(e=>e.r)) return [{s:0,d:M.units,r:true,tie:false,cell:"WR",wb:true}];
+    if(M.id==="4/4") for(let i=0;i+1<ev.length;i++){ const a=ev[i], b=ev[i+1];
       if(a.r&&b.r&&a.d===4&&b.d===4&&(a.s===0||a.s===8)&&b.s===a.s+4){ a.d=8; a.cell="HR"; ev.splice(i+1,1) } } return ev }
+  // where a cell may start: 4/4 keeps two-beat cells on beat 1 or 3 and longer ones on beat 1 (beat 3 is never hidden);
+  // 3/4 lets a two-beat cell start on beat 1 or 2 (no middle of the bar to hide); 2/4 and 6/8 two-beat cells fill the bar
+  function fits(M,sp,beat){ if(beat+sp>M.beats) return false; if(M.id==="4/4") return !(sp===2&&beat%2)&&!(sp>=3&&beat); if(M.id==="3/4") return !(sp>=3&&beat); return !(sp>=2&&beat) }
   function makeBar(){
-    const L=LEVELS.find(x=>x.id===level); let beat=0, ev=[], t=0, guard=0;
-    while(beat<4&&guard++<50){ const k=pick(L.cells), sp=SPAN[k];
-      if(beat+sp>4) continue; if(sp===2&&beat%2) continue; if(sp>=3&&beat) continue;
+    const M=MT(), L=LEVELS.find(x=>x.id===level), W=cellsOf(L,M), F=featOf(L,M); let beat=0, ev=[], t=0, guard=0;
+    while(beat<M.beats&&guard++<50){ const k=pick(W), sp=SPAN[k];
+      if(!fits(M,sp,beat)) continue;
       for(const e of C[k]){ ev.push({s:t,d:e.d,r:!!e.r,tie:!!e.t,cell:k}); t+=e.d } beat+=sp }
-    engrave(ev);
+    if(beat<M.beats) return makeBar(); // never a short bar
+    ev=engrave(ev,M);
     const notes=ev.filter(e=>!e.r&&!e.tie);
     if(!notes.length) return makeBar();
     if(ev.length===1&&level!=="1") return makeBar();
     // every bar shows the level's own rhythm (a "Dotted" bar always has a dot, a "Syncopation 2" bar always has a tie)
-    if(FEAT[level]&&!ev.some(e=>FEAT[level].includes(e.cell))) return makeBar();
+    if(F&&!ev.some(e=>F.includes(e.cell))) return makeBar();
     return {ev,notes} }
 
   // ---------- engraving (single-line rhythm staff, proportional spacing so notes sit over the timeline) ----------
-  const GAP=14, X0=74, BW=324, W=420, LY=64, U=BW/16, SX=6.9; // 16th = 20 px: room for 16th rests and counts
+  const GAP=14, X0=74, BW=324, W=420, LY=64, SX=6.9; let U=BW/16; // spacing is proportional: the bar's 16ths share the width (4/4: 16th = 20 px)
   const xOf=s=>X0+8+s*U;
   let curRes=null; // the graded bar on screen, so a redraw (fonts arriving, Counts toggled) keeps its colours
   // quarter, eighth and 16th rests as engraved outlines (traced from Noto Music, SIL OFL), drawn relative to the note's x on the line,
@@ -282,27 +329,37 @@ button:focus-visible,select:focus-visible,summary:focus-visible,input:focus-visi
     4:"M-0.65 -13.96 5.17 -6.86Q3.35 -4.71 2.37 -3.15Q1.39 -1.58 1.39 0.02Q1.39 1.37 2.26 2.84Q3.14 4.31 5.03 6.57L4.45 7.37Q2.85 6.35 1.46 6.35Q0.44 6.35 -0.07 7.03Q-0.58 7.7 -0.58 8.65Q-0.58 9.81 -0.08 10.85Q0.41 11.88 1.24 12.83L0.77 13.52Q-1.74 11.7 -2.94 10.21Q-4.14 8.72 -4.14 6.97Q-4.14 5.41 -3.16 4.68Q-2.18 3.95 -0.79 3.95Q0.3 3.95 2.04 4.79V4.71L-3.56 -2.75Q0.12 -5.99 0.12 -8.79Q0.12 -11.01 -2.21 -13.96Z",
     2:"M0.21 8.96 3.43 -2.46Q2.73 -1.82 1.84 -1.56Q0.95 -1.29 0.07 -1.29Q-1.37 -1.29 -2.35 -2.06Q-3.32 -2.83 -3.32 -4.28Q-3.32 -5.22 -2.65 -5.87Q-1.98 -6.53 -0.93 -6.53Q0.04 -6.53 0.66 -5.91Q1.28 -5.28 1.28 -4.24Q1.28 -3.5 0.95 -2.93Q0.95 -2.73 1.35 -2.73Q3.2 -2.73 4.88 -5.62H5.48L1.42 8.96Z",
     1:"M-0.14 19.44 3.49 6.59Q2.69 7.31 1.69 7.61Q0.69 7.91 -0.29 7.91Q-1.92 7.91 -3.01 7.04Q-4.11 6.18 -4.11 4.55Q-4.11 3.49 -3.37 2.75Q-2.64 2.02 -1.43 2.02Q-0.33 2.02 0.37 2.72Q1.07 3.42 1.07 4.59Q1.07 5.42 0.69 6.06Q0.69 6.29 1.14 6.29Q2.69 6.29 4.09 4.55L6.06 -2.63Q5.26 -1.91 4.26 -1.61Q3.26 -1.31 2.28 -1.31Q0.65 -1.31 -0.44 -2.18Q-1.54 -3.05 -1.54 -4.67Q-1.54 -5.73 -0.78 -6.47Q-0.03 -7.21 1.14 -7.21Q2.28 -7.21 2.96 -6.49Q3.64 -5.77 3.64 -4.64Q3.64 -4.26 3.53 -3.86Q3.41 -3.46 3.26 -3.16Q3.26 -2.93 3.71 -2.93Q5.79 -2.93 7.68 -6.19H8.36L1.22 19.44Z"};
-  const CNT=s=>{const b=Math.floor(s/4)+1,p=s%4;return p===0?String(b):p===2?"&":p===1?"e":"a"};
-  function drawBar(res,playX,pos){ curRes=res||null; const HIT="#2457d6", hot=e=>pos!=null&&!e.r&&!e.tie&&$("lightup").checked&&pos>=e.s-0.12&&pos<e.s+Math.min(e.d,2);
+  // Counts: simple time "1 e & a" per beat; 6/8 counts the six eighths "1 2 3 4 5 6" (beats on 1 and 4) with "&" for a 16th between them
+  const CNT=s=>{ if(MT().compound) return s%2?"&":String(Math.floor(s/2)+1); const b=Math.floor(s/4)+1,p=s%4;return p===0?String(b):p===2?"&":p===1?"e":"a"};
+  // Beams group by the beat: a quarter in 2/4, 3/4, 4/4, a dotted quarter (3 eighths) in 6/8. In 3/4 a bar of six plain eighths is one group (Gould).
+  function beamGroups(ev,M){ M=M||MT(); const all8=M.id==="3/4"&&ev.length===6&&ev.every(e=>!e.r&&!e.tie&&e.d===2), bk=e=>all8?0:Math.floor(e.s/M.beatU);
+    const groups=[]; let g=[];
+    ev.forEach((e,i)=>{ const beamable=!e.r&&e.d<4, beat=bk(e);
+      if(beamable&&g.length&&bk(g[0])===beat&&g[g.length-1].i===i-1) g.push({...e,i}); else { if(g.length) groups.push(g); g=beamable?[{...e,i}]:[] } });
+    if(g.length) groups.push(g); return groups }
+  // 16th (secondary) beams: a run of 16ths shares one; in 6/8 it breaks at each eighth so the three eighths of the beat stay visible.
+  // A lone 16th gets a stub: in simple time it points into the group (left only at the end); in 6/8 it points to the note it shares its eighth with.
+  function secBeams(gr,M){ M=M||MT(); const out=[];
+    for(let k=0;k<gr.length;k++){ if(gr[k].d!==1) continue; let j=k; while(j+1<gr.length&&gr[j+1].d===1&&!(M.compound&&gr[j+1].s%2===0)) j++;
+      if(j>k) out.push({k,j}); else { let dir=k===gr.length-1?-1:1; if(M.compound&&k>0&&k<gr.length-1) dir=gr[k].s%2?-1:1; out.push({k,j:k,dir}) } k=j } return out }
+  function drawBar(res,playX,pos){ curRes=res||null; const M=MT(); U=BW/M.units; const HIT="#2457d6", hot=e=>pos!=null&&!e.r&&!e.tie&&$("lightup").checked&&pos>=e.s-0.12&&pos<e.s+Math.min(e.d,2);
     const ink="#16181d", line="#2a2d33"; let h="";
     h+=`<line x1="16" x2="${W-14}" y1="${LY}" y2="${LY}" stroke="${line}" stroke-width="1.5"/>`;
     h+=`<line x1="16" x2="16" y1="${LY-14}" y2="${LY+14}" stroke="${line}" stroke-width="1.5"/><line x1="${W-14}" x2="${W-14}" y1="${LY-14}" y2="${LY+14}" stroke="${line}" stroke-width="2"/>`;
-    h+=`<text x="36" y="${LY-3}" text-anchor="middle" font-family="Archivo" font-weight="800" font-size="24" fill="${ink}">4</text><text x="36" y="${LY+21}" text-anchor="middle" font-family="Archivo" font-weight="800" font-size="24" fill="${ink}">4</text>`;
+    h+=`<text x="36" y="${LY-3}" text-anchor="middle" font-family="Archivo" font-weight="800" font-size="24" fill="${ink}">${M.n}</text><text x="36" y="${LY+21}" text-anchor="middle" font-family="Archivo" font-weight="800" font-size="24" fill="${ink}">${M.dn}</text>`;
     if(!bar){ document.getElementById("bar").setAttribute("viewBox",`0 0 ${W} 170`); document.getElementById("bar").innerHTML=h; return }
     const ev=bar.ev, sTop=LY-3.5*GAP;
     // beams: consecutive eighths/16ths inside one beat
-    const groups=[]; let g=[];
-    ev.forEach((e,i)=>{ const beamable=!e.r&&e.d<4, beat=Math.floor(e.s/4);
-      if(beamable&&g.length&&Math.floor(g[0].s/4)===beat&&g[g.length-1].i===i-1) g.push({...e,i}); else { if(g.length) groups.push(g); g=beamable?[{...e,i}]:[] } });
-    if(g.length) groups.push(g);
+    const groups=beamGroups(ev,M);
     const beamed=new Set(); groups.forEach(gr=>{ if(gr.length>1) gr.forEach(e=>beamed.add(e.i)) });
     ev.forEach((e,i)=>{
       const x=xOf(e.s), col=res&&!e.r&&!e.tie?(res.byNote.get(i)?.col||ink):hot(e)?HIT:ink;
       if(e.tie){ const px=xOf(ev[i-1].s); h+=`<path d="M${px+3} ${LY+8} Q ${(px+x)/2} ${LY+19} ${x-3} ${LY+8} Q ${(px+x)/2} ${LY+15} ${px+3} ${LY+8} z" fill="${ink}"/>` }
       if(e.r){ // rests sit where they would on the middle line of a 5-line staff: quarter centered on the line, eighth/16th hooks just above it with the stem crossing it; half sits on the line, whole hangs from it
-        if(REST[e.d]) h+=`<path transform="translate(${x} ${LY})" d="${REST[e.d]}" fill="${ink}"/>`;
+        if(e.wb||e.d===16){ const cx=xOf(M.units/2)-8; h+=`<rect x="${cx-7}" y="${LY}" width="15" height="6" fill="${ink}"/>` } // whole-bar rest (every meter): a whole rest hanging from the line, centered in the bar
+        else if(REST[e.d]) h+=`<path transform="translate(${x} ${LY})" d="${REST[e.d]}" fill="${ink}"/>`;
+        else if(e.d===6) h+=`<path transform="translate(${x} ${LY})" d="${REST[4]}" fill="${ink}"/><circle cx="${x+10}" cy="${LY-5}" r="2.3" fill="${ink}"/>`; // dotted-quarter rest: one 6/8 beat
         else if(e.d===8) h+=`<rect x="${x-7}" y="${LY-6}" width="15" height="6" fill="${ink}"/>`;
-        else if(e.d===16){ const cx=xOf(8)-8; h+=`<rect x="${cx-7}" y="${LY}" width="15" height="6" fill="${ink}"/>` } // whole-bar rest: hangs from the line, centered in the bar
       } else {
         const open=e.d>=8, dotted=e.d===6||e.d===12||e.d===3;
         h+=`<ellipse cx="${x}" cy="${LY}" rx="${open?7.9:7.5}" ry="${open?5.7:5.4}" transform="rotate(-20 ${x} ${LY})" fill="${open?"none":col}" stroke="${col}" stroke-width="${open?2.4:0}"/>`;
@@ -313,19 +370,21 @@ button:focus-visible,select:focus-visible,summary:focus-visible,input:focus-visi
       }
       if($("counts").checked) h+=`<text x="${x}" y="${LY+32}" text-anchor="middle" font-family="JetBrains Mono" font-size="${e.r||e.tie?10.5:12}" font-weight="700" letter-spacing="${e.r||e.tie?-0.6:0}" fill="${e.r||e.tie?"#9aa0aa":hot(e)?HIT:"#5d6472"}">${e.r||e.tie?"("+CNT(e.s)+")":CNT(e.s)}</text>`;
       // beats inside a held note or a long rest are counted too, in brackets: a half note on 1 reads "1 (2)"
-      if($("counts").checked) for(let b=Math.floor(e.s/4)*4+4;b<e.s+e.d;b+=4) h+=`<text x="${xOf(b)}" y="${LY+32}" text-anchor="middle" font-family="JetBrains Mono" font-size="10.5" font-weight="700" letter-spacing="-0.6" fill="#9aa0aa">(${CNT(b)})</text>`;
+      if($("counts").checked) for(let b=Math.floor(e.s/M.cu)*M.cu+M.cu;b<e.s+e.d;b+=M.cu) h+=`<text x="${xOf(b)}" y="${LY+32}" text-anchor="middle" font-family="JetBrains Mono" font-size="10.5" font-weight="700" letter-spacing="-0.6" fill="#9aa0aa">(${CNT(b)})</text>`;
     });
     groups.forEach(gr=>{ if(gr.length<2) return; const x1=xOf(gr[0].s)+SX, x2=xOf(gr[gr.length-1].s)+SX;
       h+=`<rect x="${x1-0.9}" y="${sTop}" width="${x2-x1+1.8}" height="5" fill="${!res&&gr.some(hot)?HIT:ink}"/>`;
       // secondary beam over runs of 16ths
-      for(let k=0;k<gr.length;k++){ if(gr[k].d!==1) continue; let j=k; while(j+1<gr.length&&gr[j+1].d===1) j++;
+      secBeams(gr,M).forEach(({k,j,dir})=>{
         if(j>k){ const a=xOf(gr[k].s)+SX,b=xOf(gr[j].s)+SX; h+=`<rect x="${a-0.9}" y="${sTop+8}" width="${b-a+1.8}" height="5" fill="${ink}"/>` }
-        else { const a=xOf(gr[k].s)+SX, dir=k===gr.length-1?-1:1; h+=`<rect x="${dir>0?a-0.9:a-9}" y="${sTop+8}" width="10" height="5" fill="${ink}"/>` } k=j } });
+        else { const a=xOf(gr[k].s)+SX; h+=`<rect x="${dir>0?a-0.9:a-9}" y="${sTop+8}" width="10" height="5" fill="${ink}"/>` } }) });
     // timeline: beats + subdivisions, aligned with the notes above
     const TY=128;
-    h+=`<line x1="${xOf(0)-8}" x2="${xOf(16)-8}" y1="${TY}" y2="${TY}" stroke="#c4c9d2" stroke-width="2"/>`;
-    for(let s=0;s<=16;s++){ const big=s%4===0, x=xOf(s); if(s<16||big) h+=`<line x1="${x}" x2="${x}" y1="${TY-(big?7:3)}" y2="${TY+(big?7:3)}" stroke="#9aa0aa" stroke-width="${big?2:1}"/>`;
-      if(big&&s<16) h+=`<text x="${x}" y="${TY+22}" text-anchor="middle" font-family="JetBrains Mono" font-size="11" fill="#9aa0aa">${s/4+1}</text>` }
+    h+=`<line x1="${xOf(0)-8}" x2="${xOf(M.units)-8}" y1="${TY}" y2="${TY}" stroke="#c4c9d2" stroke-width="2"/>`;
+    // 6/8: a tall tick on each beat (1 and 4), a middle one on every eighth, numbered 1-6 with the beats in bold
+    for(let s=0;s<=M.units;s++){ const big=s%M.beatU===0, mid=M.compound&&!big&&s%2===0, x=xOf(s); if(s<M.units||big) h+=`<line x1="${x}" x2="${x}" y1="${TY-(big?7:mid?5:3)}" y2="${TY+(big?7:mid?5:3)}" stroke="#9aa0aa" stroke-width="${big?2:mid?1.5:1}"/>`;
+      if(!M.compound&&big&&s<M.units) h+=`<text x="${x}" y="${TY+22}" text-anchor="middle" font-family="JetBrains Mono" font-size="11" fill="#9aa0aa">${s/4+1}</text>`;
+      if(M.compound&&s%2===0&&s<M.units) h+=`<text x="${x}" y="${TY+22}" text-anchor="middle" font-family="JetBrains Mono" font-size="11"${big?' font-weight="800"':''} fill="${big?"#6b717c":"#9aa0aa"}">${s/2+1}</text>` }
     bar.notes.forEach(n=>{ h+=`<line x1="${xOf(n.s)}" x2="${xOf(n.s)}" y1="${LY+38}" y2="${TY-10}" stroke="#d7dbe2" stroke-width="1" stroke-dasharray="2 3"/>` });
     if(res){ res.taps.forEach(t=>{ const x=xOf(t.s16); const c=t.col; h+=`<circle cx="${x}" cy="${TY}" r="6" fill="${c}" stroke="#fff" stroke-width="1.5"/>`;
         if(t.extra) h+=`<text x="${x}" y="${TY-12}" text-anchor="middle" font-size="12" font-weight="800" fill="${c}">×</text>` });
@@ -351,11 +410,12 @@ button:focus-visible,select:focus-visible,summary:focus-visible,input:focus-visi
   // Its pitch is kept well away from the note you're playing in One note mode.
   function tockF(){ const base=[587,440,740,330]; if(inMode!=="note") return 587; const tg=+$("noteSel").value, far=f=>{ const m=69+12*Math.log2(f/440); return [0,5].every(k=>{ const d=Math.abs(((m+k-tg)%12+12)%12); return Math.min(d,12-d)>=2 })&&Math.abs(m-tg)>=4 };
     return base.find(far)||330 }
-  function click(t,accent,soft){ outT.push(t); if(outT.length>64) outT.shift(); const a=ctx(), f=tockF()*(accent?1.335:1), out=a.createBiquadFilter(); out.type="lowpass"; out.frequency.value=2600; out.connect(a.destination);
+  // amp: 1 = a normal beat; 6/8 uses 1.3 for beat 4 (the secondary accent) and 0.7 for the eighths between the beats
+  function click(t,accent,soft,amp){ amp=amp||1; outT.push(t); if(outT.length>64) outT.shift(); const a=ctx(), f=tockF()*(accent?1.335:1), out=a.createBiquadFilter(); out.type="lowpass"; out.frequency.value=2600; out.connect(a.destination);
     const o=a.createOscillator(), g=a.createGain(), o2=a.createOscillator(), g2=a.createGain(); o.type="sine"; o2.type="sine";
     o.frequency.setValueAtTime(f*1.35,t); o.frequency.exponentialRampToValueAtTime(f,t+0.012); o2.frequency.setValueAtTime(f*2.76,t);
-    g.gain.setValueAtTime(0.0001,t); g.gain.exponentialRampToValueAtTime((accent?0.55:0.38)*(soft?0.35:1),t+0.0015); g.gain.exponentialRampToValueAtTime(0.0001,t+0.09);
-    g2.gain.setValueAtTime(0.0001,t); g2.gain.exponentialRampToValueAtTime((accent?0.16:0.11)*(soft?0.35:1),t+0.001); g2.gain.exponentialRampToValueAtTime(0.0001,t+0.035);
+    g.gain.setValueAtTime(0.0001,t); g.gain.exponentialRampToValueAtTime((accent?0.55:0.38)*(soft?0.35:1)*amp,t+0.0015); g.gain.exponentialRampToValueAtTime(0.0001,t+0.09);
+    g2.gain.setValueAtTime(0.0001,t); g2.gain.exponentialRampToValueAtTime((accent?0.16:0.11)*(soft?0.35:1)*amp,t+0.001); g2.gain.exponentialRampToValueAtTime(0.0001,t+0.035);
     o.connect(g).connect(out); o2.connect(g2).connect(out); track(o); track(o2); o.start(t); o2.start(t); o.stop(t+0.1); o2.stop(t+0.05) }
   // (unused) pitchless tick
   function tick(t,accent){ outT.push(t); const a=ctx(), L=Math.floor(a.sampleRate*0.03), nb=a.createBuffer(1,L,a.sampleRate), d=nb.getChannelData(0);
@@ -371,7 +431,8 @@ button:focus-visible,select:focus-visible,summary:focus-visible,input:focus-visi
 
   // ---------- run a bar: 1 count-in bar of clicks, then the rhythm bar ----------
   // In a challenge each round has its own tempo (arc.bpm); the selected tempo (bpm) is never changed by it.
-  const curBpm=()=>arc&&arc.bpm?arc.bpm:bpm, spb=()=>60/curBpm(), u16=()=>spb()/4; let starting=false;
+  const curBpm=()=>arc&&arc.bpm?arc.bpm:bpm, spb=()=>60/curBpm(), u16=()=>spb()/MT().beatU; let starting=false;
+  const countWords=()=>{ const M=MT(); return M.compound?"1 2 3 4 5 6":[...Array(M.beats)].map((_,i)=>i+1).join(" · ") };
   async function play(mode){ // mode: "test" | "hear"
     if(run||starting||calHook) return; const S0=sess; starting=true; let a;
     // waiting for the audio or the microphone can take a while: a second press, Stop, or the clock running out in that gap must not start a second bar
@@ -384,16 +445,19 @@ button:focus-visible,select:focus-visible,summary:focus-visible,input:focus-visi
     if(run||calHook||sess!==S0||(S0&&S0.stopped)) return;
     if(document.hidden){ if(sess||arc) abortRun(); return } // a page hidden while waiting never starts a bar it can't draw (a challenge stops, as it does when hidden mid-bar)
     taps=[]; $("results").hidden=true; $("again").hidden=true; $("go").disabled=!sess; $("hear").disabled=true;
-    const SP=spb(), U=SP/4; // this bar's tempo, fixed for the whole bar (count-in, clicks, cursor and grading)
-    const t0=a.currentTime+0.15-(mode==="hear"?4*SP:0), start=t0+4*SP, end=start+16*U; // Hear it starts right away (no silent bar)
+    const M=MT(), SP=spb(), U=SP/M.beatU; // this bar's tempo, fixed for the whole bar (count-in, clicks, cursor and grading)
+    const t0=a.currentTime+0.15-(mode==="hear"?M.beats*SP:0), start=t0+M.beats*SP, end=start+M.units*U; // Hear it starts right away (no silent bar)
     // while you play into the mic, the clicks in your bar are softer so the mic hears you, not them
-    for(let b=0;b<8;b++){ if(mode==="hear"&&b<4) continue; click(t0+b*SP,b%4===0,b>=4&&mode==="test"&&inMode!=="tap") }
+    if(!M.compound) for(let b=0;b<2*M.beats;b++){ if(mode==="hear"&&b<M.beats) continue; click(t0+b*SP,b%M.beats===0,b>=M.beats&&mode==="test"&&inMode!=="tap") }
+    else { // 6/8: the count-in bar clicks all six eighths (accent on 1, secondary accent on 4); the bar you play clicks the two dotted-quarter beats
+      if(mode!=="hear") for(let k=0;k<6;k++) click(t0+k*SP/3,k===0,false,k===3?1.3:k===0?1:0.7);
+      for(let b=0;b<2;b++) click(start+b*SP,b===0,mode==="test"&&inMode!=="tap",b===1?1.3:1) }
     if(mode==="hear"||$("guide").checked) bar.notes.forEach(n=>(mode==="test"&&inMode==="clap"&&mic)?wood(start+n.s*U,n.d*U):hand(start+n.s*U));
-    msg(null, mode==="hear"?"Listen…":"Count in: 1 · 2 · 3 · 4", mode==="hear"?"":"Start tapping on beat 1 of the next bar.");
+    msg(null, mode==="hear"?"Listen…":"Count in: "+countWords(), mode==="hear"?"":"Start tapping on beat 1 of the next bar.");
     const R=run={mode,start,end,t0,u:U}; if(mode==="test"){ lastStart=start; lastU=U } lockUI();
     const tick=()=>{ if(run!==R) return; /* this bar was stopped (or replaced): its frame loop ends here */ const now=a.currentTime; let px=null, pos=null;
       if(now>=start&&now<=end){ pos=(now-start)/U; px=$("cursor").checked?xOf(pos):null; if(mode==="test"&&!run.go){ run.go=true; msg(null,"Go!",inMode==="clap"?"Clap or snap every note.":inMode==="note"?"Play your note for every note.":"Tap every note.") } }
-      else if(now<start&&mode==="test"){ const left=Math.ceil((start-now)/SP); $("msg").querySelector(".v").textContent=left<=4?"Count in: "+["","1","2","3","4"][5-left]:"Get ready"; }
+      else if(now<start&&mode==="test"){ const n=M.compound?6:M.beats, left=Math.ceil((start-now)/(M.compound?SP/3:SP)); $("msg").querySelector(".v").textContent=left<=n?"Count in: "+(n+1-left):"Get ready"; }
       drawBar(null,px,pos);
       if(now>end+0.35){ const m=run.mode; run=null; $("go").disabled=false; lockUI(); $("hear").disabled=!!sess; if(m==="test") grade(); else { drawBar(null); msg(null,"Your turn","Press Start, count in, then tap it.") } return }
       requestAnimationFrame(tick) };
@@ -414,7 +478,8 @@ button:focus-visible,select:focus-visible,summary:focus-visible,input:focus-visi
 
   // Silent spots in the bar: rests, tied-over notes, and beats held inside a long note or rest. A tap nearer one of these than
   // to the note is a reading mistake (tapping the rest, the tie or the held beat), not a "close" hit on the note.
-  function silentPts(ev){ const S=[]; ev.forEach(e=>{ if(e.r||e.tie) S.push(e.s); for(let b=Math.floor(e.s/4)*4+4;b<e.s+e.d;b+=4) S.push(b) }); return S.sort((a,b)=>a-b) }
+  // (the counted pulse inside a held note: each beat in 2/4, 3/4, 4/4; each eighth in 6/8, where the eighths are counted)
+  function silentPts(ev){ const M=MT(), S=[]; ev.forEach(e=>{ if(e.r||e.tie) S.push(e.s); for(let b=Math.floor(e.s/M.cu)*M.cu+M.cu;b<e.s+e.d;b+=M.cu) S.push(b) }); return S.sort((a,b)=>a-b) }
   // ---------- grading ----------
   // Each note gets one tap within 250 ms. Perfect ≤ 60 ms = 1, Good ≤ 120 ms = 0.75, Close ≤ 250 ms = 0.4.
   // Extra taps (rests, doubles) cost 0.25 each.
@@ -442,19 +507,19 @@ button:focus-visible,select:focus-visible,summary:focus-visible,input:focus-visi
       used.add(bi); const ms=bd*1000, ad=Math.abs(ms); errs.push(ms);
       let sc, col; if(ad<=60){sc=1;col="#1f8a4c";perfect++} else if(ad<=120){sc=.75;col="#c98a06";okN++} else {sc=.4;col="#e0702c"}
       pts+=sc; byNote.set(idx,{col}); resTaps.push({s16:(taps[bi]-st)/u,col}) });
-    const extras=taps.filter((t,i)=>!used.has(i)); extras.forEach(t=>resTaps.push({s16:Math.max(-0.5,Math.min(16.3,(t-st)/u)),col:"#7a808b",extra:true}));
+    const UN=MT().units, extras=taps.filter((t,i)=>!used.has(i)); extras.forEach(t=>resTaps.push({s16:Math.max(-0.5,Math.min(UN+0.3,(t-st)/u)),col:"#7a808b",extra:true}));
     const score=Math.max(0,Math.round(100*(pts-0.25*extras.length)/notes.length));
     const res={byNote,taps:resTaps,missed}; drawBar(res);
     // coaching: the biggest problem first, in counting language
     const avg=errs.length?errs.reduce((a,b)=>a+b,0)/errs.length:0;
     // what an extra tap landed on: a rest, a tied note, a beat held inside a longer note, or nothing in particular
-    const ex=extras.map(t=>(t-st)/u), on=g=>{ const e=bar.ev.find(e=>g>=e.s&&g<e.s+e.d); return !e||g<0||g>15?null:e.r?"rest":e.tie&&g===e.s?"tie":g!==e.s?"held":null };
+    const ex=extras.map(t=>(t-st)/u), on=g=>{ const e=bar.ev.find(e=>g>=e.s&&g<e.s+e.d); return !e||g<0||g>UN-1?null:e.r?"rest":e.tie&&g===e.s?"tie":g!==e.s?"held":null };
     const exG=ex.map(x=>Math.round(x)), exK=exG.map(on), ki=exK.findIndex(k=>k), why=ki<0?null:
       exK[ki]==="rest"?`Extra tap in the rest on "${CNT(exG[ki])}". Rests are silent: count them, don't tap them.`
       :exK[ki]==="tie"?`Extra tap on "${CNT(exG[ki])}": that note is tied, so hold it through the beat.`
       :`Extra tap on "${CNT(exG[ki])}": the note before it is still sounding. Hold it and count "${CNT(exG[ki])}" in your head.`;
     // a missed note with a wrong tap right next to it is one reading mistake: say which count was tapped instead
-    const swap=missed.length?ex.map((x,k)=>({x,k})).filter(o=>Math.abs(o.x-missed[0])<=2&&exG[o.k]>=0&&exG[o.k]<=15&&exG[o.k]!==missed[0]).sort((a,b)=>Math.abs(a.x-missed[0])-Math.abs(b.x-missed[0]))[0]:null;
+    const swap=missed.length?ex.map((x,k)=>({x,k})).filter(o=>Math.abs(o.x-missed[0])<=2&&exG[o.k]>=0&&exG[o.k]<=UN-1&&exG[o.k]!==missed[0]).sort((a,b)=>Math.abs(a.x-missed[0])-Math.abs(b.x-missed[0]))[0]:null;
     let v, c, cls;
     if(score>=90){ v=`✓ Locked in · ${score}%`; cls="good"; c=missed.length?`Tight, but you missed the note on "${CNT(missed[0])}".`:extras.length?(why?"Tight. "+why:`Tight, but ${extras.length===1?"one extra tap":extras.length+" extra taps"}. One tap per note.`):perfect===notes.length?"Every note perfect.":"Tight. Keep the same feel at the next tempo." }
     else { v=`${score}%`; cls=score>=65?"ok":"bad";
@@ -471,7 +536,7 @@ button:focus-visible,select:focus-visible,summary:focus-visible,input:focus-visi
   // ---------- modes: Single tries (default) · Challenge (same shape as Note Sprint) ----------
   // Points per rhythm: 1 for every perfect note (within 60 ms), ½ for a close one (within 120 ms), −½ for an extra tap.
   // Level, tempo, mode and input are locked while a rhythm plays or a challenge runs (press Stop first), so a change can never re-grade the wrong bar.
-  function lockUI(){ const on=!!(run||sess||arc); document.querySelectorAll("#levels button,#tempo button,#modeSeg button,#inSeg button").forEach(b=>b.disabled=on) }
+  function lockUI(){ const on=!!(run||sess||arc); document.querySelectorAll("#levels button,#tempo button,#meterSeg button,#modeSeg button,#inSeg button").forEach(b=>b.disabled=on) }
   let gmode="practice", sess=null, arc=null; const ARC_T=30;
   // Challenge "Faster + accuracy". Tempo: after every rhythm, its score moves the tempo (95%+: +2 BPM, 80-94%: +1, 60-79%: hold, under 60%: -2),
   // never below the round's start and never above its cap = start x 1.08; the next round starts at that cap (overall max 180). Speed-up off = steady.
@@ -487,10 +552,11 @@ button:focus-visible,select:focus-visible,summary:focus-visible,input:focus-visi
   function arcLimits(start){ arc.start=Math.min(arcMax(),start); arc.cap=arc.ramp?Math.min(arcMax(),Math.round(arc.start*1.08)):arc.start; arc.bpm=arc.start; arc.dir=0; arc.top=Math.max(arc.top||0,arc.bpm);
     const P=roundPlan(arc.round,arc.start); arc.deck=P.deck; arc.bi=0; arc.need=P.need; arc.possible=P.possible; arc.rp=0 }
   const rampOn=()=>$("ramp").checked; // read at Start: a change during a run applies to the next run
+  const arcMax=()=>MT().compound?120:ARC_MAX; // 6/8: dotted quarter 120 = eighths at 360, the same eighth speed as 4/4 at 180
 
   const avgAcc=bars=>bars.length?Math.round(bars.reduce((a,b)=>a+b.score,0)/bars.length):null; // the same accuracy as the results screen
   const half=x=>Number.isInteger(x)?String(x):(Math.floor(x)||"")+"½";
-  function bestKey(steady){ return "best-"+gmode+"-"+level+"-"+bpm+"-"+inMode+(gmode==="chal"&&(steady!=null?steady:arc?!arc.ramp:!rampOn())?"-steady":"") } // a steady-tempo challenge keeps its own high score
+  function bestKey(steady){ return "best-"+gmode+"-"+level+"-"+bpm+"-"+inMode+(gmode==="chal"&&(steady!=null?steady:arc?!arc.ramp:!rampOn())?"-steady":"")+(MT().key?"-"+MT().key:"") } // a steady-tempo challenge keeps its own high score; each time signature keeps its own (4/4 keeps the old keys)
   function stats(){ const S=sess, T=gmode==="practice";
     $("lRound").textContent=T?"Tries":"Time"; $("lScore").textContent=T?"Last":"Points"; $("lAvg").textContent=T?"Average":"Accuracy"; $("lBest").textContent=T?"Best":"High score";
     const hs=bestNum(bestKey());
@@ -521,7 +587,7 @@ button:focus-visible,select:focus-visible,summary:focus-visible,input:focus-visi
     $("rTiming").textContent=!all.length?"–":Math.abs(mean)<15?"On time":Math.round(Math.abs(mean))+" ms "+(mean<0?"early":"late");
     $("rMissed").textContent=`${bars.reduce((a,b)=>a+b.missed,0)} / ${bars.reduce((a,b)=>a+b.extras,0)}`;
     const L=LEVELS.find(x=>x.id===level), d=new Date(), how=inMode==="tap"?"Tap":inMode==="clap"?"Clap":"One note";
-    $("rStamp").textContent=`${tag} · High score ${half(best)} · Level ${LEVELS.indexOf(L)+1} · ${L.name} · ${tempoTxt||bpm+" BPM"} · ${how} · ${d.toLocaleDateString(undefined,{weekday:"short",month:"short",day:"numeric"})} ${d.toLocaleTimeString([],{hour:"numeric",minute:"2-digit"})}`;
+    $("rStamp").textContent=`${tag} · High score ${half(best)} · Level ${LEVELS.indexOf(L)+1} · ${lvlName(L)} · ${meterId} · ${tempoTxt||tl(bpm)} · ${how} · ${d.toLocaleDateString(undefined,{weekday:"short",month:"short",day:"numeric"})} ${d.toLocaleTimeString([],{hour:"numeric",minute:"2-digit"})}`;
     $("results").hidden=false; stats(); try{ $("rTitle").focus({preventScroll:true}) }catch(e){} }
   // Challenge "Faster + accuracy": round 1 warm-up (no target), then rounds 2-5 and the bonus, each with a fresh points target (see roundPlan).
   // The run's total still adds up for the high score. A bar still playing when the 30 seconds run out finishes and counts for that round.
@@ -567,8 +633,8 @@ button:focus-visible,select:focus-visible,summary:focus-visible,input:focus-visi
   // ---------- controls ----------
   // a screen reader hears the rhythm as words: "quarter, eighth, eighth, quarter rest, half"
   const DUR={16:"whole",12:"dotted half",8:"half",6:"dotted quarter",4:"quarter",3:"dotted eighth",2:"eighth",1:"16th"};
-  function sayBar(){ const w=[]; bar.ev.forEach(e=>{ const n=DUR[e.d]||"note"; if(e.tie&&w.length) w[w.length-1]+=" tied to "+n; else w.push(n+(e.r?" rest":"")) });
-    $("bar").setAttribute("aria-label","Rhythm to tap, 4/4: "+w.join(", ")) }
+  function sayBar(){ const w=[]; bar.ev.forEach(e=>{ const n=DUR[e.d]||"note"; if(e.tie&&w.length) w[w.length-1]+=" tied to "+n; else w.push(e.wb?"whole rest (the whole bar)":n+(e.r?" rest":"")) });
+    $("bar").setAttribute("aria-label","Rhythm to tap, "+meterId+(MT().compound?" (2 beats, 3 eighths each)":"")+": "+w.join(", ")) }
   function newBar(){ bar=arc&&arc.deck&&arc.bi<arc.deck.length?arc.deck[arc.bi++]:makeBar(); drawBar(null); sayBar() }
   $("go").addEventListener("click",async()=>{ if(gmode!=="practice"&&(sess||arc)){ stopSession(); return } if(run||starting) return; if(calHook){ msg(null,"Calibrating…","Finish the 8 clicks first (Settings), then press Start."); return }
     if(gmode!=="practice") return arcStart(); if($("go").textContent==="Next rhythm"||!bar) newBar(); $("go").textContent="Start"; $("again").hidden=true; await startTest() });
@@ -582,9 +648,21 @@ button:focus-visible,select:focus-visible,summary:focus-visible,input:focus-visi
   ["counts","guide"].forEach(id=>{ $(id).checked=store.get(id,id==="counts"); $(id).addEventListener("change",e=>{ store.set(id,e.target.checked); if(!run) drawBar(curRes) }) });
   ["cursor","lightup","ramp","hypeOn"].forEach(id=>{ $(id).checked=store.get(id,true)!==false; $(id).addEventListener("change",e=>{ store.set(id,e.target.checked); if(id==="hypeOn"&&!e.target.checked) hypeStop(120) }) }); $("ramp").addEventListener("change",()=>stats()); try{store.set("who","")}catch(e){} // no names stored (privacy)
   LEVELS.forEach(L=>{ const b=document.createElement("button"); b.className="lvl"; b.innerHTML=`<b>L${LEVELS.indexOf(L)+1}</b><span>${L.name.replace("Syncopation","Synco&shy;pation")}</span>`;
-    b.addEventListener("click",()=>{ hypeStop(120); if(sess||arc) stopSession(true); level=L.id; store.set("level",level); mark(); round=[]; stats(); newBar(); $("go").textContent="Start"; msg(null,"Level "+(LEVELS.indexOf(L)+1)+": "+L.name,"Press Hear it to listen first, or Start.") }); b.dataset.id=L.id; $("levels").appendChild(b) });
-  TEMPOS.forEach(t=>{ const b=document.createElement("button"); b.textContent=t; b.dataset.t=t; b.addEventListener("click",()=>{ hypeStop(120); if(sess||arc) stopSession(true); bpm=t; store.set("bpm",bpm); mark(); stats() }); $("tempo").appendChild(b) });
-  function mark(){ document.querySelectorAll(".lvl").forEach(b=>b.setAttribute("aria-pressed",String(b.dataset.id===level))); document.querySelectorAll("#tempo button").forEach(b=>b.setAttribute("aria-pressed",String(+b.dataset.t===bpm))) }
+    b.addEventListener("click",()=>{ hypeStop(120); if(sess||arc) stopSession(true); level=L.id; store.set("level",level); mark(); round=[]; stats(); newBar(); $("go").textContent="Start"; msg(null,"Level "+(LEVELS.indexOf(L)+1)+": "+lvlName(L),"Press Hear it to listen first, or Start.") }); b.dataset.id=L.id; $("levels").appendChild(b) });
+  // tempo buttons follow the time signature (quarter-note BPM, or dotted-quarter BPM in 6/8)
+  function buildTempo(){ $("tempo").querySelectorAll("button").forEach(b=>b.remove()); const c=MT().compound;
+    $("tempoLbl").innerHTML=c?'Tempo<svg class="tbeat" viewBox="0 0 16 22" width="13" height="18" aria-hidden="true"><ellipse cx="5" cy="17" rx="4.4" ry="3.1" transform="rotate(-20 5 17)"/><rect x="8.3" y="1" width="1.4" height="16"/><circle cx="13.2" cy="15" r="1.6"/></svg>':"Tempo"; $("tempo").setAttribute("aria-label",c?"Tempo in dotted-quarter beats per minute":"Tempo in beats per minute");
+    tempoList().forEach(t=>{ const b=document.createElement("button"); b.textContent=t; b.dataset.t=t; if(c) b.setAttribute("aria-label",`dotted quarter = ${t}`);
+      b.addEventListener("click",()=>{ hypeStop(120); if(sess||arc) stopSession(true); bpm=t; store.set(bpmKey(),bpm); mark(); stats() }); $("tempo").appendChild(b) }) }
+  buildTempo();
+  // A change of time signature stops everything cleanly (a challenge, a bar still playing, the round music) and deals a new bar.
+  function setMeter(id){ if(!METERS[id]) return; hypeStop(120); if(sess||arc) stopSession(true); if(run){ run=null; hush(); $("go").disabled=false; $("hear").disabled=false; lockUI() }
+    meterId=id; store.set("meter",id); const sb=+store.get(bpmKey(),NaN); bpm=tempoList().includes(sb)?sb:MT().compound?56:72;
+    buildTempo(); mark(); lockUI(); round=[]; $("results").hidden=true; $("again").hidden=true; stats(); newBar(); $("go").textContent="Start";
+    msg(null,"Time: "+id,MT().compound?"Two beats in a bar, each a dotted quarter (3 eighths). Count the eighths 1 2 3 4 5 6, leaning on 1 and 4. Tempo counts the dotted quarters (♩.).":`${MT().beats} quarter-note beats in a bar. Count ${countWords().replace(/ · /g," ")}.`) }
+  Object.keys(METERS).forEach(id=>{ const b=document.createElement("button"); b.textContent=id; b.dataset.m=id; b.setAttribute("aria-label",`${id} time`); b.addEventListener("click",()=>setMeter(id)); $("meterSeg").appendChild(b) });
+  function mark(){ document.querySelectorAll(".lvl").forEach(b=>{ b.setAttribute("aria-pressed",String(b.dataset.id===level)); const L=LEVELS.find(x=>x.id===b.dataset.id); b.querySelector("span").innerHTML=lvlName(L).replace("Syncopation","Synco&shy;pation") });
+    document.querySelectorAll("#tempo button").forEach(b=>b.setAttribute("aria-pressed",String(+b.dataset.t===bpm))); document.querySelectorAll("#meterSeg button").forEach(b=>b.setAttribute("aria-pressed",String(b.dataset.m===meterId))) }
 
   // ---------- calibration: play along with 12 clicks; the first 2 are skipped, the median of the rest becomes that input's correction ----------
   let calHook=null;
@@ -770,12 +848,14 @@ button:focus-visible,select:focus-visible,summary:focus-visible,input:focus-visi
   document.querySelectorAll("#inSeg button").forEach(b=>b.addEventListener("click",()=>setIn(b.dataset.in)));
   setIn(inMode);
 
-  window.__rt={hype:()=>({sup:hypeSup,dirty:hypeDirty,wait:hypeWait()}),make:(lv)=>{const k=level;level=lv;const b=makeBar();level=k;return b},bar:()=>bar,start:()=>lastStart,tap:t=>tapAt(t),now:()=>audio&&audio.currentTime,u:()=>u16(),setBar:b=>{bar=b;drawBar(null)},hits:()=>hitLog.slice(),setTempo:v=>{ if(!run&&!sess) bpm=+v },run:()=>run&&{start:run.start,end:run.end,u:run.u},arcInfo:()=>arc&&{round:arc.round,rp:arc.rp,need:arc.need,possible:arc.possible,bpm:arc.bpm,start:arc.start,cap:arc.cap,top:arc.top,dir:arc.dir,bars:arc.deck.length,bi:arc.bi,left:sess&&sess.left},
+  window.__rt={meter:()=>meterId,setMeter:id=>setMeter(id),meters:()=>METERS,make:(lv,m)=>{const k=level,km=meterId;level=lv;if(m)meterId=m;try{return makeBar()}finally{level=k;meterId=km}},
+    beams:(ev,m)=>{const km=meterId;if(m)meterId=m;try{return beamGroups(ev).map(g=>({idx:g.map(e=>e.i),sec:secBeams(g)}))}finally{meterId=km}},cnt:(s,m)=>{const km=meterId;if(m)meterId=m;try{return CNT(s)}finally{meterId=km}},
+    svg:()=>$("bar").innerHTML,draw:()=>drawBar(null),hype:()=>({sup:hypeSup,dirty:hypeDirty,wait:hypeWait()}),bpm:()=>bpm,tempos:()=>tempoList(),label:()=>$("bar").getAttribute("aria-label"),bar:()=>bar,start:()=>lastStart,tap:t=>tapAt(t),now:()=>audio&&audio.currentTime,u:()=>u16(),setBar:b=>{bar=b;drawBar(null)},hits:()=>hitLog.slice(),setTempo:v=>{ if(!run&&!sess) bpm=+v },run:()=>run&&{start:run.start,end:run.end,u:run.u},arcInfo:()=>arc&&{round:arc.round,rp:arc.rp,need:arc.need,possible:arc.possible,bpm:arc.bpm,start:arc.start,cap:arc.cap,top:arc.top,dir:arc.dir,bars:arc.deck.length,bi:arc.bi,left:sess&&sess.left},
     plan:(r,b,lv,m)=>{const k=level,km=meterId;if(lv)level=lv;if(m)meterId=m;try{const P=roundPlan(r,b);return {need:P.need,possible:P.possible,n:P.deck.map(x=>x.notes.length)}}finally{level=k;meterId=km}},st:()=>({run:run?run.mode:null,rid:run?run.t0:null,sess:!!sess,arc:!!arc,starting,cal:!!calHook,mic:!!mic,micBusy,inMode,gmode,live:live.size,left:sess?sess.left:null,points:sess?sess.points:null})}; // test hook
   mark(); newBar(); setMode("practice");
   if(document.fonts) document.fonts.ready.then(()=>{ if(!run) drawBar(curRes) });
 })();
 </script>
-<p class="appver" style="text-align:center;font-size:11px;opacity:.6;margin:18px 0 10px;font-family:ui-monospace,Menlo,monospace">Rhythm Trainer · Version 2026-11-11.20</p>
+<p class="appver" style="text-align:center;font-size:11px;opacity:.6;margin:18px 0 10px;font-family:ui-monospace,Menlo,monospace">Rhythm Trainer · Version 2026-11-11.21</p>
 </body>
 </html>
