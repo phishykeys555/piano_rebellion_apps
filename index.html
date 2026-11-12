@@ -1,5 +1,5 @@
 <!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Clarendon Hills Music Academy Games</title><meta name="description" content="Note Sprint, Key Finder, Modal Metronome, Rhythm Trainer, Song Dissector, Hanon Speed Trainer and Strobe Tuner: practice apps built by Clarendon Hills Music Academy."><meta property="og:type" content="website"><meta property="og:site_name" content="Clarendon Hills Music Academy"><meta property="og:title" content="Music Games · Clarendon Hills Music Academy"><meta property="og:description" content="Note Sprint, Key Finder, Modal Metronome, Rhythm Trainer, Song Dissector, Hanon Speed Trainer and Strobe Tuner: practice apps built by Clarendon Hills Music Academy."><meta property="og:url" content="https://phishykeys555.github.io/piano_rebellion_apps/"><meta property="og:image" content="https://phishykeys555.github.io/piano_rebellion_apps/share/groove-metronome.png"><meta property="og:image:width" content="1200"><meta property="og:image:height" content="630"><meta property="og:image:alt" content="Music Games · Clarendon Hills Music Academy"><meta name="twitter:card" content="summary_large_image"><meta name="twitter:title" content="Music Games · Clarendon Hills Music Academy"><meta name="twitter:description" content="Note Sprint, Key Finder, Modal Metronome, Rhythm Trainer, Song Dissector, Hanon Speed Trainer and Strobe Tuner: practice apps built by Clarendon Hills Music Academy."><meta name="twitter:image" content="https://phishykeys555.github.io/piano_rebellion_apps/share/groove-metronome.png">
+<title>Clarendon Hills Music Academy Games</title><meta name="description" content="Note Sprint, Key Finder, Symbol Memory, Groupies, Rhythm Trainer, Meter Master, Modal Metronome, Ear Trainer, Riff Simon Says, Song Dissector, Hanon Speed Trainer and Strobe Tuner: practice apps built by Clarendon Hills Music Academy."><meta property="og:type" content="website"><meta property="og:site_name" content="Clarendon Hills Music Academy"><meta property="og:title" content="Music Games · Clarendon Hills Music Academy"><meta property="og:description" content="Note Sprint, Key Finder, Symbol Memory, Groupies, Rhythm Trainer, Meter Master, Modal Metronome, Ear Trainer, Riff Simon Says, Song Dissector, Hanon Speed Trainer and Strobe Tuner: practice apps built by Clarendon Hills Music Academy."><meta property="og:url" content="https://phishykeys555.github.io/piano_rebellion_apps/"><meta property="og:image" content="https://phishykeys555.github.io/piano_rebellion_apps/share/groove-metronome.png"><meta property="og:image:width" content="1200"><meta property="og:image:height" content="630"><meta property="og:image:alt" content="Music Games · Clarendon Hills Music Academy"><meta name="twitter:card" content="summary_large_image"><meta name="twitter:title" content="Music Games · Clarendon Hills Music Academy"><meta name="twitter:description" content="Note Sprint, Key Finder, Symbol Memory, Groupies, Rhythm Trainer, Meter Master, Modal Metronome, Ear Trainer, Riff Simon Says, Song Dissector, Hanon Speed Trainer and Strobe Tuner: practice apps built by Clarendon Hills Music Academy."><meta name="twitter:image" content="https://phishykeys555.github.io/piano_rebellion_apps/share/groove-metronome.png">
 <link rel="stylesheet" href="shared/chma.css">
 <script src="shared/brand.js"></script>
 <style>
@@ -33,20 +33,50 @@ button,a,label,summary,select,input{-webkit-tap-highlight-color:transparent}
   .apps{display:grid;grid-template-columns:1fr 1fr;gap:12px 16px}
   .apps a{height:100%}
 }
+
+/* Groups 2026-11-12.2: twelve apps in four groups; phone = one scrolling list, desktop = groups side by side so the last card is on screen */
+.groups{display:flex;flex-direction:column;gap:18px}
+.grp h2{font:700 13px var(--f-num);letter-spacing:.08em;text-transform:uppercase;color:var(--c-mut);margin:0 0 8px 2px}
+@media (min-width:900px){
+  main{max-width:1200px}
+  .groups{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:16px 14px}
+  .groups .apps{display:flex;flex-direction:column;gap:10px}
+  .apps b{font-size:17px}
+}
+@media (min-width:900px) and (max-width:1179px){
+  .groups .apps a{padding:11px 10px;gap:6px}
+}
 </style></head>
 <body><main>
 <div data-chma-head></div>
 <h1>Music <em>Games</em></h1>
 <p class="sub">Pick a trainer and start playing.</p>
+<div class="groups">
+<section class="grp"><h2>Read &amp; Know</h2>
 <ul class="apps">
 <li><a href="note-sprint/"><div class="txt"><b>Note Sprint</b><span>Note-reading challenge rounds. Tap the answer or play your piano.</span></div><i aria-hidden="true">›</i></a></li>
 <li><a href="key-finder/"><div class="txt"><b>Key Finder</b><span>Learn every key on the piano by sight. Just the keyboard.</span></div><i aria-hidden="true">›</i></a></li>
-<li><a href="drum-machine/"><div class="txt"><b>Modal Metronome</b><span>A drum machine metronome with real grooves, bass lines and fills.</span></div><i aria-hidden="true">›</i></a></li>
+<li><a href="symbol-memory/"><div class="txt"><b>Symbol Memory</b><span>Match music symbols to their names in a memory card game.</span></div><i aria-hidden="true">›</i></a></li>
+<li><a href="groupies/"><div class="txt"><b>Groupies</b><span>Find the four groups of four in a daily music word puzzle.</span></div><i aria-hidden="true">›</i></a></li>
+</ul></section>
+<section class="grp"><h2>Rhythm &amp; Time</h2>
+<ul class="apps">
 <li><a href="rhythm-trainer/"><div class="txt"><b>Rhythm Trainer</b><span>Read a rhythm, tap or clap it, and see every hit line up.</span></div><i aria-hidden="true">›</i></a></li>
+<li><a href="meter-master/"><div class="txt"><b>Meter Master</b><span>Keep the beat through the silences and test your inner clock.</span></div><i aria-hidden="true">›</i></a></li>
+<li><a href="drum-machine/"><div class="txt"><b>Modal Metronome</b><span>A drum machine metronome with real grooves, bass lines and fills.</span></div><i aria-hidden="true">›</i></a></li>
+</ul></section>
+<section class="grp"><h2>Ear &amp; Improv</h2>
+<ul class="apps">
+<li><a href="ear-trainer/"><div class="txt"><b>Ear Trainer</b><span>Hear a reference note, then name the mystery note or interval.</span></div><i aria-hidden="true">›</i></a></li>
+<li><a href="riff-says/"><div class="txt"><b>Riff Simon Says</b><span>The app plays a riff over a groove. Play it back in time.</span></div><i aria-hidden="true">›</i></a></li>
+</ul></section>
+<section class="grp"><h2>Practice Tools</h2>
+<ul class="apps">
 <li><a href="song-player/"><div class="txt"><b>Song Dissector</b><span>Slow any song down, change its key, loop a section. Load your own MP3.</span></div><i aria-hidden="true">›</i></a></li>
 <li><a href="hanon-player/"><div class="txt"><b>Hanon Speed Trainer</b><span>Hanon Exercises 1 and 2, 50 to 280 BPM, with level tempo goals.</span></div><i aria-hidden="true">›</i></a></li>
 <li><a href="guitar-tuner/"><div class="txt"><b>Strobe Tuner</b><span>Guitar Revolution: tune every string with a true strobe.</span></div><i aria-hidden="true">›</i></a></li>
-</ul>
-<p class="appver">Music Games · Version 2026-11-12.1</p>
+</ul></section>
+</div>
+<p class="appver">Music Games · Version 2026-11-12.2</p>
 </main>
 </body></html>

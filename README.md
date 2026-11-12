@@ -27,6 +27,6 @@ Every app shows its version at the bottom of the page: `Version YYYY-MM-DD.N` (d
 | Ear Trainer | 2026-11-12.1 |
 | Meter Master (internal-clock trainer) | 2026-11-12.1 |
 | Symbol Memory (music symbols ↔ names; Bravura font, OFL, in `symbol-memory/fonts/`) | 2026-11-12.1 |
-| Music Games (home) | 2026-11-12.1 |
+| Music Games (home) | 2026-11-12.2 |
 | Round music (`shared/hype.js`) | 2026-11-12.1 |
 | Riff Simon Says | 2026-11-12.1 |
