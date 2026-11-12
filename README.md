@@ -20,6 +20,6 @@ Every app shows its version at the bottom of the page: `Version YYYY-MM-DD.N` (d
 | Modal Metronome | 2026-11-11.18 |
 | Hanon Speed Trainer | 2026-11-11.7 |
 | Major 7th Play-Along | 2026-11-11.8 |
-| Song Dissector | 2026-11-11.13 |
+| Song Dissector | 2026-11-11.14 |
 | Strobe Tuner (Guitar Revolution) | 2026-11-11.6 |
 | Music Games (home) | 2026-11-11.6 |
