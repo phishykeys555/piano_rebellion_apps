@@ -222,6 +222,12 @@ input[type=range]:active::-moz-range-thumb{transform:scale(1.12)}
 #mv::-moz-range-track{height:8px;background:linear-gradient(90deg,transparent 0 var(--p,50%),var(--dim) var(--p,50%) 100%),linear-gradient(90deg,var(--c-bad),var(--mvy) 50%,var(--c-ok))}
 #mv::-webkit-slider-thumb{margin-top:calc(4px - var(--th) / 2)}
 </style>
+<style>/* 2026-11-11.15: preset export / import */
+.psio{margin-top:2px}.psxm{font-size:12px;color:var(--c-mut);line-height:1.45;white-space:pre-line}.psxm:empty{display:none}
+.psq{border:1px solid var(--c-line);background:var(--c-panel);border-radius:12px;padding:10px 12px;margin:6px 0;font-size:13px}
+.psq p{margin:0 0 8px;color:var(--c-ink)}.psq .row{margin:0}.psq label{text-transform:none;letter-spacing:0;font-size:12px;font-weight:600}
+.psx-ready{border:1px solid var(--c-sel);border-radius:12px;padding:10px 12px;margin:6px 0;font-size:13px;color:var(--c-ink)}
+</style>
 
 </head><body><div class="wrap">
 <div data-chma-head></div>
@@ -243,7 +249,10 @@ input[type=range]:active::-moz-range-thumb{transform:scale(1.12)}
 <label>My presets <select id="ps"><option value="">— choose —</option></select></label><button id="psl">Load</button><button id="psd">Delete</button>
 <input type="text" id="psn" placeholder="Name it (e.g. Blue Rondo slow)" style="width:170px"><button id="pss">💾 Save</button><span id="psm" role="status" style="font-size:12px;color:var(--mut)"></span>
 </div>
-<div class="hint">Save everything you set up (groove, tempo, time, sounds, chords) under a name. It stays on this device. Pick one from the list to load it.</div>
+<div class="row psio"><button type="button" id="psx">⬇ Export presets</button><button type="button" id="psi">⬆ Import presets</button><input type="file" id="psf" accept=".metronome,application/json" multiple hidden></div>
+<div id="psq" class="psq" role="group" aria-label="Preset name clash" hidden></div>
+<div id="psxm" class="psxm" role="status"></div>
+<div class="hint">Save everything you set up (groove, tempo, time, sounds, chords) under a name. It stays on this device. Pick one from the list to load it. Export saves all your presets to a .metronome file you can import on another device or browser.</div>
 </div>
 
 <div class="sec"><h4>Groove</h4>
@@ -260,7 +269,7 @@ input[type=range]:active::-moz-range-thumb{transform:scale(1.12)}
 <optgroup label="Prog / Odd Time"><option value="p54swing">5/4 Swing (Take Five, Brubeck)</option><option value="p54rock">5/4 Rock (Mission: Impossible)</option><option value="p74">7/4 Rock (Money, Pink Floyd)</option><option value="p78">7/8 Prog (2+2+3; beat = 8th note)</option><option value="p98">9/8 (Blue Rondo à la Turk, 2+2+2+3; beat = 8th note)</option></optgroup>
 <optgroup label="Other"><option value="percjam">Percussion Only – Latin Jam</option><option value="shakeronly">Percussion Only – Shaker + Tambourine</option><option value="bluerondo">Blue Rondo – 9/8 click, accents 12 12 12 123</option><option value="click">Metronome – Kick every beat</option><option value="click8">Metronome – 8th note grid</option><option value="click16">Metronome – 16th note grid</option><option value="clear">Clear (build your own)</option></optgroup>
 </select></label>
-<label title="Time signature. In the x/8 meters (5/8, 7/8, 9/8 2+2+2+3, 11/8) one beat = one 8th note, so BPM counts 8ths.">Time <select id="ts"><option value="2/4">2/4</option><option value="3/4">3/4</option><option value="4/4" selected>4/4</option><option value="5/4">5/4</option><option value="6/4">6/4</option><option value="7/4">7/4</option><option value="5/8">5/8 (3+2)</option><option value="6/8">6/8</option><option value="7/8">7/8 (2+2+3)</option><option value="9/8">9/8 (3+3+3)</option><option value="9/8br">9/8 (2+2+2+3, Blue Rondo)</option><option value="11/8">11/8</option><option value="12/8">12/8</option></select></label>
+<label title="Time signature. In the x/8 meters (5/8, 7/8, 9/8 2+2+2+3, 11/8) one beat = one 8th note, so BPM counts 8ths.">Time <select id="ts" data-s><option value="2/4">2/4</option><option value="3/4">3/4</option><option value="4/4" selected>4/4</option><option value="5/4">5/4</option><option value="6/4">6/4</option><option value="7/4">7/4</option><option value="5/8">5/8 (3+2)</option><option value="6/8">6/8</option><option value="7/8">7/8 (2+2+3)</option><option value="9/8">9/8 (3+3+3)</option><option value="9/8br">9/8 (2+2+2+3, Blue Rondo)</option><option value="11/8">11/8</option><option value="12/8">12/8</option></select></label>
 <label class="adv" style="display:none">Beats <select id="b" data-s><option>2</option><option>3</option><option selected>4</option><option>5</option><option>6</option><option>7</option><option>8</option><option>9</option><option>10</option><option>11</option><option>12</option></select></label>
 <label class="adv" style="display:none">Notes <select id="sub" data-s><option value="2" selected>8ths</option><option value="3">Triplets</option><option value="4">16ths</option></select></label>
 <label>Subdivide <select id="sdv" data-s><option value="groove" selected>As written (groove)</option><option value="q">Quarter notes</option><option value="e">8th notes</option><option value="s">16th notes</option><option value="t">Triplets</option><option value="off">Off-beats (the &amp;s)</option><option value="none">Off</option></select></label>
@@ -1340,9 +1349,12 @@ function fillNow(){if(!playing){start().then(()=>{forceBar=0});return}if(isCount
 // ===== practice log =====
 const LKEY='drumMachine:log';let logT=null,logData=null;
 const dkey=x=>x.getFullYear()+'-'+String(x.getMonth()+1).padStart(2,'0')+'-'+String(x.getDate()).padStart(2,'0');
-function loadLog(){if(!logData){try{logData=JSON.parse(store.getItem(LKEY)||'null')}catch(e){}
- // A damaged or old-format log must not break the page: keep what is usable, rebuild the rest.
- const ok=o=>o&&typeof o==='object'&&!Array.isArray(o);if(!ok(logData))logData={};if(!ok(logData.days))logData.days={};if(!ok(logData.best))logData.best={};if(!isFinite(+logData.sessions))logData.sessions=0}return logData}
+function loadLog(){if(!logData)logData=cleanLog(readStore(LKEY));return logData}
+// Practice log, field by field: good days and bests are kept, bad entries dropped, unknown fields (from newer versions) kept as they are.
+function cleanLog(o){const L=isObj(o)?o:{};const days={},best={};
+ if(isObj(L.days))for(const k in L.days){const x=+L.days[k];if(/^\d{4}-\d{2}-\d{2}$/.test(k)&&typeof L.days[k]!=='boolean'&&isFinite(x)&&x>=0)days[k]=Math.min(x,86400)}
+ if(isObj(L.best))for(const k in L.best){const x=+L.best[k];if(k!=='__proto__'&&typeof L.best[k]!=='boolean'&&isFinite(x)&&x>=40&&x<=280)best[k]=Math.round(x)}
+ const n=+L.sessions;L.days=days;L.best=best;L.sessions=isFinite(n)&&n>=0&&typeof L.sessions!=='boolean'?Math.floor(n):0;L.fmt=Math.max(FMT,+L.fmt||0);return L}
 function saveLog(){try{store.setItem(LKEY,JSON.stringify(logData))}catch(e){}}
 function logStart(){const L=loadLog();L.sessions=(L.sessions||0)+1;clearInterval(logT);let c=0;logT=setInterval(()=>{if(!playing||isCount)return;const d=dkey(new Date());L.days[d]=(L.days[d]||0)+1;if(++c%10==0){saveLog();logUI()}},1000)}
 function logStop(){clearInterval(logT);if(logData)saveLog();logUI()}
@@ -1351,11 +1363,49 @@ function logUI(){const L=loadLog(),now=Date.now();let wk=0,streak=0;for(let k=0;
  for(let k=0;k<400;k++){if((L.days[dkey(new Date(now-k*864e5))]||0)>=30)streak++;else if(k>0)break} // a streak day = at least the 1 min the log shows
  const mn=x=>Math.round(x/60),b=L.best[SKEY];
  $('log').innerHTML='<span>Today <b>'+mn(L.days[dkey(new Date())]||0)+'</b> min</span><span>Last 7 days <b>'+mn(wk)+'</b> min</span><span>Streak <b>'+streak+'</b> day'+(streak==1?'':'s')+'</span><span title="Fastest tempo held for 8+ bars on this embed">Best tempo here <b>'+(b?b+' BPM '+medal(b):'—')+'</b></span>'}
+/* ===== STORED-DATA CONTRACT (fmt 1, from 2026-11-11.15) =====
+ Storage = localStorage, else sessionStorage, else memory (see `store`). Keys:
+   drumMachine:<page key>   SKEY  this page's settings: one STATE.
+   drumMachine:presets      PKEY  { "<name>": STATE, ... }   name: 1-60 characters.
+   drumMachine:log          LKEY  { fmt, days:{ "YYYY-MM-DD": seconds }, best:{ <page key>: bpm }, sessions }
+   mmTab                          the open tab (this device only).
+ STATE = { fmt:1, app:"<version that wrote it>", v:2, pk:1, tm2,av,bj,kt,fl,vt (1 = already migrated, see applyState0),
+           c:{ <control id>: string|number|boolean }, ts in c, bpm:40-280, grid:{ <drum row>:[0..1, ...] }, rowVol:{ <row>:0..2 }, seed, dev? (page settings only) }
+ .metronome file = { app:"modal-metronome", format:1, exported:"<ISO date>", appVersion, presets:{ "<name>": STATE } }
+ Rules every version keeps, older or newer:
+   1. Only add fields. Never rename one or change what it means. Bump fmt only for a change an older reader would misread, and add its migration.
+   2. Read field by field (cleanState / cleanControls / cleanLog): a bad field is dropped and that control keeps its default; the rest still loads.
+      Unknown fields and unknown control ids are ignored on read, and kept in storage (presets and log are edited in place, never rebuilt).
+   3. Never throw while reading. A store that is not even JSON is copied to "<key>:damaged" before anything is written over it.
+   4. Device-only, never in presets, codes or files: master volume (mv), output mode, output device, the practice log, the open tab. */
+const FMT=1;
+const isObj=o=>!!o&&typeof o==='object'&&!Array.isArray(o);
+const appVer=()=>{const m=((document.querySelector('.appver')||{}).textContent||'').match(/Version ([0-9.-]+)/);return m?m[1]:''};
+// Read a JSON store. Unparseable text is kept under <key>:damaged so nothing is lost when the key is written again.
+function readStore(key){let txt=null;try{txt=store.getItem(key)}catch(e){return null}if(txt==null)return null;
+ try{return JSON.parse(txt)}catch(e){try{if(store.getItem(key+':damaged')==null)store.setItem(key+':damaged',txt)}catch(e2){}console.warn('Damaged data in '+key+' kept as '+key+':damaged');return null}}
+const PRIM=x=>x===null||typeof x==='string'||typeof x==='boolean'||(typeof x==='number'&&isFinite(x));
+// Controls: each value is checked against the control it belongs to. Values for ids this version does not have are kept (a newer version may need them).
+function cleanControls(c){const out={};for(const id in c){let x=c[id];if(id==='__proto__'||!PRIM(x)||x===null)continue;const e=document.getElementById(id);
+  if(!e||!e.hasAttribute('data-s')){if(typeof x!=='string'||x.length<=500)out[id]=x;continue}
+  if(e.type==='checkbox'){if(x===true||x===1||x==='1'||x==='true')out[id]=true;else if(x===false||x===0||x==='0'||x==='false'||x==='')out[id]=false;continue}
+  if(e.type==='range'||e.type==='number'){const n=typeof x==='boolean'||x===''?NaN:+x;if(!isFinite(n))continue;const lo=e.min===''?-Infinity:+e.min,hi=e.max===''?Infinity:+e.max;
+   out[id]=(id==='mv'||id==='hu')?String(n):String(Math.max(lo,Math.min(hi,n)));continue} // mv and hu may hold old-format values that applyState0 converts
+  if(typeof x==='boolean')continue;x=String(x);if(x.length>500)continue;out[id]=x}return out}
+// A whole STATE: returns a cleaned copy, or null when there is nothing usable (no controls object).
+function cleanState(st){if(!isObj(st)||!isObj(st.c))return null;const o={};
+ for(const k in st){if(k==='c'||k==='grid'||k==='rowVol'||k==='bpm'||k==='seed'||k==='__proto__')continue;if(PRIM(st[k])&&(typeof st[k]!=='string'||st[k].length<=500))o[k]=st[k]}
+ o.c=cleanControls(st.c);
+ const b=+st.bpm;if(typeof st.bpm!=='boolean'&&st.bpm!==''&&st.bpm!=null&&isFinite(b))o.bpm=Math.max(40,Math.min(280,Math.round(b)));
+ if(typeof st.seed==='number'&&isFinite(st.seed))o.seed=st.seed;
+ if(isObj(st.grid)){o.grid={};for(const k in st.grid){const r=st.grid[k];if(k!=='__proto__'&&Array.isArray(r)&&r.length<=512&&r.every(x=>typeof x==='number'&&isFinite(x)))o.grid[k]=r.map(x=>Math.max(0,Math.min(1,x)))}}
+ if(isObj(st.rowVol)){o.rowVol={};for(const k in st.rowVol){const x=st.rowVol[k];if(k!=='__proto__'&&typeof x==='number'&&isFinite(x))o.rowVol[k]=Math.max(0,Math.min(2,x))}}
+ return o}
 // ===== state: save / restore / presets / codes =====
 let saveT=null,savedDevInit='';
 const LOCAL=new Set(['mv','mode']);
 function getState(full){const c={};document.querySelectorAll('[data-s]').forEach(e=>{if(!full&&LOCAL.has(e.id))return;c[e.id]=e.type==='checkbox'?e.checked:e.value});
- const st={v:2,tm2:1,pk:1,av:1,bj:1,kt:1,fl:1,vt:1,c,bpm,grid,rowVol,seed:bassSeed};if(full)st.dev=$('dev').value;return st}
+ const st={fmt:FMT,app:appVer(),v:2,tm2:1,pk:1,av:1,bj:1,kt:1,fl:1,vt:1,c,bpm,grid,rowVol,seed:bassSeed};if(full)st.dev=$('dev').value;return st}
 const OLDPROG={'i VI III VII':'vi IV I V','i iv v i':'vi ii iii vi','i VII VI V':'vi V IV III','i IV':'ii7 V7','i ii III IV':'ii iii IV V','i VII IV i':'ii I V ii','i II':'iii IV','i II III II':'iii IV V IV','i vii VI II':'iii IV iii ii','I II':'IV V','I II vii I':'IV V iii IV','I II iii II':'IVmaj7 V IVmaj7 V','I VII IV I':'V IV I V','I v IV I':'V ii I V','I VII I IV':'V IV I I','i VI VII i':'vi IV V vi','i VII VI VII':'vi V IV V','i iv VII III':'vi iii IV V','i° II iv II':'vii° I','i iv V i':'vi ii III vi','I II vii II':'III IV ii III'};
 const PROG2={'iii ii I IV':'iii IV iii ii','IV V vi V':'IVmaj7 V IVmaj7 V','V IV V I':'V IV I I','vi ii V I':'vi iii IV V','vii° I iii I':'vii° I','III IV ii IV':'III IV ii III','ii V':'ii7 V7'};
 function legacyKey(c){if(!c)return;if(PROG2[c.prog])c.prog=PROG2[c.prog];const old=c.prog,md=c.md||'auto';let deg=MODEDEG[md];
@@ -1363,11 +1413,14 @@ function legacyKey(c){if(!c)return;if(PROG2[c.prog])c.prog=PROG2[c.prog];const o
  if(OLDPROG[old])c.prog=OLDPROG[old];
  if(deg&&c.key!=null){const i=NOTES.indexOf(c.key);if(i>=0)c.key=NOTES[mod12(i-MAJ[deg])]}}
 function setSel(e,val){if([...e.options].some(o=>o.value==val))e.value=val}
-function applyState(st){try{return applyState0(st)}finally{restoring=false}}
+// Never throws: the state is cleaned first, and anything that still goes wrong leaves the page as it is (returns false).
+function applyState(st){try{const cs=cleanState(st);return cs?applyState0(cs):false}catch(e){console.warn('Settings partly skipped',e);return false}finally{restoring=false}}
 function applyState0(st){if(!st||!st.c)return false;restoring=true;const c=st.c;if(c.bt==='growly')c.bt='jbass';if(c.bt==='slap')c.bt='gslap';if(c.bt==='upright')c.bt='gupright';if(PROG2[c.prog])c.prog=PROG2[c.prog];if(!st.av){if(c.hh==='ac')c.hh='studio';if(c.rv==='soft')c.rv='zil'}if(!st.fl&&(c.hu==null||+c.hu===0))c.hu='30';if(!st.vt&&c.mv!=null){const v=+c.mv;c.mv=String(v<=0?0:Math.max(1,Math.min(100,Math.round(100*(1+20*Math.log10(v/100)/45)))))}if(!st.bj){if(c.bt==='finger')c.bt='jbass';if(c.bt==='upright')c.bt='dbass'}if(!st.kt&&(c.kit==='acoustic'||!c.kit)){c.kit='bpearl';c.kk='bp';c.sn='bp';c.tm='bp'}if(!st.pk)legacyKey(c);
  for(const id in c){const e=$(id);if(!e)continue;if(e.type==='checkbox')e.checked=!!c[id];else if(e.tagName==='SELECT')setSel(e,c[id]);else e.value=c[id]}
  preset(P[c.pre]?c.pre:'rock');$('pre').value=curName;
  let nb=+c.b||beats,ns=+c.sub||sub;if(!(nb>=2&&nb<=12&&nb%1===0))nb=beats;if(![2,3,4].includes(ns))ns=sub;if(nb!==beats||ns!==sub){beats=nb;sub=ns;$('b').value=beats;$('sub').value=sub;fill()}if(window.tsUI)tsUI();
+ // The saved time signature wins when it fits the beats (5/8 and 7/8 count the same beats as 5/4 and 7/4 but group them differently).
+ {const t=TSMAP[c.ts];if(t&&t[0]===beats&&(!t[1]||t[1]===sub)&&[...$('ts').options].some(o=>o.value===c.ts))$('ts').value=c.ts}
  if(c.sw)setSwing(+c.sw);
  if(st.rowVol)for(const k in st.rowVol)if(k in rowVol&&isFinite(+st.rowVol[k]))rowVol[k]=Math.max(0,Math.min(2,+st.rowVol[k]));
  if(st.grid)ROWS.forEach(([k])=>{const r=st.grid[k];if(Array.isArray(r)&&r.length===steps())grid[k]=r.map(x=>{x=+x;return x>0?Math.min(1,x):0})});
@@ -1390,21 +1443,28 @@ function applyParams(){const sp=new URLSearchParams(location.search);if(![...sp.
  setBpm(+sp.get('bpm')||80);uiRefresh();draw();restoring=false;$('sv').textContent='✓ Song settings loaded';return true}
 /* A song page link sets the groove and tempo; saved changes on this device win after that. When they differ from the song, offer a one-tap way back. */
 function songBtn(){try{const sp=new URLSearchParams(location.search),ks=[...sp.keys()].filter(k=>k!=='_v'&&k!=='_r'&&k!=='dm');if(!ks.length)return;const want=+sp.get('bpm')||80,wp=sp.get('pre');if(bpm===want&&(!wp||$('pre').value===wp))return;let b=$('songBack');if(!b){b=document.createElement('button');b.id='songBack';b.type='button';b.style.cssText='margin:6px 0 0;font-size:12px;padding:6px 10px';const anchor=$('fnow')&&$('fnow').parentNode;(anchor&&anchor.parentNode?anchor.parentNode.insertBefore(b,anchor.nextSibling):document.body.prepend(b));b.onclick=()=>{if(typeof playing!=='undefined'&&playing&&$('p'))$('p').click();try{store.removeItem(SKEY)}catch(e){}applyParams();save();b.remove()}}const pn=wp&&$('pre').querySelector('option[value="'+wp+'"]');b.textContent='↺ Back to this song\'s settings ('+(pn?pn.textContent.replace(/\s*\(.*\)$/,'')+' · ':'')+want+' BPM)'}catch(e){}}
-function restore(){let st=null;try{st=JSON.parse(store.getItem(SKEY)||'null')}catch(e){}
+function restore(){const st=readStore(SKEY);
  // Saved settings from an old version (or a damaged copy) must never stop the page: fall back to the link, then to Basic Rock.
- try{if(st&&typeof st==='object'&&st.c&&typeof st.c==='object'&&applyState(st)){$('sv').textContent='✓ Restored your last settings';songBtn();return}}catch(e){console.warn('Saved settings skipped',e)}
+ try{if(applyState(st)){$('sv').textContent='✓ Restored your last settings';songBtn();return}}catch(e){console.warn('Saved settings skipped',e)}
  try{if(applyParams())return}catch(e){console.warn('Link settings skipped',e)}
  restoring=true;try{$('pre').value='rock';preset('rock');setBpm(80);uiRefresh();draw()}catch(e){}restoring=false}
 const PKEY='drumMachine:presets';
-function presets(){let o={};try{o=JSON.parse(store.getItem(PKEY)||'{}')}catch(e){}const P2={};if(o&&typeof o==='object'&&!Array.isArray(o))for(const k in o)if(o[k]&&typeof o[k]==='object'&&o[k].c&&typeof o[k].c==='object')P2[k]=o[k];return P2}
+// raw = the store exactly as saved (kept whole when we write, so entries this version cannot read survive); ok = the presets that load.
+function readPresets(){let raw=readStore(PKEY);if(!isObj(raw))raw={};const ok={};for(const k in raw){if(!cleanName(k))continue;const cs=cleanState(raw[k]);if(cs)ok[k]=cs}return {raw,ok}}
+function presets(){return readPresets().ok}
+function writePresets(raw){store.setItem(PKEY,JSON.stringify(raw))}
+const cleanName=n=>{if(typeof n!=='string')return '';n=n.replace(/[\u0000-\u001f]/g,' ').trim().slice(0,60);return n==='__proto__'?'':n};
+function uniqueName(n,raw){for(let i=2;;i++){const sfx=' ('+i+')',t=n.slice(0,60-sfx.length)+sfx;if(!(t in raw))return t}}
 function psUI(sel){const P2=presets(),e=$('ps');e.innerHTML='<option value="">— choose —</option>'+Object.keys(P2).sort().map(k=>'<option value="'+esc(k)+'">'+esc(k)+'</option>').join('');if(sel)e.value=sel}
 function cmsg(t){$('cmsg').textContent=t}
-const GV=x=>x<=0?'.':x<0.5?'g':x<0.85?'m':'x',VG={'.':0,g:.35,m:.7,x:1};
+const GXOK={0.35:1,0.7:1,1:1};const GV=x=>x<=0?'.':x<0.5?'g':x<0.85?'m':'x',VG={'.':0,g:.35,m:.7,x:1};
 function encodeCode(){const st=getState(false),gr={};for(const k in st.grid)if(st.grid[k].some(x=>x>0))gr[k]=st.grid[k].map(GV).join('');const rv={};for(const k in rowVol)if(rowVol[k]!==1)rv[k]=rowVol[k];
- const o={v:2,pk:1,c:st.c,bpm:st.bpm,g:gr,r:rv,seed:st.seed};return 'DM2.'+btoa(unescape(encodeURIComponent(JSON.stringify(o)))).replace(/=+$/,'')}
+ // gx: exact hit strengths for rows the 4-letter grid would round (ghost notes at 0.22, 0.28 ...). Older versions ignore it and use g.
+ const gx={};for(const k in st.grid)if(st.grid[k].some(x=>x>0&&!(x in GXOK)))gx[k]=st.grid[k].map(x=>Math.round(x*100)/100);
+ const o={v:2,pk:1,fx:1,c:st.c,bpm:st.bpm,g:gr,r:rv,seed:st.seed};if(Object.keys(gx).length)o.gx=gx;return 'DM2.'+btoa(unescape(encodeURIComponent(JSON.stringify(o)))).replace(/=+$/,'')}
 function decodeCode(txt){const m2=txt.trim().replace(/\s+/g,'').match(/DM2\.([A-Za-z0-9+/]+)/);if(!m2)throw new Error('No pattern code found');
- const o=JSON.parse(decodeURIComponent(escape(atob(m2[1]))));const nb=+o.c.b||4,ns=+o.c.sub||2,grd={};ROWS.forEach(([k])=>{grd[k]=o.g&&o.g[k]?[...o.g[k]].map(ch=>VG[ch]||0):new Array(nb*ns).fill(0)});
- const rv={};ROWS.forEach(([k])=>rv[k]=o.r&&o.r[k]!=null?o.r[k]:1);return {pk:o.pk,c:o.c,bpm:o.bpm,grid:grd,rowVol:rv,seed:o.seed}}
+ const o=JSON.parse(decodeURIComponent(escape(atob(m2[1]))));const nb=+o.c.b||4,ns=+o.c.sub||2,grd={};ROWS.forEach(([k])=>{grd[k]=o.g&&o.g[k]?[...o.g[k]].map(ch=>VG[ch]||0):new Array(nb*ns).fill(0);const x=o.gx&&o.gx[k];if(Array.isArray(x)&&x.length===grd[k].length&&x.every(v=>typeof v==='number'&&isFinite(v)))grd[k]=x.map(v=>Math.max(0,Math.min(1,v)))});
+ const rv={};ROWS.forEach(([k])=>rv[k]=o.r&&o.r[k]!=null?o.r[k]:1);const r0={pk:o.pk,c:o.c,bpm:o.bpm,grid:grd,rowVol:rv,seed:o.seed};if(o.fx)Object.assign(r0,{tm2:1,av:1,bj:1,kt:1,fl:1,vt:1});return r0}
 // ===== controls =====
 document.addEventListener('change',save);document.addEventListener('input',save);
 const inFrame=(()=>{try{return window.self!==window.top}catch(e){return true}})();
@@ -1451,12 +1511,12 @@ $('fnow').onclick=fillNow;
 let taps=[];const tap=()=>{const n=performance.now();taps=taps.filter(t=>n-t<3000);taps.push(n);if(taps.length>1)setBpm(60000/((taps[taps.length-1]-taps[0])/(taps.length-1)))};$('tap').onclick=tap;
 $('logclr').onclick=()=>{logData={days:{},best:{},sessions:0};saveLog();logUI()};
 const psMsg=t=>{$('psm').textContent=t};let psDelArm='',psDelT=null;
-$('pss').onclick=()=>{const P2=presets();const name=($('psn').value.trim()||$('ps').value||('Preset '+(Object.keys(P2).length+1))).slice(0,60);P2[name]=getState(false);try{store.setItem(PKEY,JSON.stringify(P2));psMsg('Saved “'+name+'”'+(store.mem?' (until reload)':''))}catch(e){psMsg('Could not save')}psUI(name);$('psn').value=''};
+$('pss').onclick=()=>{const {raw,ok}=readPresets();const name=cleanName($('psn').value)||$('ps').value||('Preset '+(Object.keys(ok).length+1));raw[name]=getState(false);try{writePresets(raw);psMsg('Saved “'+name+'”'+(store.mem?' (until reload)':''))}catch(e){psMsg('Could not save')}psUI(name);$('psn').value=''};
 $('ps').onchange=()=>{if($('ps').value)$('psl').click()};
-$('psl').onclick=()=>{const st=presets()[$('ps').value];if(!st){psMsg('Choose a preset first');return}try{applyState(st);uiRefresh();save();psMsg('Loaded “'+$('ps').value+'”')}catch(e){restoring=false;console.warn(e);psMsg('That preset could not load')}};
-$('psd').onclick=()=>{const P2=presets(),k=$('ps').value;if(!k){psMsg('Choose a preset first');return}
+$('psl').onclick=()=>{const st=presets()[$('ps').value];if(!st){psMsg('Choose a preset first');return}if(applyState(st)){uiRefresh();save();psMsg('Loaded “'+$('ps').value+'”')}else psMsg('That preset could not load')};
+$('psd').onclick=()=>{const {raw:P2}=readPresets(),k=$('ps').value;if(!k){psMsg('Choose a preset first');return}
  if(psDelArm!==k){psDelArm=k;$('psd').textContent='Sure? Tap again';psMsg('Tap Delete again to erase “'+k+'”');clearTimeout(psDelT);psDelT=setTimeout(()=>{psDelArm='';$('psd').textContent='Delete'},3500);return}
- psDelArm='';clearTimeout(psDelT);$('psd').textContent='Delete';delete P2[k];try{store.setItem(PKEY,JSON.stringify(P2))}catch(e){}psUI();psMsg('Deleted “'+k+'”')};
+ psDelArm='';clearTimeout(psDelT);$('psd').textContent='Delete';delete P2[k];try{writePresets(P2)}catch(e){}psUI();psMsg('Deleted “'+k+'”')};
 $('cx').onclick=async()=>{const c=encodeCode();$('code').value=c;let ok=false;try{const pp=document.permissionsPolicy||document.featurePolicy;if(pp&&pp.allowsFeature&&!pp.allowsFeature('clipboard-write'))throw 0;await navigator.clipboard.writeText(c);ok=true}catch(e){try{$('code').select();ok=document.execCommand('copy')}catch(e2){}}cmsg(ok?'Copied! Paste it into another drum machine.':'Code ready — select and copy it from the box.')};
 $('ci2').onclick=()=>{try{applyState(decodeCode($('code').value));save();cmsg('Pattern loaded ✓')}catch(e){cmsg('That code did not work: '+e.message)}};
 // Space is Play/Stop: also cancel its keyup, or a button the mouse last clicked (Tap, +1) fires a second time.
@@ -1480,7 +1540,7 @@ p.disabled=false;p.textContent='▶ Play';$('av').value='rock';$('ac').value='po
 {const sp=new URLSearchParams(location.search),dm=sp.get('dm');if(dm){try{applyState(decodeCode(dm));uiRefresh();save()}catch(e){console.error(e)}
   if(sp.get('xp')){setSel($('xlen'),sp.get('xp'));history.replaceState(null,'',location.pathname);$('xst').textContent='Your settings from Notion are loaded. Tap Export to build and save your MP3.';setTimeout(()=>{if(window.mmShowTab)mmShowTab('Export');$('xbtn').scrollIntoView({block:'center'});$('xbtn').focus()},300)}}}
 
-</script><script>(function(){const C=['#e8412c','#f28c28','#f6c33b','#efe6d2'];document.querySelectorAll('.sec>h4').forEach((h,i)=>h.style.setProperty('--band',C[i%4]))})();</script><p class="appver" style="text-align:center;font-size:11px;opacity:.6;margin:18px 0 10px;font-family:ui-monospace,Menlo,monospace">Modal Metronome · Version 2026-11-11.14</p>
+</script><script>(function(){const C=['#e8412c','#f28c28','#f6c33b','#efe6d2'];document.querySelectorAll('.sec>h4').forEach((h,i)=>h.style.setProperty('--band',C[i%4]))})();</script><p class="appver" style="text-align:center;font-size:11px;opacity:.6;margin:18px 0 10px;font-family:ui-monospace,Menlo,monospace">Modal Metronome · Version 2026-11-11.15</p>
 <script>/* Setting help: hover the name on a computer, tap it on a phone or iPad */
 (function(){const T={"mv": "Master volume for everything: drums, bass and keys. Saved on this device only, not in presets or links.", "xlen": "How long the MP3 will be. It records the groove, bass, chords, fills and tempo exactly as they are set now, so you can practice with it anywhere.", "ps": "Your saved setups. Pick one to load it. Type a name and tap Save to store everything you have set right now. Presets live on this device and never get erased by Reset.", "pre": "The drum pattern. Each groove is written the way real drummers play that style. Changing it also sets the time signature the groove is written in.", "ts": "Time signature: how many beats are in a bar and what kind. 4/4 = four quarter-note beats. 6/8, 9/8 (3+3+3) and 12/8 = beats split in three. In 5/8, 7/8, 9/8 (2+2+2+3) and 11/8 each beat is one 8th note, so the BPM counts 8ths.", "sdv": "Subdivide: the steady in-between notes that keep time. \"As written\" plays the groove's own hi-hat or ride part. Pick Quarter notes, 8ths, 16ths, Triplets or Off-beats to replace it with a steady pulse. Off = no subdivision at all, just the kick and snare.", "cy": "Subdivide with: the instrument that plays the subdivision. Hi-hat is tight and dry, ride is washy, ride bell cuts through, shaker and tambourine are soft and bright, cowbell, side stick, claves and woodblock are clicky and easy to hear.", "fb": "First beat: adds an extra sound on beat 1 of every bar so you always know where the bar starts. Great for odd meters like 7/8 and 9/8.", "sw": "Swing pushes every second note late. 50% = straight, even notes. About 67% = triplet swing, like jazz and blues shuffles.", "pkt": "Pocket: where the drummer sits on the beat. Auto uses the real feel of the groove: backbeat a hair behind, hats leading. Machine = perfectly on the grid.", "gdyn": "Ghost notes are the very soft snare taps between the backbeats. \"4 levels\" plays them softer or louder depending on where they fall, like a real drummer. Flat = all the same.", "groll": "Adds soft snare drags and buzz rolls leading into the backbeat, built from real stick bounces.", "hu": "Humanize adds tiny random changes in timing and volume so the drums don't sound like a machine. Zero = perfectly even.", "crash": "Plays a crash cymbal on beat 1 every 4 bars to mark the phrase.", "ci": "Count-in: clicks before the band starts so you can come in on time.", "do": "Drop-out: the drums and bass go silent for some bars while you keep playing. When they come back, you find out if you kept the time yourself.", "bigl": "Makes the beat light big and flashes the screen on every beat, so you can see the pulse from across the room.", "tr": "Tempo trainer: speeds the metronome up a little every few bars until it reaches your goal. It never slows down.", "trg": "The tempo the trainer stops at.", "tri": "How many BPM to add each time.", "trb": "How many bars to play before each speed-up.", "fe": "How often the drummer plays a fill (a short drum break) at the end of a phrase.", "fs": "The kind of fill: toms, snare, or a mix.", "fa": "How busy the fill is. Low = short and simple. High = full bar with doubles.", "fc": "Plays a crash on the beat right after every fill, like a drummer landing the fill.", "key": "The major parent key: the \"1\" of the scale. The studio names every mode from its parent major key.", "md": "The mode: which note of the parent key the music sits on. The bass and keys use it for passing notes and voicings.", "prog": "The chord progression the bass and keys play, written in Roman numerals from the parent key.", "bpc": "How long each chord lasts. Normal = one bar. Double time = two chords per bar. Half time = each chord lasts two bars.", "cprog": "Type your own chords, separated by spaces (for example: ii V I vi or Dm7 G7 Cmaj7).", "bon": "Turns the bass player on. The bass follows the chords and the groove.", "bt": "The bass sound: electric, upright, synth and more.", "btone": "Shapes the bass like a mixing engineer: EQ and compression on the bass channel.", "bs": "How the bass plays: root notes, walking lines, pedal tones and more, matched to the style.", "bauto": "Writes a fresh bass line every few bars so it never gets repetitive.", "bvar": "How often the bass adds passing notes, octave jumps and pickups.", "bv": "Bass volume, separate from the drums.", "kon": "Turns the keyboard player on. The keys play the chords in the progression.", "ksnd": "The keyboard sound: piano, electric piano, organ, pads.", "kcomp": "Comping = how the keys play the chords: held, pushed, stabs. Auto matches the groove.", "kvoice": "Voicing = which chord notes the keys play. Pop/rock uses triads. Jazz plays the 3rd, 5th, 7th and 9th and leaves the root to the bass.", "kv": "Keys volume, separate from the drums.", "kit": "Picks the whole drum kit at once. You can still change each drum below.", "kk": "The kick drum sound.", "sn": "The snare drum sound.", "rv": "The ride cymbal sound.", "hh": "The hi-hat sound.", "hfeel": "Tight = closed and choked. Loose = hats a little open and sloshy.", "sfeel": "Tight = damped, higher crack. Open = lower, fatter, more ring.", "kfeel": "Tight = short and punchy. Boomy = lower and longer.", "tm": "The tom sounds used in fills.", "pc": "The percussion sounds: shaker, tambourine, cowbell, congas and more.", "room": "How much room echo (reverb) is on the whole band.", "arr": "Song mode: switches between a verse groove and a chorus groove, so practice feels like a real song.", "av": "The groove for the verse.", "ac": "The groove for the chorus.", "ab": "How many bars the verse lasts.", "cb": "How many bars the chorus lasts.", "mode": "Direct is fastest. Pick Compatibility only if the sound crackles or won't play on your device.", "dev": "Which speaker or headphones the sound plays through.", "showall": "Shows every drum in the pattern grid, not just the drums this groove uses."};
  const tip=document.createElement('div');tip.id='tip';document.body.appendChild(tip);let cur=null;
@@ -1558,6 +1618,58 @@ p.disabled=false;p.textContent='▶ Play';$('av').value='rock';$('ac').value='po
  inp.addEventListener('keydown',ev=>{ev.stopPropagation();
   if(ev.key==='Enter'){ev.preventDefault();close(true);v.focus()}else if(ev.key==='Escape'){ev.preventDefault();close(false);v.focus()}});
  inp.addEventListener('blur',()=>close(true));
+})();</script>
+<script>/* 2026-11-11.15: export presets to a .metronome file, import them back (several files at once, name clashes asked). */
+(function(){const $=id=>document.getElementById(id);if(!$('psx'))return;
+ const msg=t=>{$('psxm').textContent=t};
+ const today=()=>new Date().toISOString().slice(0,10);
+ // The file: JSON with our own extension. "format" is the file layout; each preset carries its own fmt (see the stored-data contract).
+ const fileText=P=>JSON.stringify({app:'modal-metronome',format:1,exported:new Date().toISOString(),appVersion:appVer(),presets:P},null,1);
+ const fname=()=>'Modal Metronome presets '+today()+'.metronome';
+ // Save a file: "Save as" where the browser has it, the share sheet on iPhone / iPad ("Save to Files"), otherwise a normal download.
+ async function saveFile(text,fn){const blob=new Blob([text],{type:'application/json'});
+  try{if(window.showSaveFilePicker){const h=await showSaveFilePicker({suggestedName:fn,types:[{description:'Modal Metronome presets',accept:{'application/json':['.metronome']}}]});const w=await h.createWritable();await w.write(blob);await w.close();return 'Saved '+fn}}
+  catch(e){if(e&&e.name==='AbortError')return 'Not saved.'}
+  const ios=/iPad|iPhone|iPod/.test(navigator.userAgent)||(navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1);
+  if(ios&&navigator.canShare){try{const f=new File([blob],fn,{type:'application/json'});if(navigator.canShare({files:[f]})){await navigator.share({files:[f],title:fn});return 'Shared: pick “Save to Files” to keep it.'}}catch(e){if(e&&e.name==='AbortError')return 'Not saved.'}}
+  const u=URL.createObjectURL(blob),a=document.createElement('a');a.href=u;a.download=fn;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(u),60000);return 'Download started: '+fn+' (check your Downloads)'}
+ // Notion blocks downloads inside the embed, and the full-screen tab has its own storage, so the presets travel in the link (#mmpx=, never sent to a server).
+ const b64=u8=>{let s='';for(let i=0;i<u8.length;i+=0x8000)s+=String.fromCharCode.apply(null,u8.subarray(i,i+0x8000));return btoa(s).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'')};
+ const unb64=t=>{t=t.replace(/-/g,'+').replace(/_/g,'/');const s=atob(t),u=new Uint8Array(s.length);for(let i=0;i<s.length;i++)u[i]=s.charCodeAt(i);return u};
+ async function pack(text){const u=new TextEncoder().encode(text);if(window.CompressionStream){try{const z=new Uint8Array(await new Response(new Blob([u]).stream().pipeThrough(new CompressionStream('deflate-raw'))).arrayBuffer());return 'z.'+b64(z)}catch(e){}}return 'p.'+b64(u)}
+ async function unpack(t){const k=t.slice(0,2),u=unb64(t.slice(2));if(k==='z.')return await new Response(new Blob([u]).stream().pipeThrough(new DecompressionStream('deflate-raw'))).text();return new TextDecoder().decode(u)}
+ $('psx').onclick=async()=>{const P=presets(),n=Object.keys(P).length;if(!n){msg('No presets to export yet. Save one first.');return}
+  if(inFrame){const u=location.origin+location.pathname+'#mmpx='+await pack(JSON.stringify(P));const w=window.open(u,'_blank');
+   if(w)msg('Opened full screen to save your presets file (Notion blocks downloads inside the page).');else{$('psxm').innerHTML='Notion blocks downloads here. <a href="'+u+'" target="_blank" rel="noopener">Open full screen to save your presets</a>'}return}
+  msg(await saveFile(fileText(P),fname())+' · '+n+' preset'+(n==1?'':'s'))};
+ // Full-screen tab opened from Notion: keep the presets for this tab (an auto-update reload drops the #), then offer the Save button (a tap, so iOS allows the share sheet).
+ (async()=>{try{const m=location.hash.match(/^#mmpx=([A-Za-z0-9_.-]+)/);let t=null;
+   if(m){t=m[1];try{sessionStorage.setItem('mmpx',t)}catch(e){}history.replaceState(null,'',location.pathname+location.search)}else{try{t=sessionStorage.getItem('mmpx')}catch(e){}}
+   if(!t)return;const P=JSON.parse(await unpack(t));if(!isObj(P))return;const n=Object.keys(P).length;
+   const box=document.createElement('div');box.className='psx-ready';box.innerHTML='<span></span> <button type="button">⬇ Save presets file</button>';box.firstChild.textContent=n+' preset'+(n==1?'':'s')+' from Notion are ready.';
+   box.querySelector('button').onclick=async()=>{const r=await saveFile(fileText(P),fname());msg(r);if(!/^Not saved/.test(r)){try{sessionStorage.removeItem('mmpx')}catch(e){}box.remove()}};
+   $('psxm').before(box);if(window.mmShowTab)mmShowTab('Presets');box.querySelector('button').focus({preventScroll:true});box.scrollIntoView({block:'center'})}catch(e){console.warn('Preset hand-off skipped',e)}})();
+ // Import. Reads one or more files; every preset is checked on its own, so one bad preset never stops the good ones.
+ $('psi').onclick=()=>$('psf').click();
+ $('psf').onchange=async()=>{const fs=[...$('psf').files];$('psf').value='';if(fs.length)await importFiles(fs)};
+ // What a file holds: our format ({presets:{...}}), a bare {name: preset} map, or one preset ({c:...}).
+ function presetList(o,fn){if(!isObj(o))return null;if(typeof o.app==='string'&&o.app!=='modal-metronome')return null;
+  if(isObj(o.presets))return Object.entries(o.presets);if(isObj(o.c))return [[typeof o.name==='string'?o.name:fn.replace(/\.[^.]*$/,''),o]];
+  const e=Object.entries(o).filter(([k,v])=>isObj(v)&&isObj(v.c));return e.length?Object.entries(o):null}
+ function ask(name){return new Promise(res=>{const q=$('psq');q.hidden=false;q.innerHTML='<p></p><div class="row"><button type="button" data-a="both">Keep both</button><button type="button" data-a="replace">Replace</button><button type="button" data-a="skip">Skip</button><label><input type="checkbox" id="psqall"> Same for the rest</label></div>';
+  q.querySelector('p').textContent='You already have a preset called “'+name+'”. Keep both (the new one becomes “'+uniqueName(name,readPresets().raw)+'”) or replace yours?';
+  q.querySelectorAll('button').forEach(b=>b.onclick=()=>{const all=$('psqall').checked;q.hidden=true;q.innerHTML='';res({a:b.dataset.a,all})});q.querySelector('button').focus({preventScroll:true});q.scrollIntoView({block:'nearest'})})}
+ async function importFiles(fs){if(window.mmShowTab)mmShowTab('Presets');const {raw}=readPresets();const add=[],rep=[],skip=[];let same=null;
+  for(const f of fs){let o=null;try{if(f.size>5e6)throw 0;o=JSON.parse(await f.text())}catch(e){skip.push(f.name+': not a presets file');continue}
+   const list=presetList(o,f.name);if(!list){skip.push(f.name+': no Modal Metronome presets in it');continue}if(!list.length){skip.push(f.name+': empty');continue}
+   for(const [n0,st] of list){const name=cleanName(n0);if(!name){skip.push('A preset with no usable name ('+f.name+')');continue}
+    const cs=cleanState(st);if(!cs){skip.push('“'+name+'”: not a valid preset');continue}
+    let to=name;if(name in raw){const d=same||await ask(name);if(d.all)same=d;if(d.a==='skip'){skip.push('“'+name+'”: you kept yours');continue}if(d.a==='both')to=uniqueName(name,raw);else rep.push(name)}
+    raw[to]=cs;if(!rep.includes(to))add.push(to)}}
+  if(add.length||rep.length){try{writePresets(raw)}catch(e){msg('Could not save the imported presets on this device.');return}psUI(add[0]||rep[0])}
+  const L=[];if(add.length)L.push('Imported '+add.length+': '+add.map(x=>'“'+x+'”').join(', '));if(rep.length)L.push('Replaced '+rep.length+': '+rep.map(x=>'“'+x+'”').join(', '));
+  if(skip.length)L.push('Skipped '+skip.length+': '+skip.join('; '));msg(L.join('\n')||'Nothing to import.')}
+ window.mmImport=importFiles;
 })();</script>
 <script>/* Auto-update: Safari and Notion keep old copies of this page. If the live site has a newer version, reload it once (settings in the link are kept). */
 (function(){const mine=(document.querySelector('.appver')||{}).textContent||'';const m=mine.match(/Version ([0-9.-]+)/);if(!m)return;
