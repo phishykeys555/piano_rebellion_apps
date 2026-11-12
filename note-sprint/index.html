@@ -1065,7 +1065,7 @@ input[type=range],input[type=checkbox],input[type=radio]{accent-color:var(--c-ac
     return al>0&&od<LOWO*al?tg:md }
   // A read an octave ABOVE a low asked key (below C4: a small speaker drops the fundamental, and the odd partials can be weak), where the
   // asked key's own odd partials still hold 20%+ of the (new) sound: the asked key. A real key an octave up has nothing there.
-  function upOct(md,tg,buf,sr){ if(tg==null||tg>=60||md!==tg+12) return md; const m=mic; if(spT!==m.tickN){ mag(buf,SPN,spS); spT=m.tickN } const bw=sr/SPN, f0=440*Math.pow(2,(tg+tuneOff-69)/12), pre=m.tail?m.pre:null; let od=0, al=0;
+  function upOct(md,tg,buf,sr){ if(tg==null||tg>=60||tg<36||md!==tg+12) return md;   /* (from C2: lower, the spectrum is too coarse to tell partials apart) */ const m=mic; if(spT!==m.tickN){ mag(buf,SPN,spS); spT=m.tickN } const bw=sr/SPN, f0=440*Math.pow(2,(tg+tuneOff-69)/12), pre=m.tail?m.pre:null; let od=0, al=0;
     for(let h=1;h<=16;h++){ const fh=h*f0*Math.sqrt(1+0.0004*h*h), k0=Math.floor(fh*0.985/bw), k1=Math.ceil(fh*1.015/bw); if(k1>=SPN/2) break; let v=0; for(let k=k0;k<=k1;k++) v=Math.max(v,pre?spS[k]-pre[k]:spS[k]); v=Math.max(0,v); al+=v; if(h&1) od+=v }
     return al>0&&od>=UPO*al?tg:md }
   // SIEVE: the NEW sound (this look minus the look before the attack) sits on the asked key's partials, with a fair share on its odd ones
