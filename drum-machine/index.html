@@ -190,7 +190,7 @@ body.tabbed:not(.emb) .tabsdock+.sec{margin-top:10px}
  body.tabbed:not(.emb) .tabs{flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none;overscroll-behavior-x:contain}body.tabbed:not(.emb) .tabs::-webkit-scrollbar{display:none}
  body.tabbed:not(.emb) .tabs button{padding:6px 12px;font-size:11px}
  body.tabbed:not(.emb) .tabs.more{-webkit-mask-image:linear-gradient(90deg,#000 82%,transparent);mask-image:linear-gradient(90deg,#000 82%,transparent)}}</style>
-<style>/* ===== 2026-11-11.14 (Rohan's requests) ===== */
+<style>/* ===== 2026-11-11.14 (beta tester requests) ===== */
 /* Pinning only where there is room for it. Phones, short screens and small Notion embeds scroll normally. */
 body.tabbed:not(.emb) .tabsdock{position:static;box-shadow:none}
 body.emb .emh{position:static;box-shadow:none}
@@ -2845,7 +2845,7 @@ const psMsg=t=>{$('psm').textContent=t};
 $('pss').onclick=()=>{const {raw,ok}=readPresets();const name=cleanName($('psn').value)||$('ps').value||('Preset '+(Object.keys(ok).length+1));raw[name]=getState(false);try{writePresets(raw);psMsg('Saved “'+name+'”'+(store.mem?' (until reload)':''))}catch(e){psMsg('Could not save')}psUI(name);$('psn').value=''};
 $('ps').onchange=()=>{if($('ps').value)$('psl').click()};
 $('psl').onclick=()=>{const st=presets()[$('ps').value];if(!st){psMsg('Choose a preset first');return}if(applyState(st)){uiRefresh();save();psMsg('Loaded “'+$('ps').value+'”')}else psMsg('That preset could not load')};
-/* Delete asks in a modal dialog (Rohan): one clear question, Cancel is the default, Escape or a tap outside cancels. */
+/* Delete asks in a modal dialog: one clear question, Cancel is the default, Escape or a tap outside cancels. */
 function confirmDlg(title,msg,okText){return new Promise(res=>{let d=$('mmDlg');
  if(!d){d=document.createElement('dialog');d.id='mmDlg';d.className='mmdlg';d.innerHTML='<form method="dialog"><h3 id="mmDlgT"></h3><p id="mmDlgM"></p><div class="mmdlgb"><button value="cancel" id="mmDlgC">Cancel</button><button value="ok" id="mmDlgO" class="danger">Delete</button></div></form>';document.body.appendChild(d);
   d.addEventListener('click',e=>{if(e.target===d)d.close('cancel')})}
