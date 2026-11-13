@@ -588,8 +588,12 @@ details.how p{margin-top:6px}
   const HOLD_PEN={perfect:0,good:0.15,early:0.35,late:0.35,held:0.35}; // taken off that note's attack score (never below 0)
   const HCOL={perfect:"#1f8a4c",good:"#c98a06",early:"#c2352b",late:"#c2352b",held:"#c2352b"};
   // ---------- grading ----------
-  // Each note gets one tap within 250 ms. Perfect ≤ 60 ms = 1, Good ≤ 120 ms = 0.75, Close ≤ 250 ms = 0.4.
-  // Extra taps (rests, doubles) cost 0.25 each.
+  // Timing quality (2026-11-12.2): each note pairs with one hit within 250 ms (so a late note is "late", not "missed"), but it SCORES by
+  // how close it was: full marks within P (21 ms at 72 BPM; 10% of a 16th, kept between 18 and 30 ms), then falling in a straight line
+  // to 0 at P + 70 ms (91 ms at 72 BPM). Further off = 0 for that note. Extra hits (rests, doubles, banging) cost 0.5 each, a missed
+  // note scores 0. (Until 11.23 anything within 60 ms was perfect and 120-250 ms still earned 0.4, so sloppy playing read 90%+.)
+  const tWin=u=>{ const P=Math.min(0.03,Math.max(0.018,0.1*u)), O=P+0.07; return {P,G:(P+O)/2,O} };
+  const tScore=(a,W)=>a<=W.P?1:Math.max(0,(W.O-a)/(W.O-W.P));
   function grade(){
     const st=lastStart, u=lastU;
     const notes=bar.notes, used=new Set(), byNote=new Map(), resTaps=[], missed=[]; let pts=0, errs=[], perfect=0, okN=0, cp=0;
@@ -601,7 +605,7 @@ details.how p{margin-top:6px}
     const SP=silentPts(bar.ev), lim=notes.map(n=>{ const pv=SP.filter(x=>x<n.s).pop(), nx=SP.find(x=>x>n.s);
       return [pv==null?0.25:Math.min(0.25,Math.max(0.06,(n.s-pv)*u/2-0.001)), nx==null?0.25:Math.min(0.25,Math.max(0.06,(nx-n.s)*u/2-0.001))] });
     // pairing favours matching the most notes, then the best timing: a player who drags every 16th by 70 ms is late, not "one note behind"
-    const val=(d,i)=>{ const a=Math.abs(d); return a>lim[i][d<0?0:1]?null:1e7+(a<=0.06?1:a<=0.12?0.75:0.4)*1e6-a*1e3 };
+    const TW=tWin(u), val=(d,i)=>{ const a=Math.abs(d); return a>lim[i][d<0?0:1]?null:1e7+tScore(a,TW)*1e6-a*1e3 };
     const dp=[...Array(N+1)].map(()=>new Float64Array(M+1)), how=[...Array(N+1)].map(()=>new Int8Array(M+1));
     for(let i=0;i<=N;i++) for(let j=0;j<=M;j++){ if(!i&&!j) continue; let b=-1e18, h=0;
       if(i&&dp[i-1][j]>b){ b=dp[i-1][j]; h=1 } // note missed
@@ -613,17 +617,17 @@ details.how p{margin-top:6px}
       const idx=bar.ev.indexOf(n);
       if(bi<0){ missed.push(n.s); byNote.set(idx,{col:"#c2352b"}); return }
       used.add(bi); const ms=bd*1000, ad=Math.abs(ms); errs.push(ms);
-      let sc, col; if(ad<=60){sc=1;col="#1f8a4c";perfect++} else if(ad<=120){sc=.75;col="#c98a06";okN++} else {sc=.4;col="#e0702c"}
+      const a=ad/1000; let sc=tScore(a,TW), col; if(a<=TW.P){col="#1f8a4c";perfect++} else if(a<=TW.G){col="#c98a06";okN++} else if(a<=TW.O) col="#e0702c"; else col="#b0413e";
       // the release (Tap, graded notes only). Not double-punished: a late start held for the right length is a good release too,
       // so the release is judged by whichever is closer, the written end or the written length from where you started.
       let hold=null; if(HS&&HS[ni].graded){ const hs=HS[ni], L=hs.len*u, w=holdWin(L,u*MT().beatU), r=rels[bi]; let err=null, g="held";
         if(r!=null){ const e1=r-(st+hs.end*u), e2=(r-taps[bi])-L; err=Math.abs(e2)<Math.abs(e1)?e2:e1; const a=Math.abs(err); g=a<=w.p?"perfect":a<=w.g?"good":err<0?"early":"late" }
         sc=Math.max(0,sc-HOLD_PEN[g]); hold={...hs,a:(taps[bi]-st)/u,r:r==null?null:(r-st)/u,err,g,col:HCOL[g]}; holds.push(hold) }
       // Challenge points: 1 perfect start, ½ good start, then −½ for a long note let go early or held too long (never below 0 for the note)
-      cp+=Math.max(0,(ad<=60?1:ad<=120?0.5:0)-(hold&&HOLD_PEN[hold.g]>=0.35?0.5:0));
+      cp+=Math.max(0,(a<=TW.P?1:a<=TW.G?0.5:0)-(hold&&HOLD_PEN[hold.g]>=0.35?0.5:0));
       pts+=sc; byNote.set(idx,{col}); resTaps.push({s16:(taps[bi]-st)/u,col}) });
     const UN=MT().units, extras=taps.filter((t,i)=>!used.has(i)); extras.forEach(t=>resTaps.push({s16:Math.max(-0.5,Math.min(UN+0.3,(t-st)/u)),col:"#7a808b",extra:true}));
-    const score=Math.max(0,Math.round(100*(pts-0.25*extras.length)/notes.length));
+    const score=Math.max(0,Math.round(100*(pts-0.5*extras.length)/notes.length));
     const res={byNote,taps:resTaps,missed,holds}; drawBar(res);
     // coaching: the biggest problem first, in counting language
     const avg=errs.length?errs.reduce((a,b)=>a+b,0)/errs.length:0;
@@ -661,7 +665,7 @@ details.how p{margin-top:6px}
   let lastStart=0, lastU=0.25*60/72, lastHolds=false, lastGrade=null;
   function msg(cls,v,c){ const el=$("msg"); el.className="msg"+(cls?" "+cls:""); el.querySelector(".v").textContent=v; el.querySelector(".c").textContent=c||"" }
   // ---------- modes: Single tries (default) · Challenge (same shape as Note Sprint) ----------
-  // Points per rhythm: 1 for every perfect note (within 60 ms), ½ for a close one (within 120 ms), −½ for an extra tap,
+  // Points per rhythm: 1 for every perfect note (within 21 ms at 72 BPM, see tWin), ½ for a good one (within ~56 ms), −½ for an extra tap,
   // and in Tap with holds graded, −½ for a long note let go early or held too long (a note never goes below 0). The most a rhythm can earn is still
   // 1 per note, so the round targets (and the "never reachable in 2 rhythms" rule) keep the same basis.
   // Level, tempo, mode and input are locked while a rhythm plays or a challenge runs (press Stop first), so a change can never re-grade the wrong bar.
@@ -948,12 +952,12 @@ class NoteFlux{
     this.pend.push({on:1,t:ton,F:this.Fr[c],D0:this.D0[c],E:this.Ev[c],inW,wid,ck:!!ck}) }
    // one strike, one hit: two onsets closer than 110 ms that are not for two different written notes are one note (a sample's
    // second bump, a damper thud just before the key): the stronger one wins, decided 120 ms after the first
-   emit(p){ const h=this.hold; if(h&&Math.abs(p.t-h.t)<this.sat&&!(p.wid>=0&&h.wid>=0&&p.wid!==h.wid)){ if(p.E>h.E){ p.over=h.t; this.hold=p } else if(this.log) this.post({rej:1,...p,why:"double"}); return }
+   emit(p){ const h=this.hold; if(h&&Math.abs(p.t-h.t)<this.sat&&!(p.wid>=0&&h.wid>=0&&p.wid!==h.wid)&&Math.min(p.E,h.E)<this.satR*Math.max(p.E,h.E)){ /* two strikes of similar strength are two hits: a flam or banging is graded as extras */ if(p.E>h.E){ p.over=h.t; this.hold=p } else if(this.log) this.post({rej:1,...p,why:"double"}); return }
     this.flush(); this.hold=p }
    flush(){ if(this.hold){ this.post(this.hold); this.hold=null } }
   }
   class NoteFluxP extends AudioWorkletProcessor{constructor(){super();const d=this.d=new NoteFlux(sampleRate,m=>this.port.postMessage(m));
-    Object.assign(d,{allBins:1,fr0:0.41,useF:1,thIn:0.08,thOut:0.3,wins:[],fmax:0,l0:5,l1:16,pdel:0.045,pMin:1.5,pCap:0.3,pRel:0.8,eOut:0.3,ckR:1.6,nzKin:1.5,sat:0.11,off:0.008,kap:1,nfl:0.00003,gAbs:0.000005,nzK:3,refr:0.03,log:2});
+    Object.assign(d,{allBins:1,fr0:0.41,useF:1,thIn:0.08,thOut:0.3,wins:[],fmax:0,l0:5,l1:16,pdel:0.045,pMin:1.5,pCap:0.3,pRel:0.8,eOut:0.3,ckR:1.6,nzKin:1.5,sat:0.11,satR:0.35,off:0.008,kap:1,nfl:0.00003,gAbs:0.000005,nzK:3,refr:0.03,log:2});
     this.port.onmessage=e=>d.set(e.data)}
    process(ins){const x=ins[0]&&ins[0][0];if(x){this.d.push(x,currentFrame/sampleRate)}else{this.d.now=currentFrame/sampleRate;this.d.due()}return true}}
   registerProcessor('rt-flux',NoteFluxP);`;
@@ -1151,6 +1155,6 @@ class NoteFlux{
   if(document.fonts) document.fonts.ready.then(()=>{ if(!run) drawBar(curRes) });
 })();
 </script>
-<p class="appver" style="text-align:center;font-size:11px;opacity:.6;margin:18px 0 10px;font-family:ui-monospace,Menlo,monospace">Rhythm Trainer · Version 2026-11-12.1</p>
+<p class="appver" style="text-align:center;font-size:11px;opacity:.6;margin:18px 0 10px;font-family:ui-monospace,Menlo,monospace">Rhythm Trainer · Version 2026-11-12.2</p>
 </body>
 </html>
