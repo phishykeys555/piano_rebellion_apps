@@ -216,8 +216,9 @@ h2[tabindex]:focus{outline:none}
       <label><input type="checkbox" id="soundOn" checked> Sounds</label>
       <label><input type="checkbox" id="hypeOn" checked> Music on round screens</label>
       <label><input type="checkbox" id="speakOn" checked> Read meanings aloud in Learn</label>
+      <label class="selrow">Voice <select id="voiceSel"><option value="">Most natural on this device</option></select></label>
     </details>
-    <p class="appver" id="appVer">Symbol Memory · Version 2026-11-13.1</p>
+    <p class="appver" id="appVer">Symbol Memory · Version 2026-11-13.2</p>
     <p class="credit">Music symbols: <a href="https://github.com/steinbergmedia/bravura" target="_blank" rel="noopener">Bravura</a> by Steinberg, <a href="fonts/OFL.txt" target="_blank" rel="noopener">SIL Open Font License</a>.</p>
   </aside>
 
@@ -306,7 +307,7 @@ const S=[
  {id:"barline",lv:1,name:"Bar line",meaning:"A single line that divides the music into measures.",look:"one thin line across the staff",vb:vbS(72),draw:()=>staff(0,72)+G(U.whole,7,-15)+vl(36,-40,0,1.6)+G(U.whole,47,-15),cps:[U.whole]},
  {id:"dbar",lv:1,name:"Double bar line",meaning:"Two thin lines mark the end of a section. (Thin plus thick marks the end of the piece.)",look:"two thin lines across the staff",vb:vbS(76),draw:()=>staff(0,76)+G(U.whole,7,-15)+vl(37,-40,0,1.6)+vl(42.4,-40,0,1.6)+G(U.whole,52,-15),cps:[U.whole]},
  {id:"repeat",lv:1,name:"Repeat sign",meaning:"Two dots before a double bar: go back and play that section again.",look:"two dots before a thin and a thick line",vb:vbS(60),draw:()=>staff(0,60)+G(U.whole,8,-15)+G(U.repR,60-14.68,0),cps:[U.repR]},
- {id:"timesig",lv:1,name:"Time sig\u00ADnature",meaning:"4/4: the top 4 means 4 beats in each measure; the bottom 4 means the quarter note gets one beat.",look:"the numbers 4 over 4",vb:vbS(44),draw:()=>staff(0,44)+G(U.ts4,13,-30)+G(U.ts4,13,-10),cps:[U.ts4]},
+ {id:"timesig",lv:1,name:"Time sig\u00ADnature",say:"Four four time signature",meaning:"4/4: the top 4 means 4 beats in each measure; the bottom 4 means the quarter note gets one beat.",look:"the numbers 4 over 4",vb:vbS(44),draw:()=>staff(0,44)+G(U.ts4,13,-30)+G(U.ts4,13,-10),cps:[U.ts4]},
  // ---------- L2 Expression ----------
  {id:"p",lv:2,name:"Piano",say:"Piano, the letter p",meaning:"p = piano: play soft.",look:"the letter p",dyn:[-.356,1.464],draw:()=>G(U.dynP,0,0),cps:[U.dynP]},
  {id:"f",lv:2,name:"Forte",say:"Forte, the letter f",meaning:"f = forte: play loud.",look:"the letter f",dyn:[-.564,1.456],draw:()=>G(U.dynF,0,0),cps:[U.dynF]},
@@ -386,7 +387,36 @@ function sfx(kind){ if(!soundOn()) return; try{ if(!AC()) return; const t=ac.cur
  }catch(e){} }
 function hypePlay(ms){ try{ if(window.chmaHype&&soundOn()&&$("hypeOn").checked) chmaHype.play(ms,{ctx:AC(),round:arc?Math.min(5,arc.round):1,bonus:!!(arc&&arc.bonus),enabled:true}) }catch(e){} }
 function hypeStop(f){ try{ window.chmaHype&&chmaHype.stop(f) }catch(e){} }
-function speak(text){ try{ if(!$("speakOn").checked||!soundOn()||!("speechSynthesis" in window)) return; speechSynthesis.cancel(); const u=new SpeechSynthesisUtterance(text); u.rate=0.95; speechSynthesis.speak(u) }catch(e){} }
+// ---------- speech: the most human voice the device has, and music words said the way a teacher says them ----------
+const NOVELTY=/albert|bad news|bahh|bells|boing|bubbles|cellos|wobble|zarvox|trinoids|whisper|good news|jester|organ|superstar|ralph|fred|junior|kathy|grandma|grandpa|rocko|shelley|sandy|flo|eddy|reed/i;
+function voiceScore(v){ let sc=0; const n=v.name;
+  if(!/^en/i.test(v.lang)) return -1; if(NOVELTY.test(n)) return -1;
+  if(/natural|neural/i.test(n)) sc+=60; if(/premium|enhanced/i.test(n)) sc+=50; if(/siri/i.test(n)) sc+=45;
+  if(/\b(ava|allison|samantha|zoe|evan|nathan|joelle|nicky|aria|jenny|guy|michelle|libby|sonia|ryan|emma|brian|andrew)\b/i.test(n)) sc+=25;
+  if(/google us english|google uk english/i.test(n)) sc+=20; if(/en-us/i.test(v.lang)) sc+=8; else if(/en-gb|en-au|en-ca/i.test(v.lang)) sc+=5;
+  if(!v.localService) sc+=4; return sc }
+function voiceList(){ try{ return speechSynthesis.getVoices().filter(v=>voiceScore(v)>=0).sort((a,b)=>voiceScore(b)-voiceScore(a)) }catch(e){ return [] } }
+function pickVoice(){ const vs=voiceList(), want=$("voiceSel").value; return vs.find(v=>v.voiceURI===want)||vs[0]||null }
+function fillVoices(){ const sel=$("voiceSel"); if(!sel) return; const vs=voiceList(), cur=store.get("voice","")||sel.value;
+  sel.innerHTML='<option value="">Most natural on this device</option>'+vs.slice(0,12).map(v=>`<option value="${v.voiceURI.replace(/"/g,"&quot;")}">${v.name.replace(/[<>&]/g,"")}</option>`).join(""); sel.value=vs.some(v=>v.voiceURI===cur)?cur:"" }
+try{ if("speechSynthesis" in window){ fillVoices(); speechSynthesis.onvoiceschanged=fillVoices } }catch(e){}
+document.addEventListener("change",e=>{ if(e.target&&e.target.id==="voiceSel"){ store.set("voice",e.target.value); speak("Fermata. Hold the note longer than its value.") } });
+// how a teacher says it out loud (screen text is unchanged)
+function spoken(t){ return String(t)
+  .replace(/­/g,"").replace(/\(\*\)/g,"").replace(/[“”]/g,"")
+  .replace(/D\.S\. \(dal segno\)/g,"dahl sen-yo").replace(/D\.C\. \(da capo\)/g,"dah kah-po").replace(/Fine,? \(?say fee-nay\)?/g,"Fee-nay").replace(/ \/ /g," or ")
+  .replace(/\b4\/4\b/g,"four four").replace(/\b2\/2\b/g,"two two").replace(/\b3\/4\b/g,"three four").replace(/\b6\/8\b/g,"six eight")
+  .replace(/1½/g,"one and a half").replace(/½/g,"a half")
+  .replace(/\bD\.C\. al Fine\b/g,"dah kah-po al fee-nay").replace(/\bD\.S\. al Coda\b/g,"dahl sen-yo al coda")
+  .replace(/\bD\.C\./g,"dah kah-po").replace(/\bD\.S\./g,"dahl sen-yo").replace(/[Dd]a capo/g,"dah kah-po").replace(/[Dd]al segno/g,"dahl sen-yo")
+  .replace(/\bSegno\b/g,"Sen-yo").replace(/\bsegno\b/g,"sen-yo").replace(/\bal [Ff]ine\b/g,"al fee-nay").replace(/\bFine\b(?! \()/g,"Fee-nay")
+  .replace(/\b8va\b/g,"ottava").replace(/\bPed\./g,"pedal").replace(/\btr:/g,"trill:")
+  .replace(/\b(pp|ff|mp|mf|p|f) = /g,"").replace(/ = /g," means ")
+  .replace(/♯/g," sharp").replace(/♭/g," flat").replace(/ø/g," half diminished")
+  .replace(/\(([^)]*)\)/g,", $1,").replace(/\s+/g," ").replace(/ ,/g,",").replace(/,\s*([.:;!?])/g,"$1").replace(/,\s*,/g,",").replace(/\.\s*,\s*/g,". ").replace(/[,\s]+$/,"").trim() }
+function speak(text){ try{ if(!$("speakOn").checked||!soundOn()||!("speechSynthesis" in window)) return; speechSynthesis.cancel();
+  const v=pickVoice(), parts=spoken(text).split(/(?<=[.!?:])\s+/).filter(Boolean);
+  parts.forEach((pt,i)=>{ const u=new SpeechSynthesisUtterance(pt); if(v){ u.voice=v; u.lang=v.lang } u.rate=/natural|neural|premium|enhanced|siri/i.test(v&&v.name||"")?1:0.95; u.pitch=1; speechSynthesis.speak(u) }) }catch(e){} }
 const sayOf=s=>`${s.say||s.plain}. ${s.meaning.replace(/♯/g," sharp").replace(/\(\*\)/,"")}`;
 document.addEventListener("visibilitychange",()=>{ if(document.hidden){ hypeStop(60); try{speechSynthesis.cancel()}catch(e){} } else if(ac&&ac.state!=="running") ac.resume().catch(()=>{}) });
 
@@ -563,7 +593,7 @@ const fontReady=Promise.race([document.fonts?document.fonts.load('40px "Bravura"
 fontReady.then(()=>{ fitAuto(); muteUI(); newGame(); if(qs.get("sheet")) openSheet(qs.get("sheet")) });
 
 // test hook
-window.__sm={S,LEVELS,ROUNDS,state:()=>({level,pairs,mode,moves,matched,n:deck.length/2,elapsed,busy,gameOver,cols,arc:arc?{...arc}:null,results:!$("results").hidden,splash:!$("arcSplash").hidden,peeked}),
+window.__sm={spoken,sayOf,S,LEVELS,ROUNDS,state:()=>({level,pairs,mode,moves,matched,n:deck.length/2,elapsed,busy,gameOver,cols,arc:arc?{...arc}:null,results:!$("results").hidden,splash:!$("arcSplash").hidden,peeked}),
   deck:()=>deck.map(c=>({id:c.s.id,k:c.k,up:c.up,done:c.done})), tap, newGame, openSheet, layout, ready:fontReady};
 })();
 </script>
