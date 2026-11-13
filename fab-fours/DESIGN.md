@@ -1,4 +1,4 @@
-# Groupies Design System (reverse-engineered from the NYT Connections archive)
+# Fab Fours Design System (reverse-engineered from the NYT Connections archive)
 
 Source: the full public answer archive, puzzles #1 to #1,245 (2023-06-12 to 2026-11-12), 4,980 groups. 831 puzzles carry color tags; the color stats below use those. Group types were classified by regex on the group titles, so the shares are approximate (about ±5 points), but the ranking is solid.
 
@@ -24,7 +24,7 @@ Purple breakdown (831 tagged purples):
 
 The most-reused tiles in 1,245 puzzles are BALL (30), RING (26), FLY (23), BAR (22), CHECK (22), LEAD (20), BLUE (19), JACK (19), KING (18), HOOK (18), TAP (16). Every one is a short word with 3+ meanings. That is the whole trick: one tile, several plausible homes, one true home. Only 5% of tiles are multi-word, because a phrase has one meaning and kills the misdirection.
 
-Music is unusually rich in these words, which is why a music-only Groupies can be as good as NYT:
+Music is unusually rich in these words, which is why a music-only Fab Fours can be as good as NYT:
 
 KEY · NOTE · BAR · REST · SCALE · PITCH · TIE · FLAT · SHARP · NATURAL · STAFF · MEASURE · BASS · TREBLE · ROCK · POP · METAL · SOUL · FUNK · HOOK · TRACK · RECORD · BAND · BRIDGE · CHORUS · BEAT · TAP · PICK · SLIDE · BOW · REED · HORN · DRUM · CYMBAL · HIT · SINGLE · COVER · RANGE · TONE · MODE · CHORD · RIFF · JAM · GIG · SET · STAGE · ACT · STRING · PEDAL · HAMMER · CAPO · STRUM · PLUCK · CLEF · REPEAT · CODA · FINE · TURN · TRILL · MORDENT
 
@@ -38,7 +38,7 @@ From the archive, music groups NYT has actually shipped, by tier:
 - Blue: PROG BANDS · '80S SYNTH-POP BANDS · RIHANNA #1 HITS · MUSIC PUBLICATIONS · SLANG FOR MUSICAL INSTRUMENTS (AXE, BONE, KEYS, SKINS) · THINGS A BEGINNER LEARNS ON PIANO (CHOPSTICKS, FÜR ELISE, HEART AND SOUL, THE ENTERTAINER) · FIRST NAMES OF COUNTRY LEGENDS (DOLLY, JOHNNY, PATSY, WILLIE)
 - Purple: MUSIC GENRES PLUS A LETTER · MUSICAL INSTRUMENTS PLUS STARTING LETTER (GLUTE, MORGAN, SHARP, THORN) · ANAGRAMS OF MUSICAL INSTRUMENTS (ABUT, BULGE, GROAN, VOILA) · ENDING IN MUSIC GENRES (BABY BLUES, PET ROCK, SCRAP METAL, SODA POP) · MUSICAL ARTISTS MINUS STARTING NUMBERS (6 MAFIA, CHAINZ, DIRECTION, NON BLONDES) · ___ GUITAR (AIR, ELECTRIC, RHYTHM, SLIDE) · "___ MAN" SONGS FROM THE '70S (IRON, MACHO, PIANO, ROCKET) · MEMBER OF A CLASSIC BACKING BAND
 
-## 4. The twelve Groupies angles (music-only, every tier covered)
+## 4. The twelve Fab Fours angles (music-only, every tier covered)
 
 | # | Angle | Tier | Example shape |
 |---|---|---|---|
