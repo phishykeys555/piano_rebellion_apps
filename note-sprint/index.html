@@ -7,6 +7,7 @@
 <link rel="stylesheet" href="../shared/chma.css">
 <script src="../shared/brand.js"></script>
 <script src="../shared/hype.js"></script>
+<script src="../shared/share.js"></script>
 
 </head>
 <body>
@@ -383,7 +384,7 @@ details.how p{margin:0;padding:0 16px 12px;line-height:1.45;color:var(--muted)}
       </fieldset>
     </div>
   </details>
-  <p class="tip appverp" id="appVer"><span class="appver">Note Sprint · Version 2026-11-13.3</span></p>
+  <p class="tip appverp" id="appVer"><span class="appver">Note Sprint · Version 2026-11-13.4</span></p>
   </div>
   <div class="play">
 
@@ -456,6 +457,7 @@ details.how p{margin:0;padding:0 16px 12px;line-height:1.45;color:var(--muted)}
       <div id="rWhy" style="font-weight:600"></div><div class="stamp" id="rStamp"></div>
       <p class="tip" style="text-align:left">Screenshot this screen and send it to your instructor.</p>
       <div class="stamp">Note Sprint · By <a href="https://clarendonhillsmusicacademy.com/" target="_blank" rel="noopener" style="color:inherit;text-decoration:underline">Clarendon Hills Music Academy</a></div>
+      <button class="primary" id="shareBtn" style="width:100%">Share result</button>
       <div class="row"><button class="ghost" id="closeResults">Back to practice</button><button class="primary" id="againBtn">Play again</button></div>
     </div>
   </section>
@@ -1269,6 +1271,7 @@ details.how p{margin:0;padding:0 16px 12px;line-height:1.45;color:var(--muted)}
   function showResults(){ sheet(true); const r=$("card").getBoundingClientRect(); if(r.top<0||r.top>innerHeight*0.4) try{ $("card").scrollIntoView({block:"start"}) }catch(e){} $("results").scrollTop=0; try{ $("rTitle").focus({preventScroll:true}) }catch(e){} }
   $("chalBtn").addEventListener("click",()=>{ if(timer||arc){stopTimer();newQuestion(true)} else arcStart() });   // one button: Start Challenge, Stop while a challenge runs
   $("againBtn").addEventListener("click",()=>arcStart());
+  $("shareBtn").addEventListener("click",()=>chmaShare.share({app:"note-sprint",text:shareTxt}));
 
   // ---------- arcade: rounds like the arcade hoop game. Total score carries over, but each round has its own fresh target: extra points never count toward the next round ----------
   // Base running totals for L1 letters; scaled for harder levels and slower answer modes. Last 10 s of a round = on fire, 2x points.
@@ -1314,7 +1317,20 @@ details.how p{margin:0;padding:0 16px 12px;line-height:1.45;color:var(--muted)}
     const cleared=arc.round, got=st.points-(arc.start||0); arc.round++;
     // adapt round to round: the next target is at least 5% more than what was just scored, so a strong round raises the bar right away
     arc.inc[arc.round-1]=Math.max(arc.inc[arc.round-1],Math.round(got*1.05),arc.inc[arc.round-2]+1); arc.start=st.points; arc.needs[arc.round-1]=st.points+arc.inc[arc.round-1]; arc.hit=false; arcBar(); arcSplash(`ROUND ${arc.round}`,`Target this round: ${half(arc.inc[arc.round-1])} points. Fresh count, extras don't carry.`,2400,arcRound,`ROUND ${cleared} CLEARED ✓`) }
-  function arcFinish(won,need,got){ const failedRound=won?0:arc.round; const reached=arc.bonus?"Bonus round":`Round ${arc.round}`, key="arcbest-"+level+"-"+readSettings().mode, best=Math.max(+store.get(key,0)||0,st.points), isNew=st.points>0&&st.points>=best;
+  let shareTxt="";
+  // share text: brag line (level + how far), clef/key/answer mode, the numbers, one square per round
+  function arcShareText(won,got,need,prev){ const s=readSettings(), L=LEVELS.find(x=>x.id===level)||LEVELS[0], rounds=arc.bonus?6:arc.round, mins=rounds*ARC_T/60;
+    const clef={treble:"Treble clef",bass:"Bass clef",mix:"Treble + bass clef",grand:"Grand staff"}[s.staffMode]||"Treble clef";
+    const how={letters:"tap letters",piano:"tap piano keys",mic:"real piano",midi:"MIDI keyboard"}[s.mode]||s.mode;
+    const ks=keySetting(), key=ks==="mix"?"Key: mix":`Key of ${keyName(+ks)}`;
+    const reached=won?(arc.bonus&&got>=need?"Bonus cleared":"All 5 rounds"):`Round ${arc.round} of 5`;
+    const row=arc.bonus?"🟩🟩🟩🟩🟩"+(got>=need?"🌟":"⬜"):"🟩".repeat(Math.max(0,arc.round-1))+"🟥";
+    const pct=st.total?Math.min(100,Math.round(100*st.correct/st.total)):0, npm=Math.round(st.correct/mins);
+    const lines=[`🎯 Note Sprint · Level ${L.id==="C"?"Custom":L.id} ${L.name==="Custom"?"":L.name} · ${reached}`.replace(/\s+·/g," ·"),
+      `${clef} · ${key} · ${how}`, `${half(st.points)} points · ${pct}% accuracy · ${npm} notes/min`, row];
+    if(prev>0&&st.points>prev) lines.push(`🏆 New Challenge high score (beat ${half(prev)})`);
+    return lines.join("\n") }
+  function arcFinish(won,need,got){ const failedRound=won?0:arc.round; const reached=arc.bonus?"Bonus round":`Round ${arc.round}`, key="arcbest-"+level+"-"+readSettings().mode, prevBest=+store.get(key,0)||0, best=Math.max(prevBest,st.points), isNew=st.points>0&&st.points>=best; shareTxt=arcShareText(won,got,need,prevBest);
     store.set(key,best); sprintOver=true; locked=true; arc=null; $("arcbar").hidden=true; $("arcMeter").hidden=true; $("watch").classList.remove("fire"); chalLabel(false);
     $("rTitle").textContent=won?"Challenge cleared!":"Challenge over"; $("againBtn").textContent="Play again";
     $("rWhy").textContent=won?(got>=need?`All 5 rounds cleared and the bonus target hit (${half(got)} / ${half(need)}).`:`All 5 rounds cleared. Bonus target was ${half(need)}; you had ${half(got)}.`):`Round ${failedRound} target was ${half(need)}. You had ${half(got)}. Hit the target before the 30 seconds run out to unlock Round ${failedRound+1}.`;
