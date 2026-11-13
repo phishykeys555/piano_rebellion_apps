@@ -93,7 +93,7 @@ svg.i{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:1.8;stro
 #fb{margin-top:10px;border-radius:16px;padding:12px;background:var(--c-panel2);border:2px solid var(--c-line)}
 #fb.ok{border-color:var(--c-ok)}#fb.no{border-color:var(--c-bad)}
 #fb h2{font:700 20px var(--f-title);margin:0;display:flex;justify-content:space-between;gap:8px;align-items:baseline}
-#fb h2 span{font:700 15px var(--f-num);color:var(--c-led)}
+#fbPts{font:700 15px var(--f-num);color:var(--c-led)}#fb.ok #fbHead{color:var(--c-ok)}#fb.no #fbHead{color:var(--c-bad)}
 #fb .ca{font-weight:700;margin:4px 0}
 #fb .why{margin:4px 0 10px;font-size:15px}
 #fb .src{font-size:11.5px;color:var(--c-mut);word-break:break-all}
@@ -159,13 +159,13 @@ dialog::backdrop{background:rgba(0,0,0,.6)}
 #wheel{width:100%;height:100%;transition:transform 3.4s cubic-bezier(.12,.75,.12,1);will-change:transform}
 .pointer{position:absolute;left:50%;top:-6px;transform:translateX(-50%);width:0;height:0;border-left:13px solid transparent;border-right:13px solid transparent;border-top:24px solid var(--c-ink);filter:drop-shadow(0 2px 2px rgba(0,0,0,.5));z-index:2}
 #wheelRes{text-align:center;font:700 20px var(--f-title);min-height:28px;margin:0}
-#toast{position:fixed;left:50%;top:18%;transform:translate(-50%,-6px);background:var(--c-ink);color:var(--c-page);font:700 15px var(--f-body);padding:10px 16px;border-radius:12px;opacity:0;pointer-events:none;transition:opacity .2s,transform .2s;z-index:50;max-width:calc(100vw - 32px);text-align:center}
+#toast{position:fixed;left:50%;bottom:calc(18px + env(safe-area-inset-bottom));transform:translate(-50%,6px);background:var(--c-ink);color:var(--c-page);font:700 15px var(--f-body);padding:10px 16px;border-radius:12px;opacity:0;pointer-events:none;transition:opacity .2s,transform .2s;z-index:50;max-width:calc(100vw - 32px);text-align:center}
 #toast.on{opacity:1;transform:translate(-50%,0)}
 kbd{font:600 11px var(--f-num);background:var(--c-key);border:1px solid var(--c-key-b);border-radius:5px;padding:1px 5px}
 @media (min-width:700px){
  body{padding:16px}main{padding:0 20px 12px}.chma-headwrap{margin:0 -20px 8px}
  h1{font-size:30px}#grid{grid-template-columns:repeat(6,minmax(0,1fr))}
- #answers{grid-template-columns:1fr 1fr}.ans{min-height:68px}#qText{font-size:24px}
+ #answers{grid-template-columns:1fr 1fr}.ans{min-height:68px}#qText{font-size:24px;min-height:0}
 }
 @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
 </style></head><body><main>
@@ -287,7 +287,6 @@ kbd{font:600 11px var(--f-num);background:var(--c-key);border:1px solid var(--c-
 "use strict";
 const APP_NAME="Music Trivia";          /* the one place the name lives: rename here */
 const VERSION="2026-11-13.1";
-const URL_LIVE="https://phishykeys555.github.io/piano_rebellion_apps/trivia/";
 const T_MS=20000, AUTO_MS=6000, RAMP10=[1,1,1,2,2,2,2,3,3,3];
 const QS=new URLSearchParams(location.search), DEBUG=QS.get("debug")==="1";
 const $=id=>document.getElementById(id);
@@ -381,10 +380,10 @@ function selCats(){const s=[...sel].filter(c=>CAT[c]&&BANK.some(q=>q.cat===c));r
 /* ---------- home ---------- */
 function renderHome(){
  const li=levelOf(P.xp),nx=LEVELS[li+1];
- $("lvlName").textContent="Level "+(li+1)+" · "+LEVELS[li][1];$("xpTxt").textContent=P.xp.toLocaleString()+" XP";
+ $("lvlName").textContent=LEVELS[li][1];$("xpTxt").textContent="L"+(li+1)+" · "+P.xp.toLocaleString()+" XP";
  $("xpBar").style.width=(nx?Math.round(100*(P.xp-LEVELS[li][0])/(nx[0]-LEVELS[li][0])):100)+"%";
  $("dayStreak").textContent=streakAlive()+(P.freezes?" +"+P.freezes+" frz":"");
- const n=P.today.d===todayKey()?P.today.n:0;$("goalTxt").textContent=Math.min(n,20)+"/20"+(n>=20?" done":"");
+ const n=P.today.d===todayKey()?P.today.n:0;$("goalTxt").textContent=n>=20?"Done":Math.min(n,20)+"/20";
  const dd=P.daily[todayKey()];
  $("dailySub").textContent=dd?("Done today: "+dd.c+"/10 · "+dd.s.toLocaleString()+" pts"):"Same 10 for everyone today. Easy to hard.";
  $("dailyGo").textContent=dd?"Result":"Play";
@@ -695,8 +694,12 @@ function playClip(au){const a=AC();if(!a||!au)return 0;
  const notes=au.notes.map(Number).filter(n=>n>=21&&n<=108),beat=60/(+au.bpm||90),t=a.currentTime+.06;
  const harm=au.mode?au.mode==="harmonic":au.type==="chord";
  if(harm){notes.forEach(m=>pianoNote(m,t,1.8,.75));return 2100}
- let x=0;notes.forEach((m,i)=>{const d=(au.durs&&+au.durs[i])||(au.type==="rhythm"?.5:1);pianoNote(m,t+x*beat,Math.max(.12,d*beat*.9),au.type==="rhythm"&&i%2?.6:.8);x+=d});
+ /* rhythm: even clicks, one per beat at the bpm (or note lengths from an optional durs field) */
+ if(au.type==="rhythm"){let x=0;notes.forEach((m,i)=>{woodblock(t+x*beat,i===0);x+=(au.durs&&+au.durs[i])||1});return Math.round(((x-1)*beat+.5)*1000)}
+ let x=0;notes.forEach((m,i)=>{const d=(au.durs&&+au.durs[i])||1;pianoNote(m,t+x*beat,Math.max(.12,d*beat*.9),.8);x+=d});
  return Math.round((x*beat+.4)*1000)}
+function woodblock(t,acc){const a=AC();if(!a)return;[[1150,1],[1840,.45]].forEach(([f,v])=>{const o=a.createOscillator(),g=a.createGain();o.type="sine";o.frequency.value=f*(acc?1.06:1);
+ g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(.5*v,t+.002);g.gain.exponentialRampToValueAtTime(.0005,t+.07);o.connect(g);g.connect(out);o.start(t);o.stop(t+.09)})}
 function replay(){const r=run;if(!r)return;const q=r.queue[r.qi];if(q&&q.audio){const ms=playClip(q.audio);if(!tm.running&&!r.answered)setTimeout(()=>{if(run===r&&!tm.running&&!r.answered&&r.queue[r.qi]===q)startTimer()},ms)}}
 $("replayB").onclick=()=>{loadSamples();replay()};
 
@@ -706,6 +709,7 @@ loadBank().then(()=>{renderHome();show("sHome");if(!store.get("seenHelp",false)&
 renderHome();
 if(DEBUG)window.__T={fast:QS.get("fast")==="1",get run(){return run},get P(){return P},get bank(){return BANK},store,startRun,answer,cont,spin,shareText,pointsFor,selCats,
  correctK(){const r=run;return r.order.indexOf(r.queue[r.qi].a)},wrongK(){const r=run;return [0,1,2,3].find(k=>r.order[k]!==r.queue[r.qi].a)},
+ playClip,loadSamples,get samples(){return Object.keys(buf).length},
  reset(){P=Object.assign({},P0,{mas:{},seen:[],ach:{},daily:{},today:{d:null,n:0}});saveP();renderHome()},render:renderHome,levelOf,mastery,sel};
 </script>
 </body></html>
