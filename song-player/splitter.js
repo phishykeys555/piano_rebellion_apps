@@ -12,7 +12,7 @@ const RUNTIME = [BASE + 'vendor/ort/ort-wasm-simd-threaded.wasm'], RUNTIME_BYTES
 // sources: the model's output order. parts: what the player gets (everything else is "rest" = record - parts).
 // id is part of every stored split's key, so splits from the two models never collide.
 export const MODELS = {
-  detailed: { key: 'detailed', id: 'htdemucs_6s-5c90dfd2-v1', name: 'Detailed', count: 6, cost: 0.6,
+  detailed: { key: 'detailed', id: 'htdemucs_6s-5c90dfd2-v1', name: 'Detailed', count: 6, cost: 0.8,
     graph: BASE + 'models/htdemucs_6s/htdemucs_6s.onnx',
     weights: [BASE + 'models/htdemucs_6s/htdemucs_6s.f16.0.bin', BASE + 'models/htdemucs_6s/htdemucs_6s.f16.1.bin'],
     sources: ['drums', 'bass', 'other', 'vocals', 'guitar', 'piano'], parts: ['drums', 'bass', 'vocals', 'guitar', 'piano'],
@@ -45,7 +45,7 @@ export function device() {
   return { cores, mem, mobile, workers, weak, secPerSeg, coi: !!self.crossOriginIsolated, ok: typeof Worker === 'function' && typeof WebAssembly === 'object' };
 }
 export const segments = sec => Math.max(1, Math.ceil(sec * SR / STRIDE));
-// cost: time per piece relative to the 4-part model (the 6-part model has no 512-channel bottleneck layers)
+// cost: time per piece relative to the 4-part model (measured in Chromium: 6 parts 194 s vs 4 parts 239 s for a 3-min song, 2 workers)
 export function estimateSec(sec, dev = device(), model = chosenModel()) { return Math.ceil(segments(sec) / dev.workers) * dev.secPerSeg * model.cost + 15 }
 
 // ---------- model download (once, Cache API) ----------

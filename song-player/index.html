@@ -73,7 +73,7 @@ select{font:600 13px var(--f-body);color:var(--c-ink);background:var(--c-key);bo
 #splitPick{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:2px 0 8px}#splitPick[hidden]{display:none}
 .pickopt{display:flex;flex-direction:column;align-items:flex-start;text-align:left;gap:2px;padding:9px 10px;min-height:0;font:400 12px/1.3 var(--f-body);border-radius:12px}
 .pickopt b{font:700 13px var(--f-body)}.pickopt .pd{color:var(--c-ink)}.pickopt .ps{color:var(--c-mut);font-size:11.5px}
-.pickopt.on{border-color:var(--c-act);box-shadow:inset 0 0 0 1px var(--c-act)}
+#splitPick .pickopt.on{background:var(--c-panel);color:var(--c-ink);border:2px solid var(--c-act);box-shadow:none}#splitPick .pickopt.on b::before{content:"● ";color:var(--c-act)}
 @media (max-width:440px){#splitPick{grid-template-columns:1fr}}
 #mixChips button{min-height:40px;padding:0 12px;font-size:12.5px}
 .chips button{min-height:40px}select{min-height:40px}.nw{display:inline-flex;align-items:center;gap:6px;white-space:nowrap}
