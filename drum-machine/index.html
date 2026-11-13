@@ -43,7 +43,7 @@ body.emb .sec:not(.tabon){display:none!important}body.emb .sec>h4{display:none}b
 .blm{flex:1;min-width:120px;font-weight:700;font-size:15px}.blm .tag{display:inline-block;font-size:11px;font-weight:700;color:#fff;background:var(--acc);border-radius:4px;padding:2px 7px;margin-right:6px}
 .blm .tag.sec{background:#9065b0}.blm .tag.cnt{background:#d9730d}.blm .tag.mute{background:#787774}
 .chord{font-size:20px;font-weight:700;text-align:right}.chord small{font-size:12px;color:var(--mut);font-weight:500}
-.beat.big{padding:18px 16px}.beat.big .dot{width:38px;height:38px}.beat.big .blm{font-size:22px}.beat.big .chord{font-size:32px}
+.beat.big{padding:18px 16px}.beat.big .dot{width:38px;height:38px}.beat.big .chord{font-size:32px}
 .beat.flash{background:rgba(35,131,226,.25)}.beat.flash1{background:rgba(224,62,62,.25)}
 .grid{display:grid;gap:3px;margin-top:6px;user-select:none;overflow-x:auto}
 .lab{font-size:12px;color:var(--mut);white-space:nowrap;padding-right:4px;display:flex;align-items:center;cursor:pointer}.lab:hover{color:var(--fg)}
@@ -210,13 +210,14 @@ body.emb .emh{position:static;box-shadow:none}
 /* BPM readout: tap the number to type a tempo */
 #v{cursor:text;border-radius:6px;outline-offset:4px}
 @media (hover:hover){#v:hover{text-decoration:underline dotted;text-decoration-thickness:2px;text-underline-offset:6px}}
-#bpmIn{font:inherit;color:inherit;text-shadow:inherit;letter-spacing:inherit;background:transparent;border:0;border-bottom:2px solid currentColor;border-radius:0;width:3.3ch;min-height:0;padding:0;margin:0;text-align:center;outline:none;caret-color:currentColor;box-shadow:none}
+#bpmIn{font:inherit;color:inherit;text-shadow:inherit;letter-spacing:inherit;background:transparent;border:0;border-radius:6px;text-decoration:none;width:3.3ch;min-height:0;padding:0;margin:0;text-align:center;outline:none;caret-color:currentColor;box-shadow:none}
 #bpmIn[hidden]{display:none}
+#bpmIn:focus,#bpmIn:focus-visible{text-decoration:none;border-bottom:0;box-shadow:0 0 0 2px color-mix(in srgb,currentColor 45%,transparent),0 0 10px color-mix(in srgb,currentColor 30%,transparent);background:color-mix(in srgb,currentColor 8%,transparent)}
 .rsrow{margin-top:4px}
 /* Sliders: round thumbs everywhere (WebKit/Blink and Firefox), track filled up to the thumb (--p is set by script) */
 input[type=range]{-webkit-appearance:none;appearance:none;background:transparent;height:24px;padding:0;margin:0;min-width:0;vertical-align:middle;cursor:pointer;
  --trk:color-mix(in srgb,var(--c-ink) 20%,var(--c-panel2));--fill:var(--c-act);--th:18px;--tb:var(--c-act)}
-#s{--th:24px;height:32px}
+#s{--th:36px;height:40px;touch-action:pan-y}
 .rv{--th:14px}
 input[type=range]::-webkit-slider-runnable-track{height:6px;border-radius:999px;background:linear-gradient(90deg,var(--fill) 0 var(--p,50%),var(--trk) var(--p,50%) 100%)}
 input[type=range]::-moz-range-track{height:6px;border-radius:999px;background:linear-gradient(90deg,var(--fill) 0 var(--p,50%),var(--trk) var(--p,50%) 100%)}
@@ -229,6 +230,10 @@ input[type=range]:active::-moz-range-thumb{transform:scale(1.12)}
 #mv::-webkit-slider-runnable-track{height:8px;background:linear-gradient(90deg,transparent 0 var(--p,50%),var(--dim) var(--p,50%) 100%),linear-gradient(90deg,var(--c-bad),var(--mvy) 50%,var(--c-ok))}
 #mv::-moz-range-track{height:8px;background:linear-gradient(90deg,transparent 0 var(--p,50%),var(--dim) var(--p,50%) 100%),linear-gradient(90deg,var(--c-bad),var(--mvy) 50%,var(--c-ok))}
 #mv::-webkit-slider-thumb{margin-top:calc(4px - var(--th) / 2)}
+/* 2026-11-13.4: the tempo slider thumb is bigger and says BPM (WebKit/Blink and Firefox) */
+#s::-webkit-slider-thumb{background:var(--c-act) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 36 36'%3E%3Ctext x='18' y='18' dominant-baseline='central' text-anchor='middle' font-family='Arial,Helvetica,sans-serif' font-size='10.5' font-weight='800' letter-spacing='.2' fill='%23fff' stroke='%23000' stroke-opacity='.35' stroke-width='1.4' paint-order='stroke'%3EBPM%3C/text%3E%3C/svg%3E") center/100% 100% no-repeat;border:2px solid var(--c-key);box-shadow:0 1px 4px rgba(0,0,0,.5)}
+#s::-moz-range-thumb{background:var(--c-act) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 36 36'%3E%3Ctext x='18' y='18' dominant-baseline='central' text-anchor='middle' font-family='Arial,Helvetica,sans-serif' font-size='10.5' font-weight='800' letter-spacing='.2' fill='%23fff' stroke='%23000' stroke-opacity='.35' stroke-width='1.4' paint-order='stroke'%3EBPM%3C/text%3E%3C/svg%3E") center/100% 100% no-repeat;border:2px solid var(--c-key);box-shadow:0 1px 4px rgba(0,0,0,.5)}
+#s{margin-top:6px;margin-bottom:6px}
 </style>
 <style>/* 2026-11-11.23: grid velocity levels */
 .c.on.lv4{opacity:1;box-shadow:inset 0 0 0 3px rgba(255,255,255,.85),0 0 9px color-mix(in srgb,var(--c-sel,#e8412c) 60%,transparent)}.c.on.lv3{opacity:1}.c.on.lv2{opacity:.8;box-shadow:inset 0 4px 0 var(--c-panel2,#2a2c31),inset 0 -4px 0 var(--c-panel2,#2a2c31)}.c.ghost.lv1{opacity:.6;box-shadow:inset 0 8px 0 var(--c-panel2,#2a2c31),inset 0 -8px 0 var(--c-panel2,#2a2c31)}
@@ -404,6 +409,40 @@ body:not(.emb) .lab,body:not(.emb) .hd{font-size:14px}
  body.tabbed:not(.emb) .emh .beat{margin:8px 0}
 }
 </style>
+<style>/* 2026-11-13.4: one shared toast for outcomes (saves, loads, deletes, copies, imports, exports, errors).
+   Desktop and laptop: top right. Phone: bottom left, above any fixed bottom bar and the safe area, never over Play or the tempo controls. */
+.mmtoasts{position:fixed;z-index:100000;top:16px;right:16px;display:flex;flex-direction:column;align-items:flex-end;gap:8px;max-width:min(380px,calc(100vw - 32px));pointer-events:none}
+.mmtoast{pointer-events:auto;cursor:pointer;color:#fff;font:600 14px/1.4 -apple-system,BlinkMacSystemFont,"Segoe UI",Helvetica,Arial,sans-serif;text-transform:none;letter-spacing:0;text-shadow:none;padding:10px 14px;border-radius:10px;box-shadow:0 8px 24px rgba(0,0,0,.35);white-space:pre-line;overflow-wrap:anywhere;opacity:0;transform:translateY(-6px);transition:opacity .18s ease,transform .18s ease}
+.mmtoast.show{opacity:1;transform:none}
+.mmtoast.success{background:#1e7d45}.mmtoast.info{background:#1f63c4}.mmtoast.error{background:#c4302b}
+@media (max-width:640px){
+ .mmtoasts{top:auto;right:auto;left:calc(12px + env(safe-area-inset-left,0px));bottom:calc(12px + env(safe-area-inset-bottom,0px) + var(--mmtl,0px));align-items:flex-start;max-width:min(320px,calc(100vw - 24px - env(safe-area-inset-left,0px) - env(safe-area-inset-right,0px)))}
+ .mmtoast{font-size:13px;padding:8px 12px;border-radius:9px;transform:translateY(6px)}}
+@media (prefers-reduced-motion:reduce){.mmtoast{transition:none}}
+</style>
+<script>/* toast(msg, type): type 'success' (green) | 'info' (blue) | 'error' (red). Auto-dismisses; a tap dismisses it sooner. */
+(function(){let box=null;
+ const mobile=()=>window.matchMedia('(max-width:640px)').matches;
+ // Phone: lift the toast above any fixed or sticky bar along the bottom edge, then above the main controls if it would cover them.
+ function place(){if(!box)return;box.style.setProperty('--mmtl','0px');if(!mobile())return;const H=window.innerHeight;let lift=0;
+  for(const x of [16,window.innerWidth/2]){let els=[];try{els=document.elementsFromPoint(x,H-3)}catch(e){}
+   for(const el of els){let e=el;while(e&&e!==document.body&&e!==document.documentElement){if(e===box)break;const ps=getComputedStyle(e).position;
+     if(ps==='fixed'||ps==='sticky'){const r=e.getBoundingClientRect();if(r.bottom>=H-4&&r.height<H*0.4)lift=Math.max(lift,H-r.top);break}e=e.parentElement}}}
+  box.style.setProperty('--mmtl',lift+'px');
+  const keep=['#p','#s','.top','#beat'].map(q=>document.querySelector(q)).filter(Boolean);const pp=document.getElementById('p');if(pp&&pp.parentElement)keep.push(pp.parentElement);
+  for(let i=0;i<4;i++){const b=box.getBoundingClientRect();if(!b.height)return;let hit=null;
+   for(const k of keep){const r=k.getBoundingClientRect();if(r.width&&r.bottom>b.top&&r.top<b.bottom&&r.right>b.left&&r.left<b.right){if(!hit||r.top<hit.top)hit=r}}
+   if(!hit)return;const up=H-hit.top+8;if(hit.top-b.height-8>=0)lift=Math.max(lift,up-12-0);else{lift=Math.max(0,H-hit.bottom-b.height-8-12);if(lift<=0)return}
+   box.style.setProperty('--mmtl',Math.max(0,lift)+'px')}}
+ window.toast=function(msg,type){try{type=/^(success|info|error)$/.test(type)?type:'info';
+  if(!box||!box.isConnected){box=document.createElement('div');box.className='mmtoasts';box.setAttribute('aria-live','polite');box.setAttribute('aria-atomic','false');document.body.appendChild(box)}
+  const t=document.createElement('div');t.className='mmtoast '+type;t.setAttribute('role',type==='error'?'alert':'status');t.textContent=String(msg);
+  while(box.children.length>=3)box.firstChild.remove();box.appendChild(t);place();
+  requestAnimationFrame(()=>requestAnimationFrame(()=>t.classList.add('show')));
+  const ms=Math.min(8000,Math.max(type==='error'?4200:2800,String(msg).length*55));let gone=false;
+  const bye=()=>{if(gone)return;gone=true;t.classList.remove('show');setTimeout(()=>{t.remove()},220)};
+  setTimeout(bye,ms);t.addEventListener('click',bye);return t}catch(e){console.warn('toast',e)}};
+ window.addEventListener('resize',place);window.addEventListener('scroll',place,{passive:true})})();</script>
 </head><body><div class="wrap">
 <div data-chma-head></div>
 <h1 class="mmt">Modal <em>Metronome</em></h1>
@@ -422,9 +461,9 @@ body:not(.emb) .lab,body:not(.emb) .hd{font-size:14px}
 <div class="sec"><h4>My presets</h4>
 <div class="row">
 <label>My presets <select id="ps"><option value="">— choose —</option></select></label><button id="psl">Load</button><button id="psd">Delete</button>
-<input type="text" id="psn" placeholder="Name it (e.g. Blue Rondo slow)" style="width:170px"><button id="pss"><span data-ic="save"></span>Save</button><span id="psm" role="status" style="font-size:12px;color:var(--mut)"></span>
+<input type="text" id="psn" placeholder="Name it (e.g. Blue Rondo slow)" style="width:170px"><button id="pss"><span data-ic="save"></span>Save</button>
 </div>
-<div class="row psio"><button type="button" id="psx"><span data-ic="download"></span>Export presets</button><button type="button" id="psi"><span data-ic="upload"></span>Import presets</button><input type="file" id="psf" accept=".metronome,application/json" multiple hidden></div>
+<div class="row psio"><button type="button" id="psx"><span data-ic="download"></span>Export presets</button><button type="button" id="psi"><span data-ic="upload"></span>Import presets</button><input type="file" id="psf" multiple hidden></div>
 <div id="psq" class="psq" role="group" aria-label="Preset name clash" hidden></div>
 <div id="psxm" class="psxm" role="status"></div>
 <div class="hint">Save everything you set up (groove, tempo, time, sounds, chords) under a name. It stays on this device. Pick one from the list to load it. Export saves all your presets to a .metronome file you can import on another device or browser.</div>
@@ -2594,7 +2633,7 @@ async function exportMp3(){const byT=$('xby').value==='times',times=+$('xtimes')
   lastExport={blob,fn,url};
   xst.innerHTML='Ready: '+(blob.size/1048576).toFixed(1)+' MB · <button type="button" id="xsave" class="btn" style="font-weight:800">'+mmIcon('download')+'Save MP3…</button>';
   $('xsave').addEventListener('click',saveExport);
- }catch(err){let em=(err&&err.message)||String(err);if(/Failed to fetch|NetworkError|Load failed|decode/i.test(em))em='some sounds could not load. Check your internet connection and tap Export again.';xst.textContent='Export failed: '+em;console.error(err);if(ctx instanceof OfflineAudioContext)location.reload()}
+ }catch(err){let em=(err&&err.message)||String(err);if(/Failed to fetch|NetworkError|Load failed|decode/i.test(em))em='some sounds could not load. Check your internet connection and tap Export again.';xst.textContent='';toast('Export failed: '+em,'error');console.error(err);if(ctx instanceof OfflineAudioContext)location.reload()}
  finally{btn.disabled=false;xBusy=false}}
 let lastExport=null;
 // Save the rendered MP3: a "Save as" box that opens in Downloads where the browser supports it (Chrome, Edge);
@@ -2602,12 +2641,12 @@ let lastExport=null;
 async function saveExport(){const X=lastExport,xst=$('xst');if(!X)return;
  try{
   if(window.showSaveFilePicker){const h=await window.showSaveFilePicker({suggestedName:X.fn,startIn:'downloads',types:[{description:'MP3 audio',accept:{'audio/mpeg':['.mp3']}}]});
-   const w=await h.createWritable();await w.write(X.blob);await w.close();xst.innerHTML='Saved: '+X.fn+' · <button type="button" id="xsave" class="btn">Save another copy…</button>';$('xsave').addEventListener('click',saveExport);return}
+   const w=await h.createWritable();await w.write(X.blob);await w.close();toast('Saved '+X.fn,'success');xst.innerHTML='<button type="button" id="xsave" class="btn">Save another copy…</button>';$('xsave').addEventListener('click',saveExport);return}
   const file=new File([X.blob],X.fn,{type:'audio/mpeg'});
-  if(/iPad|iPhone|iPod/.test(navigator.userAgent)||(navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1)){if(navigator.canShare&&navigator.canShare({files:[file]})){await navigator.share({files:[file],title:X.fn});xst.textContent='Shared: pick "Save to Files" to keep it.';return}}
+  if(/iPad|iPhone|iPod/.test(navigator.userAgent)||(navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1)){if(navigator.canShare&&navigator.canShare({files:[file]})){await navigator.share({files:[file],title:X.fn});toast('Shared: pick "Save to Files" to keep it.','success');return}}
   const a=document.createElement('a');a.href=X.url;a.download=X.fn;document.body.appendChild(a);a.click();a.remove();
-  xst.innerHTML='Download started: '+X.fn+' (check your Downloads) · <button type="button" id="xsave" class="btn">Save again</button>';$('xsave').addEventListener('click',saveExport)
- }catch(err){if(err&&err.name==='AbortError'){xst.innerHTML='Not saved. <button type="button" id="xsave" class="btn">'+mmIcon('download')+'Save MP3…</button>';$('xsave').addEventListener('click',saveExport);return}
+  toast('Download started: '+X.fn+' (check your Downloads)','success');xst.innerHTML='<button type="button" id="xsave" class="btn">Save again</button>';$('xsave').addEventListener('click',saveExport)
+ }catch(err){if(err&&err.name==='AbortError'){toast('Not saved','info');xst.innerHTML='<button type="button" id="xsave" class="btn">'+mmIcon('download')+'Save MP3…</button>';$('xsave').addEventListener('click',saveExport);return}
   const a=document.createElement('a');a.href=X.url;a.download=X.fn;document.body.appendChild(a);a.click();a.remove();xst.innerHTML='Download started: '+X.fn+'. Not in Downloads? <a href="'+X.url+'" download="'+X.fn+'">Tap here</a>'}}
 let clockW=null,initP=null;
 function startClock(){lastTick=0;LA=0.35;try{if(!clockW){const u=URL.createObjectURL(new Blob(["let t=null;onmessage=e=>{clearInterval(t);if(e.data>0)t=setInterval(()=>postMessage(0),e.data)}"],{type:'text/javascript'}));clockW=new Worker(u);clockW.onmessage=()=>{if(playing)sched()}}clockW.postMessage(25);return null}catch(e){return setInterval(sched,25)}}
@@ -2831,7 +2870,7 @@ const previewBass=async()=>{await init();if(LIB[bassSound()])await loadLib(bassS
 $('kcomp').addEventListener('change',arpUI);$('bt').addEventListener('change',previewBass);['pre','bs','arr','av','ac'].forEach(id=>$(id).addEventListener('change',()=>{if(ctx)bassSoundsFor().forEach(x=>{if(LIB[x])loadLib(x)})}));$('btone').addEventListener('change',()=>{applyTone();previewBass()});$('kon').addEventListener('change',()=>{chordPreview();if($('kon').checked&&ctx)keysLoad(keysSound())});$('ksnd').addEventListener('change',()=>{if(/^(pad|sweeppad|strings)/.test($('ksnd').value))$('kcomp').value='sustain';if($('kon').checked&&ctx)keysLoad(keysSound())});
 $('md').addEventListener('change',async()=>{buildProgMenu();if(fitProg())save();chordPreview();if($('bon').checked){await init();parseProg();const k=tonicNow,seq=MODES[modeNow].concat([12]);seq.forEach((x,i)=>bassNote(ctx.currentTime+0.05+i*0.17,bassRoot(k)+x,0.15,0.85))}});
 $('key').addEventListener('change',async()=>{buildProgMenu();chordPreview();await init();if($('bon').checked)previewBass();else hit(ELEC.includes($('kk').value)?36:35,ctx.currentTime+0.02,1)});
-$('bnew').onclick=async()=>{bassSeed=Math.floor(Math.random()*1e6);save();$('bnew').innerHTML=mmIcon('dice')+'New line '+mmIcon('check');setTimeout(()=>$('bnew').innerHTML=mmIcon('dice')+'New bass line',900)};
+$('bnew').onclick=async()=>{bassSeed=Math.floor(Math.random()*1e6);save();};
 $('mode').onchange=async()=>{await init();route()};
 $('dev').onchange=async()=>{await init();applyDev()};
 $('dev').onfocus=listDevs;
@@ -2841,10 +2880,10 @@ $('reset').onclick=()=>{restoring=true;try{store.removeItem(SKEY)}catch(e){}loca
 $('fnow').onclick=fillNow;
 let taps=[];const tap=()=>{const n=performance.now();taps=taps.filter(t=>n-t<3000);taps.push(n);if(taps.length>1)setBpm(60000/((taps[taps.length-1]-taps[0])/(taps.length-1)))};$('tap').onclick=tap;
 $('logclr').onclick=()=>{logData={days:{},best:{},sessions:0};saveLog();logUI()};
-const psMsg=t=>{$('psm').textContent=t};
-$('pss').onclick=()=>{const {raw,ok}=readPresets();const name=cleanName($('psn').value)||$('ps').value||('Preset '+(Object.keys(ok).length+1));raw[name]=getState(false);try{writePresets(raw);psMsg('Saved “'+name+'”'+(store.mem?' (until reload)':''))}catch(e){psMsg('Could not save')}psUI(name);$('psn').value=''};
+const psMsg=(t,ty)=>toast(t,ty||'success');
+$('pss').onclick=()=>{const {raw,ok}=readPresets();const name=cleanName($('psn').value)||$('ps').value||('Preset '+(Object.keys(ok).length+1));raw[name]=getState(false);try{writePresets(raw);psMsg('Saved “'+name+'”'+(store.mem?' (until reload)':''))}catch(e){psMsg('Could not save the preset on this device','error')}psUI(name);$('psn').value=''};
 $('ps').onchange=()=>{if($('ps').value)$('psl').click()};
-$('psl').onclick=()=>{const st=presets()[$('ps').value];if(!st){psMsg('Choose a preset first');return}if(applyState(st)){uiRefresh();save();psMsg('Loaded “'+$('ps').value+'”')}else psMsg('That preset could not load')};
+$('psl').onclick=()=>{const st=presets()[$('ps').value];if(!st){psMsg('Choose a preset first','error');return}if(applyState(st)){uiRefresh();save();psMsg('Loaded “'+$('ps').value+'”')}else psMsg('That preset could not load','error')};
 /* Delete asks in a modal dialog: one clear question, Cancel is the default, Escape or a tap outside cancels. */
 function confirmDlg(title,msg,okText){return new Promise(res=>{let d=$('mmDlg');
  if(!d){d=document.createElement('dialog');d.id='mmDlg';d.className='mmdlg';d.innerHTML='<form method="dialog"><h3 id="mmDlgT"></h3><p id="mmDlgM"></p><div class="mmdlgb"><button value="cancel" id="mmDlgC">Cancel</button><button value="ok" id="mmDlgO" class="danger">Delete</button></div></form>';document.body.appendChild(d);
@@ -2852,14 +2891,14 @@ function confirmDlg(title,msg,okText){return new Promise(res=>{let d=$('mmDlg');
  if(!d.showModal){res(window.confirm(msg));return}
  $('mmDlgT').textContent=title;$('mmDlgM').textContent=msg;$('mmDlgO').textContent=okText||'Delete';d.returnValue='cancel';
  d.onclose=()=>res(d.returnValue==='ok');try{d.showModal()}catch(e){res(window.confirm(msg));return}try{$('mmDlgC').focus()}catch(e){}})}
-$('psd').onclick=async()=>{const k=$('ps').value;if(!k){psMsg('Choose a preset first');return}
- const yes=await confirmDlg('Delete preset?','“'+k+'” will be erased from this device. This can’t be undone.','Delete');if(!yes){psMsg('Kept “'+k+'”');return}
+$('psd').onclick=async()=>{const k=$('ps').value;if(!k){psMsg('Choose a preset first','error');return}
+ const yes=await confirmDlg('Delete preset?','“'+k+'” will be erased from this device. This can’t be undone.','Delete');if(!yes){psMsg('Kept “'+k+'”','info');return}
  const {raw:P2}=readPresets();delete P2[k];try{writePresets(P2)}catch(e){}psUI();psMsg('Deleted “'+k+'”')};
 $('cx').onclick=async()=>{const c=await encodeCode();$('code').value=c;
  if(c.length>CODEMAX){$('cmsg').innerHTML='This code is long ('+c.length+' characters) because of your piano roll notes, and some apps cut long text. Safer: <button type="button" id="cxf" class="btn">'+mmIcon('download')+'Save as .metronome file</button>';
   $('cxf').onclick=()=>{const gname=(($('pre').selectedOptions[0]||{}).textContent||curName).replace(/\s*\(.*\)/,'');if(window.mmSaveStates)mmSaveStates({[gname+' '+bpm+' BPM (piano roll)']:getState(false)})};return}
- let ok=false;try{const pp=document.permissionsPolicy||document.featurePolicy;if(pp&&pp.allowsFeature&&!pp.allowsFeature('clipboard-write'))throw 0;await navigator.clipboard.writeText(c);ok=true}catch(e){try{$('code').select();ok=document.execCommand('copy')}catch(e2){}}cmsg(ok?'Copied! Paste it into another drum machine.':'Code ready — select and copy it from the box.')};
-$('ci2').onclick=async()=>{try{applyState(await decodeCode($('code').value));save();$('cmsg').innerHTML='Pattern loaded '+mmIcon('check')}catch(e){cmsg('That code did not work: '+e.message)}};
+ let ok=false;try{const pp=document.permissionsPolicy||document.featurePolicy;if(pp&&pp.allowsFeature&&!pp.allowsFeature('clipboard-write'))throw 0;await navigator.clipboard.writeText(c);ok=true}catch(e){try{$('code').select();ok=document.execCommand('copy')}catch(e2){}}$('cmsg').textContent='';toast(ok?'Pattern code copied. Paste it into another drum machine.':'Code ready. Select and copy it from the box.',ok?'success':'info')};
+$('ci2').onclick=async()=>{try{applyState(await decodeCode($('code').value));save();$('cmsg').textContent='';toast('Pattern loaded','success')}catch(e){toast('That code did not work: '+e.message,'error')}};
 // Space is Play/Stop: also cancel its keyup, or a button the mouse last clicked (Tap, +1) fires a second time.
 let spaceKey=false,kbNav=false;document.addEventListener('pointerdown',()=>{kbNav=false},true);document.addEventListener('keydown',e=>{if(e.key==='Tab')kbNav=true},true);
 document.addEventListener('keyup',e=>{if(e.code==='Space'&&spaceKey){spaceKey=false;e.preventDefault()}});
@@ -3073,7 +3112,7 @@ prInit();prDraw();
   if(sp.get('xp')){setSel($('xlen'),sp.get('xp'));history.replaceState(null,'',location.pathname);$('xst').textContent='Your settings from Notion are loaded. Tap Export to build and save your MP3.';setTimeout(()=>{if(window.mmShowTab)mmShowTab('Export');$('xbtn').scrollIntoView({block:'center'});$('xbtn').focus()},300)}}})();
 ['xby','xtimes','xci','bon','kon','arr','ab','cb','av','ac','prog','cprog','bpc','fe','bmode','kmode','rbars','pre','ts'].forEach(id=>{const e=$(id);if(e)e.addEventListener('change',()=>setTimeout(xInfo,0))});xInfo();
 
-</script><script>(function(){const C=['#e8412c','#f28c28','#f6c33b','#efe6d2'];document.querySelectorAll('.sec>h4').forEach((h,i)=>h.style.setProperty('--band',C[i%4]))})();</script><p class="appver" style="text-align:center;font-size:11px;opacity:.6;margin:18px 0 10px;font-family:ui-monospace,Menlo,monospace">Modal Metronome · Version 2026-11-13.3</p>
+</script><script>(function(){const C=['#e8412c','#f28c28','#f6c33b','#efe6d2'];document.querySelectorAll('.sec>h4').forEach((h,i)=>h.style.setProperty('--band',C[i%4]))})();</script><p class="appver" style="text-align:center;font-size:11px;opacity:.6;margin:18px 0 10px;font-family:ui-monospace,Menlo,monospace">Modal Metronome · Version 2026-11-13.4</p>
 <script>/* Setting help: hover the name on a computer, tap it on a phone or iPad */
 (function(){const T={"xby": "Choose how long the MP3 is: Times through plays the whole loop a set number of times (the chord loop, or verse + chorus in Verse / Chorus mode) and ends on the one. Minutes plays for a set time.", "xtimes": "How many times the whole loop plays in the MP3. Once through = the full chord loop, or verse + chorus when Verse / Chorus is on. The file ends back on the one with the last chord ringing out.", "xci": "Adds the count-in clicks at the start of the MP3, so you know when to come in. Off = the band starts right away.", "bmode": "Auto: the app writes the bass line for you, fresh as it plays. Manual: the bass plays the notes in the piano roll. Switching back to Auto keeps your roll notes saved.", "kmode": "Auto: the app plays the chords for you in the comping style you picked. Manual: the keys play the notes in the piano roll. Switching back to Auto keeps your roll notes saved.", "rsec": "With Verse / Chorus on, the verse and the chorus can each have their own part. Shared = one part for both. A section with no notes of its own plays the shared part.", "rbars": "How long the part is before it repeats: 1, 2, 4 or 8 bars. Making it shorter hides the later bars; their notes come back when you make it longer again.", "rlock": "Scale lock: a note you tap snaps to the nearest note of the key and mode, so a wrong note can't sneak in. The light rows are the notes in the key. Turn it off to add any note, like a chromatic passing note.", "rchord": "Chord stamp (keys): tap anywhere in a bar to drop in that bar's chord, voiced the way the auto keys play it and held to the next chord change. Then change the notes one by one.", "rcopy": "Copies what Auto plays right now (this progression, this groove, this style) into the roll as notes you can change. It switches the part to Manual, and it sounds just like Auto until you edit it.", "rundo": "Takes back the last change in the piano roll.", "rclr": "Removes every note in this part. You get asked first, and Undo brings them back.", "mv": "Master volume for everything: drums, bass and keys. Saved on this device only, not in presets or links.", "xlen": "How many minutes the MP3 lasts when you export by minutes. It records the groove, bass, chords, fills and tempo exactly as they are set now, so you can practice with it anywhere.", "ps": "Your saved setups. Pick one to load it. Type a name and tap Save to store everything you have set right now. Presets live on this device and never get erased by Reset.", "pre": "The drum pattern. Each groove is written the way real drummers play that style. Changing it also sets the time signature the groove is written in.", "ts": "Time signature: how many beats are in a bar and what kind. 4/4 = four quarter-note beats. 6/8, 9/8 (3+3+3) and 12/8 = beats split in three. In 5/8, 7/8, 9/8 (2+2+2+3) and 11/8 each beat is one 8th note, so the BPM counts 8ths.", "sdv": "Subdivide: the steady in-between notes that keep time. \"As written\" plays the groove's own hi-hat or ride part. Pick Quarter notes, 8ths, 16ths, Triplets or Off-beats to replace it with a steady pulse. Off = no subdivision at all, just the kick and snare.", "cy": "Subdivide with: the instrument that plays the subdivision. Hi-hat is tight and dry, ride is washy, ride bell cuts through, shaker and tambourine are soft and bright, cowbell, side stick, claves and woodblock are clicky and easy to hear.", "fb": "First beat: adds an extra sound on beat 1 of every bar so you always know where the bar starts. Great for odd meters like 7/8 and 9/8.", "sw": "Swing pushes every second note late. 50% = straight, even notes. About 67% = triplet swing, like jazz and blues shuffles.", "pkt": "Pocket: where the drummer sits on the beat. Auto uses the real feel of the groove: backbeat a hair behind, hats leading. Machine = perfectly on the grid.", "gdyn": "Ghost notes are the very soft snare taps between the backbeats. \"4 levels\" plays them softer or louder depending on where they fall, like a real drummer. Flat = all the same.", "groll": "How often soft snare rolls show up: drags, ruffs, 5-stroke and short buzz rolls tucked in before the backbeat or onto the e and a. They sit below the ghost notes. Sprinkle = now and then, Some = about one a bar, Lots = a busy ghost-note feel.", "grst": "Natural mix = what a drummer reaches for: mostly drags and short ruffs, some buzzes, now and then a 7- or 9-stroke roll that builds into a fill. Stick strokes = no buzzes. Buzz and press rolls = only buzzed strokes.", "hu": "Humanize adds tiny random changes in timing and volume so the drums don't sound like a machine. Zero = perfectly even.", "crash": "Plays a crash cymbal on beat 1 every 4 bars to mark the phrase.", "ci": "Count-in: clicks before the band starts so you can come in on time.", "do": "Drop-out: the drums and bass go silent for some bars while you keep playing. When they come back, you find out if you kept the time yourself.", "bigl": "Makes the beat light big and flashes the screen on every beat, so you can see the pulse from across the room.", "tr": "Tempo trainer: speeds the metronome up a little every few bars until it reaches your goal. It never slows down.", "trg": "The tempo the trainer stops at.", "tri": "How many BPM to add each time.", "trb": "How many bars to play before each speed-up.", "fe": "How often the drummer plays a fill (a short drum break) at the end of a phrase.", "fs": "The kind of fill: toms, snare, or a mix.", "fa": "How busy the fill is. Low = short and simple. High = full bar with doubles.", "fc": "Plays a crash on the beat right after every fill, like a drummer landing the fill.", "key": "The major parent key: the \"1\" of the scale. The studio names every mode from its parent major key.", "md": "The mode: which note of the parent key the music sits on. The bass and keys use it for passing notes and voicings.", "prog": "The chord progression the bass and keys play. Pick a mode first: the list then shows only that mode's progressions, in Roman numerals counted from the parent major key, always (D Dorian in C: ii – V = Dm – G), with the letters for your parent key.", "bpc": "How long each chord lasts. Normal = one bar. Double time = two chords per bar. Half time = each chord lasts two bars.", "cprog": "Type your own chords, separated by spaces (for example: ii7 V7 Imaj7 or Dm7 G7 Cmaj7). Every standard chord symbol works: 7ths, 6/9, 9, 11, 13, sus, add9, ♭9, ♯11, alt, slash chords like C/E, and V/V. Tap the (i) for the full list.", "bon": "Turns the bass player on. The bass follows the chords and the groove.", "bt": "The bass sound: electric, upright, synth and more. Auto picks the fingerstyle funk bass (real ghost notes and muted plucks) for funk, soul and R&B, and the clean studio bass for everything else.", "bgh": "Ghost notes: muted thuds between the real notes, the way funk and soul bassists fill the 16ths. Auto uses as many as the style calls for. Sprinkle, Some and Lots set it yourself.", "bart": "How the bass player plays the notes: slides into a note, hammer-ons, octave pops, a chromatic note leading into the next chord tone, and now and then a fall-off at the end of a phrase. Auto = what suits the style. Off = plain notes.", "rart": "Pick a bass note in the roll, then choose how it is played: a ghost (dead) note, a slide in, a hammer-on, a pop or a fall-off. Copy auto to roll brings these over from the auto bass line.", "btone": "Shapes the bass like a mixing engineer: EQ and compression on the bass channel.", "bs": "How the bass plays: root notes, walking lines, pedal tones and more, matched to the style.", "bauto": "Writes a fresh bass line every few bars so it never gets repetitive.", "bvar": "How often the bass adds passing notes, octave jumps and pickups.", "bv": "Bass volume, separate from the drums.", "kon": "Turns the keyboard player on. The keys play the chords in the progression.", "ksnd": "The keyboard sound. Auto picks what a band would bring: grand piano for pop, ballads, jazz and Latin, a tine electric piano for neo-soul and funk, a tonewheel organ for gospel and blues shuffles. The sampled sounds load the first time you pick them.", "kcomp": "Comping = how the keys play the chords: held, pushed, stabs. Auto matches the groove.", "kvoice": "Voicing = which chord notes the keys play. Pop/rock: the root in the left hand, the triad in the right, moving to the closest notes. Jazz: rootless voicings (3-7-9, 7-3-13) between C3 and A4, the root left to the bass. Neo-soul and gospel add 9ths, 11ths and 13ths from the mode. Nothing muddy: no 3rds below E-flat 3.", "kv": "Keys volume, separate from the drums.", "kit": "Picks the whole drum kit at once. You can still change each drum below.", "kk": "The kick drum sound.", "sn": "The snare drum sound.", "rv": "The ride cymbal sound.", "hh": "The hi-hat sound.", "hfeel": "Tight = closed and choked. Loose = hats a little open and sloshy.", "sfeel": "Tight = damped, higher crack. Open = lower, fatter, more ring.", "kfeel": "Tight = short and punchy. Boomy = lower and longer.", "tm": "The tom sounds used in fills.", "pc": "The percussion sounds: shaker, tambourine, cowbell, congas and more.", "room": "How much room echo (reverb) is on the whole band.", "arr": "Song mode: switches between a verse groove and a chorus groove, so practice feels like a real song.", "av": "The groove for the verse.", "ac": "The groove for the chorus.", "ab": "How many bars the verse lasts.", "cb": "How many bars the chorus lasts.", "mode": "Direct is fastest. Pick Compatibility only if the sound crackles or won't play on your device.", "dev": "Which speaker or headphones the sound plays through.", "showall": "Shows every drum in the pattern grid, not just the drums this groove uses.", "gvl": "How many strengths a grid square can have. 4: accent, normal, soft, ghost. 3: accent, normal, ghost. 2: normal and ghost. Going down snaps every hit to the nearest level that is left; nothing is deleted. The grooves keep their exact strengths until you change them."};
  const tip=document.createElement('div');tip.id='tip';document.body.appendChild(tip);let cur=null;
@@ -3154,7 +3193,7 @@ prInit();prDraw();
 })();</script>
 <script>/* 2026-11-11.15: export presets to a .metronome file, import them back (several files at once, name clashes asked). */
 (function(){const $=id=>document.getElementById(id);if(!$('psx'))return;
- const msg=t=>{$('psxm').textContent=t};
+ const msg=(t,ty)=>{$('psxm').textContent='';toast(t,ty||(/^(Not saved|Nothing)/.test(t)?'info':'success'))};
  const today=()=>new Date().toISOString().slice(0,10);
  // The file: JSON with our own extension. "format" is the file layout; each preset carries its own fmt (see the stored-data contract).
  const fileText=P=>JSON.stringify({app:'modal-metronome',format:1,exported:new Date().toISOString(),appVersion:appVer(),presets:P},null,1);
@@ -3171,9 +3210,9 @@ prInit();prDraw();
  const unb64=t=>{t=t.replace(/-/g,'+').replace(/_/g,'/');const s=atob(t),u=new Uint8Array(s.length);for(let i=0;i<s.length;i++)u[i]=s.charCodeAt(i);return u};
  async function pack(text){const u=new TextEncoder().encode(text);if(window.CompressionStream){try{const z=new Uint8Array(await new Response(new Blob([u]).stream().pipeThrough(new CompressionStream('deflate-raw'))).arrayBuffer());return 'z.'+b64(z)}catch(e){}}return 'p.'+b64(u)}
  async function unpack(t){const k=t.slice(0,2),u=unb64(t.slice(2));if(k==='z.')return await new Response(new Blob([u]).stream().pipeThrough(new DecompressionStream('deflate-raw'))).text();return new TextDecoder().decode(u)}
- $('psx').onclick=async()=>{const P=presets(),n=Object.keys(P).length;if(!n){msg('No presets to export yet. Save one first.');return}
+ $('psx').onclick=async()=>{const P=presets(),n=Object.keys(P).length;if(!n){msg('No presets to export yet. Save one first.','error');return}
   if(inFrame){const u=location.origin+location.pathname+'#mmpx='+await pack(JSON.stringify(P));const w=window.open(u,'_blank');
-   if(w)msg('Opened full screen to save your presets file (Notion blocks downloads inside the page).');else{$('psxm').innerHTML='Notion blocks downloads here. <a href="'+u+'" target="_blank" rel="noopener">Open full screen to save your presets</a>'}return}
+   if(w)msg('Opened full screen to save your presets file (Notion blocks downloads inside the page).','info');else{$('psxm').innerHTML='Notion blocks downloads here. <a href="'+u+'" target="_blank" rel="noopener">Open full screen to save your presets</a>'}return}
   msg(await saveFile(fileText(P),fname())+' · '+n+' preset'+(n==1?'':'s'))};
  // Full-screen tab opened from Notion: keep the presets for this tab (an auto-update reload drops the #), then offer the Save button (a tap, so iOS allows the share sheet).
  (async()=>{try{const m=location.hash.match(/^#mmpx=([A-Za-z0-9_.-]+)/);let t=null;
@@ -3193,18 +3232,20 @@ prInit();prDraw();
   q.querySelector('p').textContent='You already have a preset called “'+name+'”. Keep both (the new one becomes “'+uniqueName(name,readPresets().raw)+'”) or replace yours?';
   q.querySelectorAll('button').forEach(b=>b.onclick=()=>{const all=$('psqall').checked;q.hidden=true;q.innerHTML='';res({a:b.dataset.a,all})});q.querySelector('button').focus({preventScroll:true});q.scrollIntoView({block:'nearest'})})}
  async function importFiles(fs){if(window.mmShowTab)mmShowTab('Presets');const {raw}=readPresets();const add=[],rep=[],skip=[];let same=null;
-  for(const f of fs){let o=null;try{if(f.size>5e6)throw 0;o=JSON.parse(await f.text())}catch(e){skip.push(f.name+': not a presets file');continue}
-   const list=presetList(o,f.name);if(!list){skip.push(f.name+': no Modal Metronome presets in it');continue}if(!list.length){skip.push(f.name+': empty');continue}
+  for(const f of fs){
+   // iOS greys out a custom extension in the accept list, so the picker takes any file and this checks it: a .metronome name, or else presets JSON inside.
+   const named=/\.metronome$/i.test(f.name||'');let o=null;try{if(f.size>5e6)throw 0;o=JSON.parse(await f.text())}catch(e){skip.push(f.name+(named?': the file is damaged':': not a .metronome presets file'));continue}
+   const list=presetList(o,f.name);if(!list){skip.push(f.name+(named?': no Modal Metronome presets in it':': not a .metronome presets file'));continue}if(!list.length){skip.push(f.name+': empty');continue}
    for(const [n0,st] of list){const name=cleanName(n0);if(!name){skip.push('A preset with no usable name ('+f.name+')');continue}
     const cs=cleanState(st);if(!cs){skip.push('“'+name+'”: not a valid preset');continue}
     let to=name;if(name in raw){const d=same||await ask(name);if(d.all)same=d;if(d.a==='skip'){skip.push('“'+name+'”: you kept yours');continue}if(d.a==='both')to=uniqueName(name,raw);else rep.push(name)}
     raw[to]=cs;if(!rep.includes(to))add.push(to)}}
-  if(add.length||rep.length){try{writePresets(raw)}catch(e){msg('Could not save the imported presets on this device.');return}psUI(add[0]||rep[0])}
+  if(add.length||rep.length){try{writePresets(raw)}catch(e){msg('Could not save the imported presets on this device.','error');return}psUI(add[0]||rep[0])}
   const L=[];if(add.length)L.push('Imported '+add.length+': '+add.map(x=>'“'+x+'”').join(', '));if(rep.length)L.push('Replaced '+rep.length+': '+rep.map(x=>'“'+x+'”').join(', '));
-  if(skip.length)L.push('Skipped '+skip.length+': '+skip.join('; '));msg(L.join('\n')||'Nothing to import.')}
+  if(skip.length)L.push('Skipped '+skip.length+': '+skip.join('; '));msg(L.join('\n')||'Nothing to import.',add.length||rep.length?'success':(skip.length?'error':'info'))}
  window.mmImport=importFiles;
- window.mmSaveStates=async P=>{if(inFrame){const u=location.origin+location.pathname+'#mmpx='+await pack(JSON.stringify(P));const w=window.open(u,'_blank');$('cmsg').textContent=w?'Opened full screen to save the file (Notion blocks downloads inside the page).':'Notion blocks downloads here. Open the metronome full screen and try again.';return}
-  $('cmsg').textContent=await saveFile(fileText(P),Object.keys(P)[0].replace(/[^\w\- ]+/g,'')+'.metronome')};
+ window.mmSaveStates=async P=>{if(inFrame){const u=location.origin+location.pathname+'#mmpx='+await pack(JSON.stringify(P));const w=window.open(u,'_blank');$('cmsg').textContent='';toast(w?'Opened full screen to save the file (Notion blocks downloads inside the page).':'Notion blocks downloads here. Open the metronome full screen and try again.',w?'info':'error');return}
+  $('cmsg').textContent='';{const r=await saveFile(fileText(P),Object.keys(P)[0].replace(/[^\w\- ]+/g,'')+'.metronome');toast(r,/^Not saved/.test(r)?'info':'success')}};
 })();</script>
 <script>/* Auto-update: Safari and Notion keep old copies of this page. If the live site has a newer version, reload it once (settings in the link are kept). */
 (function(){const mine=(document.querySelector('.appver')||{}).textContent||'';const m=mine.match(/Version ([0-9.-]+)/);if(!m)return;
