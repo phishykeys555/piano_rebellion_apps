@@ -222,7 +222,7 @@ summary{cursor:pointer;padding:0 14px;min-height:44px;display:flex;align-items:c
       <h3>Credits</h3>
       <p class="tip">Grand piano: Salamander Grand Piano V3 by Alexander Holm (CC BY 3.0), via sfzinstruments. Drums: AVL Drumkits by Glen MacArthur (CC BY-SA 4.0): Black Pearl kick, snare and cross-stick; Blonde Bop hi-hats and ride. Bass: synthesized in the app. Round music: original, synthesized live (CHMA). Riffs are generated from style vocabulary, never copied from records.</p>
     </div></details>
-    <p class="appver">Riff Simon Says · Version 2026-11-13.2</p>
+    <p class="appver">Riff Simon Says · Version 2026-11-13.3</p>
   </section>
 
   <section class="play">
@@ -267,7 +267,7 @@ summary{cursor:pointer;padding:0 14px;min-height:44px;display:flex;align-items:c
 <script>
 (()=>{
 'use strict';
-const VERSION='2026-11-13.1';
+const VERSION='2026-11-13.3';
 const $=id=>document.getElementById(id);
 const store={get(k,d){try{const v=localStorage.getItem('rs-'+k);return v==null?d:JSON.parse(v)}catch(e){return d}},set(k,v){try{localStorage.setItem('rs-'+k,JSON.stringify(v))}catch(e){}}};
 const clamp=(x,a,b)=>Math.max(a,Math.min(b,x));
@@ -639,7 +639,7 @@ let midiAcc=null;
 const midiOK=()=>!!navigator.requestMIDIAccess;
 // the studio's one MIDI block (device picker when more than one input, hot-plug, Connected: <device>), the same in every app.
 // Calibration stays per device: midiDev is the picked device (or, with all inputs, the one that played).
-/* ---- CHMA MIDI input v1 (2026-11-13). The same block in every app that listens to a keyboard (copied in, never imported).
+/* ---- CHMA MIDI input v1.1 (2026-11-13). The same block in every app that listens to a keyboard (copied in, never imported).
    Web MIDI: Chrome and Edge on a computer (Safari, iPhone and iPad have none). One device picker when more than one input is plugged in,
    hot-plug (onstatechange), note-on with velocity > 0 only, the choice of device saved. onNote(note, velocity, timeStamp, deviceName):
    timeStamp is the event's performance.now() time; ctxTime() maps it to an AudioContext clock where timing matters. ---- */
@@ -659,7 +659,11 @@ function chmaMidi(o){
   const full=()=>` <a href="${esc(location.href.split("#")[0])}" target="_blank" rel="noopener">Open full screen</a>.`;
   function msg(ev){ const d=ev&&ev.data; if(!d||d.length<3) return; if((d[0]&0xf0)!==0x90||!(d[2]>0)) return;   // note-on, velocity > 0 (velocity 0 = note-off)
     const i=ev.currentTarget||ev.target; if(i&&!picked().some(x=>x===i||x.id===i.id)) return;
-    const ts=ev.timeStamp>0?ev.timeStamp:performance.now(); try{ o.onNote(d[1],d[2],ts,nm(i)) }catch(e){ console.warn(e) } }
+    // the event's time, unless the driver gave none (0) or one from another clock: then the moment it arrived
+    const now=performance.now(), ts=ev.timeStamp>0&&Math.abs(ev.timeStamp-now)<1000?ev.timeStamp:now;
+    // one key = one note: the same note again within 30 ms (a keyboard on two ports, a double trigger) is dropped
+    if(M.last&&M.last.n===d[1]&&Math.abs(ts-M.last.ts)<30) return; M.last={n:d[1],ts};
+    try{ o.onNote(d[1],d[2],ts,nm(i)) }catch(e){ console.warn(e) } }
   function bind(){ ins().forEach(i=>{ i.onmidimessage=msg }); show() }
   function show(){ let t="";
     if(M.state==="none") t="MIDI works in Chrome or Edge on a computer.";
@@ -683,7 +687,7 @@ function chmaMidi(o){
   // performance.now() time -> AudioContext time (the moment that sound is heard at the speaker, when the browser can say)
   M.ctxTime=(ts,ac)=>{ if(!ac) return null; try{ const t=ac.getOutputTimestamp&&ac.getOutputTimestamp(); if(t&&t.performanceTime>0&&t.contextTime>0) return t.contextTime+(ts-t.performanceTime)/1000 }catch(e){} return ac.currentTime-(performance.now()-ts)/1000-((ac.outputLatency||0)+(ac.baseLatency||0)) };
   M.show=show; show(); return M }
-/* ---- end CHMA MIDI input v1 ---- */
+/* ---- end CHMA MIDI input v1.1 ---- */
 const MIDI=chmaMidi({app:"riff-says",host:$('midiBox'),onNote:(n,v,ts,name)=>{ AC(); midiDev=name||midiDev; noteIn(n,perfToCtx(ts),v/127,'midi') },
   onStatus:(state,names)=>{ if(names&&names.length===1) midiDev=names[0]; try{ calLabel() }catch(e){} }});
 async function midiConnect(){ const ok=await MIDI.start(); midiAcc=ok?MIDI.acc:null; inStat(); calLabel() }
