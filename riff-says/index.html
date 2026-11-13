@@ -220,7 +220,7 @@ summary{cursor:pointer;padding:0 14px;min-height:44px;display:flex;align-items:c
       <span class="stamp">The mic hears every note as it starts (spectral flux), even the same key played again over the sustain, then names the pitch (YIN). Headphones work best: with speakers the mic also hears the groove.</span>
       <details><summary>Show details</summary><pre class="dbg" id="dbg">Mic is off.</pre></details>
       <h3>Credits</h3>
-      <p class="tip">Grand piano: Salamander Grand Piano V3 by Alexander Holm (CC BY 3.0), via sfzinstruments. Drums: AVL Drumkits by Glen MacArthur (CC BY-SA 4.0): Black Pearl kick, snare and cross-stick; Blonde Bop hi-hats and ride. Bass: synthesized in the app. Round music: original, synthesized live (CHMA). Riffs are generated from style vocabulary, never copied from records.</p>
+      <p class="tip">Grand piano: Salamander Grand Piano V3 by Alexander Holm (CC BY 3.0), via sfzinstruments. Drums: AVL Drumkits by Glen MacArthur (CC BY-SA 4.0): Black Pearl kick, snare and cross-stick; Blonde Bop hi-hats and ride. Basses (shared with the Modal Metronome): fingered and picked electric, GeneralUser GS by S. Christian Collins (free for any use); upright, FluidR3 GM by Frank Wen (MIT); fingerstyle funk with ghost notes, Black And Blue Basses by Karoryfer Samples (CC0). Rhodes: GeneralUser GS 2.0.3. String pad: FreePats (CC0). Claves: synthesized in the app. Round music: original, synthesized live (CHMA). Riffs are generated from style vocabulary, never copied from records.</p>
     </div></details>
     <p class="appver">Riff Simon Says · Version 2026-11-13.4</p>
   </section>
@@ -492,7 +492,7 @@ function loadSounds(){ if(loadP) return loadP; AC(); const jobs=[];
   Object.values(DRUMS).forEach(([k,v])=>[1,2,3,4,5].forEach(i=>jobs.push([k+v+i,KDIR[k]+v+'_'+i+'.mp3'])));
   let done=0; loadP=Promise.all(jobs.map(async([id,u])=>{ try{ buf[id]=await fetchBuf(new URL(u,location.href).href) }catch(e){} done++; if(done%8===0||done===jobs.length) loadUI(done/jobs.length) })).then(()=>{ loaded=true; loadUI(1) });
   return loadP }
-function loadUI(p){ if(p<1&&!T) flash(`Loading the piano and drums… ${Math.round(p*100)}%`,'') ; else if(p>=1&&!T&&/Loading/.test($('flash').textContent)) flash('Ready. Press Start.','') }
+function loadUI(p){ if(p<1&&!T) flash(`Loading the piano and drums… ${Math.round(p*100)}%`,'') ; else if(p>=1&&!T&&/Loading/.test($('flash').textContent)&&bandOK[STYLES[st.style].groove]) flash('Ready. Press Start.','') }
 // piano: nearest sample every minor third, velocity layer, Salamander tuning; one voice per key per bus (a restrike damps the old one)
 const pv={};
 function piano(m,t,vel,dur,bus,busName){ if(!ac) return; const n=PNOTES.reduce((p,c)=>Math.abs(c-m)<Math.abs(p-m)?c:p); let L=PLAYERS[0]; for(const x of PLAYERS) if(Math.abs(x[1]-vel*127)<Math.abs(L[1]-vel*127)) L=x;
@@ -504,17 +504,17 @@ function piano(m,t,vel,dur,bus,busName){ if(!ac) return; const n=PNOTES.reduce((
   s.connect(g); g.connect(bus); s.start(t); s.stop(t+dur+rel*7); pv[key]={g,s,end:t+dur+rel*3}; track(s,g) }
 function synthPiano(m,t,vel,dur,bus){ const f=440*Math.pow(2,(m-69)/12), g=ac.createGain(); const pk=0.25*vel; g.gain.setValueAtTime(0,t); g.gain.linearRampToValueAtTime(pk,t+0.005); g.gain.setTargetAtTime(pk*0.4,t+0.01,0.25); g.gain.setTargetAtTime(0,t+dur,0.08); g.connect(bus);
   [[1,1],[2,.35],[3,.12]].forEach(([h,a])=>{ const o=ac.createOscillator(), og=ac.createGain(); o.frequency.value=f*h; og.gain.value=a; o.connect(og); og.connect(g); o.start(t); o.stop(t+dur+0.6); track(o,og) }) }
-function drum(v,t,vel){ if(!ac) return; const [k,name,gn]=DRUMS[v], i=vel<.3?1:vel<.5?2:vel<.72?3:vel<.95?4:5, b=buf[k+name+i]||buf[k+name+3]; if(!b) return;
-  const s=ac.createBufferSource(), g=ac.createGain(); s.buffer=b; s.playbackRate.value=0.995+Math.random()*0.01; g.gain.value=gn*(0.2+0.8*vel); s.connect(g); g.connect(buses.drums); s.start(t); track(s,g,t+b.duration) }
+function drum(v,t,vel,trim){ if(!ac) return; const [k,name,gn]=DRUMS[v], i=vel<.3?1:vel<.5?2:vel<.72?3:vel<.95?4:5, b=buf[k+name+i]||buf[k+name+3]; if(!b) return;
+  const s=ac.createBufferSource(), g=ac.createGain(); s.buffer=b; s.playbackRate.value=0.995+Math.random()*0.01; g.gain.value=gn*(0.2+0.8*vel)*(trim||1); s.connect(g); g.connect(buses.drums); s.start(t); track(s,g,t+b.duration) }
 // The band's instruments: the Modal Metronome's recorded basses and keys, loaded from its folders (nothing copied), only the set a style needs.
-// gm/gain: levels matched by offline renders (2026-11-13.4) so drums, bass and keys sit together and the call rides 6+ dB over them.
+// gm/gain: each set measured (RMS of a note's first 300 ms) and matched: a bass note sits about 3 dB under a kick, comping 8 to 10 dB under the drums.
 const BDIR='../drum-machine/bass/', KDIR2='../drum-machine/keys/', R3=(a,b)=>{ const o=[]; for(let m=a;m<=b;m+=3) o.push(m); return o };
-const BLIB={finger:{dir:BDIR+'gfin/',notes:R3(25,52),vels:['p','f','ff'],rr:1,lpf:2600,gm:1.5,rel:0.08},
-  pick:{dir:BDIR+'gpik/',notes:R3(25,52),vels:['p','f','ff'],rr:1,lpf:4200,gm:1.35,rel:0.07},
-  upright:{dir:BDIR+'gupright/',notes:R3(25,52),vels:['p','f','ff'],rr:1,lpf:4200,gm:1.3,rel:0.1},
-  funk:{dir:BDIR+'bbk/',notes:R3(25,64),vels:['mp','f'],rr:2,ghost:['gp',2],lpf:6500,gm:0.75,rel:0.07}};
-const KLIB={tine:{dir:KDIR2+'tine/',notes:R3(40,91),layers:[36,64,92,124],file:(n,l)=>n+'_'+l,gain:1.1,rel:0.11,att:0.003},
-  strings:{dir:KDIR2+'strings/',notes:[42,48,54,60,66,72,78,84,90,96],layers:[100],file:n=>n+'_f_1',gain:0.9,rel:0.7,att:0.18}};
+const BLIB={finger:{dir:BDIR+'gfin/',notes:R3(25,52),vels:['p','f','ff'],rr:1,lpf:2600,gm:3.6,rel:0.08},
+  pick:{dir:BDIR+'gpik/',notes:R3(25,52),vels:['p','f','ff'],rr:1,lpf:4200,gm:4.0,rel:0.07},
+  upright:{dir:BDIR+'gupright/',notes:R3(25,52),vels:['p','f','ff'],rr:1,lpf:4200,gm:1.6,rel:0.1},
+  funk:{dir:BDIR+'bbk/',notes:R3(25,64),vels:['mp','f'],rr:2,ghost:['gp',2],lpf:6500,gm:1.15,rel:0.07}};
+const KLIB={tine:{dir:KDIR2+'tine/',notes:R3(40,91),layers:[36,64,92,124],file:(n,l)=>n+'_'+l,gain:1.4,rel:0.11,att:0.003},
+  strings:{dir:KDIR2+'strings/',notes:[42,48,54,60,66,72,78,84,90,96],layers:[100],file:n=>n+'_f_1',gain:1.9,rel:0.7,att:0.18}};
 const bandOK={}, bandP={};
 function bandFiles(G){ const out=[], L=BLIB[BAND_BASS[G]], K=KLIB[BAND_KEYS[G]];
   L.notes.forEach(n=>{ L.vels.forEach(v=>{ for(let r=1;r<=L.rr;r++) out.push(L.dir+n+'_'+v+'_'+r) }); if(L.ghost) for(let r=1;r<=L.ghost[1];r++) out.push(L.dir+n+'_'+L.ghost[0]+'_'+r) });
@@ -578,6 +578,8 @@ function hushAll(){ if(!ac) return; const t=ac.currentTime; live.forEach(v=>{ tr
 const T3=1/3;
 // pocket: where each voice leans against the grid, in ms (+ = behind the beat). Small on purpose: the time stays honest.
 const POCKET={shuffle:{S:7,keys:8,bass:3},rock:{S:3,keys:4},funk:{S:1,odd:5,keys:2},pop:{S:4},swing:{bass:-5,keys:10,S:6},latin:{}};
+// a jazz ride and a latin bell carry far less energy than a backbeat: their kits come up to sit with the bass
+const DRUM_TRIM={swing:1.7,latin:1.3};
 const pocket=(G,v)=>(POCKET[G]&&POCKET[G][v])||0;
 const BAND_BASS={shuffle:'finger',rock:'pick',funk:'funk',pop:'finger',swing:'upright',latin:'upright'};
 const BAND_KEYS={shuffle:'grand',rock:'grand',funk:'tine',pop:'strings',swing:'grand',latin:'grand'};
@@ -605,7 +607,7 @@ function bandBar(s,bar){ const S=STYLES[st.style], G=S.groove, key=s.key, gb=s['
   const R=mulberry((T.seed||1)*7919+gb*104729+bar), sw=s.sw||0.5, ph=gb%2, call=bar<s.tb, callTop=call&&bar===0;
   const r0=(key.pc+ch[1])%12, nr0=(key.pc+nx[1])%12, q=ch[3], third=q==='m7'||q==='m'?3:4, ev={d:[],b:[],k:[],c:[]};
   const D=(v,b,vel,p)=>{ if(p==null||R()<p) ev.d.push([v,b,vel]) }, Bn=(b,m,d,v,dead)=>ev.b.push([b,m,d,v,dead?1:0]), K=(b,ms,d,v)=>ev.k.push([b,ms,d,v]);
-  const r=near(bassRoot(r0),T.bassLast!=null?T.bassLast+0:bassRoot(r0)), rr=bassRoot(r0);
+  const rr=bassRoot(r0);
   if(G==='shuffle'){ // 12/8 shuffle: the swung 8th is the third triplet, the same place the call's offbeats land
     for(let i=0;i<4;i++){ if(callTop&&i===0) D('O',0,.5); else D('H',i,i%2?.66:.74); D('H',i+sw,.4) }
     D('K',0,.9); D('K',2,.8); D('K',1+sw,.42,.35); if(ph) D('K',3+sw,.4,.4);
@@ -635,7 +637,7 @@ function bandBar(s,bar){ const S=STYLES[st.style], G=S.groove, key=s.key, gb=s['
     (ph?[0,2,2.75]:[0,1.5,2]).forEach((b,i)=>D('K',b,i?.75:.9)); D('S',1,.95); D('S',3,.95); D('S',3.75,.18,ph?.4:0);
     const sc=[0,2,4,5,7,9,11].map(x=>(key.pc+x)%12), nr=near(bassRoot(nr0),rr+5); let ap=nr-1; for(const d of [-2,-1,1,2]){ if(sc.includes(((nr+d)%12+12)%12)){ ap=nr+d; break } }
     Bn(0,rr,1.4,.9); Bn(1.5,rr,.4,.62); Bn(2,rr,.95,.85); Bn(3,rr+7,.45,.7); Bn(3.5,ap,.45,.72);
-    const pcs=(q==='m'?[0,3,7]:[0,4,7]).map(x=>(r0+x)%12), vo=T.kv=vlead(pcs,52,64,T.kv); K(0,vo,3.9,.5) }
+    const pcs=(q==='m'?[0,3,7]:[0,4,7]).map(x=>(r0+x)%12), vo=T.kv=vlead(pcs,50,62,T.kv); K(0,vo,3.9,.5) }
   else if(G==='swing'){
     [[0,.55],[1,.72],[1+sw,.42],[2,.55],[3,.72],[3+sw,.42]].forEach(([b,v])=>D('R',b,callTop&&b===0?.85:v*(0.92+0.16*R())));
     D('P',1,.55); D('P',3,.55); for(let i=0;i<4;i++) D('K',i,.13); D('K',3+sw,.32,.15);
@@ -655,7 +657,7 @@ function bandBar(s,bar){ const S=STYLES[st.style], G=S.groove, key=s.key, gb=s['
     [[0,.42],[1,.3],[2,.38],[3,.3]].forEach(([b,v])=>D('B',b,callTop&&b===0?.65:v)); for(let i=0;i<8;i++) D('H',i/2,i%2?.18:.24);
     D('K',1.5,.42); D('K',3,.6); D('X',side?1:3,.35,.5);
     const nr=near(bassRoot(nr0),rr+5); if(T.bassBar!==gb-1) Bn(0,rr,1.4,.9); Bn(1.5,R()<.8?rr+7:rr+12,1.45,.82); Bn(3,nr,1.9,.92);
-    const pcs=(q==='7'?[4,7,10]:[0,4,7]).map(x=>(r0+x)%12), vo=T.kv=vlead(pcs,52,64,T.kv), top=vo[vo.length-1], dy=vo.slice(-2);
+    const pcs=(q==='7'?[4,7,10]:[0,4,7]).map(x=>(r0+x)%12), vo=T.kv=vlead(pcs,50,62,T.kv), top=vo[vo.length-1], dy=vo.slice(-2);
     (side?[[.5,'c'],[1,'t'],[2,'c'],[2.5,'t'],[3,'c'],[3.5,'c']]:[[0,'t'],[.5,'c'],[1.5,'c'],[2,'t'],[2.5,'c'],[3.5,'c']]).forEach(([b,w])=>K(b,w==='t'?[top-12,top]:dy,.38,w==='t'?.44:.38)) }
   T.bassBar=gb; const lb=ev.b.filter(x=>!x[4]).pop(); if(lb) T.bassLast=lb[1];
   return ev }
@@ -705,7 +707,7 @@ function scheduleStep(s,bar,stp,t){ const spb=s.spb, G=STYLES[st.style].groove, 
     if(s.kind==='trade'&&buses.duck) buses.duck.gain.setTargetAtTime(bar<s.tb?DUCK:1,Math.max(ac.currentTime,bt-0.04),0.05) }
   const E=s['ev'+bar], back=$('backing').value, here=b=>Math.min(15,Math.floor(b*4+1e-6))===stp, at=(b,ms)=>Math.max(ac.currentTime,bt+b*spb+ms/1000);
   E.d.forEach(([v,b,vel])=>{ if(!here(b)) return; let ms=pocket(G,v)+(Math.random()-.5)*(v==='H'||v==='R'?5:3); if(G==='funk'&&v==='H'&&Math.round(b*4)%2) ms+=pocket(G,'odd');
-    drum(v,at(b,ms),clamp(vel*(0.93+0.14*Math.random()),0.05,1)) });
+    drum(v,at(b,ms),clamp(vel*(0.93+0.14*Math.random()),0.05,1),DRUM_TRIM[G]) });
   E.c.forEach(([b,vel])=>{ if(here(b)) clave(at(b,(Math.random()-.5)*2),vel) });
   if(back!=='d') E.b.forEach(([b,m,d,vel,dead])=>{ if(here(b)) bassNote(m,at(b,pocket(G,'bass')+(Math.random()-.5)*3),d*spb,clamp(vel*(0.94+0.12*Math.random()),0.1,1),dead) });
   if(back==='dbc') E.k.forEach(([b,ms,d,vel])=>{ if(!here(b)) return; const t0=at(b,pocket(G,'keys')+(Math.random()-.5)*4), roll=G==='swing'||G==='shuffle'?0.007:0.004;
@@ -727,7 +729,20 @@ function perfToCtx(ts){ if(!ac) return 0; try{ const o=ac.getOutputTimestamp&&ac
 let midiDev='', calHook=null;
 function latKey(src){ return 'lat-'+src+'-'+(src==='midi'?midiDev:src==='mic'?($('micSel').value||'default'):(matchMedia('(pointer:coarse)').matches?'touch':'mouse')) }
 function defLag(src){ if(src==='midi') return 0; if(src==='screen') return matchMedia('(pointer:coarse)').matches?25:8; return Math.round(((ac&&(ac.outputLatency||0)+(ac.baseLatency||0))||0)*1000+10) }
-function lag(src){ const v=store.get(latKey(src),null); return v==null?defLag(src):v }
+function lag(src){ const v=store.get(latKey(src),null); if(v!=null) return v; const a=store.get(latKey(src)+'-auto',null); return a==null?defLag(src):a }
+// ---- AUTO LATENCY (2026-11-13.4), the Meter Master way ----
+// You are copying a riff you just heard, over a groove you can hear, so a STEADY offset across your right notes is the device's delay
+// (touch screen scan, Bluetooth, the audio driver), not your clock. From the first right notes of a run (at least 4, from 2+ answers):
+// when they agree (median absolute spread under 20 ms) and sit 4 to 150 ms off, that offset is learned for this input and device, and
+// every answer graded from then on goes through it. Uneven playing teaches it nothing, so rushing, dragging and sloppy notes still
+// score exactly as before. A saved Calibrate value always wins.
+function autoLearn(r,s){ const src=st.input; if(!T||T.autoDone||store.get(latKey(src),null)!=null) return;
+  r.pairs.forEach(p=>{ if(p.ok&&Math.abs(p.off)<0.45*s.spb*1000&&T.autoOffs.length<10) T.autoOffs.push(p.off) }); T.autoN=(T.autoN||0)+(r.right?1:0);
+  const O=T.autoOffs; if(O.length<4||T.autoN<2) return; if(O.length<8&&T.autoN<3) return; T.autoDone=true;
+  const q=O.slice().sort((a,b)=>a-b), med=q[q.length>>1], mad=O.map(d=>Math.abs(d-med)).sort((a,b)=>a-b)[O.length>>1];
+  if(mad>20||Math.abs(med)>150){ T.autoMsg=`Your notes moved around (±${Math.round(mad)} ms), so no latency was learned. Tap Calibrate in Settings for best results.`; return }
+  if(Math.abs(med)<4) return;
+  const v=Math.round(lag(src)+med); store.set(latKey(src)+'-auto',v); T.autoMsg=`Latency auto-set to ${v} ms for this device (learned from your steady notes; Calibrate overrides it).`; calLabel() }
 const inLog=[]; // test hook: every note as it arrives
 function noteIn(m,tRaw,vel,src){ if(!ac) return; inLog.push({m,t:tRaw,src}); if(inLog.length>500) inLog.shift();
   if(calHook){ calHook(tRaw); return }
@@ -738,7 +753,7 @@ function noteIn(m,tRaw,vel,src){ if(!ac) return; inLog.push({m,t:tRaw,src}); if(
   if(!T||!T.running) { keyFlash(m,'on',220); return }
   const seg=T.segs.find(s=>s.kind==='trade'&&!s.judged&&t>=s.respStart-preW(s.spb)&&t<=s.respEnd+postW(s.spb));
   if(!seg){ keyFlash(m,'on',160); const c=T.segs.find(s=>s.kind==='trade'&&t>=s.callStart&&t<s.respStart-preW(s.spb)); if(c&&!c.warned){ c.warned=true; flash('Listen first: the call is still playing. Your turn starts at the blue lamp.','ok') } return }
-  seg.got.push({m,t:t-seg.respStart});
+  seg.got.push({m,t:t-seg.respStart,lag:lag(src)});
   // live flash: right key near this moment = green, otherwise red
   const exp=seg.riff.notes.map(n=>({m:n.m,t:uTime(n.u,seg.spb,seg.sw)})), tt=t-seg.respStart;
   const near=exp.filter(e=>Math.abs(e.t-tt)<0.6*seg.spb); keyFlash(m,near.some(e=>e.m===m)?'ok':'no',200);
@@ -937,7 +952,7 @@ function inStat(){ const s=st.input; $('kbHint').hidden=s!=='screen';
 $('inStat').addEventListener('click',e=>{ const id=e.target.id; if(id==='midiBtn') midiConnect(); if(id==='micBtn') micStart(); if(id==='micOff'){ micStop(); inStat() } });
 
 // ---------- latency calibration: 8 clicks; the first 2 are a count-in, the median of the rest is saved for this input + device ----------
-function calLabel(){ const s=st.input, v=store.get(latKey(s),null); $('calTxt').textContent=v!=null?`${s==='midi'?'MIDI':s==='mic'?'Mic':'On-screen'}: ${v} ms (calibrated)`:`${s==='midi'?'MIDI':s==='mic'?'Mic':'On-screen'}: not calibrated (using ${defLag(s)} ms)` }
+function calLabel(){ const s=st.input, v=store.get(latKey(s),null), a=store.get(latKey(s)+'-auto',null), nm=s==='midi'?'MIDI':s==='mic'?'Mic':'On-screen'; $('calTxt').textContent=v!=null?`${nm}: ${v} ms (calibrated)`:a!=null?`${nm}: ${a} ms (auto-learned from your playing)`:`${nm}: not calibrated (using ${defLag(s)} ms)` }
 $('calBtn').addEventListener('click',async()=>{ if(T&&T.running) pause(); AC(); await ac.resume(); if(!loaded) await loadSounds();
   if(st.input==='mic'&&!mic&&!(await micStart())) return; if(st.input==='midi'&&!midiAcc) await midiConnect();
   const NC=8, sp=0.6, t0=ac.currentTime+0.5, hits=[]; for(let i=0;i<NC;i++){ drum('X',t0+i*sp,i===0?1:.8); click(t0+i*sp,i===0) } window.RiffSays.cal={t0,sp,NC};
@@ -969,8 +984,9 @@ function uiLoop(){ if(!T||!T.running) return; const now=ac.currentTime, h=now-(a
   requestAnimationFrame(uiLoop) }
 function nextSegPossible(){ if(T.stopAfter) return false; if(T.setLen&&T.k>=T.setLen) return false; if(T.chal&&T.chal.inRound>=T.chal.perRound) return false; return true }
 function chordUI(c,key){ $('chord').textContent=c?`${c.rn} · ${c.name}`:'' }
-function grade(s){ s.judged=true; const exp=s.riff.notes.map(n=>({m:n.m,t:uTime(n.u,s.spb,s.sw)})); const got=s.got.slice().sort((a,b)=>a.t-b.t);
-  const r=judge(exp,got,s.spb); s.res=r; T.results.push({r,seg:s}); lastRiff=s;
+function grade(s){ s.judged=true; const exp=s.riff.notes.map(n=>({m:n.m,t:uTime(n.u,s.spb,s.sw)}));
+  const now=()=>{ const L=lag(st.input); s.got.forEach(g=>{ if(g.lag!=null&&g.lag!==L){ g.t+=(g.lag-L)/1000; g.lag=L } }); return s.got.slice().sort((a,b)=>a.t-b.t) };
+  let got=now(), r=judge(exp,got,s.spb); const was=lag(st.input); autoLearn(r,s); if(lag(st.input)!==was){ got=now(); r=judge(exp,got,s.spb) } s.res=r; T.results.push({r,seg:s}); lastRiff=s;
   if(r.combined>=80){ T.streak++; T.bestStreak=Math.max(T.bestStreak,T.streak) } else T.streak=0;
   if($('retry').checked&&r.combined<60&&!s.riff.retry){ T.retryNext=Object.assign({},s.riff) }
   if($('adapt').checked){ const d=r.combined>=95?2:r.combined>=80?1:r.combined>=60?0:-2; T.bpm=clamp(T.bpm+d,60,140) }
@@ -1067,10 +1083,15 @@ function showResults(chal,won,isNew,best){ const R=T.results; if(!R.length){ sto
   $('rPitch').textContent=p+'%'; $('rRhythm').textContent=rh+'%'; $('rTiming').textContent=offs.length?`${mean>=0?'+':'−'}${Math.round(Math.abs(mean))} ±${Math.round(sd)} ms`:'–'; $('rStreak').textContent=T.bestStreak;
   const C=T.chal; let why='';
   if(chal) why=won?'All 5 rounds and the bonus round played. Huge.':`Round ${C.round} target was ${C.need}; you had ${C.pts-C.start}. Hit it to unlock the next round.`;
-  else why=sc<40?'Fix first: listen to the whole call, then play it back starting on beat 1 when the lamp turns blue.':p<rh-10?'Fix first: the notes. Sing the call back in your head before you play.':Math.abs(mean)>40?(mean>0?`Fix first: you're late by about ${Math.round(mean)} ms. Get your hand over the first note during the call.`:`Fix first: you're rushing by about ${Math.round(-mean)} ms. Let the groove come to you.`):sd>60?'Fix first: steady timing. Count the 8ths while the call plays.':sc>=90?'Clean. Try the next level or a faster tempo.':'Solid. Keep trading.';
-  $('rWhy').textContent=why; const dotArgs=[offs,mean];
+  else why=sc<40?'Fix first: listen to the whole call, then play it back starting on beat 1 when the lamp turns blue.':p<rh-10?'Fix first: the notes. Sing the call back in your head before you play.':Math.abs(mean)>40?(mean>0?`Fix first: you're late by about ${Math.round(mean)} ms. Get your hand over the first note during the call.`:`Fix first: you're rushing by about ${Math.round(-mean)} ms. Let the groove come to you.`):sd>60?'Fix first: steady timing. '+countTip(R):sc>=90?'Clean. Try the next level or a faster tempo.':'Solid. Keep trading.';
+  $('rWhy').textContent=why+(T.autoMsg?' '+T.autoMsg:''); const dotArgs=[offs,mean];
   const d=new Date(), K=makeKey(st.style,st.key); $('rStamp').textContent=`${chal?'CHALLENGE':'SINGLE TRIES'} · Riff Simon Says · ${STYLES[st.style].name} · Level ${st.level} (${LEVELS[st.level-1].name}) · ${st.level===7?'any key':K.tonic+' '+STYLES[st.style].mode.split(' (')[0]} · ${R[0].seg.bpm}${T.bpm!==R[0].seg.bpm?'→'+T.bpm:''} BPM · ${d.toLocaleDateString(undefined,{weekday:'short',month:'short',day:'numeric'})} ${d.toLocaleTimeString([],{hour:'numeric',minute:'2-digit'})}`;
   const keepT=T; stopAll(); T=keepT; T.running=false; $('results').hidden=false; $('card').classList.add('showres'); $('actbar').hidden=true; drawDots('rDots',...dotArgs); try{ $('rTitle').focus({preventScroll:true}) }catch(e){} }
+// the count that matches the riffs you just played: quarters at L1, 8ths (straight, swung or shuffled), 16ths in funk and L5
+function countTip(R){ const ns=R.flatMap(x=>x.seg.riff.notes), sx=STYLES[st.style];
+  if(ns.some(n=>n.u%2)) return 'Count the 16ths while the call plays: 1 e & a.';
+  if(ns.some(n=>n.u%4)) return sx.swing?(st.style==='blues'?'Count the shuffle while the call plays: 1 trip-let, 2 trip-let.':'Count swung 8ths while the call plays: 1 & 2 &, long-short.'):'Count the 8ths while the call plays: 1 & 2 &.';
+  return 'Count the quarter notes while the call plays: 1 2 3 4.' }
 function closeResults(){ $('results').hidden=true; $('card').classList.remove('showres'); $('actbar').hidden=false; T=null; statsUI(); $('arcRow').hidden=true; buttons() }
 $('rBack').addEventListener('click',closeResults); $('rAgain').addEventListener('click',()=>{ closeResults(); go() });
 
@@ -1093,13 +1114,14 @@ function drawRollCallReplay(s){ if(s.res) drawRollResult(s); else drawRollCall(s
 function buildPickers(){ $('styles').innerHTML=STYLE_IDS.map(id=>`<button data-s="${id}">${STYLES[id].name}</button>`).join('');
   $('levels').innerHTML=LEVELS.map(L=>`<button data-l="${L.id}" aria-label="Level ${L.id}: ${L.name}">L${L.id}</button>`).join('');
   $('tempoSel').innerHTML=TEMPOS.map(t=>`<option value="${t}">${t} BPM</option>`).join('');
-  $('styles').addEventListener('click',e=>{ const b=e.target.closest('button[data-s]'); if(!b) return; st.style=b.dataset.s; store.set('style',st.style); st.key=store.get('key-'+st.style,STYLES[st.style].def); keyOpts(); mark() });
+  $('styles').addEventListener('click',e=>{ const b=e.target.closest('button[data-s]'); if(!b) return; st.style=b.dataset.s; store.set('style',st.style); st.key=store.get('key-'+st.style,STYLES[st.style].def); keyOpts(); mark(); if(ac) loadBand(STYLES[st.style].groove) });
   $('levels').addEventListener('click',e=>{ const b=e.target.closest('button[data-l]'); if(!b) return; st.level=+b.dataset.l; store.set('level',st.level); mark() });
   $('keySel').addEventListener('change',e=>{ st.key=e.target.value; store.set('key-'+st.style,st.key); mark() });
   $('tempoSel').addEventListener('change',e=>{ st.bpm=+e.target.value; store.set('bpm',st.bpm); statsUI() });
   $('modeSeg').addEventListener('click',e=>{ const b=e.target.closest('button[data-m]'); if(!b) return; st.mode=b.dataset.m; store.set('mode',st.mode); mark() });
   $('inSeg').addEventListener('click',e=>{ const b=e.target.closest('button[data-in]'); if(!b) return; st.input=b.dataset.in; store.set('input',st.input); if(st.input!=='mic') micStop(); if(st.input==='midi'&&midiOK()&&!midiAcc) midiConnect(); mark(); calLabel() }) }
-function keyOpts(){ const S=STYLES[st.style]; $('keySel').innerHTML=tonics(st.style).map(t=>`<option value="${t[0]}">${homeText(st.style,makeKey(st.style,t[0]))}${t[0]===S.def?' (default)':''}</option>`).join(''); if(!tonics(st.style).some(t=>t[0]===st.key)) st.key=S.def; $('keySel').value=st.key }
+function keyShort(stl,key){ const S=STYLES[stl], P=parentKey(stl,key); if(S.chords.length===1&&S.chords[0][0]==='V7') return `${key.tonic} · ${key.tonic}7 = V7 of ${P.name}`; return S.parent[1]===0?`${key.tonic} major`:`${key.tonic} · parent ${P.name}` }
+function keyOpts(){ const S=STYLES[st.style]; $('keySel').innerHTML=tonics(st.style).map(t=>{ const K=makeKey(st.style,t[0]); return `<option value="${t[0]}" title="${homeText(st.style,K)}">${keyShort(st.style,K)}</option>` }).join(''); if(!tonics(st.style).some(t=>t[0]===st.key)) st.key=S.def; $('keySel').value=st.key }
 function mark(){ document.querySelectorAll('#styles button').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.s===st.style)));
   document.querySelectorAll('#levels button').forEach(b=>b.setAttribute('aria-pressed',String(+b.dataset.l===st.level)));
   document.querySelectorAll('#modeSeg button').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.m===st.mode)));
@@ -1115,11 +1137,26 @@ function mark(){ document.querySelectorAll('#styles button').forEach(b=>b.setAtt
 document.addEventListener('visibilitychange',()=>{ if(document.hidden){ hypeStop(60); if(T&&T.running) pause() } });
 buildKb(); buildPickers(); keyOpts(); mark(); calLabel();
 // warm the samples after the first touch (iOS needs a gesture before audio); the page itself never waits on them
-const warm=()=>{ AC(); loadSounds(); window.removeEventListener('pointerdown',warm,true); window.removeEventListener('keydown',warm,true) };
+const warm=()=>{ AC(); loadSounds(); loadBand(STYLES[st.style].groove); window.removeEventListener('pointerdown',warm,true); window.removeEventListener('keydown',warm,true) };
 window.addEventListener('pointerdown',warm,true); window.addEventListener('keydown',warm,true);
 if(st.input==='midi'&&midiOK()) midiConnect();
+// AUDIT HOOK: render a count-in and N trades (band + call, no answers) offline, through the same scheduleStep and mix the game plays.
+// o = {style, level, bpm, trades, seed, backing, mute:'band'|'call'}. Returns the stereo float samples (base64) and the trade map.
+async function renderOffline(o){ o=o||{}; await loadSounds(); const sv={ac,master,buses,T,st:Object.assign({},st),rnd:Math.random,back:$('backing').value,bassV};
+  st.style=o.style||st.style; st.level=o.level||3; st.key=o.key||STYLES[st.style].def; $('backing').value=o.backing||'dbc'; await loadBand(STYLES[st.style].groove);
+  const bpm=o.bpm||90, spb=60/bpm, sr=44100, Rg=mulberry(o.seed||11), riffs=[]; for(let i=0;i<(o.trades||4);i++) riffs.push(genRiff(st.style,st.level,st.key,Rg));
+  const nb=riffs.reduce((a,r)=>a+2*r.bars,0), dur=0.3+(4+nb*4)*spb+2.5, oc=new OfflineAudioContext(2,Math.ceil(dur*sr),sr);
+  try{ ac=oc; buildGraph(oc); bassV=null; if(o.mute==='band') buses.groove.gain.value=0; if(o.mute==='call') buses.call.gain.value=0; Math.random=mulberry((o.seed||11)*7+3);
+    T={bpm,k:0,results:[],segs:[],segEnd:0.3,barN:0,seed:o.seed||11,key:makeKey(st.style,st.key),callFlash:[],running:true};
+    const sw=swingRatio(st.style,bpm), cs={kind:'count',start:0.3,bpm,spb,sw,bars:1,end:0.3+4*spb,key:T.key,step:0}; T.segs.push(cs); let at=cs.end;
+    riffs.forEach((rf,i)=>{ const s={kind:'trade',idx:i+1,start:at,bpm,spb,sw,bars:2*rf.bars,tb:rf.bars,callStart:at,respStart:at+rf.bars*4*spb,respEnd:at+rf.bars*8*spb,end:at+rf.bars*8*spb,riff:rf,key:rf.key,step:0,got:[]}; T.segs.push(s); at=s.end });
+    for(const s of T.segs) for(let k=0;k<s.bars*16;k++){ const bar=Math.floor(k/16),stp=k%16; scheduleStep(s,bar,stp,s.start+bar*4*s.spb+uTime(stp,s.spb,s.sw)) }
+    const meta={dur,segs:T.segs.map(s=>({kind:s.kind,start:s.start,respStart:s.respStart||null,end:s.end,bars:s.bars,chords:Array.from({length:s.bars},(_,b)=>s['bar'+b]),notes:s.riff?s.riff.notes.map(n=>({m:n.m,t:s.start+uTime(n.u,s.spb,s.sw)})):null}))};
+    const out=await oc.startRendering(), enc=a=>{ const u=new Uint8Array(a.buffer); let x=''; for(let i=0;i<u.length;i+=0x8000) x+=String.fromCharCode.apply(null,u.subarray(i,i+0x8000)); return btoa(x) };
+    return {sr,L:enc(out.getChannelData(0)),R:enc(out.getChannelData(1)),meta} }
+  finally{ ac=sv.ac; master=sv.master; buses=sv.buses; T=sv.T; Object.assign(st,sv.st); Math.random=sv.rnd; $('backing').value=sv.back; bassV=sv.bassV; live=[]; Object.keys(pv).forEach(k=>delete pv[k]) } }
 // test hooks for the browser checks
-Object.assign(window.RiffSays,{midi:()=>MIDI,state:()=>({T,st,loaded,inLog,micLog}),noteIn,perfToCtx,lag,latKey,start:()=>start(false),grade,load:()=>loadSounds(),ac:()=>ac,midiMsg,endOfRun});
+Object.assign(window.RiffSays,{midi:()=>MIDI,state:()=>({T,st,loaded,inLog,micLog}),noteIn,perfToCtx,lag,latKey,start:()=>start(false),grade,load:()=>loadSounds(),ac:()=>ac,midiMsg,endOfRun,renderOffline,bandBar:(s,b,ctx)=>{ const keep=T; if(ctx) T=ctx; try{ return bandBar(s,b) } finally{ if(ctx) T=keep } },countTip,keyShort,autoState:()=>T&&{auto:T.autoOffs,done:T.autoDone,msg:T.autoMsg}});
 })();
 </script>
 </body>
