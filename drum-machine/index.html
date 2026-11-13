@@ -23,6 +23,11 @@ label{font-size:13px;color:var(--mut);display:flex;gap:6px;align-items:center}
 .sec{border-top:1px solid var(--bd);padding-top:8px;margin-top:6px}
 .sec>h4{margin:0 0 6px;font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--mut);font-weight:600}
 .tn{border-bottom:1px dotted currentColor;cursor:help}
+.chrow{display:flex;align-items:center;gap:8px;min-width:0}.chrow>input{flex:1 1 auto;min-width:0;width:260px;max-width:100%}
+button.chi{width:26px;height:26px;min-width:26px;min-height:0;padding:0;border-radius:50%;border:1.5px solid currentColor;background:transparent;box-shadow:none;color:inherit;font:italic 700 14px/22px Georgia,'Times New Roman',serif;text-transform:none;letter-spacing:0;cursor:pointer;opacity:.8;flex:none}button.chi:active{transform:none}
+.chi:hover,.chi[aria-expanded=true]{opacity:1}
+.chpop{position:fixed;z-index:210;max-width:min(440px,calc(100vw - 32px));max-height:min(70vh,560px);overflow:auto;background:#141519;color:#f1f2f4;border:1px solid #3a3d44;border-radius:10px;padding:12px 14px;font:500 13px/1.45 -apple-system,Segoe UI,Helvetica,Arial,sans-serif;text-transform:none;letter-spacing:0;box-shadow:0 8px 24px rgba(0,0,0,.45)}
+.chpop p{margin:6px 0 8px}.chpop dl{margin:0}.chpop dt{font-weight:700;margin-top:8px;color:#ffb020}.chpop dd{margin:2px 0 0}.chpop code{font:600 12px ui-monospace,Menlo,monospace;background:#24262c;border-radius:4px;padding:0 4px;white-space:nowrap}
 #tip{position:fixed;z-index:200;max-width:300px;background:#141519;color:#f1f2f4;border:1px solid #3a3d44;border-radius:9px;padding:9px 11px;font:500 13px/1.45 -apple-system,Segoe UI,Helvetica,Arial,sans-serif;text-transform:none;letter-spacing:0;box-shadow:0 8px 24px rgba(0,0,0,.45);display:none;pointer-events:none}
 
 /* Inside Notion (embedded): Notion fixes the box height, so the transport stays pinned on top and the sections become tabs */
@@ -487,7 +492,22 @@ body:not(.emb) .lab,body:not(.emb) .hd{font-size:14px}
 <label>Chords <select id="prog" data-s><option value="I V vi IV" selected>I – V – vi – IV (pop)</option><option value="vi IV I V">vi – IV – I – V (minor pop, on the 6)</option><option value="I vi IV V">I – vi – IV – V (50s)</option><option value="I IV V IV">I – IV – V – IV (rock)</option><option value="I IV vi V">I – IV – vi – V</option><option value="vi ii iii vi">vi – ii – iii – vi (on the 6)</option><option value="vi V IV III">vi – V – IV – III (Andalusian, major III)</option><option value="ii7 V7 Imaj7 Imaj7">ii – V – I (jazz)</option><option value="I7 I7 I7 I7 IV7 IV7 I7 I7 V7 IV7 I7 V7">12-Bar Blues</option><option value="I">One chord (vamp)</option><optgroup label="Modal (numbers from the parent key)"><option value="ii7 V7" data-md="dorian">Dorian (2): ii7 – V7 (Oye Como Va)</option><option value="ii iii IV V" data-md="dorian">Dorian (2): ii – iii – IV – V</option><option value="ii I V ii" data-md="dorian">Dorian (2): ii – I – V – ii</option><option value="iii IV" data-md="phrygian">Phrygian (3): iii – IV (Spanish)</option><option value="iii IV V IV" data-md="phrygian">Phrygian (3): iii – IV – V – IV</option><option value="iii IV iii ii" data-md="phrygian">Phrygian (3): iii – IV – iii – ii</option><option value="IV V" data-md="lydian">Lydian (4): IV – V (dreamy)</option><option value="IV V iii IV" data-md="lydian">Lydian (4): IV – V – iii – IV</option><option value="IVmaj7 V IVmaj7 V" data-md="lydian">Lydian (4): IVmaj7 – V (dreamy maj7 vamp)</option><option value="V IV I V" data-md="mixolydian">Mixolydian (5): V – IV – I – V (Sweet Child-style rock)</option><option value="V ii I V" data-md="mixolydian">Mixolydian (5): V – ii – I – V</option><option value="V IV I I" data-md="mixolydian">Mixolydian (5): V – IV – I – I (Sweet Home Alabama)</option><option value="vi IV V vi" data-md="aeolian">Aeolian (6): vi – IV – V – vi (epic)</option><option value="vi V IV V" data-md="aeolian">Aeolian (6): vi – V – IV – V</option><option value="vi iii IV V" data-md="aeolian">Aeolian (6): vi – iii – IV – V</option><option value="vii° I" data-md="locrian">Locrian (7): vii° – I (dark metal vamp)</option><option value="vi ii III vi" data-md="harmonic">Harmonic minor (6): vi – ii – III – vi</option><option value="III IV ii III" data-md="phrdom">Phrygian dominant (3): III – IV – ii – III</option></optgroup><option value="custom">Custom…</option></select></label>
 <label title="How fast the chords move. Double time = two chords in every bar. Half time = each chord lasts two bars.">Chord speed <select id="bpc" data-s><option value="0.5">Double time · 2 chords a bar</option><option value="1" selected>Normal · 1 bar each</option><option value="2">Half time · 2 bars each</option><option value="4">Slow · 4 bars each</option></select></label>
 </div>
-<div class="row"><label id="cpl" style="display:none">Custom <input type="text" id="cprog" data-s value="I V vi IV" placeholder="e.g. Gm Dm F C  or  ii vi I V" style="width:210px"></label></div>
+<div class="row"><label id="cpl" style="display:none">Custom <span class="chrow"><input type="text" id="cprog" data-s value="I V vi IV" placeholder="e.g. Dm7 G7 Cmaj7  or  ii7 V7 Imaj7"><button type="button" id="chelp" class="chi" aria-label="Chord symbols: what you can type" aria-expanded="false" aria-controls="chpop">i</button></span></label></div>
+<div id="chpop" class="chpop" role="dialog" aria-label="Chord symbols" hidden><b>Chord symbols the app reads</b>
+<p>Type chords with spaces, commas, bars or dashes between them: <code>Dm7 G7 Cmaj7</code> or <code>Dm7 - G7 - Cmaj7</code>. b or ♭, # or ♯ both work.</p>
+<dl>
+<dt>Major, minor</dt><dd><code>C</code> <code>CM</code> <code>Cmaj</code> · <code>Cm</code> <code>Cmin</code> <code>Cmi</code> <code>C-</code></dd>
+<dt>Diminished, augmented</dt><dd><code>Cdim</code> <code>C°</code> <code>Co</code> · <code>Caug</code> <code>C+</code> <code>C(#5)</code></dd>
+<dt>Sus and power chords</dt><dd><code>Csus4</code> (<code>Csus</code> = sus4) <code>Csus2</code> <code>C7sus4</code> <code>C9sus4</code> · <code>C5</code> = root and 5th only</dd>
+<dt>7th chords</dt><dd><code>C7</code> · <code>Cmaj7</code> = <code>CM7</code> = <code>CΔ</code> = <code>C^7</code> · <code>Cm7</code> = <code>C-7</code> = <code>Cmi7</code> · <code>Cm(maj7)</code> = <code>CmM7</code> = <code>C-Δ7</code> · <code>Cdim7</code> = <code>C°7</code> · <code>Cm7b5</code> = <code>Cø7</code> = <code>Cø</code> · <code>Caug7</code> = <code>C+7</code> = <code>C7#5</code> · <code>Cmaj7#5</code> = <code>C+Δ</code></dd>
+<dt>6th chords</dt><dd><code>C6</code> <code>Cm6</code> <code>C6/9</code> (= <code>C69</code>) <code>Cm6/9</code></dd>
+<dt>Bigger chords</dt><dd><code>C9</code> <code>Cmaj9</code> <code>Cm9</code> · <code>C11</code> <code>Cm11</code> <code>Cmaj11</code> · <code>C13</code> <code>Cmaj13</code> <code>Cm13</code>. A 9 chord has the 7th in it too.</dd>
+<dt>Add one note</dt><dd><code>Cadd9</code> <code>Cadd2</code> <code>Cmadd9</code> <code>Cadd11</code> <code>Cadd4</code>: no 7th</dd>
+<dt>Altered notes</dt><dd><code>C7b9</code> <code>C7#9</code> <code>C7#11</code> <code>C7b13</code> <code>C7b5</code> <code>C7alt</code> <code>C13b9</code> <code>C9#11</code> <code>C7b9b13</code> <code>C7(b9,#11)</code>, with or without the brackets</dd>
+<dt>Slash chords</dt><dd><code>C/E</code> = a C chord with E in the bass. <code>G/B</code> <code>F/G</code> <code>Dm7/G</code> <code>Am/G#</code>. The bass plays the note after the slash.</dd>
+<dt>Roman numerals</dt><dd>Counted from the parent major key, always. Uppercase = major, lowercase = minor: <code>ii7 V7 Imaj7</code> <code>V7b9</code> <code>IVmaj7</code> <code>♭VII9</code> <code>viiø7</code> <code>V7alt</code> <code>I6/9</code> <code>ii9</code>. A chord outside the key gets ♭ or ♯: F♯ in C is <code>♯iv</code>.</dd>
+<dt>Secondary chords</dt><dd>A numeral, a slash, then a numeral = the V (or vii) of that chord: <code>V/V</code> (D in C) <code>V7/ii</code> (A7 in C) <code>viiø7/V</code> (F♯ø7 in C). A letter, a slash, then a letter = a bass note.</dd>
+</dl></div>
 <p style="margin:6px 0 0;font-size:12px;opacity:.75">Bass line and Keys both follow these chords.</p>
 </div>
 
@@ -1398,34 +1418,141 @@ let tonicNow=0,tonicName='C',parentName='C';
 const qualOf=(deg)=>{const t3=mod12(MAJ[(deg+2)%7]-MAJ[deg]),t5=mod12(MAJ[(deg+4)%7]-MAJ[deg]),t7=mod12(MAJ[(deg+6)%7]-MAJ[deg]);return{q:t3===4?'maj':t5===6?'dim':'min',s7:t7===11?'maj7':(t3===4?'7':t5===6?'m7b5':'m7')}};
 const rnText=(acc,deg,q,sv)=>{const up=q==='maj'||q==='aug',num=up?ROM[deg]:ROM[deg].toLowerCase();
  return acc+num+(q==='aug'?'+':'')+(q==='dim'?(sv==='m7'?'ø7':sv==='dim7'?'°7':'°'):(sv==='maj7'?(q==='min'?'(maj7)':'maj7'):sv==='add9'?'add9':sv==='6'?'6':sv?'7':''))};
+// ===== Chord symbols (2026-11-13.1): the full grammar, for letter names and Roman numerals alike =====
+// A chord = root + quality + 7th or 6th + extensions + alterations + adds / omits + an optional slash bass (letters) or secondary target (numerals).
+// The model stays {pc,q,sev,rn,label,name,deg,dia} for every caller. A chord that needs more (x:1) also carries
+// t3,t5,t6,t7 (semitones above the root, null = not in the chord), tens [{n:9|11|13,a:-1|0|1,d,w}], sus, pow, alt, bass + bassName,
+// iv (every chord tone above the root), pcs, notes (spelled), prn (the parent-key numeral) and warn.
+const RNRE='(VII|VI|IV|V|III|II|I|vii|vi|iv|v|iii|ii|i)';
+// the suffix: everything after the root, e.g. "m7b5", "maj9#11", "7(b9,#13)", "6/9", "sus4", "alt"
+function chordSuffix(s0){let s=String(s0).replace(/♭/g,'b').replace(/♯/g,'#').replace(/Ø/g,'ø').replace(/[–—−]/g,'-').replace(/[()\[\]\s,;]/g,'');
+ const sp={min:0,mk:0,num:0,six:0,sus:0,pow:0,alt:0,adds:[],alts:[],omit:[],hd:0,dimq:0,aug:0};
+ if(s==='5'){sp.pow=1;return sp}
+ let i=0;const take=re=>{const m=s.slice(i).match(re);if(m){i+=m[0].length;return m}return null};
+ if(take(/^ø/))sp.hd=1;else if(take(/^(dim|°|o(?!mit))/))sp.dimq=1;else if(take(/^(aug|\+)/))sp.aug=1;else if(take(/^(min|Min|MIN|mi|Mi|MI|m(?!aj|a\d)|-)/))sp.min=1;
+ while(i<s.length){let m;
+  if(m=take(/^(maj|Maj|MAJ|ma(?=\d)|Ma(?=\d)|M(?=\d|$)|Δ|\^)(13|11|9|7)?/)){if(sp.mk||sp.num)return null;const n=m[2]?+m[2]:(/Δ|\^/.test(m[1])||sp.min||sp.aug)?7:0;if(n){sp.mk=1;sp.num=n}}
+  else if(take(/^(6\/9|69|6-9)/)){if(sp.six)return null;sp.six=2}
+  else if(m=take(/^(13|11|9|7)/)){if(sp.num)return null;sp.num=+m[1]}
+  else if(take(/^6/)){if(sp.six)return null;sp.six=1}
+  else if(m=take(/^sus(2|4)?/)){if(sp.sus)return null;sp.sus=m[1]?+m[1]:4}
+  else if(m=take(/^add?([b#]?)(2|4|6|9|11|13)/)){sp.adds.push({n:{2:9,4:11,6:13}[m[2]]||+m[2],a:m[1]==='b'?-1:m[1]==='#'?1:0,w:'add'+(m[1]==='b'?'♭':m[1]==='#'?'♯':'')+m[2],d:{2:2,4:4,6:6}[m[2]]||+m[2]})}
+  else if(m=take(/^([b#+-])(5|6|9|11|13)/)){const a=/[b-]/.test(m[1])?-1:1;let n=+m[2];if(n===6){if(a>0)return null;n=13}sp.alts.push({n,a})}
+  else if(take(/^alt(ered)?/))sp.alt=1;
+  else if(m=take(/^(no|omit)(3|5)/))sp.omit.push(+m[2]);
+  else if(take(/^dom/)){}
+  else if(take(/^\+$/))sp.alts.push({n:5,a:1});
+  else return null}
+ return sp}
+const GLY=a=>a<0?'♭':a>0?'♯':'';
+// suffix -> chord tones (semitones above the root) + the conventional suffix spelling
+function chordTones(sp){
+ if(sp.pow)return {q:'maj',t3:null,t5:7,t6:null,t7:null,tens:[],pow:1,sus:0,alt:0,core:'5',basic:false,warn:''};
+ let q=sp.hd||sp.dimq?'dim':sp.aug?'aug':sp.min?'min':'maj',hd=sp.hd,num=sp.num,warn='';
+ const f5=sp.alts.filter(z=>z.n===5),fl5=f5.some(z=>z.a<0),sh5=f5.some(z=>z.a>0);
+ if(fl5&&sh5)return null;
+ if(sp.alt){if(q!=='maj')return null;if(!num)num=7}
+ if(hd&&!num)num=7;
+ if(fl5&&q==='min'){q='dim';if(num)hd=1}
+ if(sh5&&q==='maj'&&!fl5&&!sp.alt)q='aug';
+ if(sp.sus){if(q==='dim'||q==='aug')return null;q='maj'}
+ let t3=sp.sus?(sp.sus===2?2:5):(q==='min'||q==='dim')?3:4,t5=q==='dim'?6:q==='aug'?8:7;
+ if(fl5&&q!=='dim')t5=6;
+ let t7=null;if(num){t7=sp.mk?11:(q==='dim'&&!hd)?9:10}
+ const t6=sp.six?9:null;
+ // extensions stack: 9 = 7+9, 11 = 7+9+11, 13 = 7+9+13 (+11 on minor chords)
+ let tens=[];const T=(n,a,o)=>tens.push(Object.assign({n,a,d:n},o||{}));
+ if(num>=9)T(9,0);if(num>=11&&(num===11||q==='min'))T(11,0);if(num===13)T(13,0);
+ if(sp.six===2)T(9,0,{six:1});
+ for(const z of sp.alts){if(z.n===5)continue;tens=tens.filter(y=>!(y.n===z.n&&!y.a&&!y.add));T(z.n,z.a)}
+ for(const z of sp.adds){if(tens.some(y=>y.n===z.n&&y.a===z.a))continue;T(z.n,z.a,{add:1,w:z.w,d:z.d})}
+ if(sp.alt){tens=tens.filter(y=>y.n!==9&&y.n!==13&&!(y.n===11));T(9,1);T(13,-1);T(9,-1);T(11,1);t5=null} // #9 and b13 first: the keys reach for those
+ // an 11 chord leaves out the 3rd (the 11 would rub against it): C11 = C G B♭ D F. maj11 keeps it, flagged.
+ if(num===11&&q==='maj'&&!sp.mk&&!sp.sus&&!sp.alts.some(z=>z.n===11)){t3=null}
+ if(tens.some(y=>y.n===11&&!y.a)&&t3===4)warn='The 11 rubs against the major 3rd (an avoid note), so the keys leave it out. Try ♯11 or sus4.';
+ if(sp.omit.includes(3))t3=null;if(sp.omit.includes(5)&&!fl5&&!sh5)t5=null;
+ // compatible fields
+ const sev=t7===11?'maj7':t7===9?'dim7':t7===10?(q==='min'||q==='dim'?'m7':'7'):t6!=null?'6':(tens.length===1&&tens[0].add&&tens[0].n===9&&!tens[0].a)?'add9':'';
+ const plain=sev==='add9'?tens[0].w==='add9':!tens.length;
+ const basic=plain&&sev!=='add9'&&!sp.sus&&!sp.alt&&!sp.omit.length&&t3!=null&&t5!=null&&t5===(q==='dim'?6:q==='aug'?8:7)&&q!=='aug'&&!(q==='min'&&t7===11)&&!(sev==='6'&&tens.length)&&!(q==='dim'&&t6!=null)&&!(q==='aug');
+ // spelling: Cmaj7, Cm7, C7♭9, Cø7, C°7, C+, C+7, Cmaj7♯5, Cm(maj7), C6/9, C9sus4, C7alt, Cadd9
+ let c='';const N=num?String(num):'';
+ if(hd)c='ø'+(num>7?N:'7');
+ else if(q==='dim')c=t7===9?'°'+(num>7?N:'7'):'°';
+ else{if(q==='min')c='m';
+  if(q==='aug'&&t7!==11)c='+';
+  if(t7===11)c+=q==='min'?'(maj'+N+')':'maj'+N;else if(num)c+=N;
+  if(sp.six)c+=sp.six===2?'6/9':'6';
+  if(q==='aug'&&t7===11)c+='♯5'}
+ if(sp.sus)c+='sus'+sp.sus;
+ if(fl5&&q!=='dim'&&!sp.alt)c+='♭5';
+ if(sp.alt)c+='alt';
+ else for(const n of [9,11,13])for(const z of sp.alts)if(z.n===n)c+=GLY(z.a)+n;
+ for(const z of sp.adds)c+=z.w;
+ for(const o of sp.omit)c+='no'+o;
+ return {q,t3,t5,t6,t7,tens,sus:sp.sus,pow:0,alt:sp.alt,hd,sev,core:c,basic,warn}}
+// a chord tone's semitones above the root
+const tenIv=z=>mod12({9:2,11:5,13:9}[z.n]+z.a);
+// spelled chord tones: the letter follows the chord degree (the 3rd of G♯ is B♯, the 7th of C°7 is B𝄫)
+function spellTones(li,pc,ch){const out=[],seen=new Set(),add=(iv,deg)=>{if(iv==null)return;const p=mod12(pc+iv);if(seen.has(p))return;seen.add(p);const L=LTR[(li+deg-1)%7];let df=mod12(p-LET[L]);if(df>6)df-=12;out.push(Math.abs(df)<=2?L+(ACCN[df]||''):SHARP[p])};
+ add(0,1);if(ch.t3!=null)add(ch.t3,ch.sus===2?2:ch.sus?4:3);if(ch.t5!=null)add(ch.t5,5);if(ch.t6!=null)add(9,6);if(ch.t7!=null)add(ch.t7,7);
+ ch.tens.slice().sort((a,b)=>a.n-b.n||a.a-b.a).forEach(z=>add(tenIv(z),{9:2,11:4,13:6}[z.n]));return out}
+const ACC=s=>/[b♭]/.test(s||'')?-1:/[#♯]/.test(s||'')?1:0;
+// numeral text for a chord beyond the basic model: the case shows major / minor, the rest is the suffix (V7♭9, ii9, ♭VII9, I6/9, Vsus4)
+function rnOf(a,deg,tn){const up=tn.q==='maj'||tn.q==='aug';return a+(up?ROM[deg]:ROM[deg].toLowerCase())+(tn.q==='min'?tn.core.replace(/^m/,''):tn.core)}
+// the chord from its root (pitch class + letter) and tones, with the parent-key numeral: the degree follows the LETTER (F♯ in C = ♯iv)
+function mkChord(pc,li,name,tn,kp,pli){const dl=(li-pli+7)%7,iv=mod12(pc-kp);let deg=MAJ.indexOf(iv),a='';let df=mod12(pc-mod12(kp+MAJ[dl]));if(df>6)df-=12;
+ if(Math.abs(df)<=1){deg=dl;a=df<0?'♭':df>0?'♯':''}else if(deg<0){deg=MAJ.indexOf(mod12(iv+1));a='♭';if(deg<0){deg=MAJ.indexOf(mod12(iv-1));a='♯'}}
+ const ivs=[...new Set([0,tn.t3,tn.t5,tn.t6,tn.t7].concat(tn.tens.map(tenIv)).filter(x=>x!=null))],pcs=ivs.map(x=>mod12(pc+x)),inKey=pcs.every(p=>MAJ.includes(mod12(p-kp)));
+ const d=deg>=0&&!a?qualOf(deg):null,dia=tn.basic?(!!d&&d.q===tn.q&&inKey):(!!d&&inKey&&(tn.t3==null||!!tn.sus||tn.t3===mod12(MAJ[(deg+2)%7]-MAJ[deg])));
+ const rn=deg>=0?(tn.basic?rnText(a,deg,tn.q,tn.sev):rnOf(a,deg,tn)):'';
+ const ch={pc,q:tn.q,sev:tn.sev,rn,prn:rn,name,deg:a?-1:deg,dia,li,t3:tn.t3,t5:tn.t5,t6:tn.t6,t7:tn.t7,tens:tn.tens,sus:tn.sus,pow:tn.pow,alt:tn.alt,core:tn.core,iv:ivs.sort((x,y)=>x-y),pcs,notes:spellTones(li,pc,tn),warn:tn.warn};
+ if(!tn.basic)ch.x=1;return ch}
+const RNX=new RegExp('^([b#♭♯]?)'+RNRE+'(.*)$'),RN1=new RegExp('^([b#♭♯]?)'+RNRE+'$');
+// one chord symbol in the parent key kp (letter index pli) -> chord, or null when it is not a chord symbol
+function parseChordTok(t,kp,pli){let main=t,bassTok=null,secTok=null;const sl=t.lastIndexOf('/');
+ if(sl>0){const R=t.slice(sl+1),L0=t.slice(0,sl);
+  if(RN1.test(R)&&RNX.test(L0))secTok=R;else if(/^[A-Ga-g][#b♯♭]?$/.test(R))bassTok=R;
+  if(secTok||bassTok)main=L0}
+ const spellL=(pc,li)=>{const L=LTR[li];let df=mod12(pc-LET[L]);if(df>6)df-=12;return Math.abs(df)<=2?L+(ACCN[df]||''):SHARP[pc]};
+ let ch=null,m=main.match(RNX);
+ if(m){let sp=chordSuffix(m[3]);if(!sp)m=null;else{
+  let kk=kp,pl=pli,sec='';if(secTok){const s2=secTok.match(RN1),td=ROM.indexOf(s2[2].toUpperCase()),ta=ACC(s2[1]);kk=mod12(kp+MAJ[td]+ta);pl=(pli+td)%7;sec=GLY(ta)+s2[2]}
+  const deg=ROM.indexOf(m[2].toUpperCase()),acc=ACC(m[1]),lower=m[2]!==m[2].toUpperCase(),dq=qualOf(deg),caseMatches=!acc&&lower===(dq.q!=='maj');
+  // the case decides the quality; a diatonic numeral in its own case takes the parent scale's quality (vii = °, vii7 = ø7)
+  if(lower&&sp.min)sp.min=0; // an "m" on a lowercase numeral says nothing new: vii and viim7 read like vii and vii7
+  if(!sp.hd&&!sp.dimq&&!sp.aug&&!sp.min&&!sp.pow&&!sp.sus){const q=caseMatches?dq.q:lower?'min':'maj';if(q==='dim'){if(sp.num)sp.hd=1;else sp.dimq=1}else if(q==='min')sp.min=1}
+  const tn=chordTones(sp);if(!tn)return null;const pc=mod12(kk+MAJ[deg]+acc),li=(pl+deg)%7;
+  ch=mkChord(pc,li,spellL(pc,li),tn,kp,pli);
+  if(secTok){ch.rn=rnOf(GLY(acc),deg,tn)+'/'+sec;ch.sec=sec;ch.x=1}}}
+ if(!m){const L=main.match(/^([A-Ga-g])([#b♯♭]?)(.*)$/);if(!L)return null;const sp=chordSuffix(L[3]);if(!sp)return null;const tn=chordTones(sp);if(!tn)return null;
+  const R0=L[1].toUpperCase(),acc=ACC(L[2]),pc=mod12(LET[R0]+acc);ch=mkChord(pc,LTR.indexOf(R0),R0+GLY(acc),tn,kp,pli);if(acc<0)ch.flat=1}
+ if(bassTok){const B=bassTok[0].toUpperCase(),ba=ACC(bassTok.slice(1)),bp=mod12(LET[B]+ba);if(bp!==ch.pc){ch.bass=bp;ch.bassName=B+GLY(ba);ch.x=1;ch.rn=ch.rn?ch.rn+'/'+ch.bassName:'';ch.prn=ch.rn}}
+ return ch}
+// the closest valid spelling for a token we could not read (shown under "Didn't understand")
+const SUFS=['','m','7','maj7','m7','m7b5','dim','dim7','aug','sus4','sus2','6','m6','6/9','9','maj9','m9','11','m11','13','maj13','m13','add9','madd9','5','7b9','7#9','7#11','7b13','7alt','9#11','13b9','7sus4','m(maj7)','+7','maj7#5'];
+function chordSuggest(t,kp,pli){const lev=(a,b)=>{const d=Array.from({length:a.length+1},(_,i)=>[i]);for(let j=1;j<=b.length;j++)d[0][j]=j;for(let i=1;i<=a.length;i++)for(let j=1;j<=b.length;j++)d[i][j]=Math.min(d[i-1][j]+1,d[i][j-1]+1,d[i-1][j-1]+(a[i-1]===b[j-1]?0:1));return d[a.length][b.length]};
+ let u=t.replace(/^H/,'B').replace(/^h/,'B');if(u!==t&&parseChordTok(u,kp,pli))return u; // German H = B
+ const m=u.match(/^([A-Ga-g][#b♯♭]?|[b#♭♯]?(?:VII|VI|IV|V|III|II|I|vii|vi|iv|v|iii|ii|i))(.*)$/);if(!m)return null;
+ let root=m[1].replace(/^[a-g]/,c=>c.toUpperCase()),rest=m[2],bs='';const sl=rest.lastIndexOf('/');if(sl>=0&&/^[A-Ga-g][#b♯♭]?$/.test(rest.slice(sl+1))){bs=rest.slice(sl);rest=rest.slice(0,sl)}
+ let best=null,bd=99;for(const s of SUFS){const d=lev(rest.toLowerCase(),s.toLowerCase());if(d<bd&&parseChordTok(root+s+bs,kp,pli)){bd=d;best=root+s+bs}}
+ return bd<=Math.max(2,Math.ceil(rest.length/2))?best:null}
 function jazzHarm(){const v=$('kvoice')?$('kvoice').value:'auto';return v==='seventh'||v==='rootless'||(v==='auto'&&/jazz|swing|bebop|basie|twofeel|uptempo|bigband|jwaltz|mjelvin|mjtony|mjbroken|mjstraight|nola|jballad|swing8|snapswing|bossa|mjlatin|brballad|brmed|brfast|brwaltz|brbossa/.test(curName||''))}
 function parseProg(over,plain){const txt=over!=null?over:$('prog').value==='custom'?$('cprog').value:$('prog').value;
- const toks0=txt.replace(/[|,–—]+/g,' ').replace(/\s-\s/g,' ').trim().split(/\s+/).flatMap(t=>t.replace(/([0-9a-zø°ΔM^#b♭♯])-+(?=[A-G])/g,'$1 ').split(' ')).map(t=>t.replace(/^-+(?=[A-Ga-gb#♭♯IViv])/,'').replace(/([0-9a-zø°ΔM^])-+$/,'$1')).filter(Boolean),toks=[];
- // a quality typed as its own word belongs to the chord before it: "A m", "A min", "A minor", "C maj7", "B dim" (a bare "A m" used to read as A major + nothing)
- for(const t0 of toks0){const t=t0.replace(/^minor$/i,'m').replace(/^major$/i,'');const prev=toks[toks.length-1];
-  if(prev&&/^[A-Ga-g][#b♯♭]?$/.test(prev)&&/^(maj7|m7b5|m7♭5|min7b5|m7|min7|min|m6|m|dim7|dim|°7|o7|°|o|ø7|ø|add9|6|7|)$/.test(t)&&!/^(i|v)$/i.test(t0)){if(t)toks[toks.length-1]=prev+t;continue}
-  if(t)toks.push(t)}
- const normQ=x=>{const m=x.match(/^([A-G][#b♯♭]?)(.*)$/);if(!m)return x;const Q={'M7':'maj7','Maj7':'maj7','MAJ7':'maj7','ma7':'maj7','Ma7':'maj7','maj':'','Maj':'','M':'','Δ':'maj7','Δ7':'maj7','^7':'maj7','^':'maj7','-':'m','-7':'m7','mi':'m','mi7':'m7','min6':'m6','-6':'m6','dom7':'7','ø':'ø','-7b5':'m7b5','m7-5':'m7b5','mi7b5':'m7b5'};return m[1]+(m[2] in Q?Q[m[2]]:m[2])};
+ // parentheses keep their commas: C7(b9,#11) is one chord; "C7 (b9)" belongs together
+ const src=String(txt).replace(/\(([^)]*)\)/g,(m,x)=>'('+x.replace(/[\s,]+/g,';')+')').replace(/\s+\(/g,'(');
+ const toks0=src.replace(/[|,–—]+/g,' ').replace(/\s-\s/g,' ').trim().split(/\s+/).flatMap(t=>t.replace(/([0-9a-zø°ΔM^#b♭♯)])-+(?=[A-G])/g,'$1 ').replace(/([0-9A-Za-zø°Δ^#♭♯)])-+(?=[b#♭♯]?(VII|VI|IV|V|III|II|I|vii|vi|iv|v|iii|ii|i)(?![a-z]))/g,'$1 ').split(' ')).map(t=>t.replace(/^-+(?=[A-Ga-gb#♭♯IViv])/,'').replace(/([0-9a-zø°ΔM^])-+$/,'$1')).filter(Boolean),toks=[];
  const kp=keyPc();let flat=['F','A#','D#','G#','C#'].includes($('key').value);
  const pn=(flat?FLAT:SHARP)[kp],pli=LTR.indexOf(pn[0]);parentName=pn;
  const spell=(pc,deg)=>{const L=LTR[(pli+deg)%7];let df=mod12(pc-LET[L]);if(df>6)df-=12;return L+(ACCN[df]||'')};
+ // a quality typed as its own word belongs to the chord before it: "A m", "A min", "A minor", "C maj7", "B dim", "G 7sus4", "C add9"
+ for(const t0 of toks0){const t=t0.replace(/^minor$/i,'m').replace(/^major$/i,'');const prev=toks[toks.length-1];
+  if(prev&&/^[A-Ga-g][#b♯♭]?$/.test(prev)&&!/^(i|v)$/i.test(t0)&&(t===''||chordSuffix(t)&&!parseChordTok(t,kp,pli))){if(t)toks[toks.length-1]=prev+t;continue}
+  if(t)toks.push(t)}
  const res=[];badToks=[];
- for(const t of toks){let mm=t.match(/^([b#♭♯]?)(VII|VI|IV|V|III|II|I|vii|vi|iv|v|iii|ii|i)(°|o|ø|dim|maj7|m7|7|ø7|°7)?$/);let ch=null;
-  if(mm){const deg=ROM.indexOf(mm[2].toUpperCase()),acc=/[b♭]/.test(mm[1])?-1:/[#♯]/.test(mm[1])?1:0,lower=mm[2]!==mm[2].toUpperCase(),sf=mm[3]||'',dia=qualOf(deg);
-   let q,sv='';const pc=mod12(kp+MAJ[deg]+acc);
-   const caseMatches=!acc&&(lower===(dia.q!=='maj'));
-   if(caseMatches&&!/°|o|ø|dim/.test(sf)){q=dia.q; if(/7/.test(sf)) sv=lower?(dia.s7==='m7b5'?'m7':'m7'):(sf==='maj7'?'maj7':sf==='7'?'7':dia.s7)}   // diatonic: the parent scale decides
-   else{q=lower?'min':'maj';if(/°|o|dim/.test(sf))q='dim';if(/ø/.test(sf)){q='dim';sv='m7'}else if(sf==='°7'){q='dim';sv='dim7'}else if(sf==='maj7')sv='maj7';else if(/7/.test(sf))sv=q==='maj'?'7':'m7'}
-   if(caseMatches&&q==='dim'&&/7/.test(sf)&&sv!=='dim7')sv='m7'; // vii7 / viiø7 = half-diminished; a written vii°7 stays fully diminished
-   ch={pc,q,sev:sv,rn:rnText(acc<0?'♭':acc>0?'♯':'',deg,q,sv),name:spell(pc,deg),deg:acc?-1:deg,dia:caseMatches&&q===dia.q&&(!sv||sv===(dia.s7==='m7b5'?'m7':dia.s7))}}
-  else if((mm=normQ(t.replace(/^[a-g]/,c=>c.toUpperCase())).match(/^([A-G])([#b♯♭]?)(maj7|m7b5|m7♭5|min7b5|m7|min7|min|m6|m|dim7|dim|°7|o7|°|o|ø7|ø|add9|6|7)?$/))){const acc=/[b♭]/.test(mm[2])?-1:/[#♯]/.test(mm[2])?1:0,sf=mm[3]||'';if(acc<0)flat=true;
-   let q=/^(m|min|m7|min7|m6)$/.test(sf)?'min':/dim|°|o|ø|7b5|7♭5/.test(sf)?'dim':'maj';const sev=sf==='maj7'?'maj7':/ø|7b5|7♭5/.test(sf)?'m7':/^(dim7|°7|o7)$/.test(sf)?'dim7':sf==='add9'?'add9':/6/.test(sf)?'6':/7/.test(sf)?(q==='min'?'m7':'7'):'';
-   const pc=mod12(LET[mm[1]]+acc),iv=mod12(pc-kp);let deg=MAJ.indexOf(iv),a='';
-   { /* the numeral's degree follows the LETTER (F♯ in C = ♯iv, not ♭v); nearest degree only for double-altered spellings */ const dl=(LTR.indexOf(mm[1])-pli+7)%7;let df=mod12(pc-mod12(kp+MAJ[dl]));if(df>6)df-=12;if(Math.abs(df)<=1){deg=dl;a=df<0?'♭':df>0?'♯':''}else if(deg<0){deg=MAJ.indexOf(mod12(iv+1));a='♭';if(deg<0){deg=MAJ.indexOf(mod12(iv-1));a='♯'}}}
-   const dia=deg>=0&&!a?qualOf(deg):null,isDia=!!dia&&dia.q===q&&(!sev||sev===(dia.s7==='m7b5'?'m7':dia.s7)||(sev==='6'&&mod12(MAJ[(deg+5)%7]-MAJ[deg])===9)||(sev==='add9'&&mod12(MAJ[(deg+1)%7]-MAJ[deg])===2));
-   ch={pc,q,sev,rn:deg>=0?rnText(a,deg,q,sev):'',name:mm[1]+(acc<0?'♭':acc>0?'♯':''),deg:a?-1:deg,dia:isDia}}
-  if(ch)res.push(ch);else badToks.push(t)}
+ for(const t of toks){const ch=parseChordTok(t,kp,pli);if(ch){if(ch.flat)flat=true;res.push(ch)}else badToks.push(t)}
  if(!res.length)res.push({pc:kp,q:'maj',sev:'',rn:'I',deg:0,dia:true});
+ res.forEach((c,k)=>{if(!c.x)return;const nx=res[(k+1)%res.length];c.scx=nx&&nx!==c&&mod12(nx.pc-c.pc)===5?'phrdom':'hw'});
  // the mode = the number you start on (Auto), or the one picked; the bass scale is that mode from its own starting note
  const md=$('md').value;modeNow=md!=='auto'?md:(res[0].dia&&res[0].deg>=0?DEGMODE[res[0].deg]:'ionian');
  if(md==='majpent'||md==='minpent'||md==='blues')tonicNow=res[0].pc;else tonicNow=mod12(kp+MAJ[MODEDEG[modeNow]||0]);
@@ -1435,10 +1562,10 @@ function parseProg(over,plain){const txt=over!=null?over:$('prog').value==='cust
  // Imaj7 ii7 iii7 IVmaj7 V7 vi7 viiø7 (in C: Cmaj7 Dm7 Em7 Fmaj7 G7 Am7 Bø7). Bass and keys both use it.
  // The V chord is only a dominant 7 when it does a dominant's job: resolving to I, or as the mode's own color (Dorian's IV7, Mixolydian's I7).
  // Otherwise (Aeolian / pop loops, V going to IV or vi) it is add9: G B D A, no F. Chords typed with a 7 are left as written.
- if(jazzHarm()&&!plain)res.forEach((c,k)=>{if(!(c.dia&&c.deg>=0&&!c.sev))return;const d=qualOf(c.deg);let sv=d.s7==='m7b5'?'m7':d.s7;
+ if(jazzHarm()&&!plain)res.forEach((c,k)=>{if(c.x||!(c.dia&&c.deg>=0&&!c.sev))return;const d=qualOf(c.deg);let sv=d.s7==='m7b5'?'m7':d.s7;
   if(sv==='7'){const nx=res[(k+1)%res.length],resolves=nx&&nx.deg===0&&modeNow==='ionian',modal=modeNow==='dorian'||modeNow==='mixolydian';if(!resolves&&!modal)sv='add9'}
   c.sev=sv;c.rn=rnText('',c.deg,c.q,c.sev)});
- res.forEach(c=>c.label=(c.name||(flat?FLAT:SHARP)[c.pc])+(c.q==='min'?'m':c.q==='aug'?'+':'')+(c.q==='dim'?(c.sev==='m7'?'ø7':c.sev==='dim7'?'°7':'°'):(c.sev==='maj7'?(c.q==='min'?'(maj7)':'maj7'):c.sev==='add9'?'add9':c.sev==='6'?'6':c.sev?'7':'')));
+ res.forEach(c=>c.label=c.x?c.name+c.core+(c.bass!=null?'/'+c.bassName:''):(c.name||(flat?FLAT:SHARP)[c.pc])+(c.q==='min'?'m':c.q==='aug'?'+':'')+(c.q==='dim'?(c.sev==='m7'?'ø7':c.sev==='dim7'?'°7':'°'):(c.sev==='maj7'?(c.q==='min'?'(maj7)':'maj7'):c.sev==='add9'?'add9':c.sev==='6'?'6':c.sev?'7':'')));
  // LOCKED STUDIO RULE (2026-11-13): Roman numerals ALWAYS count from the PARENT MAJOR KEY, never from the mode's root.
  // D Dorian in C = ii – I – V – ii (Dm – C – G – Dm). E Phrygian's home chord is iii, F Lydian's IV, G Mixolydian's V, A Aeolian's vi. c.rn is the only numeral.
  return res}
@@ -1483,7 +1610,7 @@ function buildProgMenu(){const sel=$('prog');if(!sel)return;const cur=sel.value,
 function fitProg(want){const md=$('md').value,sel=$('prog');if(want!=null&&want!==sel.value&&want!=='custom'){const L=md==='auto'?[]:progsFor(MODEAS[md]||md);sel.value=L.length?L[0].v:'I V vi IV';if(!sel.value)sel.selectedIndex=0;return true}
  if(md==='auto'||sel.value==='custom')return false;const L=progsFor(MODEAS[md]||md);if(!L.length||L.some(o=>o.v===sel.value))return false;sel.value=L[0].v;return true}
 const bassRoot=pc=>28+mod12(pc-4); // E1..D#2
-const third=c=>(c.q==='maj'||c.q==='aug')?4:3,fifth=c=>c.q==='dim'?6:c.q==='aug'?8:7,sev7=c=>c.sev==='maj7'?11:c.sev==='dim7'?9:10;
+const third=c=>c.x?(c.t3!=null?c.t3:c.pow?7:c.tens.some(z=>z.n===11&&!z.a)?5:7):(c.q==='maj'||c.q==='aug')?4:3,fifth=c=>c.x?(c.t5!=null?c.t5:c.alt?8:7):c.q==='dim'?6:c.q==='aug'?8:7,sev7=c=>c.x?(c.t7!=null?c.t7:c.t6!=null?9:10):c.sev==='maj7'?11:c.sev==='dim7'?9:10;
 function scStep(m,dir){for(let k=1;k<=12;k++){const x=m+dir*k;if(bassScale.includes(mod12(x)))return x}return m+dir}
 function rng(a){return function(){a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296}}
 let bassSeed=Math.floor(Math.random()*1e6);
@@ -1504,12 +1631,12 @@ const IDI={slapfunk:1,pino:1,bossa:1,baiao:1,chacha:1,walk:1,twofeel:1,broken:1,
 // Chords outside the parent key get the by-the-book chord scale: maj7 and borrowed flat chords (bVI, bIII, bVII) = Lydian,
 // major III and VII (V of vi, V of iii: the E in A minor) = Phrygian dominant, other dominants (I7, IV7, II) = Mixolydian.
 function majMode(ch){return ch.sev==='maj7'||(ch.deg<0&&ch.sev!=='7')?'lydian':ch.deg===2||ch.deg===6?'phrdom':'mixolydian'}
-function chordScale(ch){if(ch.deg>=0&&ch.dia){const d=ch.deg;return [0,1,2,3,4,5,6].map(k=>mod12(MAJ[(d+k)%7]-MAJ[d]))}
+function chordScale(ch){if(ch.x)return xScale(ch).cs;if(ch.deg>=0&&ch.dia){const d=ch.deg;return [0,1,2,3,4,5,6].map(k=>mod12(MAJ[(d+k)%7]-MAJ[d]))}
  if(ch.q==='min')return [0,2,3,5,7,9,10];if(ch.q==='dim')return ch.sev==='dim7'?[0,2,3,5,6,8,9]:[0,1,3,5,6,8,10];if(ch.q==='aug')return [0,2,4,6,8,9,11];
  return MODES[majMode(ch)]}
 const LO=28,HI=50; // E1 to D3: where bass players actually live
 function nearM(m,ref){let x=m;while(x-ref>6)x-=12;while(ref-x>6)x+=12;while(x<LO)x+=12;while(x>HI-3)x-=12;return x}
-function chordPcs(ch){const cs=chordScale(ch);return {sc:cs.map(x=>mod12(ch.pc+x)),ct:[0,third(ch),fifth(ch),cs[6]].map(x=>mod12(ch.pc+x))}}
+function chordPcs(ch){const cs=chordScale(ch);if(ch.x){const X=xScale(ch);return {sc:[...new Set(cs.concat(X.ex))].filter(x=>!X.no.includes(x)).map(x=>mod12(ch.pc+x)),ct:[0,third(ch),fifth(ch),ch.t7!=null?ch.t7:ch.t6!=null?9:cs[6]].map(x=>mod12(ch.pc+x))}}return {sc:cs.map(x=>mod12(ch.pc+x)),ct:[0,third(ch),fifth(ch),cs[6]].map(x=>mod12(ch.pc+x))}}
 // approach note into target T: chromatic from below or above, a scale step, or the dominant (the target's 5th)
 function approachTo(T,prev,ch,R){const k=R();let a;
  if(k<0.3)a=T-1;else if(k<0.56)a=T+1;else if(k<0.82){const {sc}=chordPcs(ch),up=R()<0.5;a=T-1;for(let d=1;d<=3;d++){const c=T+(up?d:-d);if(sc.includes(mod12(c))){a=c;break}}}
@@ -1582,7 +1709,7 @@ const TPL={
 const FAMS={funk:['jb1','jb2','met1','boo1','vul1','fk1','fk2'],slapfunk:['sl1','sl2'],pino:['pn1','pn2'],jbfunk:['jb1','jb2','jb3'],tower:['top1','top2'],meters:['met1','met2'],bootsy:['boo1','boo2'],vulf:['vul1','vul2'],
  cowfunk:['cow1','cow2'],neosoul:['neo1','neo2','pn1'],afrobeat:['afr1','afr2'],jamerson:['jam1','jam2','jam3','jam4'],modalvamp:['mv1','mv2'],afro68:['a68a','a68b'],bossa:['bos'],baiao:['bai'],chacha:['cha']};
 function toneOf(c,ch,r,o){const cs=chordScale(ch);switch(c){case'R':return r;case'3':return r+third(ch);case'5':return r+fifth(ch);
- case'7':return ch.sev==='add9'?r+12:r+(cs[6]===11&&ch.sev!=='maj7'?9:cs[6]);case'8':return r+12;case'6':return r+cs[5];case'9':return r+cs[1];case'4':return r+cs[3];
+ case'7':return ch.x?r+(ch.t7!=null?ch.t7:ch.t6!=null?9:ch.sev==='add9'?12:cs[6]):ch.sev==='add9'?r+12:r+(cs[6]===11&&ch.sev!=='maj7'?9:cs[6]);case'8':return r+12;case'6':return r+cs[5];case'9':return r+cs[1];case'4':return r+cs[3];
  case'b3':return r+3;case'L5':return r+fifth(ch)-12>=LO?r+fifth(ch)-12:r+fifth(ch);case'A':return o.app();default:return r}}
 function tplBass(name,ch,nx,last,S,B,R,V,odd){const T=TPL[name],u=T.u,len=4*u,n=S*B,ev=[],r=bassRoot(ch.pc);
  const nr=bassRoot(nx.pc);let prevM=r;const o={app:()=>last?appNear(nr,prevM,R):appNear(r,prevM,R)};
@@ -1640,7 +1767,8 @@ function idiomBass(st,ch,nx,last,bk){const S=bassSpan||beats,B=sub,n=S*B,R=rng(b
    const m=c==='A'?appNear(bassRoot(nx.pc),o.p,R):toneOf(c,ch,r,o);add(s,m,(chug&&c!=='A'?1:e-s)*0.85,k===0?1:0.9);if(chug&&c!=='A')for(let j=s+1;j<e;j++)add(j,r,0.55,0.5)});return fin(ev)}
  return ev}
 function fin(ev){ev.sort((a,b)=>a.s-b.s);for(const e of ev)while(e.m>HI)e.m-=12;for(const e of ev)if(!e.x)bassPrevM=e.m;return ev}
-function genBass(ch,nx,last,bk){const st0=bassStyle();if(IDI[st0])return idiomBass(st0,ch,nx,last,bk);const R=rng(bassSeed*977+bk*131+7),V=surV!=null?surV:+$('bvar').value/100,n=steps(),B=sub,ev=[],st=st0;
+function genBass(ch,nx,last,bk){const nv=nx&&nx.bass!=null?Object.assign({},nx,{pc:nx.bass}):nx,ev=genBass0(ch,nv,last,bk);return ch.bass!=null?slashBass(ev,ch):ev}
+function genBass0(ch,nx,last,bk){const st0=bassStyle();if(IDI[st0])return idiomBass(st0,ch,nx,last,bk);const R=rng(bassSeed*977+bk*131+7),V=surV!=null?surV:+$('bvar').value/100,n=steps(),B=sub,ev=[],st=st0;
  const r=bassRoot(ch.pc),th=r+third(ch),fi=r+fifth(ch),oc=r+12,sv=r+sev7(ch);
  let tgt=bassRoot(nx.pc);if(tgt-r>6)tgt-=12;if(r-tgt>6)tgt+=12;
  const modal=$('md').value!=='auto',appr=()=>{const up=R()<0.5;if(!modal||R()<0.25)return tgt+(up?1:-1);return scStep(tgt,up?1:-1)},off8=B==3?2:B/2,add=(s,mi,d,vv,gl)=>{if(s<n&&s>=0)ev.push({s,m:mi,d:Math.max(0.5,d),v:vv||0.9,g:!!gl})};
@@ -1958,11 +2086,11 @@ function stack(ch,ivs,lo,hi0,top){const out=[];for(let base=lo;base<=hi0;base++)
   for(let k=1;k<ivs.length;k++){let m=ms[k-1]+1;while(mod12(m-ch.pc)!==mod12(ivs[k]))m++;ms.push(m)}if(ms[ms.length-1]<=top&&lilOK(ms))out.push(ms)}return out}
 let kPrev=null,kPrevL=null;
 const vlCost=(a,b)=>{if(!b)return 0;let c=0;const n=Math.min(a.length,b.length);for(let i=0;i<n;i++)c+=Math.abs(a[i]-b[i]);const top=Math.abs(a[a.length-1]-b[b.length-1]);return c+top*0.8+Math.abs(a.length-b.length)*3};
-function keysVoice(ch,fam,R){const has7=ch.sev&&ch.sev!=='add9'&&ch.sev!=='6',add=ch.sev==='add9'?9:ch.sev==='6'?13:0,bassOn=$('bon').checked;let rh=[],lh=[];
- if(fam==='pop'||fam==='pop7'){const ks=[1,3,5].concat(has7||fam==='pop7'?[7]:[]).concat(add?[add]:[]),pcs=tn(ch,ks);let cands=[];
+function keysVoice(ch,fam,R){if(ch.x)return keysVoiceX(ch,fam,R);const has7=ch.sev&&ch.sev!=='add9'&&ch.sev!=='6',add=ch.sev==='add9'?9:ch.sev==='6'?13:0,bassOn=$('bon').checked;let rh=[],lh=[];
+ if(fam==='pop'||fam==='pop7'){const ks=[1,3,5].concat(has7||fam==='pop7'&&!add?[7]:[]).concat(add?[add]:[]),pcs=tn(ch,ks);let cands=[];
   for(let r=0;r<pcs.length;r++){const rot=pcs.slice(r).concat(pcs.slice(0,r));cands=cands.concat(stack(ch,rot,55,67,79))}
   if(pcs.length===3)cands=cands.concat(stack(ch,[pcs[0],pcs[2],pcs[1]],55,62,79)); // spread: root-5-3
-  rh=pick(cands,kPrev,R,67);const rl=bassOn?43:36;lh=[pick(stack(ch,[0],rl,rl+11,rl+11),kPrevL,R,rl+5)[0]];if(lh[0]+7<rh[0]-2&&R()<0.7)lh.push(lh[0]+7)}
+  rh=pick(cands,kPrev,R,67);const rl=bassOn?43:36;lh=[pick(stack(ch,[0],rl,rl+11,rl+11),kPrevL,R,rl+5)[0]];if(lh[0]+7<rh[0]-2&&R()<0.7&&fifth(ch)===7)lh.push(lh[0]+7)} // the left-hand 5th only where the chord has a perfect 5th (never on ° or ø)
  else if(fam==='jazz3'||fam==='jazz4'){const dom=ch.sev==='7'||(ch.q==='maj'&&chordScale(ch)[6]===10),four=fam==='jazz4';let A,B;
   if(four){A=dom?tn(ch,[3,13,7,9]):tn(ch,[3,5,7,9]);B=dom?tn(ch,[7,9,3,13]):tn(ch,[7,9,3,5])}else{A=tn(ch,[3,7,9]);B=dom?tn(ch,[7,3,13]):tn(ch,[7,3,5])}
   rh=pick(stack(ch,A,51,62,four?74:72).concat(stack(ch,B,51,62,four?74:72)),kPrev,R,60);if(!bassOn)lh=[pick(stack(ch,[0],36,47,47),kPrevL,R,41)[0]]}
@@ -1973,6 +2101,66 @@ function keysVoice(ch,fam,R){const has7=ch.sev&&ch.sev!=='add9'&&ch.sev!=='6',ad
   let c=[];opts.forEach(o=>c=c.concat(stack(ch,o,60,68,79)));rh=pick(c,kPrev,R,70)} // funk: tight upper-structure stabs, no left hand
  if(!rh||!rh.length)rh=stack(ch,tn(ch,[1,3,5]),55,66,80)[0]||[60+ch.pc,64+ch.pc,67+ch.pc];
  kPrev=rh;if(lh&&lh.length&&lh[0]!=null)kPrevL=lh;else lh=[];keysLast=rh.reduce((a,c)=>a+c,0)/rh.length;return {lh,rh}}
+// ----- chord scales and voicings for chords beyond the basic model (x:1)
+// The chord scale by the book: 7alt = altered, 7♭9 / 7♯9 = half-whole diminished (Phrygian dominant when the V resolves down a 5th),
+// 7♭9♭13 = Phrygian dominant, 7♯9 with ♭13 or ♭9 = altered, 7♯11 and 7♭5 = Lydian dominant, 7♭13 = Mixolydian ♭6, aug = whole tone, maj7♯5 = Lydian augmented, m(maj7) = melodic minor,
+// sus = Mixolydian with no 3rd, °7 = whole-half. Chords that sit in the parent key keep the parent key's mode. Written tones always win.
+// Slots = the scale by chord degree [1, 9, 3, 11, 5, 13, 7]; ex = extra notes (8-note scales); no = notes the line stays off.
+const XSC={alt:[[0,1,4,6,8,8,10],[3],'Altered'],hw:[[0,1,4,6,7,9,10],[3],'Half-whole diminished'],phrdom:[[0,1,4,5,7,8,10],[],'Phrygian dominant'],
+ lyddom:[[0,2,4,6,7,9,10],[],'Lydian dominant'],mixb6:[[0,2,4,5,7,8,10],[],'Mixolydian ♭6'],wt:[[0,2,4,6,8,8,10],[],'Whole tone'],lydaug:[[0,2,4,6,8,9,11],[],'Lydian augmented'],
+ melmin:[[0,2,3,5,7,9,11],[],'Melodic minor'],mixo:[[0,2,4,5,7,9,10],[],'Mixolydian'],dorian:[[0,2,3,5,7,9,10],[],'Dorian'],aeol:[[0,2,3,5,7,8,10],[],'Aeolian'],
+ phryg:[[0,1,3,5,7,8,10],[],'Phrygian'],loc:[[0,1,3,5,6,8,10],[],'Locrian'],loc2:[[0,2,3,5,6,8,10],[],'Locrian ♮2'],wh:[[0,2,3,5,6,8,9],[11],'Whole-half diminished'],
+ lydian:[[0,2,4,6,7,9,11],[],'Lydian'],mixolydian:[[0,2,4,5,7,9,10],[],'Mixolydian']};
+function xScale(ch){if(ch._xs)return ch._xs;const has=(n,a)=>ch.tens.some(z=>z.n===n&&z.a===a),dom=ch.t7===10&&(ch.q==='maj'||ch.q==='aug');let cs,ex=[],nm,K;
+ if(ch.dia&&ch.deg>=0){const d=ch.deg;cs=[0,1,2,3,4,5,6].map(k=>mod12(MAJ[(d+k)%7]-MAJ[d]));nm=MODENAME[DEGMODE[d]]}
+ else{if(ch.alt||dom&&has(9,1)&&(has(13,-1)||ch.t5===8||has(9,-1)))K='alt';
+  else if(dom&&has(9,-1)&&has(13,-1)&&!has(11,1))K='phrdom';
+  else if(dom&&(has(9,-1)||has(9,1)))K=ch.scx==='phrdom'&&!has(9,1)?'phrdom':'hw';
+  else if(dom&&(has(11,1)||ch.t5===6))K='lyddom';else if(dom&&has(13,-1))K='mixb6';
+  else if(ch.q==='aug')K=ch.t7===11?'lydaug':'wt';
+  else if(ch.q==='min')K=ch.t7===11?'melmin':has(9,-1)?'phryg':has(13,-1)?'aeol':'dorian';
+  else if(ch.q==='dim')K=ch.t7===9?'wh':has(9,0)?'loc2':'loc';
+  else if(ch.t3!==4||ch.t7===10)K='mixo';else K=has(11,1)?'lydian':majMode(ch);
+  cs=XSC[K][0].slice();ex=XSC[K][1].slice();nm=XSC[K][2]}
+ if(ch.t3!=null)cs[2]=ch.t3;if(ch.t5!=null)cs[4]=ch.t5;if(ch.t6!=null)cs[5]=9;if(ch.t7!=null)cs[6]=ch.t7;
+ const used={};for(const z of ch.tens){const sl={9:1,11:3,13:5}[z.n],iv=tenIv(z);if(!used[sl]&&!(z.n===11&&!z.a&&ch.t3===4)&&!(z.n===13&&ch.t6!=null)){cs[sl]=iv;used[sl]=1}else ex.push(iv)}
+ const no=[];if(ch.t3!==3&&ch.t3!==4){no.push(3,4)}else no.push(ch.t3===4?3:4);if(ch.t5!=null&&ch.t5!==7||ch.alt)no.push(7);if(ch.tens.some(z=>z.n===9&&z.a)&&!has(9,0))no.push(2);
+ const keep=new Set(ch.iv);ex=ex.filter(x=>!cs.includes(x));
+ return ch._xs={cs,ex,no:no.filter(x=>!keep.has(x)||(x===3&&ch.t3===4)),nm}}
+// chord members for the keys: [semitones, order (chord degree), altered, tension]. A natural 11 never sits against a major 3rd.
+function xMembers(ch){const P=[];if(ch.t3!=null)P.push([ch.t3,ch.sus===2?2:ch.sus?4:3,0,0]);if(ch.t5!=null)P.push([ch.t5,5,ch.t5!==7?1:0,0]);
+ if(ch.t6!=null)P.push([9,6,0,0]);if(ch.t7!=null)P.push([ch.t7,7,0,0]);
+ for(const z of ch.tens){const iv=tenIv(z);if(z.n===11&&!z.a&&ch.t3===4)continue;if(P.some(p=>p[0]===iv))continue;P.push([iv,z.d||z.n,z.a?1:0,1])}
+ return P}
+// n notes for the right hand: guide tones (3rd or sus, 7th or 6th), an altered 5th, tensions (altered first), then the 5th, then the root
+function xSet(ch,n,root){const M=xMembers(ch),g3=M.find(p=>p[1]<5&&!p[3]),g7=M.find(p=>p[1]===7)||M.find(p=>p[1]===6),g5=M.find(p=>p[1]===5),T=M.filter(p=>p[3]).sort((a,b)=>b[2]-a[2]||(a[2]?0:b[1]-a[1])); // altered first (in the order written), then the highest extension (a 13 chord shows its 13)
+ const s=[];if(root)s.push([0,1,0,0]);if(g3)s.push(g3);if(g7)s.push(g7);if(g5&&g5[2])s.push(g5);
+ for(const t of T)if(s.length<n&&!s.some(p=>p[3]&&Math.round(p[1])===Math.round(t[1])))s.push(t); // one tension per degree first (#9 and b13, not b9 and #9)
+ for(const t of T)if(s.length<n&&!s.includes(t))s.push(t);
+ if(s.length<n&&g5&&!s.includes(g5))s.push(g5);if(M.find(p=>p[1]===6)&&g7&&g7[1]===7&&s.length<n)s.push(M.find(p=>p[1]===6));
+ if(s.length<n&&!root)s.push([0,1,0,0]);return s.slice(0,n)}
+// every rotation of the set in chord-degree order where the 13 sits above the 7th
+// every order of the set (each note stacked above the last) with a chord tone on the bottom and the 13 above the 7th
+function xOrders(s){const out=[],perm=(a,pre)=>{if(!a.length){const i7=pre.findIndex(p=>p[1]===7),i13=pre.findIndex(p=>p[1]===13);if(i7>=0&&i13>=0&&i13<i7)return;if(pre[0][3]&&s.some(p=>!p[3]))return;out.push(pre.map(p=>p[0]));return}a.forEach((x,k)=>perm(a.slice(0,k).concat(a.slice(k+1)),pre.concat([x])))};perm(s,[]);return out}
+// no minor 9th between two voices (the rub that makes a voicing sound wrong), except a ♭9 over the root
+const no9=(ch,ms)=>{for(let i=0;i<ms.length;i++)for(let j=i+1;j<ms.length;j++){const d=ms[j]-ms[i];if(d>12&&d%12===1&&mod12(ms[i]-ch.pc)!==0)return false}return true};
+function xStack(ch,n,root,lo,hi,top){for(let k=n;k>=2;k--){const s=xSet(ch,k,root);let c=[];xOrders(s).forEach(o=>c=c.concat(stack(ch,o,lo,hi,top)));c=c.filter(ms=>no9(ch,ms));const open=c.filter(ms=>ms.slice(1).filter((m,i)=>m-ms[i]<=2).length<=1);if(open.length)return open;if(c.length)return c}return []} // at most one 2nd in a voicing: no clusters
+function keysVoiceX(ch,fam,R){const bassOn=$('bon').checked,low=mod12((ch.bass!=null?ch.bass:ch.pc)-ch.pc);let rh=[],lh=[];
+ const lhAt=(lo,ctr)=>[pick(stack(ch,[low],lo,lo+11,lo+11),kPrevL,R,ctr)[0]];
+ if(ch.pow){rh=pick(stack(ch,[0,7,0],55,66,80),kPrev,R,62);lh=lhAt(bassOn?43:36,bassOn?48:41)} // power chord: 1-5-8, nothing else
+ else if(fam==='pop'||fam==='pop7'){const T=xMembers(ch).filter(p=>p[3]).length,n=Math.min(5,1+(ch.t3!=null?1:0)+(ch.t7!=null||ch.t6!=null?1:0)+Math.min(2,T)+(ch.t5!=null&&(T<2||ch.t5!==7)?1:0));
+  rh=pick(xStack(ch,n,true,55,67,79),kPrev,R,67);const rl=bassOn?43:36;lh=lhAt(rl,rl+5);if(ch.bass==null&&ch.t5===7&&lh[0]!=null&&lh[0]+7<rh[0]-2&&R()<0.7)lh.push(lh[0]+7)}
+ else if(fam==='jazz3'||fam==='jazz4'){const four=fam==='jazz4';rh=pick(xStack(ch,four?4:3,false,51,62,four?74:72),kPrev,R,60);if(!bassOn)lh=lhAt(36,41)}
+ else if(fam==='soul'){lh=ch.bass!=null?lhAt(bassOn?41:36,bassOn?45:41):pick(stack(ch,[0,ch.t7!=null?ch.t7:ch.t6!=null?9:ch.t5!=null?ch.t5:12],bassOn?41:36,bassOn?50:47,58),kPrevL,R,48);
+  const lt=lh.length&&lh[lh.length-1]!=null?lh[lh.length-1]:0;rh=pick(xStack(ch,4,false,55,67,81).filter(ms=>ms[0]>lt+1&&lilOK([lt||0].concat(ms).filter(x=>x))),kPrev,R,66);if(!rh.length)lh=[]}
+ else rh=pick(xStack(ch,3,false,60,68,79),kPrev,R,70);
+ if(!rh||!rh.length)rh=stack(ch,[0].concat(ch.t3!=null?[ch.t3]:[]).concat(ch.t5!=null?[ch.t5]:[7]),55,66,80)[0]||[60+ch.pc];
+ lh=(lh||[]).filter(x=>x!=null);kPrev=rh;if(lh.length)kPrevL=lh;keysLast=rh.reduce((a,c)=>a+c,0)/rh.length;return {lh,rh}}
+// slash chords: the bass plays the written bass note wherever the line had the root, and always on the chord's first beat
+function slashBass(ev,ch){let d=mod12(ch.bass-ch.pc);if(d>6)d-=12;const fit=m=>{while(m<LO)m+=12;while(m>HI)m-=12;return m};
+ for(const e of ev)if(e.m!=null&&mod12(e.m)===ch.pc)e.m=fit(e.m+d);
+ const f=ev.filter(e=>!e.x&&e.s===0)[0];if(f&&mod12(f.m)!==ch.bass){let m=f.m;for(let k=0;k<=6;k++){if(mod12(m+k)===ch.bass){m+=k;break}if(mod12(m-k)===ch.bass){m-=k;break}}f.m=fit(m)}
+ const nx=ev.filter(e=>!e.x);if(nx.length)bassPrevM=nx[nx.length-1].m;return ev}
 // closest to the last voicing (common tones held, the top voice moves least), kept near the middle; now and then the second-best for variety
 function pick(c,prev,R,center){if(!c.length)return [];const sc=c.map(ms=>[vlCost(ms,prev)+Math.abs(ms.reduce((a,x)=>a+x,0)/ms.length-center)*0.45,ms]).sort((a,b)=>a[0]-b[0]);return (sc.length>1&&R()<0.15?sc[1]:sc[0])[1]}
 // keep the old name for code that previews a voicing
@@ -2009,13 +2197,13 @@ function genKeys(){if(!$('kon').checked){keysTied=false;return []}const kv=keysS
 // (cTone: 7ths and 9ths from the chord's own scale, so the mode decides), stacked in the chosen range and checked against the low-interval limits.
 // Each note is one keys event (step + exact offset in seconds), so presets, codes, files and Copy auto to roll carry it like any other part.
 const ARPR={q:1,'8':2,'8t':3,'16':4};
-function arpPcs(ch,color){const has7=ch.sev&&ch.sev!=='add9'&&ch.sev!=='6',ks=[1,3,5].concat(has7||color?[7]:[]).concat(color||ch.sev==='add9'?[9]:[]).concat(ch.sev==='6'?[13]:[]);
+function arpPcs(ch,color){if(ch.x){const o=[ch.pc];xMembers(ch).forEach(p=>{const pc=mod12(ch.pc+p[0]);if(!o.includes(pc))o.push(pc)});return o}const has7=ch.sev&&ch.sev!=='add9'&&ch.sev!=='6',ks=[1,3,5].concat(has7||color?[7]:[]).concat(color||ch.sev==='add9'?[9]:[]).concat(ch.sev==='6'?[13]:[]);
  const o=[];ks.forEach(k=>{const x=cTone(ch,k);if(x==null)return;const pc=mod12(ch.pc+x);if(!o.includes(pc))o.push(pc)});return o}
 // every chord note from lo up through `oct` octaves; lowest notes drop out until the stack passes the low-interval limits (they ring together on the pedal)
 function arpNotes(ch,oct,color){const pcs=arpPcs(ch,color),lo=oct>=3?48:oct===2?55:60,hi=Math.min(96,lo+12*oct);let ms=[];for(let m=lo;m<=hi;m++)if(pcs.includes(mod12(m)))ms.push(m);
  while(ms.length>2&&!lilOK(ms))ms.shift();return ms}
 // a 3-note shape for the classical patterns: [low, middle, high]
-function arpShape(ch,kind){const t=third(ch),f=fifth(ch);if(kind==='alberti'){let r=43;while(mod12(r-ch.pc)!==0)r++;const s=[r,r+f,r+t+12];return lilOK(s)?s:[r+12,r+12+f,r+t+24]} // 1-5-10 in the bass register: open, so no 3rd sits low
+function arpShape(ch,kind){const t=ch.pow?12:third(ch),f=fifth(ch);if(kind==='alberti'){let r=43;while(mod12(r-ch.pc)!==0)r++;const s=[r,r+f,r+t+12];return lilOK(s)?s:[r+12,r+12+f,r+t+24]} // 1-5-10 in the bass register: open, so no 3rd sits low
  let r=55;while(mod12(r-ch.pc)!==0)r++;return [r,r+t,r+f]} // broken: close position from G3 up
 function keysArp(segs,n,R,H){const ev=[],dir=$('kad').value,rate=$('kar').value,oct=Math.max(1,Math.min(3,+$('kao').value||2)),color=$('kan').value==='color',ped=$('kap').checked,dt=60/bpm/sub;
  const per=rate==='groove'||!ARPR[rate]?1:sub/ARPR[rate],sw=(sub!==3)?(swing-.5)*2*dt:0;
@@ -2228,7 +2416,10 @@ async function init(force){if(xBusy&&!force)return new Promise(()=>{}); // expor
 let halfAt=0,chordB=null,chordC=null,pos=0,barN=0,cin=0,isCount=false,muted=false,fillBar=false,prevFill=false,crashNow=false,bassEv=[],chordNow=null,chordNext=null,secName='',barsAtBpm=0,lastBpm=0,trMsg='',flT=null,xBusy=false,rafId=0;
 // ===== Chord-tone guard: the bass never plays the wrong 3rd or the wrong 7th for the chord that is sounding =====
 // m7 / minor / half-diminished: no major 3rd, no major 7th (leading tone). Major / dominant: no minor 3rd. Dominant 7: no major 7th. maj7: no flat 7th.
-function badPcs(ch){const r=ch.pc,minor=ch.q==='min'||ch.q==='dim',b=new Set([mod12(r+(minor?4:3))]);
+function badPcs(ch){if(ch.x){const r=ch.pc,X=xScale(ch),b=new Set(X.no.map(x=>mod12(r+x)));
+  if(ch.t7===10)b.add(mod12(r+11));else if(ch.t7===11)b.add(mod12(r+10));else if(ch.t7==null&&(ch.t6!=null||ch.sev==='add9')){b.add(mod12(r+10));b.add(mod12(r+11))}else if(ch.t7==null&&ch.q==='min')b.add(mod12(r+11));
+  ch.iv.forEach(x=>{if(!(x===3&&ch.t3===4))b.delete(mod12(r+x))});if(ch.bass!=null)b.delete(ch.bass);return b}
+ const r=ch.pc,minor=ch.q==='min'||ch.q==='dim',b=new Set([mod12(r+(minor?4:3))]);
  if(minor&&ch.sev!=='maj7')b.add(mod12(r+11));else if(ch.sev==='7')b.add(mod12(r+11));else if(ch.sev==='maj7')b.add(mod12(r+10));else if(ch.sev==='add9'||ch.sev==='6'){b.add(mod12(r+10));b.add(mod12(r+11))}return b}
 function guardNote(m,ch,toward){const bad=badPcs(ch);if(!bad.has(mod12(m)))return m;const ok=chordPcs(ch).sc.filter(pc=>!bad.has(pc));
  let best=null,bd=99;for(let d=-2;d<=2;d++){const x=m+d;if(!d||!ok.includes(mod12(x))||x<LO-2||x>HI+2)continue;const sc=Math.abs(d)+(toward!=null?Math.abs(x-toward)*0.01:0);if(sc<bd){bd=sc;best=x}}
@@ -2361,10 +2552,15 @@ function blUI(e){let h='';
  $('chord').innerHTML=e.ch&&($('bon').checked||$('kon').checked)?esc(e.ch.label)+(e.ch.rn?' <small>'+esc(e.ch.rn)+'</small>':'')+' <small style="color:var(--acc,#ffb020)">· '+esc(chordMode(e.ch))+'</small>'+(e.nx?' <small>'+mmIcon('right','then')+' '+esc(e.nx.label)+'</small>':''):''}
 // The mode to play over a chord: its number in the parent key (vi = Aeolian), or by chord quality when it's borrowed
 const MODENAME={ionian:'Ionian',dorian:'Dorian',phrygian:'Phrygian',lydian:'Lydian',mixolydian:'Mixolydian',aeolian:'Aeolian',locrian:'Locrian',phrdom:'Phrygian dominant'};
-function chordMode(ch){const nm=ch.name||'';if(ch.dia&&ch.deg>=0)return nm+' '+MODENAME[DEGMODE[ch.deg]];
+function chordMode(ch){const nm=ch.name||'';if(ch.dia&&ch.deg>=0)return nm+' '+MODENAME[DEGMODE[ch.deg]];if(ch.x)return nm+' '+xScale(ch).nm+' (outside the key)';
  /* outside the key: same chord scale the bass and keys play (see majMode) */ return nm+' '+(ch.q==='dim'?(ch.sev==='dim7'?'diminished (whole-half)':'Locrian'):ch.q==='min'?'Dorian':ch.q==='aug'?'Lydian augmented':MODENAME[majMode(ch)])+' (outside the key)'}
 let badToks=[];
-function chordPreview(){if(playing)return;if(!$('bon').checked&&!$('kon').checked){$('chord').innerHTML='';return}const pr=parseProg();$('chord').innerHTML='<small>'+pr.map(c=>esc(c.label)).join(' – ')+(pr.every(c=>c.rn)?' · '+pr.map(c=>esc(c.rn)).join(' – '):'')+'<br>'+esc(modeLine())+'</small>'+($('prog').value==='custom'&&badToks.length?'<br><small style="color:#ff6b5b">Didn\u2019t understand: '+badToks.map(esc).join(', ')+' (try Dm7, Fmaj7, Bb7, F#m7b5 or ii7 V7 Imaj7)</small>':'')}
+function chordPreview(){if(playing)return;if(!$('bon').checked&&!$('kon').checked){$('chord').innerHTML='';return}const pr=parseProg(),cu=$('prog').value==='custom';
+ const kp=keyPc(),pli=LTR.indexOf(parentName[0]),tip=c=>c.notes&&cu?' title="'+esc(c.label+' = '+c.notes.join(' ')+(c.bass!=null?', '+c.bassName+' in the bass':''))+'"':'';
+ const warn=cu?[...new Set(pr.filter(c=>c.warn).map(c=>c.label+': '+c.warn))]:[];
+ $('chord').innerHTML='<small>'+pr.map(c=>'<span'+tip(c)+'>'+esc(c.label)+'</span>').join(' – ')+(pr.every(c=>c.rn)?' · '+pr.map(c=>esc(c.rn)).join(' – '):'')+'<br>'+esc(modeLine())+'</small>'
+  +(warn.length?'<br><small style="color:var(--acc,#ffb020)">'+warn.map(esc).join('<br>')+'</small>':'')
+  +(cu&&badToks.length?'<br><small style="color:#ff6b5b">Didn\u2019t understand: '+badToks.map(t=>{const g=chordSuggest(t,kp,pli);return esc(t)+(g?' (did you mean '+esc(g)+'?)':'')}).join(', ')+'. Tap the (i) for every chord symbol the app reads.</small>':'')}
 
 // ===== Export: render the current settings offline (faster than real time) and encode an MP3 =====
 function loadScript(u){return new Promise((res,rej)=>{if(window.lamejs)return res();const sc=document.createElement('script');sc.src=u;sc.onload=res;sc.onerror=()=>{sc.remove();rej(new Error('the MP3 maker could not load. Check your internet connection and tap Export again.'))};document.head.appendChild(sc)})}
@@ -2620,7 +2816,12 @@ $('showall').onchange=()=>draw();
 let gvlPrev=$('gvl').value;$('gvl').onchange=()=>{const n=+$('gvl').value;if(n<+gvlPrev){const L=glv();for(const k in grid)grid[k]=grid[k].map(v=>v>0?L[lvIdx(v,L)]:0)}gvlPrev=$('gvl').value;draw();save()};
 $('bigl').onchange=()=>$('beat').classList.toggle('big',$('bigl').checked);
 $('prog').onchange=()=>{const o=$('prog').selectedOptions[0];if(o&&o.dataset.md&&$('md').value!==o.dataset.md){$('md').value=o.dataset.md;buildProgMenu()}save();$('cpl').style.display=$('prog').value==='custom'?'':'none';chordPreview()};
-$('cprog').oninput=chordPreview;$('bon').onchange=chordPreview;
+$('cprog').oninput=chordPreview;
+{const b=$('chelp'),pp=$('chpop');const place=()=>{const r=b.getBoundingClientRect(),w=pp.offsetWidth,h=pp.offsetHeight,cl=(x,a,z)=>Math.max(a,Math.min(x,z));let x,y;
+  if(r.right+12+w<=innerWidth-16){x=r.right+12;y=cl(r.top+r.height/2-h/2,8,innerHeight-h-8)} // beside the (i) when there is room
+  else{x=cl(r.left+r.width/2-w/2,16,innerWidth-w-16);y=r.bottom+8+h<=innerHeight-8?r.bottom+8:r.top-h-8>=8?r.top-h-8:cl(innerHeight-h-8,8,1e4)}pp.style.left=x+'px';pp.style.top=y+'px'};
+ const close=()=>{pp.hidden=true;b.setAttribute('aria-expanded','false')};b.addEventListener('click',e=>{e.preventDefault();e.stopPropagation();if(!pp.hidden){close();return}pp.hidden=false;b.setAttribute('aria-expanded','true');place()});
+ document.addEventListener('click',e=>{if(!pp.hidden&&!pp.contains(e.target)&&e.target!==b)close()});document.addEventListener('keydown',e=>{if(e.key==='Escape'&&!pp.hidden)close()});addEventListener('resize',()=>{if(!pp.hidden)place()})}$('bon').onchange=chordPreview;
 $('kit').onchange=e=>{const [k,sn,h,tm]=KITS[e.target.value];$('kk').value=k;$('sn').value=sn;$('hh').value=h;$('tm').value=tm;if(e.target.value==='brushes')$('rv').value='br';else if($('rv').value==='br')$('rv').value='zil';if(ctx&&brushUsed())loadBrush();if(ctx){[k,sn,tm,h].forEach(x=>{if(DKIT[x])loadKit(x)});snKits().forEach(loadKit)}};
 ['sn','hh','tm','rv'].forEach(id=>$(id).addEventListener('change',()=>{if(ctx&&brushUsed())loadBrush()}));
 ['kk','sn','tm'].forEach(id=>$(id).addEventListener('change',()=>{if(ctx&&DKIT[$(id).value])loadKit($(id).value);if(ctx&&id==='sn')snKits().forEach(loadKit)}));
@@ -2863,7 +3064,7 @@ function xInfo(){const e=$('xinfo');if(!e||simming)return;const t=$('xby').value
  e.textContent=(n===1?'Once':n+' times')+' through = '+bars+' bar'+(bars===1?'':'s')+' ('+(song?'verse + chorus = ':'a ')+pb+'-bar pass), about '+Math.floor(sec/60)+':'+String(sec%60).padStart(2,'0')+($('xci').checked?' plus the count-in':'')+', then the last chord rings out.'}
 // the ending: back on the one, crash and kick, the bass root and the chord ringing out
 function exportEnd(T){const prog=parseProg(),L=prog.length,bpc=+$('bpc').value,ch=bpc<1?prog[(2*barN)%L]:prog[Math.floor(barN/bpc)%L];
- hit(49,T,0.95);hit(36,T,0.9);if($('bon').checked)bassNote(T,bassRoot(ch.pc),2.2,0.9);
+ hit(49,T,0.95);hit(36,T,0.9);if($('bon').checked)bassNote(T,bassRoot(ch.bass!=null?ch.bass:ch.pc),2.2,0.9);
  if($('kon').checked){const sv=[kPrev,kPrevL,keysLast],V=keysVoice(ch,keysFam(),Math.random);[kPrev,kPrevL,keysLast]=sv;keysChord(T,V.lh.concat(V.rh),2.2,0.62,{roll:0.012,lag:0,tail:0.4})}}
 // ===== boot =====
 buildProgMenu();p.disabled=false;p.innerHTML=mmIcon('play')+'Play';$('av').value='rock';$('ac').value='pop';psUI();restore();uiRefresh();logUI();restoring=false;listDevs();
@@ -2872,9 +3073,9 @@ prInit();prDraw();
   if(sp.get('xp')){setSel($('xlen'),sp.get('xp'));history.replaceState(null,'',location.pathname);$('xst').textContent='Your settings from Notion are loaded. Tap Export to build and save your MP3.';setTimeout(()=>{if(window.mmShowTab)mmShowTab('Export');$('xbtn').scrollIntoView({block:'center'});$('xbtn').focus()},300)}}})();
 ['xby','xtimes','xci','bon','kon','arr','ab','cb','av','ac','prog','cprog','bpc','fe','bmode','kmode','rbars','pre','ts'].forEach(id=>{const e=$(id);if(e)e.addEventListener('change',()=>setTimeout(xInfo,0))});xInfo();
 
-</script><script>(function(){const C=['#e8412c','#f28c28','#f6c33b','#efe6d2'];document.querySelectorAll('.sec>h4').forEach((h,i)=>h.style.setProperty('--band',C[i%4]))})();</script><p class="appver" style="text-align:center;font-size:11px;opacity:.6;margin:18px 0 10px;font-family:ui-monospace,Menlo,monospace">Modal Metronome · Version 2026-11-12.5.1</p>
+</script><script>(function(){const C=['#e8412c','#f28c28','#f6c33b','#efe6d2'];document.querySelectorAll('.sec>h4').forEach((h,i)=>h.style.setProperty('--band',C[i%4]))})();</script><p class="appver" style="text-align:center;font-size:11px;opacity:.6;margin:18px 0 10px;font-family:ui-monospace,Menlo,monospace">Modal Metronome · Version 2026-11-13.1</p>
 <script>/* Setting help: hover the name on a computer, tap it on a phone or iPad */
-(function(){const T={"xby": "Choose how long the MP3 is: Times through plays the whole loop a set number of times (the chord loop, or verse + chorus in Verse / Chorus mode) and ends on the one. Minutes plays for a set time.", "xtimes": "How many times the whole loop plays in the MP3. Once through = the full chord loop, or verse + chorus when Verse / Chorus is on. The file ends back on the one with the last chord ringing out.", "xci": "Adds the count-in clicks at the start of the MP3, so you know when to come in. Off = the band starts right away.", "bmode": "Auto: the app writes the bass line for you, fresh as it plays. Manual: the bass plays the notes in the piano roll. Switching back to Auto keeps your roll notes saved.", "kmode": "Auto: the app plays the chords for you in the comping style you picked. Manual: the keys play the notes in the piano roll. Switching back to Auto keeps your roll notes saved.", "rsec": "With Verse / Chorus on, the verse and the chorus can each have their own part. Shared = one part for both. A section with no notes of its own plays the shared part.", "rbars": "How long the part is before it repeats: 1, 2, 4 or 8 bars. Making it shorter hides the later bars; their notes come back when you make it longer again.", "rlock": "Scale lock: a note you tap snaps to the nearest note of the key and mode, so a wrong note can't sneak in. The light rows are the notes in the key. Turn it off to add any note, like a chromatic passing note.", "rchord": "Chord stamp (keys): tap anywhere in a bar to drop in that bar's chord, voiced the way the auto keys play it and held to the next chord change. Then change the notes one by one.", "rcopy": "Copies what Auto plays right now (this progression, this groove, this style) into the roll as notes you can change. It switches the part to Manual, and it sounds just like Auto until you edit it.", "rundo": "Takes back the last change in the piano roll.", "rclr": "Removes every note in this part. You get asked first, and Undo brings them back.", "mv": "Master volume for everything: drums, bass and keys. Saved on this device only, not in presets or links.", "xlen": "How many minutes the MP3 lasts when you export by minutes. It records the groove, bass, chords, fills and tempo exactly as they are set now, so you can practice with it anywhere.", "ps": "Your saved setups. Pick one to load it. Type a name and tap Save to store everything you have set right now. Presets live on this device and never get erased by Reset.", "pre": "The drum pattern. Each groove is written the way real drummers play that style. Changing it also sets the time signature the groove is written in.", "ts": "Time signature: how many beats are in a bar and what kind. 4/4 = four quarter-note beats. 6/8, 9/8 (3+3+3) and 12/8 = beats split in three. In 5/8, 7/8, 9/8 (2+2+2+3) and 11/8 each beat is one 8th note, so the BPM counts 8ths.", "sdv": "Subdivide: the steady in-between notes that keep time. \"As written\" plays the groove's own hi-hat or ride part. Pick Quarter notes, 8ths, 16ths, Triplets or Off-beats to replace it with a steady pulse. Off = no subdivision at all, just the kick and snare.", "cy": "Subdivide with: the instrument that plays the subdivision. Hi-hat is tight and dry, ride is washy, ride bell cuts through, shaker and tambourine are soft and bright, cowbell, side stick, claves and woodblock are clicky and easy to hear.", "fb": "First beat: adds an extra sound on beat 1 of every bar so you always know where the bar starts. Great for odd meters like 7/8 and 9/8.", "sw": "Swing pushes every second note late. 50% = straight, even notes. About 67% = triplet swing, like jazz and blues shuffles.", "pkt": "Pocket: where the drummer sits on the beat. Auto uses the real feel of the groove: backbeat a hair behind, hats leading. Machine = perfectly on the grid.", "gdyn": "Ghost notes are the very soft snare taps between the backbeats. \"4 levels\" plays them softer or louder depending on where they fall, like a real drummer. Flat = all the same.", "groll": "How often soft snare rolls show up: drags, ruffs, 5-stroke and short buzz rolls tucked in before the backbeat or onto the e and a. They sit below the ghost notes. Sprinkle = now and then, Some = about one a bar, Lots = a busy ghost-note feel.", "grst": "Natural mix = what a drummer reaches for: mostly drags and short ruffs, some buzzes, now and then a 7- or 9-stroke roll that builds into a fill. Stick strokes = no buzzes. Buzz and press rolls = only buzzed strokes.", "hu": "Humanize adds tiny random changes in timing and volume so the drums don't sound like a machine. Zero = perfectly even.", "crash": "Plays a crash cymbal on beat 1 every 4 bars to mark the phrase.", "ci": "Count-in: clicks before the band starts so you can come in on time.", "do": "Drop-out: the drums and bass go silent for some bars while you keep playing. When they come back, you find out if you kept the time yourself.", "bigl": "Makes the beat light big and flashes the screen on every beat, so you can see the pulse from across the room.", "tr": "Tempo trainer: speeds the metronome up a little every few bars until it reaches your goal. It never slows down.", "trg": "The tempo the trainer stops at.", "tri": "How many BPM to add each time.", "trb": "How many bars to play before each speed-up.", "fe": "How often the drummer plays a fill (a short drum break) at the end of a phrase.", "fs": "The kind of fill: toms, snare, or a mix.", "fa": "How busy the fill is. Low = short and simple. High = full bar with doubles.", "fc": "Plays a crash on the beat right after every fill, like a drummer landing the fill.", "key": "The major parent key: the \"1\" of the scale. The studio names every mode from its parent major key.", "md": "The mode: which note of the parent key the music sits on. The bass and keys use it for passing notes and voicings.", "prog": "The chord progression the bass and keys play. Pick a mode first: the list then shows only that mode's progressions, in Roman numerals counted from the parent major key, always (D Dorian in C: ii – V = Dm – G), with the letters for your parent key.", "bpc": "How long each chord lasts. Normal = one bar. Double time = two chords per bar. Half time = each chord lasts two bars.", "cprog": "Type your own chords, separated by spaces (for example: ii V I vi or Dm7 G7 Cmaj7).", "bon": "Turns the bass player on. The bass follows the chords and the groove.", "bt": "The bass sound: electric, upright, synth and more. Auto picks the fingerstyle funk bass (real ghost notes and muted plucks) for funk, soul and R&B, and the clean studio bass for everything else.", "bgh": "Ghost notes: muted thuds between the real notes, the way funk and soul bassists fill the 16ths. Auto uses as many as the style calls for. Sprinkle, Some and Lots set it yourself.", "bart": "How the bass player plays the notes: slides into a note, hammer-ons, octave pops, a chromatic note leading into the next chord tone, and now and then a fall-off at the end of a phrase. Auto = what suits the style. Off = plain notes.", "rart": "Pick a bass note in the roll, then choose how it is played: a ghost (dead) note, a slide in, a hammer-on, a pop or a fall-off. Copy auto to roll brings these over from the auto bass line.", "btone": "Shapes the bass like a mixing engineer: EQ and compression on the bass channel.", "bs": "How the bass plays: root notes, walking lines, pedal tones and more, matched to the style.", "bauto": "Writes a fresh bass line every few bars so it never gets repetitive.", "bvar": "How often the bass adds passing notes, octave jumps and pickups.", "bv": "Bass volume, separate from the drums.", "kon": "Turns the keyboard player on. The keys play the chords in the progression.", "ksnd": "The keyboard sound. Auto picks what a band would bring: grand piano for pop, ballads, jazz and Latin, a tine electric piano for neo-soul and funk, a tonewheel organ for gospel and blues shuffles. The sampled sounds load the first time you pick them.", "kcomp": "Comping = how the keys play the chords: held, pushed, stabs. Auto matches the groove.", "kvoice": "Voicing = which chord notes the keys play. Pop/rock: the root in the left hand, the triad in the right, moving to the closest notes. Jazz: rootless voicings (3-7-9, 7-3-13) between C3 and A4, the root left to the bass. Neo-soul and gospel add 9ths, 11ths and 13ths from the mode. Nothing muddy: no 3rds below E-flat 3.", "kv": "Keys volume, separate from the drums.", "kit": "Picks the whole drum kit at once. You can still change each drum below.", "kk": "The kick drum sound.", "sn": "The snare drum sound.", "rv": "The ride cymbal sound.", "hh": "The hi-hat sound.", "hfeel": "Tight = closed and choked. Loose = hats a little open and sloshy.", "sfeel": "Tight = damped, higher crack. Open = lower, fatter, more ring.", "kfeel": "Tight = short and punchy. Boomy = lower and longer.", "tm": "The tom sounds used in fills.", "pc": "The percussion sounds: shaker, tambourine, cowbell, congas and more.", "room": "How much room echo (reverb) is on the whole band.", "arr": "Song mode: switches between a verse groove and a chorus groove, so practice feels like a real song.", "av": "The groove for the verse.", "ac": "The groove for the chorus.", "ab": "How many bars the verse lasts.", "cb": "How many bars the chorus lasts.", "mode": "Direct is fastest. Pick Compatibility only if the sound crackles or won't play on your device.", "dev": "Which speaker or headphones the sound plays through.", "showall": "Shows every drum in the pattern grid, not just the drums this groove uses.", "gvl": "How many strengths a grid square can have. 4: accent, normal, soft, ghost. 3: accent, normal, ghost. 2: normal and ghost. Going down snaps every hit to the nearest level that is left; nothing is deleted. The grooves keep their exact strengths until you change them."};
+(function(){const T={"xby": "Choose how long the MP3 is: Times through plays the whole loop a set number of times (the chord loop, or verse + chorus in Verse / Chorus mode) and ends on the one. Minutes plays for a set time.", "xtimes": "How many times the whole loop plays in the MP3. Once through = the full chord loop, or verse + chorus when Verse / Chorus is on. The file ends back on the one with the last chord ringing out.", "xci": "Adds the count-in clicks at the start of the MP3, so you know when to come in. Off = the band starts right away.", "bmode": "Auto: the app writes the bass line for you, fresh as it plays. Manual: the bass plays the notes in the piano roll. Switching back to Auto keeps your roll notes saved.", "kmode": "Auto: the app plays the chords for you in the comping style you picked. Manual: the keys play the notes in the piano roll. Switching back to Auto keeps your roll notes saved.", "rsec": "With Verse / Chorus on, the verse and the chorus can each have their own part. Shared = one part for both. A section with no notes of its own plays the shared part.", "rbars": "How long the part is before it repeats: 1, 2, 4 or 8 bars. Making it shorter hides the later bars; their notes come back when you make it longer again.", "rlock": "Scale lock: a note you tap snaps to the nearest note of the key and mode, so a wrong note can't sneak in. The light rows are the notes in the key. Turn it off to add any note, like a chromatic passing note.", "rchord": "Chord stamp (keys): tap anywhere in a bar to drop in that bar's chord, voiced the way the auto keys play it and held to the next chord change. Then change the notes one by one.", "rcopy": "Copies what Auto plays right now (this progression, this groove, this style) into the roll as notes you can change. It switches the part to Manual, and it sounds just like Auto until you edit it.", "rundo": "Takes back the last change in the piano roll.", "rclr": "Removes every note in this part. You get asked first, and Undo brings them back.", "mv": "Master volume for everything: drums, bass and keys. Saved on this device only, not in presets or links.", "xlen": "How many minutes the MP3 lasts when you export by minutes. It records the groove, bass, chords, fills and tempo exactly as they are set now, so you can practice with it anywhere.", "ps": "Your saved setups. Pick one to load it. Type a name and tap Save to store everything you have set right now. Presets live on this device and never get erased by Reset.", "pre": "The drum pattern. Each groove is written the way real drummers play that style. Changing it also sets the time signature the groove is written in.", "ts": "Time signature: how many beats are in a bar and what kind. 4/4 = four quarter-note beats. 6/8, 9/8 (3+3+3) and 12/8 = beats split in three. In 5/8, 7/8, 9/8 (2+2+2+3) and 11/8 each beat is one 8th note, so the BPM counts 8ths.", "sdv": "Subdivide: the steady in-between notes that keep time. \"As written\" plays the groove's own hi-hat or ride part. Pick Quarter notes, 8ths, 16ths, Triplets or Off-beats to replace it with a steady pulse. Off = no subdivision at all, just the kick and snare.", "cy": "Subdivide with: the instrument that plays the subdivision. Hi-hat is tight and dry, ride is washy, ride bell cuts through, shaker and tambourine are soft and bright, cowbell, side stick, claves and woodblock are clicky and easy to hear.", "fb": "First beat: adds an extra sound on beat 1 of every bar so you always know where the bar starts. Great for odd meters like 7/8 and 9/8.", "sw": "Swing pushes every second note late. 50% = straight, even notes. About 67% = triplet swing, like jazz and blues shuffles.", "pkt": "Pocket: where the drummer sits on the beat. Auto uses the real feel of the groove: backbeat a hair behind, hats leading. Machine = perfectly on the grid.", "gdyn": "Ghost notes are the very soft snare taps between the backbeats. \"4 levels\" plays them softer or louder depending on where they fall, like a real drummer. Flat = all the same.", "groll": "How often soft snare rolls show up: drags, ruffs, 5-stroke and short buzz rolls tucked in before the backbeat or onto the e and a. They sit below the ghost notes. Sprinkle = now and then, Some = about one a bar, Lots = a busy ghost-note feel.", "grst": "Natural mix = what a drummer reaches for: mostly drags and short ruffs, some buzzes, now and then a 7- or 9-stroke roll that builds into a fill. Stick strokes = no buzzes. Buzz and press rolls = only buzzed strokes.", "hu": "Humanize adds tiny random changes in timing and volume so the drums don't sound like a machine. Zero = perfectly even.", "crash": "Plays a crash cymbal on beat 1 every 4 bars to mark the phrase.", "ci": "Count-in: clicks before the band starts so you can come in on time.", "do": "Drop-out: the drums and bass go silent for some bars while you keep playing. When they come back, you find out if you kept the time yourself.", "bigl": "Makes the beat light big and flashes the screen on every beat, so you can see the pulse from across the room.", "tr": "Tempo trainer: speeds the metronome up a little every few bars until it reaches your goal. It never slows down.", "trg": "The tempo the trainer stops at.", "tri": "How many BPM to add each time.", "trb": "How many bars to play before each speed-up.", "fe": "How often the drummer plays a fill (a short drum break) at the end of a phrase.", "fs": "The kind of fill: toms, snare, or a mix.", "fa": "How busy the fill is. Low = short and simple. High = full bar with doubles.", "fc": "Plays a crash on the beat right after every fill, like a drummer landing the fill.", "key": "The major parent key: the \"1\" of the scale. The studio names every mode from its parent major key.", "md": "The mode: which note of the parent key the music sits on. The bass and keys use it for passing notes and voicings.", "prog": "The chord progression the bass and keys play. Pick a mode first: the list then shows only that mode's progressions, in Roman numerals counted from the parent major key, always (D Dorian in C: ii – V = Dm – G), with the letters for your parent key.", "bpc": "How long each chord lasts. Normal = one bar. Double time = two chords per bar. Half time = each chord lasts two bars.", "cprog": "Type your own chords, separated by spaces (for example: ii7 V7 Imaj7 or Dm7 G7 Cmaj7). Every standard chord symbol works: 7ths, 6/9, 9, 11, 13, sus, add9, ♭9, ♯11, alt, slash chords like C/E, and V/V. Tap the (i) for the full list.", "bon": "Turns the bass player on. The bass follows the chords and the groove.", "bt": "The bass sound: electric, upright, synth and more. Auto picks the fingerstyle funk bass (real ghost notes and muted plucks) for funk, soul and R&B, and the clean studio bass for everything else.", "bgh": "Ghost notes: muted thuds between the real notes, the way funk and soul bassists fill the 16ths. Auto uses as many as the style calls for. Sprinkle, Some and Lots set it yourself.", "bart": "How the bass player plays the notes: slides into a note, hammer-ons, octave pops, a chromatic note leading into the next chord tone, and now and then a fall-off at the end of a phrase. Auto = what suits the style. Off = plain notes.", "rart": "Pick a bass note in the roll, then choose how it is played: a ghost (dead) note, a slide in, a hammer-on, a pop or a fall-off. Copy auto to roll brings these over from the auto bass line.", "btone": "Shapes the bass like a mixing engineer: EQ and compression on the bass channel.", "bs": "How the bass plays: root notes, walking lines, pedal tones and more, matched to the style.", "bauto": "Writes a fresh bass line every few bars so it never gets repetitive.", "bvar": "How often the bass adds passing notes, octave jumps and pickups.", "bv": "Bass volume, separate from the drums.", "kon": "Turns the keyboard player on. The keys play the chords in the progression.", "ksnd": "The keyboard sound. Auto picks what a band would bring: grand piano for pop, ballads, jazz and Latin, a tine electric piano for neo-soul and funk, a tonewheel organ for gospel and blues shuffles. The sampled sounds load the first time you pick them.", "kcomp": "Comping = how the keys play the chords: held, pushed, stabs. Auto matches the groove.", "kvoice": "Voicing = which chord notes the keys play. Pop/rock: the root in the left hand, the triad in the right, moving to the closest notes. Jazz: rootless voicings (3-7-9, 7-3-13) between C3 and A4, the root left to the bass. Neo-soul and gospel add 9ths, 11ths and 13ths from the mode. Nothing muddy: no 3rds below E-flat 3.", "kv": "Keys volume, separate from the drums.", "kit": "Picks the whole drum kit at once. You can still change each drum below.", "kk": "The kick drum sound.", "sn": "The snare drum sound.", "rv": "The ride cymbal sound.", "hh": "The hi-hat sound.", "hfeel": "Tight = closed and choked. Loose = hats a little open and sloshy.", "sfeel": "Tight = damped, higher crack. Open = lower, fatter, more ring.", "kfeel": "Tight = short and punchy. Boomy = lower and longer.", "tm": "The tom sounds used in fills.", "pc": "The percussion sounds: shaker, tambourine, cowbell, congas and more.", "room": "How much room echo (reverb) is on the whole band.", "arr": "Song mode: switches between a verse groove and a chorus groove, so practice feels like a real song.", "av": "The groove for the verse.", "ac": "The groove for the chorus.", "ab": "How many bars the verse lasts.", "cb": "How many bars the chorus lasts.", "mode": "Direct is fastest. Pick Compatibility only if the sound crackles or won't play on your device.", "dev": "Which speaker or headphones the sound plays through.", "showall": "Shows every drum in the pattern grid, not just the drums this groove uses.", "gvl": "How many strengths a grid square can have. 4: accent, normal, soft, ghost. 3: accent, normal, ghost. 2: normal and ghost. Going down snaps every hit to the nearest level that is left; nothing is deleted. The grooves keep their exact strengths until you change them."};
  const tip=document.createElement('div');tip.id='tip';document.body.appendChild(tip);let cur=null;
  function show(el){const r=el.getBoundingClientRect();tip.textContent=el.dataset.tip;tip.style.display='block';const w=tip.offsetWidth,h=tip.offsetHeight;
   let x=Math.min(Math.max(8,r.left),innerWidth-w-8),y=r.bottom+6;if(y+h>innerHeight-8)y=Math.max(8,r.top-h-6);tip.style.left=x+'px';tip.style.top=y+'px';cur=el}
