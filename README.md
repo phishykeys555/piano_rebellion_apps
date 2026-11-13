@@ -29,4 +29,4 @@ Every app shows its version at the bottom of the page: `Version YYYY-MM-DD.N` (d
 | Symbol Memory (music symbols ↔ names; Bravura font, OFL, in `symbol-memory/fonts/`) | 2026-11-13.3 |
 | Music Games (home) | 2026-11-12.2 |
 | Round music (`shared/hype.js`) | 2026-11-12.1 |
-| Riff Simon Says | 2026-11-13.3 |
+| Riff Simon Says | 2026-11-13.4 |
