@@ -23,6 +23,8 @@ h1{font-family:var(--f-title);font-weight:700;font-size:30px;letter-spacing:-.01
 .sect{display:flex;flex-direction:column;gap:6px}
 .lbl{font:700 14px var(--f-body);letter-spacing:.08em;text-transform:uppercase;color:var(--c-mut)}
 button{font:inherit;touch-action:manipulation;-webkit-tap-highlight-color:transparent;-webkit-user-select:none;user-select:none}
+/* 2026-11-13.4: rapid taps on phones are clean hits, never a text selection, callout or double-tap zoom (pad, Start, Hear it) */
+#pad,#pad *,#goBtn,#goBtn *,#hearBtn,#hearBtn *{-webkit-user-select:none;user-select:none;-webkit-touch-callout:none;touch-action:manipulation;-webkit-tap-highlight-color:transparent}
 .key,.pick button,.seg button,.chips button,.btn{font-weight:600;font-size:15px;color:var(--c-ink);background:var(--c-key);border:1px solid var(--c-key-b);border-radius:12px;box-shadow:0 3px 0 var(--c-key-sh);min-height:44px;padding:6px 12px;cursor:pointer;transition:transform .05s,box-shadow .05s}
 .pick button:active,.seg button:active,.chips button:active,.btn:active{transform:translateY(2px);box-shadow:0 1px 0 var(--c-key-sh)}
 .pick button[aria-pressed="true"],.seg button[aria-pressed="true"],.chips button[aria-pressed="true"]{background:var(--c-sel);border-color:var(--c-sel);color:var(--c-sel-ink)}
@@ -232,7 +234,7 @@ input[type=range]{accent-color:var(--c-act)}
         <details id="dbgBox" style="margin-top:8px"><summary>Show details</summary><div class="dbg" id="dbg">No mic events yet.</div></details>
       </div>
     </details>
-    <p class="appver" id="appVer">Meter Master · Version 2026-11-13.3</p>
+    <p class="appver" id="appVer">Meter Master · Version 2026-11-13.4</p>
   </section>
 
   <section class="play">
@@ -288,7 +290,7 @@ input[type=range]{accent-color:var(--c-act)}
 <script>
 (()=>{
 'use strict';
-const VER="2026-11-13.3";
+const VER="2026-11-13.4";
 const $=id=>document.getElementById(id);
 const store={get(k,d){try{const v=localStorage.getItem("mm-"+k);return v==null?d:JSON.parse(v)}catch(e){return d}},set(k,v){try{localStorage.setItem("mm-"+k,JSON.stringify(v))}catch(e){}}};
 const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
@@ -483,6 +485,9 @@ function ticksVis(){ const on=mode==="chal"?$("ticksChal").checked:$("ticksOn").
 
 // ================= INPUT: tap, space, MIDI =================
 function padFlash(){ const p=$("pad"); p.classList.add("hit"); clearTimeout(padFlash.t); padFlash.t=setTimeout(()=>p.classList.remove("hit"),80) }
+// pointerdown is the pad's only input path (no click, touchstart or mousedown handler), so each physical tap is one hit; preventDefault stops the
+// synthetic mouse events, and the long-press menu and selection are blocked (2026-11-13.4)
+["contextmenu","selectstart","dragstart"].forEach(k=>$("pad").addEventListener(k,e=>e.preventDefault()));
 $("pad").addEventListener("pointerdown",e=>{ e.preventDefault(); if(inMode!=="tap"&&!run&&!calHook) return; hit(evToCtxSafe(e.timeStamp),"tap") });
 document.addEventListener("keyup",e=>{ if(e.code==="Space"&&(run||calHook)) e.preventDefault() });
 document.addEventListener("keydown",e=>{ if(e.code!=="Space") return; const tg=e.target.tagName; if(["INPUT","SELECT","TEXTAREA"].includes(tg)) return;
@@ -785,7 +790,13 @@ function abort(msg){ hush(); if(run){ run=null } calHook=null; if(arc){ arc=null
 document.addEventListener("visibilitychange",()=>{ if(document.hidden&&(run||arc||calHook)) abort("The app was in the background, so this run stopped. Press Start to go again.") });
 
 // ================= PRACTICE =================
-$("goBtn").addEventListener("click",async()=>{ if(run||arc){ abort(); return } if(calHook||starting) return; starting=true; lockUI();
+// Start and Hear it act on pointerdown (2026-11-13.4), once per press: the click that follows the same press is skipped, while a keyboard or
+// scripted click (detail 0) still runs. Until the audio is running, a touch waits for its click: only the click (touchend) can unlock audio on a phone.
+function fastPress(el,fn){ let at=-1e9;
+  ["contextmenu","selectstart","dragstart"].forEach(k=>el.addEventListener(k,e=>e.preventDefault()));
+  el.addEventListener("pointerdown",e=>{ if(e.button>0||el.disabled) return; if(e.pointerType!=="mouse"&&!(audio&&audio.state==="running")) return; e.preventDefault(); at=performance.now(); fn() });
+  el.addEventListener("click",e=>{ if(e.detail>0&&performance.now()-at<1500){ at=-1e9; return } fn() }) }
+fastPress($("goBtn"),async()=>{ if(run||arc){ abort(); return } if(calHook||starting) return; starting=true; lockUI();
   const ok=await prepInput(); starting=false; if(!ok&&isMic(inMode)){ lockUI(); return }
   $("results").hidden=true; $("card").classList.remove("showres");
   if(mode==="chal") return arcStart();
@@ -908,7 +919,7 @@ async function calibrate(){ if(busy()) return; starting=true; lockUI(); const ok
     if(q(0.75)-q(0.25)>0.045){ $("calTxt").textContent=`Too uneven (spread ${Math.round((q(0.75)-q(0.25))*1000)} ms). Nothing saved. Try again, steady with the clicks.`; setState("Ready","Calibration didn't save. Try again."); return }
     const v=Math.round(med*1000); store.set("lat-"+src,v); calLabel(); setState("Calibrated",`Your ${IN_NAME[src]} offset is ${v} ms. Saved.`) },(0.6+NC*sp+0.5)*1000) }
 $("calBtn").addEventListener("click",calibrate); $("calBtn2").addEventListener("click",calibrate);
-$("hearBtn").addEventListener("click",async()=>{ const a=ctx(); await a.resume(); const t=a.currentTime+0.08, P=60/bpm; for(let k=0;k<bpb;k++) SND[$("sndSel").value](a,a.destination,t+k*P,$("accOn").checked&&k===0,track,k,bpb) });
+fastPress($("hearBtn"),async()=>{ const a=ctx(); await a.resume(); const t=a.currentTime+0.08, P=60/bpm; for(let k=0;k<bpb;k++) SND[$("sndSel").value](a,a.destination,t+k*P,$("accOn").checked&&k===0,track,k,bpb) });
 
 // ================= INIT =================
 buildLevels(); buildTempos(); mark(); drawTicks(); light(false);
@@ -917,7 +928,7 @@ if(inMode==="midi") midiStart();
 
 // test hooks (read-only helpers for the automated checks)
 window.__mm={VER,LEVELS,ROUNDS,buildPlan,grade,schedule,SND,winScale,
-  tapCtx:(t,src)=>hit(t,src||"tap"), state:()=>({run:!!run,arc:arc?{round:arc.round,need:arc.need}:null,mode,inMode,bpm,bpb,lvl,lastRes,t0:run&&run.t0,plan:run&&run.plan}),
+  tapCtx:(t,src)=>hit(t,src||"tap"), state:()=>({run:!!run,arc:arc?{round:arc.round,need:arc.need}:null,mode,inMode,bpm,bpb,lvl,lastRes,t0:run&&run.t0,plan:run&&run.plan,raw:run&&run.raw.map(r=>r.t)}),
   ctx:()=>ctx(), heardNow:()=>heardNow(), evToCtx:ts=>evToCtx(ts), lagOf, DET_SRC, micHit:(t,i)=>micHit(t,i||{tag:"test"}), mic:()=>mic, midi:()=>MIDI, dbg:()=>dbgLines.slice()};
 })();
 </script>
