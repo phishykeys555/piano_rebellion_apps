@@ -1,11 +1,12 @@
 <!doctype html>
 <html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>Symbol Memory · Clarendon Hills Music Academy</title>
-<meta name="description" content="Symbol Memory: a memory card game that matches music symbols to their names. Learn, Play or Challenge. Built by Clarendon Hills Music Academy.">
+<meta name="description" content="Symbol Memory: a classic memory card game with music symbols. Find the matching pairs and learn every symbol's name. Learn, Play or Challenge. Built by Clarendon Hills Music Academy.">
 <link rel="preload" href="fonts/Bravura.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="stylesheet" href="../shared/chma.css">
 <script src="../shared/brand.js"></script>
 <script src="../shared/hype.js"></script>
+<script src="../shared/share.js"></script>
 <style>
 /* Music symbols: Bravura (SMuFL) by Steinberg, SIL Open Font License 1.1, vendored in fonts/ with its license */
 @font-face{font-family:"Bravura";src:url("fonts/Bravura.woff2") format("woff2");font-display:block}
@@ -194,7 +195,7 @@ h2[tabindex]:focus{outline:none}
     <div class="drawhead"><span class="lbl">Setup</span><button class="k primary" id="drawClose">Done</button></div>
     <header>
       <h1>Symbol <em>Memory</em></h1>
-      <p class="sub">Flip two cards. Match each music symbol to its name. Every match tells you what the symbol does.</p>
+      <p class="sub">Flip two cards. Find the matching pairs. Every card shows the symbol with its name under it, and every match tells you what the symbol does.</p>
     </header>
     <div class="sect"><span class="lbl" id="lvlLbl">Symbols</span>
       <div class="pick" id="levels" role="group" aria-labelledby="lvlLbl"></div></div>
@@ -206,7 +207,7 @@ h2[tabindex]:focus{outline:none}
       </div></div>
     <button class="k" id="sheetBtn">See every symbol in this level</button>
     <details class="how"><summary>How it works</summary>
-      <p>Each pair is one symbol card and one name card. Flip two cards. If the symbol matches its name, they stay up and you see what the symbol does. If not, they flip back. Remember where things are.</p>
+      <p>Classic Memory: every symbol is on two identical cards, the symbol big with its name written under it. Flip two cards. If they match, they stay up and you see what the symbol does. If not, they flip back. Remember where things are.</p>
       <p><b>Learn:</b> press Peek to see every card for 3 seconds before you start. Tap a matched pair any time to read (and hear) its meaning again.</p>
       <p><b>Play:</b> the normal game. Fewest moves wins. Your best for each level and size is saved on this device.</p>
       <p><b>Challenge:</b> five rounds and a bonus round. Points count up from 0 each round toward a target: 100 a match, +50 for every match in a row, plus a speed bonus when you clear the board. Hit the target to unlock the next round. Each round adds pairs or harder symbols.</p>
@@ -218,7 +219,7 @@ h2[tabindex]:focus{outline:none}
       <label><input type="checkbox" id="speakOn" checked> Read meanings aloud in Learn</label>
       <label class="selrow">Voice <select id="voiceSel"><option value="">Most natural on this device</option></select></label>
     </details>
-    <p class="appver" id="appVer">Symbol Memory · Version 2026-11-13.3</p>
+    <p class="appver" id="appVer">Symbol Memory · Version 2026-11-13.5</p>
     <p class="credit">Music symbols: <a href="https://github.com/steinbergmedia/bravura" target="_blank" rel="noopener">Bravura</a> by Steinberg, <a href="fonts/OFL.txt" target="_blank" rel="noopener">SIL Open Font License</a>.</p>
   </aside>
 
@@ -242,6 +243,7 @@ h2[tabindex]:focus{outline:none}
         <div class="score" id="rScore"></div>
         <div class="rgrid"><div><b id="r1">0</b><span id="r1l">Moves</span></div><div><b id="r2">0:00</b><span>Time</span></div><div><b id="r3">–</b><span id="r3l">Best</span></div></div>
         <p class="why" id="rWhy"></p>
+        <button class="k primary" id="shareBtn" style="width:100%;min-height:48px">Share result</button>
         <div class="ractions"><button class="k" id="closeBtn">Back</button><button class="k primary" id="againBtn">Play again</button></div>
         <p class="stamp" id="rStamp"></p>
         <ul class="rlist" id="rList"></ul>
@@ -432,20 +434,19 @@ const shuffle=a=>{ for(let i=a.length-1;i>0;i--){ const j=Math.floor(Math.random
 /* ============================ BOARD ============================ */
 const BACK=`<svg viewBox="-3 -38 29 44" aria-hidden="true">${G(U.e8Up,0,0)}</svg>`;
 function deal(pool,n){ clearTimeout(lockT); clearTimeout(peekT); stopClock(); $("board").classList.remove("peek");
-  const pick=shuffle(pool.slice()).slice(0,n); deck=shuffle(pick.flatMap(s=>[{s,k:"sym"},{s,k:"name"}])).map((c,i)=>({...c,i,up:false,done:false}));
+  const pick=shuffle(pool.slice()).slice(0,n); deck=shuffle(pick.flatMap(s=>[{s,k:"a"},{s,k:"b"}])).map((c,i)=>({...c,i,up:false,done:false}));
   open=[]; moves=0; matched=0; elapsed=0; t0=0; peeked=false; busy=false; combo=0; gameOver=false; focusI=0;
   const b=$("board"); b.innerHTML="";
   deck.forEach((c,i)=>{ const el=document.createElement("button"); el.className="mc"; el.dataset.i=i; el.tabIndex=i===0?0:-1;
     el.innerHTML=`<span class="in"><span class="face back" aria-hidden="true">${BACK}</span>${frontHtml(c)}</span>`;
     el.addEventListener("click",()=>tap(i)); b.appendChild(el); label(i) });
-  info(mode==="learn"?"Press <b>Peek 3 s</b> to see every card first, or just start flipping.":mode==="chal"?"Find the pairs. Every match in a row is worth more.":"Flip two cards. Match each symbol to its name.");
+  info(mode==="learn"?"Press <b>Peek 3 s</b> to see every card first, or just start flipping.":mode==="chal"?"Find the pairs. Every match in a row is worth more.":"Flip two cards. Find the matching pairs.");
   render(); layout(); }
-// a matched pair: BOTH cards show the symbol and its name together (owner, 2026-11-13: "I want the symbol AND what the symbol is")
-function frontHtml(c){ return c.done?`<span class="face front combo" aria-hidden="true"><span class="csym">${svgOf(c.s)}</span><span class="cnm">${c.s.name}</span></span>`
-  :`<span class="face front ${c.k==="sym"?"sym":"nm"}" aria-hidden="true">${c.k==="sym"?svgOf(c.s):`<span>${c.s.name}</span>`}</span>` }
-function comboize(j){ const el=cardEl(j); if(!el) return; const f=el.querySelector(".front"); if(!f) return; f.outerHTML=frontHtml(deck[j]); fitNames() }
+// classic Memory (owner, 2026-11-13.5: "You are finding MATCHING CARDS ... like the actual game memory"): every pair is two identical cards,
+// each face the symbol big with its name written under it
+function frontHtml(c){ return `<span class="face front combo" aria-hidden="true"><span class="csym">${svgOf(c.s)}</span><span class="cnm">${c.s.name}</span></span>` }
 function label(i){ const c=deck[i], el=$("board").children[i]; if(!el) return; const pos=`Card ${i+1} of ${deck.length}`;
-  const what=c.k==="sym"?`symbol card: ${c.s.plain}, ${c.s.look}`:`name card: ${c.s.plain}`;
+  const what=`${c.s.plain}, ${c.s.look}`;
   el.setAttribute("aria-label",c.up||c.done?`${pos}, ${what}${c.done?", matched":""}`:`${pos}, face down`) }
 function cardEl(i){ return $("board").children[i] }
 function setUp(i,up){ deck[i].up=up; cardEl(i).classList.toggle("up",up); label(i) }
@@ -458,13 +459,13 @@ function tap(i){ const c=deck[i]; if(!c||busy||gameOver) return; focusI=i; rove(
   if(open.length===2){ clearTimeout(lockT); flipBack() }   // a third tap closes the last miss right away
   startClock(); if(mode==="learn"){ peeked=true; $("peekBtn").setAttribute("aria-disabled","true") }
   setUp(i,true); sfx("flip"); open.push(i);
-  if(open.length<2){ info(c.k==="sym"?"Now find its name.":"Now find its symbol."); return }
+  if(open.length<2){ info("Now find its twin."); return }
   moves++; const [a,b]=open, A=deck[a], B=deck[b];
-  if(A.s.id===B.s.id&&A.k!==B.k){ A.done=B.done=true; open=[]; matched++; [a,b].forEach(j=>{ cardEl(j).classList.add("done"); comboize(j); label(j) }); sfx("match");
+  if(A.s.id===B.s.id&&a!==b){ A.done=B.done=true; open=[]; matched++; [a,b].forEach(j=>{ cardEl(j).classList.add("done"); label(j) }); sfx("match");
     let gain=0; if(arc){ gain=(100+50*combo)*(arc.bonus?2:1); arc.pts+=gain; arc.total+=gain }
     combo++; explain(A.s,false,gain);
     render(); if(matched===deck.length/2) win() }
-  else { combo=0; sfx("miss"); [a,b].forEach(j=>cardEl(j).classList.add("miss")); info(`Not a pair. ${A.k===B.k?"Two "+(A.k==="sym"?"symbols":"names")+": match a symbol with a name.":"Remember where those were."}`,"bad");
+  else { combo=0; sfx("miss"); [a,b].forEach(j=>cardEl(j).classList.add("miss")); info("Not a pair. Remember where those were.","bad");
     render(); lockT=setTimeout(flipBack,FAST?150:(mode==="learn"?1400:1000)) } }
 function flipBack(){ open.forEach(j=>{ cardEl(j).classList.remove("miss"); setUp(j,false) }); open=[] }
 function explain(s,again,gain){ info(`<b>${s.plain}:</b>&nbsp;${s.meaning}${gain?` <b>+${gain}</b>`:""}`,"good");
@@ -502,14 +503,17 @@ const bestKey=()=>`best-${mode}-${level}-${pairs}`;
 function render(){ $("sT").textContent=fmt(elapsed); $("sP").textContent=`${matched}/${deck.length/2||0}`;
   if(arc){ $("lA").textContent="points"; $("sA").textContent=arc.pts; $("lB").textContent="total"; $("sB").textContent=arc.total; arcBar() }
   else { $("lA").textContent="moves"; $("sA").textContent=moves; $("lB").textContent="best"; const b=store.get(bestKey(),null); $("sB").textContent=b&&b.moves?`${b.moves}`:"–"; $("stB").title=b?`Best: ${b.moves} moves, ${fmt(b.time)}`:"" } }
+let shareTxt="";
 function win(){ stopClock(); gameOver=true; sfx("win");
   if(arc) return arcRoundClear();
   const key=bestKey(), prev=store.get(key,null), now={moves,time:Math.round(elapsed)};
   const isNew=!prev||!(prev.moves>0)||now.moves<prev.moves||(now.moves===prev.moves&&now.time<prev.time); if(isNew) store.set(key,now);
   const best=isNew?now:prev; render();
-  setTimeout(()=>{ $("rTitle").textContent="Board cleared!"; $("rScore").innerHTML=`${moves} <small>moves · ${fmt(elapsed)}${isNew?" · new best!":""}</small>`;
+  setTimeout(()=>{ if(!gameOver||arc) return; /* a new game started meanwhile */ $("rTitle").textContent="Board cleared!"; $("rScore").innerHTML=`${moves} <small>moves · ${fmt(elapsed)}${isNew?" · new best!":""}</small>`;
     $("r1").textContent=moves; $("r1l").textContent="Moves"; $("r2").textContent=fmt(elapsed); $("r3").textContent=`${best.moves}`; $("r3l").textContent="Best moves";
     $("rWhy").textContent=moves===pairs?"Perfect memory: not a single miss.":`A perfect game is ${pairs} moves. ${isNew?"That is your new best for this level and size.":`Your best here is ${best.moves} moves.`}`;
+    { const miss=moves-pairs, lv=L(); shareTxt=[`🃏 Symbol Memory · Level ${lv.id==="all"?"Mixed":lv.id+" "+lv.name} · ${moves} moves · ${fmt(elapsed)}`,
+        `${mode==="learn"?"Learn":"Play"} · ${pairs} pairs`, miss<=0?"🧠 Perfect memory: zero misses":`${"🟩".repeat(Math.min(pairs,12))}${"🟥".repeat(Math.min(miss,12))} ${miss} miss${miss===1?"":"es"}`].concat(isNew&&prev&&prev.moves>0?[`🏆 New best (was ${prev.moves} moves)`]:[]).join("\n") }
     listMatched(); stampIt(`${mode==="learn"?"Learn":"Play"} · ${L().name} · ${pairs} pairs`); $("againBtn").textContent="Play again"; $("closeBtn").textContent="Back";
     sheet(true) },FAST?50:900) }
 function listMatched(){ const seen=new Set(); $("rList").innerHTML=deck.filter(c=>!seen.has(c.s.id)&&seen.add(c.s.id)).map(c=>`<li><b>${c.s.plain}:</b> ${c.s.meaning}</li>`).join("") }
@@ -553,7 +557,10 @@ function arcRoundClear(){ const r=R(), par=r.n*6, speed=Math.max(0,Math.round(pa
     const cleared=arc.round; arc.round++; const nr=R(); if(nr.bonus) arc.bonus=true; arc.pts=0; arc.hit=false; render();
     arcSplash(nr.bonus?"BONUS ROUND":`ROUND ${arc.round}`,`${nr.what}. Target: ${nr.t} points.${nr.bonus?" Every point counts double.":""}`,arcDeal,`ROUND ${cleared} CLEARED ✓`) },FAST?100:1400) }
 function arcFinish(won){ const r=R(), reached=arc.bonus?"Bonus round":`Round ${arc.round}`, total=arc.total, prev=Math.max(0,+store.get("chalbest",0)||0), isNew=total>prev; if(isNew) store.set("chalbest",total);
-  splashTok++; hypeStop(120); const got=arc.pts, need=r.t, rn=arc.round; arc=null; arcUI(false); gameOver=true;
+  splashTok++; hypeStop(120); const got=arc.pts, need=r.t, rn=arc.round, log=arc.log;
+  shareTxt=[`🃏 Symbol Memory Challenge · ${won?"All rounds + bonus cleared":reached}`, `${total} points · last board ${moves} moves in ${fmt(elapsed)}`,
+    log.map(x=>x.pts>=x.target?(x.round===ROUNDS.length?"🌟":"🟩"):"🟥").join("")||"🟥"].concat(isNew&&prev>0?[`🏆 New high score (beat ${prev})`]:[]).join("\n");
+  arc=null; arcUI(false); gameOver=true;
   $("rTitle").textContent=won?"Challenge cleared!":"Challenge over"; $("rScore").innerHTML=`${total} <small>points · ${reached}${isNew?" · new high score":""}</small>`;
   $("r1").textContent=total; $("r1l").textContent="Points"; $("r2").textContent=fmt(elapsed); $("r3").textContent=Math.max(prev,total); $("r3l").textContent="High score";
   $("rWhy").textContent=won?"All five rounds and the bonus round cleared.":`Round ${rn} target was ${need}. You had ${got}. Matches in a row and a fast clear push the score up.`;
@@ -582,6 +589,7 @@ function muteUI(){ const on=soundOn(); $("muteBtn").setAttribute("aria-pressed",
 $("muteBtn").addEventListener("click",()=>{ $("soundOn").checked=!soundOn(); store.set("soundOn",soundOn()); if(!soundOn()){ hypeStop(80); try{speechSynthesis.cancel()}catch(e){} } else AC(); muteUI() });
 $("peekBtn").addEventListener("click",()=>{ AC(); peek() });
 $("goBtn").addEventListener("click",()=>{ AC(); if(mode==="chal"){ if(arc){ stopChallenge(); chalIntro() } else { const i=$("intro"); i&&i.remove(); $("board").hidden=false; arcStart() } return } newGame() });
+$("shareBtn").addEventListener("click",()=>chmaShare.share({app:"symbol-memory",text:shareTxt}));
 $("againBtn").addEventListener("click",()=>{ AC(); if($("againBtn").textContent.startsWith("Challenge")){ sheet(false); const i=$("intro"); i&&i.remove(); $("board").hidden=false; arcStart() } else newGame() });
 $("closeBtn").addEventListener("click",()=>{ sheet(false); if(mode==="chal") chalIntro(); else newGame() });
 function drawer(on){ document.body.classList.toggle("drawer",on); $("setupBtn").setAttribute("aria-expanded",String(on)); if(on) setTimeout(()=>{ try{ $("drawClose").focus() }catch(e){} },30); else try{ $("setupBtn").focus({preventScroll:true}) }catch(e){} }

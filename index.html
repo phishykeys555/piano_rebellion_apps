@@ -1,7 +1,8 @@
 <!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Clarendon Hills Music Academy Games</title><meta name="description" content="Note Sprint, Key Finder, Symbol Memory, Fab Fours, Rhythm Trainer, Meter Master, Modal Metronome, Ear Trainer, Riff Simon Says, Song Dissector, Hanon Speed Trainer and Strobe Tuner: practice apps built by Clarendon Hills Music Academy."><meta property="og:type" content="website"><meta property="og:site_name" content="Clarendon Hills Music Academy"><meta property="og:title" content="Music Games · Clarendon Hills Music Academy"><meta property="og:description" content="Note Sprint, Key Finder, Symbol Memory, Fab Fours, Rhythm Trainer, Meter Master, Modal Metronome, Ear Trainer, Riff Simon Says, Song Dissector, Hanon Speed Trainer and Strobe Tuner: practice apps built by Clarendon Hills Music Academy."><meta property="og:url" content="https://phishykeys555.github.io/piano_rebellion_apps/"><meta property="og:image" content="https://phishykeys555.github.io/piano_rebellion_apps/share/groove-metronome.png"><meta property="og:image:width" content="1200"><meta property="og:image:height" content="630"><meta property="og:image:alt" content="Music Games · Clarendon Hills Music Academy"><meta name="twitter:card" content="summary_large_image"><meta name="twitter:title" content="Music Games · Clarendon Hills Music Academy"><meta name="twitter:description" content="Note Sprint, Key Finder, Symbol Memory, Fab Fours, Rhythm Trainer, Meter Master, Modal Metronome, Ear Trainer, Riff Simon Says, Song Dissector, Hanon Speed Trainer and Strobe Tuner: practice apps built by Clarendon Hills Music Academy."><meta name="twitter:image" content="https://phishykeys555.github.io/piano_rebellion_apps/share/groove-metronome.png">
+<title>Clarendon Hills Music Academy Games</title><meta name="description" content="Note Sprint, Key Finder, Symbol Memory, Fab Fours, Pop Quiz, Rhythm Trainer, Meter Master, Modal Metronome, Ear Trainer, Riff Simon Says, Song Dissector, Hanon Speed Trainer and Strobe Tuner: practice apps built by Clarendon Hills Music Academy."><meta property="og:type" content="website"><meta property="og:site_name" content="Clarendon Hills Music Academy"><meta property="og:title" content="Music Games · Clarendon Hills Music Academy"><meta property="og:description" content="Note Sprint, Key Finder, Symbol Memory, Fab Fours, Pop Quiz, Rhythm Trainer, Meter Master, Modal Metronome, Ear Trainer, Riff Simon Says, Song Dissector, Hanon Speed Trainer and Strobe Tuner: practice apps built by Clarendon Hills Music Academy."><meta property="og:url" content="https://phishykeys555.github.io/piano_rebellion_apps/"><meta property="og:image" content="https://phishykeys555.github.io/piano_rebellion_apps/share/groove-metronome.png"><meta property="og:image:width" content="1200"><meta property="og:image:height" content="630"><meta property="og:image:alt" content="Music Games · Clarendon Hills Music Academy"><meta name="twitter:card" content="summary_large_image"><meta name="twitter:title" content="Music Games · Clarendon Hills Music Academy"><meta name="twitter:description" content="Note Sprint, Key Finder, Symbol Memory, Fab Fours, Pop Quiz, Rhythm Trainer, Meter Master, Modal Metronome, Ear Trainer, Riff Simon Says, Song Dissector, Hanon Speed Trainer and Strobe Tuner: practice apps built by Clarendon Hills Music Academy."><meta name="twitter:image" content="https://phishykeys555.github.io/piano_rebellion_apps/share/groove-metronome.png">
 <link rel="stylesheet" href="shared/chma.css">
 <script src="shared/brand.js"></script>
+<script src="shared/share.js"></script>
 <style>
 /* CHMA design system (Studio Gear dark / Pocket Synth light): launcher */
 *{box-sizing:border-box}
@@ -20,6 +21,10 @@ h1{font-family:var(--f-title);font-weight:700;font-size:32px;letter-spacing:-.01
 .apps span{display:block;color:var(--c-mut);font-size:13px;margin-top:2px}
 .apps i{flex:none;font:700 20px var(--f-num);font-style:normal;color:var(--c-act)}
 .appver{text-align:center;font:500 11px var(--f-num);color:var(--c-mut);opacity:.8;margin:18px 0 0}
+.toprow{display:flex;align-items:flex-start;justify-content:space-between;gap:10px}
+.sharebtn{flex:none;min-height:44px;padding:0 14px;font:700 14px var(--f-body);color:var(--c-ink);background:var(--c-key);border:1px solid var(--c-key-b);border-radius:12px;box-shadow:0 3px 0 var(--c-key-sh);cursor:pointer;white-space:nowrap}
+.sharebtn:active{transform:translateY(2px);box-shadow:0 1px 0 var(--c-key-sh)}
+@media (hover:hover){.sharebtn:hover{border-color:var(--c-act)}}
 
 /* iPhone/iPad: no grey tap flash box over the rounded keys */
 button,a,label,summary,select,input{-webkit-tap-highlight-color:transparent}
@@ -49,8 +54,8 @@ button,a,label,summary,select,input{-webkit-tap-highlight-color:transparent}
 </style></head>
 <body><main>
 <div data-chma-head></div>
-<h1>Music <em>Games</em></h1>
-<p class="sub">Pick a trainer and start playing.</p>
+<div class="toprow"><div><h1>Music <em>Games</em></h1>
+<p class="sub">Pick a trainer and start playing.</p></div><button type="button" class="sharebtn" id="shareHub">Share these games</button></div>
 <div class="groups">
 <section class="grp"><h2>Read &amp; Know</h2>
 <ul class="apps">
@@ -58,6 +63,7 @@ button,a,label,summary,select,input{-webkit-tap-highlight-color:transparent}
 <li><a href="key-finder/"><div class="txt"><b>Key Finder</b><span>Learn every key on the piano by sight. Just the keyboard.</span></div><i aria-hidden="true">›</i></a></li>
 <li><a href="symbol-memory/"><div class="txt"><b>Symbol Memory</b><span>Match music symbols to their names in a memory card game.</span></div><i aria-hidden="true">›</i></a></li>
 <li><a href="fab-fours/"><div class="txt"><b>Fab Fours</b><span>Find the four groups of four in a daily music word puzzle.</span></div><i aria-hidden="true">›</i></a></li>
+<li><a href="trivia/"><div class="txt"><b>Pop Quiz</b><span>Music trivia in 18 topics: a Daily 10, Quick Play, Streak Run and Party mode.</span></div><i aria-hidden="true">›</i></a></li>
 </ul></section>
 <section class="grp"><h2>Rhythm &amp; Time</h2>
 <ul class="apps">
@@ -77,6 +83,7 @@ button,a,label,summary,select,input{-webkit-tap-highlight-color:transparent}
 <li><a href="guitar-tuner/"><div class="txt"><b>Strobe Tuner</b><span>Guitar Revolution: tune every string with a true strobe.</span></div><i aria-hidden="true">›</i></a></li>
 </ul></section>
 </div>
-<p class="appver">Music Games · Version 2026-11-12.2</p>
+<p class="appver">Music Games · Version 2026-11-13.1</p>
 </main>
+<script>document.getElementById("shareHub").addEventListener("click",()=>chmaShare.share({app:"hub",text:"🎹 Music Games: 13 free practice games and tools.\nNote reading, rhythm, ear training, daily music puzzles, trivia and a real band to play with."}))</script>
 </body></html>

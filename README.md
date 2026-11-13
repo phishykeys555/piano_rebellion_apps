@@ -15,19 +15,20 @@ Every app shows its version at the bottom of the page: `Version YYYY-MM-DD.N` (d
 
 | App | Version |
 |---|---|
-| Note Sprint | 2026-11-13.3 |
-| Key Finder | 2026-11-13.2 |
-| Rhythm Trainer | 2026-11-13.2 |
-| Modal Metronome | 2026-11-13.2 |
-| Hanon Speed Trainer | 2026-11-11.7 |
+| Note Sprint | 2026-11-13.4 |
+| Key Finder | 2026-11-13.3 |
+| Rhythm Trainer | 2026-11-13.3 |
+| Modal Metronome | 2026-11-13.3 |
+| Hanon Speed Trainer | 2026-11-13.1 |
 | Major 7th Play-Along | 2026-11-11.8 |
 | Song Dissector | 2026-11-11.14 |
-| Strobe Tuner (Guitar Revolution) | 2026-11-12.1 |
-| Fab Fours (find the four groups of four; was Groupies) | 2026-11-13.6 |
+| Strobe Tuner (Guitar Revolution) | 2026-11-13.1 |
+| Fab Fours (find the four groups of four; was Groupies) | 2026-11-13.7 |
 | Pop Quiz (music trivia: 18 topics, Daily 10, Party mode) | 2026-11-13.2 |
-| Ear Trainer | 2026-11-13.3 |
-| Meter Master (internal-clock trainer) | 2026-11-13.2 |
-| Symbol Memory (music symbols ↔ names; Bravura font, OFL, in `symbol-memory/fonts/`) | 2026-11-13.3 |
-| Music Games (home) | 2026-11-12.2 |
+| Ear Trainer | 2026-11-13.4 |
+| Meter Master (internal-clock trainer) | 2026-11-13.3 |
+| Symbol Memory (classic Memory: identical pairs, symbol with its name under it; Bravura font, OFL, in `symbol-memory/fonts/`) | 2026-11-13.5 |
+| Music Games (home) | 2026-11-13.1 |
 | Round music (`shared/hype.js`) | 2026-11-12.1 |
-| Riff Simon Says | 2026-11-13.4 |
+| Share helper (`shared/share.js`: share sheet, clipboard, copy box; is.gd short links + chmusicacademy.com) | 2026-11-13.2 |
+| Riff Simon Says | 2026-11-13.5 |

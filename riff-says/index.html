@@ -12,6 +12,7 @@
 <link rel="stylesheet" href="../shared/chma.css">
 <script src="../shared/brand.js"></script>
 <script src="../shared/hype.js"></script>
+<script src="../shared/share.js"></script>
 <style>
 /* Layout: setup on the left (style, level, key, tempo, input), play card on the right (score LCD, call/your-turn lamp, piano roll, keyboard) with the action bar under it.
    Phones: one column, the action bar is fixed at the bottom. */
@@ -165,7 +166,7 @@ summary{cursor:pointer;padding:0 14px;min-height:44px;display:flex;align-items:c
 </head>
 <body>
 <div class="wrap">
-  <div data-chma-head data-ver="Riff Simon Says · v2026-11-13.4"></div>
+  <div data-chma-head data-ver="Riff Simon Says · v2026-11-13.5"></div>
   <div class="cols">
   <section class="setup">
     <header>
@@ -222,7 +223,7 @@ summary{cursor:pointer;padding:0 14px;min-height:44px;display:flex;align-items:c
       <h3>Credits</h3>
       <p class="tip">Grand piano: Salamander Grand Piano V3 by Alexander Holm (CC BY 3.0), via sfzinstruments. Drums: AVL Drumkits by Glen MacArthur (CC BY-SA 4.0): Black Pearl kick, snare and cross-stick; Blonde Bop hi-hats and ride. Basses (shared with the Modal Metronome): fingered and picked electric, GeneralUser GS by S. Christian Collins (free for any use); upright, FluidR3 GM by Frank Wen (MIT); fingerstyle funk with ghost notes, Black And Blue Basses by Karoryfer Samples (CC0). Rhodes: GeneralUser GS 2.0.3. String pad: FreePats (CC0). Claves: synthesized in the app. Round music: original, synthesized live (CHMA). Riffs are generated from style vocabulary, never copied from records.</p>
     </div></details>
-    <p class="appver">Riff Simon Says · Version 2026-11-13.4</p>
+    <p class="appver">Riff Simon Says · Version 2026-11-13.5</p>
   </section>
 
   <section class="play">
@@ -256,6 +257,7 @@ summary{cursor:pointer;padding:0 14px;min-height:44px;display:flex;align-items:c
         <div class="dots"><svg id="rDots" viewBox="0 0 600 70" preserveAspectRatio="none" role="img" aria-label="Early and late notes"></svg></div>
         <p class="stamp" id="rStamp"></p>
         <p class="tip">Screenshot this screen and send it to your instructor.</p>
+        <button class="primary" id="rShare" style="width:100%;min-height:48px">Share result</button>
         <div class="actions"><button class="ghost" id="rBack">Back</button><button class="primary" id="rAgain">Play again</button></div>
       </div>
     </div>
@@ -267,7 +269,7 @@ summary{cursor:pointer;padding:0 14px;min-height:44px;display:flex;align-items:c
 <script>
 (()=>{
 'use strict';
-const VERSION='2026-11-13.4';
+const VERSION='2026-11-13.5';
 const $=id=>document.getElementById(id);
 const store={get(k,d){try{const v=localStorage.getItem('rs-'+k);return v==null?d:JSON.parse(v)}catch(e){return d}},set(k,v){try{localStorage.setItem('rs-'+k,JSON.stringify(v))}catch(e){}}};
 const clamp=(x,a,b)=>Math.max(a,Math.min(b,x));
@@ -1082,6 +1084,7 @@ function chalFinish(won){ const C=T.chal, k='chal-'+st.style+'-'+st.level, best=
   showResults(true,won,isNew,best) }
 
 // ---------- results sheet ----------
+let shareTxt='';
 function showResults(chal,won,isNew,best){ const R=T.results; if(!R.length){ stopAll(); flash('Nothing to score yet. Press Start.',''); return }
   const avg=f=>Math.round(R.reduce((a,x)=>a+f(x.r),0)/R.length), offs=R.flatMap(x=>x.r.offs), mean=offs.length?offs.reduce((a,b)=>a+b,0)/offs.length:0, sd=offs.length>1?Math.sqrt(offs.reduce((a,b)=>a+(b-mean)**2,0)/(offs.length-1)):0;
   const sc=avg(x=>x.combined), p=avg(x=>x.pitch), rh=avg(x=>x.rhythm);
@@ -1095,6 +1098,11 @@ function showResults(chal,won,isNew,best){ const R=T.results; if(!R.length){ sto
   else why=octs>=Math.max(2,wrongs.length/2)?`Fix first: the octave. ${octs} of your wrong notes were the right note an octave away. Play where the call was: watch the C4 / C5 labels on the keys.`:sc<40?'Fix first: listen to the whole call, then play it back starting on beat 1 when the lamp turns blue.':p<rh-10?'Fix first: the notes. Sing the call back in your head before you play.':Math.abs(mean)>40?(mean>0?`Fix first: you're late by about ${Math.round(mean)} ms. Get your hand over the first note during the call.`:`Fix first: you're rushing by about ${Math.round(-mean)} ms. Let the groove come to you.`):sd>60?'Fix first: steady timing. '+countTip(R):sc>=90?'Clean. Try the next level or a faster tempo.':'Solid. Keep trading.';
   $('rWhy').textContent=why+(T.autoMsg?' '+T.autoMsg:''); const dotArgs=[offs,mean];
   const d=new Date(), K=makeKey(st.style,st.key); $('rStamp').textContent=`${chal?'CHALLENGE':'SINGLE TRIES'} · Riff Simon Says · ${STYLES[st.style].name} · Level ${st.level} (${LEVELS[st.level-1].name}) · ${st.level===7?'any key':K.tonic+' '+STYLES[st.style].mode.split(' (')[0]} · ${R[0].seg.bpm}${T.bpm!==R[0].seg.bpm?'→'+T.bpm:''} BPM · ${d.toLocaleDateString(undefined,{weekday:'short',month:'short',day:'numeric'})} ${d.toLocaleTimeString([],{hour:'numeric',minute:'2-digit'})}`;
+  { const sq=R.map(x=>x.r.combined>=80?'🟩':x.r.combined>=60?'🟨':'🟥'), row=[]; for(let i=0;i<sq.length;i+=10) row.push(sq.slice(i,i+10).join(''));
+    const bpmTxt=`${R[0].seg.bpm}${T.bpm!==R[0].seg.bpm?'→'+T.bpm:''} BPM`;
+    shareTxt=[`🎸 Riff Simon Says · ${STYLES[st.style].name} · Level ${st.level} (${LEVELS[st.level-1].name})${chal?' · Challenge '+(won?'cleared':(C.bonus?'Bonus round':'Round '+C.round)):''}`,
+      `${sc} average score · ${R.length} trade${R.length>1?'s':''} · best streak ${T.bestStreak}`,
+      `${bpmTxt} · pitch ${p}% · rhythm ${rh}%`+(chal?` · ${C.pts} points`:''), row.join(' ')].concat(chal&&isNew?['🏆 New Challenge high score']:[]).join('\n') }
   const keepT=T; stopAll(); T=keepT; T.running=false; $('results').hidden=false; $('card').classList.add('showres'); $('actbar').hidden=true; drawDots('rDots',...dotArgs); try{ $('rTitle').focus({preventScroll:true}) }catch(e){} }
 // the count that matches the riffs you just played: quarters at L1, 8ths (straight, swung or shuffled), 16ths in funk and L5
 function countTip(R){ const ns=R.flatMap(x=>x.seg.riff.notes), sx=STYLES[st.style];
@@ -1102,7 +1110,7 @@ function countTip(R){ const ns=R.flatMap(x=>x.seg.riff.notes), sx=STYLES[st.styl
   if(ns.some(n=>n.u%4)) return sx.swing?(st.style==='blues'?'Count the shuffle while the call plays: 1 trip-let, 2 trip-let.':'Count swung 8ths while the call plays: 1 & 2 &, long-short.'):'Count the 8ths while the call plays: 1 & 2 &.';
   return 'Count the quarter notes while the call plays: 1 2 3 4.' }
 function closeResults(){ $('results').hidden=true; $('card').classList.remove('showres'); $('actbar').hidden=false; T=null; statsUI(); $('arcRow').hidden=true; buttons() }
-$('rBack').addEventListener('click',closeResults); $('rAgain').addEventListener('click',()=>{ closeResults(); go() });
+$('rBack').addEventListener('click',closeResults); $('rShare').addEventListener('click',()=>chmaShare.share({app:'riff-says',text:shareTxt})); $('rAgain').addEventListener('click',()=>{ closeResults(); go() });
 
 // =====================================================================================
 // CONTROLS
