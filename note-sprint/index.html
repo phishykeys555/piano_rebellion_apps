@@ -365,7 +365,8 @@ details.how p{margin:0;padding:0 16px 12px;line-height:1.45;color:var(--muted)}
         <label class="selrow">Show notes on <select id="lsSel">
           <option value="all">Lines and spaces</option>
           <option value="lines">Lines only</option>
-          <option value="spaces">Spaces only</option></select></label>
+          <option value="spaces">Spaces only</option>
+          <option value="ledger">Ledger lines only (above and below the staff)</option></select></label>
       </fieldset>
       <fieldset><legend>Notes</legend>
         <label><input type="checkbox" id="accOn"> Add sharps and flats</label>
@@ -381,7 +382,7 @@ details.how p{margin:0;padding:0 16px 12px;line-height:1.45;color:var(--muted)}
       </fieldset>
     </div>
   </details>
-  <p class="tip appverp" id="appVer"><span class="appver">Note Sprint · Version 2026-11-12.1</span></p>
+  <p class="tip appverp" id="appVer"><span class="appver">Note Sprint · Version 2026-11-13.1</span></p>
   </div>
   <div class="play">
 
@@ -466,11 +467,15 @@ details.how p{margin:0;padding:0 16px 12px;line-height:1.45;color:var(--muted)}
   const LET="CDEFGAB", PC={C:0,D:2,E:4,F:5,G:7,A:9,B:11};
   const BASE={treble:30, bass:18};           // diatonic index of each staff's bottom line: E4, G2
   const LEVELS=[
-    {id:"1",name:"Treble",  s:{staffMode:"treble",range:0,acc:false}},
-    {id:"2",name:"Bass",    s:{staffMode:"bass",range:0,acc:false}},
-    {id:"3",name:"Both hands",s:{staffMode:"grand",range:0,acc:false}},
-    {id:"4",name:"Ledgers ♯♭",s:{staffMode:"grand",range:2,acc:true}},
-    {id:"5",name:"Intervals",s:{staffMode:"mix",range:0,acc:false,iv:true}},
+    {id:"1",name:"Treble",  s:{staffMode:"treble",range:0,acc:false,ls:"all"}},
+    {id:"2",name:"Bass",    s:{staffMode:"bass",range:0,acc:false,ls:"all"}},
+    {id:"3",name:"Both hands",s:{staffMode:"grand",range:0,acc:false,ls:"all"}},
+    {id:"4",name:"Ledgers ♯♭",s:{staffMode:"grand",range:2,acc:true,ls:"all"}},
+    {id:"5",name:"Intervals",s:{staffMode:"mix",range:0,acc:false,iv:true,ls:"all"}},
+    {id:"6",name:"Treble spaces",s:{staffMode:"treble",b:{treble:[1,7],bass:[1,7]},acc:false,ls:"spaces"}},
+    {id:"7",name:"Bass spaces",s:{staffMode:"bass",b:{treble:[1,7],bass:[1,7]},acc:false,ls:"spaces"}},
+    {id:"8",name:"Treble ledgers",s:{staffMode:"treble",range:3,acc:false,ls:"ledger"}},
+    {id:"9",name:"Bass ledgers",s:{staffMode:"bass",acc:false,ls:"ledger",b:{treble:[-7,15],bass:[-5,15]}}},
     {id:"C",name:"Custom",  s:null}];
   const KEYS=[["C",0],["G",1],["D",2],["A",3],["E",4],["B",5],["F♯",6],["C♯",7],["F",-1],["B♭",-2],["E♭",-3],["A♭",-4],["D♭",-5],["G♭",-6],["C♭",-7]];
   const SH="FCGDAEB", FL="BEADGCF";
@@ -522,7 +527,7 @@ details.how p{margin:0;padding:0 16px 12px;line-height:1.45;color:var(--muted)}
   function lmUi(){ $("lmChips").hidden=$("lmSel").value==="all" }
   // the staff positions a clef can ask: the note range, or landmarks (plus neighbors) when landmark mode is on
   // lines/spaces filter: p even = on a line (staff or ledger), odd = in a space; never leaves a clef with nothing to ask
-  function lsf(s,arr){ if(!s.ls||s.ls==="all") return arr; const f=arr.filter(p=>s.ls==="lines"?p%2===0:Math.abs(p%2)===1); return f.length?f:arr }
+  function lsf(s,arr){ if(!s.ls||s.ls==="all") return arr; const f=arr.filter(p=>s.ls==="ledger"?(p<=-2||p>=10):s.ls==="lines"?p%2===0:Math.abs(p%2)===1); return f.length?f:arr }
   function cands(s,clef){ return lsf(s,cands0(s,clef)) }
   function cands0(s,clef){
     if(s.lm&&s.lm!=="all"){ const r={lm:0,step:1,skip:2}[s.lm], set=new Set();
