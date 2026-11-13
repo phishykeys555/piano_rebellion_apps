@@ -309,7 +309,7 @@ details .note{font-size:14px;color:var(--c-mut);margin:8px 0 0}
   <details class="how"><summary>How it works</summary>
     <p class="tip"><b>Relative pitch</b> means you hear one note you know (the reference), then work out the next note by how far away it is. You don't need perfect pitch for this. You need distance.</p>
     <p class="tip"><b>Mystery note:</b> the app says "This is C" and plays it, then plays a mystery note. Tap it on the keyboard (or on the note names, in Settings). Levels 7 and 8 change the reference, so you can't just memorize C.</p>
-    <p class="tip"><b>Scale degree:</b> the app plays I – IV – V – I to set the key, then one note. Name its number in the scale: 1 is home (do), 5 is sol. Level 5 is a minor key (i – iv – V – i).</p>
+    <p class="tip"><b>Scale degree:</b> the app plays I – IV – V – I to set the key, then one note. Name its number in the scale: 1 is home (do), 5 is sol. Level 5 is a minor key, counted from its parent major like every numeral in the studio: in A minor (parent C) the cadence is vi – ii – III – vi (III is E major, borrowing G♯ from harmonic minor), and A is 6, B is 7, C is 1.</p>
     <p class="tip"><b>Interval:</b> two notes, name the distance. m = minor, M = major, P = perfect, TT = tritone (6 half steps), P8 = octave.</p>
     <p class="tip"><b>Single tries:</b> one question at a time. Replay the reference or the mystery as often as you like, then press Next. <b>Challenge:</b> 5 rounds of 8 questions and a bonus round. Round 1 is the warm-up that sets your targets; each round's points count up from 0. Right answer = 1 point, right within 3 seconds = 2. One replay of each per question, one try, no second chances.</p>
   </details>
@@ -325,7 +325,7 @@ details .note{font-size:14px;color:var(--c-mut);margin:8px 0 0}
     <label><input type="checkbox" id="hypeOn" checked> Music on round screens</label>
     <p class="note">Play-it-on-your-piano (microphone) answers are not in this version.</p>
   </details>
-  <p class="appver" id="appVer">Ear Trainer · Version 2026-11-12.1</p>
+  <p class="appver" id="appVer">Ear Trainer · Version 2026-11-13.1</p>
   <p class="credit">Piano: Salamander Grand Piano V3 by Alexander Holm (<a href="https://creativecommons.org/licenses/by/3.0/" target="_blank" rel="noopener">CC BY 3.0</a>), retuned by Markus Fiedler, via sfzinstruments. Song cues name public-domain or traditional tunes; no recordings are used.</p>
   </section>
 
@@ -397,7 +397,9 @@ function refSpell(refM,semisList){ const c=REFSP[mod(refM,12)]; let best=c[0], b
 // scale degree of a spelled note against a major-scale tonic (letter distance + how far it is from the major-scale note)
 function degreeOf(t,tM,s,m){ const d=mod(s.l-t.l,7), exp=mod(tM+NAT[d],12); let alt=mod(m-exp,12); if(alt>6) alt-=12; return (alt<0?"♭".repeat(-alt):alt>0?"♯".repeat(alt):"")+(d+1) }
 const SOLF={"1":"do","♯1":"di","♭2":"ra","2":"re","♯2":"ri","♭3":"me","3":"mi","4":"fa","♯4":"fi","♭5":"se","5":"sol","♯5":"si","♭6":"le","6":"la","♭7":"te","7":"ti"};
-const DEG_SEMI={"1":0,"♭2":1,"2":2,"♭3":3,"3":4,"4":5,"♯4":6,"5":7,"♭6":8,"6":9,"♭7":10,"7":11};
+const DEG_SEMI={"1":0,"♭2":1,"2":2,"♭3":3,"3":4,"4":5,"♯4":6,"5":7,"♯5":8,"♭6":8,"6":9,"♭7":10,"7":11};
+// STUDIO RULE (LOCKED 2026-11-13): numerals and degrees count from the PARENT MAJOR key, minor keys included. A minor (parent C): A = 6, C = 1, G♯ = ♯5.
+const parentOf=t=>{ const l=mod(t.l+2,7), pc=mod(NAT[t.l]+t.a+3,12); let a=mod(pc-NAT[l],12); if(a>6) a-=12; return {l,a} };
 const ORD=n=>n+(n===1?"st":n===2?"nd":n===3?"rd":"th");
 
 // ================= EXERCISES AND LEVELS =================
@@ -418,7 +420,7 @@ const EXS={
   {name:"First five",sub:"Degrees 1 to 5",deg:["1","2","3","4","5"]},
   {name:"Whole scale",sub:"Degrees 1 to 7",deg:["1","2","3","4","5","6","7"]},
   {name:"Chromatic",sub:"♭3, ♭7 and friends",deg:["1","♭2","2","♭3","3","4","♯4","5","♭6","6","♭7","7"]},
-  {name:"Minor key",sub:"i – iv – V – i",deg:["1","2","♭3","4","5","♭6","♭7"],minor:true}]},
+  {name:"Minor key",sub:"Counted from the parent major: vi – ii – III – vi",deg:["6","7","1","2","3","4","5"],minor:true}]},
  3:{name:"Interval",levels:[
   {name:"P5 and P8",sub:"5ths and octaves",iv:[7,12]},
   {name:"Add 3rds",sub:"M3 and m3",iv:[3,4,7,12]},
@@ -427,7 +429,7 @@ const EXS={
   {name:"Add 6ths, 7ths",sub:"M6 m6 M7 m7",iv:[1,2,3,4,5,7,8,9,10,11,12]},
   {name:"Add tritone",sub:"All 12 intervals",iv:[1,2,3,4,5,6,7,8,9,10,11,12]}]}};
 const MAJ_KEYS=[[0,0,0],[7,4,0],[2,1,0],[9,5,0],[5,3,0],[10,6,-1],[3,2,-1]], MIN_KEYS=[[9,5,0],[4,2,0],[2,1,0],[7,4,0],[0,0,0]];   // [pc, letter, accidental]
-const CAD_MAJ=[[-12,0,4,7],[-7,0,5,9],[-5,-1,2,7],[-12,0,4,7]], CAD_MIN=[[-12,0,3,7],[-7,0,5,8],[-5,-1,2,7],[-12,0,3,7]];   // I IV V I / i iv V i (V uses the raised 7th)
+const CAD_MAJ=[[-12,0,4,7],[-7,0,5,9],[-5,-1,2,7],[-12,0,4,7]], CAD_MIN=[[-12,0,3,7],[-7,0,5,8],[-5,-1,2,7],[-12,0,3,7]];   // I IV V I / minor key, numbered from the parent major: vi ii III vi (III = the raised-7th major chord, E in A minor)
 const C4={l:0,a:0};
 // song cues: short text only, public-domain or traditional tunes, or plain descriptions
 const CUE={1:["Two notes almost touching: creepy, rubbing.","Für Elise (Beethoven): the first two notes."],
@@ -452,8 +454,8 @@ function gen(ex,lv,opt){ opt=opt||{}; const L=EXS[ex].levels[lv-1];
     semis=notes.map(m=>m-ref); refSp=refSpell(ref,semis); sps=semis.map(s=>spellFrom(refSp,ref,s)) }while(sps.some(x=>Math.abs(x.a)>1)&&tries++<60);   // re-roll: one reference spelling must keep every answer at one sharp or flat
     return {ex,lv,ref,refSp,notes,sps:semis.map(s=>spellFrom(refSp,ref,s)),semis,win:[ref-12,ref+12]} }
   if(ex===2){ const K=L.minor?MIN_KEYS:MAJ_KEYS, kk=opt.keyChg===false?K[0]:pick(K), pc=kk[0], T=55+mod(pc-55,12), tSp={l:kk[1],a:kk[2]};
-    const deg=pick(L.deg), s=DEG_SEMI[deg], m=T+s, num=+deg.replace(/[♭♯]/g,""), l=mod(tSp.l+num-1,7); let a=mod(m-NAT[l],12); if(a>6) a-=12;
-    const lo=T-mod(T,12); return {ex,lv,ref:T,refSp:tSp,minor:!!L.minor,deg,notes:[m],sps:[{l,a}],semis:[s],win:[lo,lo+24]} }
+    const deg=pick(L.deg), pSp=L.minor?parentOf(tSp):tSp, s=L.minor?mod(DEG_SEMI[deg]-9,12):DEG_SEMI[deg], m=T+s, num=+deg.replace(/[♭♯]/g,""), l=mod(pSp.l+num-1,7); let a=mod(m-NAT[l],12); if(a>6) a-=12;
+    const lo=T-mod(T,12); return {ex,lv,ref:T,refSp:tSp,parSp:pSp,minor:!!L.minor,deg,notes:[m],sps:[{l,a}],semis:[s],win:[lo,lo+24]} }
   // ex 3
   const s=pick(L.iv), dir=opt.dir||"up", harm=dir==="harm", d=dir==="down"?-1:dir==="both"?(Math.random()<.5?-1:1):1;
   const ref=d<0?60+rnd(12):53+rnd(12), m=ref+d*s, refSp=refSpell(ref,[d*s]), sp=spellFrom(refSp,ref,d*s), lo=Math.min(ref,m)-mod(Math.min(ref,m),12);
@@ -536,13 +538,13 @@ const padBtn=v=>[...document.querySelectorAll("#padWrap button")].find(b=>b.data
 
 // ================= QUESTIONS =================
 function dist(s,n){ const a=Math.abs(s), hs=a===1?"1 half step":a+" half steps"; return s===0?"the same note (unison)":s>0?`up ${hs} = ${ivName(s,n)}`:`down ${hs} = ${ivName(s,n)} below` }
-function refText(){ if(ex===2) return `Listen: <b class="nm">${q.minor?"i – iv – V – i":"I – IV – V – I"}</b> <small>in ${spName(q.refSp)} ${q.minor?"minor":"major"}</small>`;
+function refText(){ if(ex===2) return `Listen: <b class="nm">${q.minor?"vi – ii – III – vi":"I – IV – V – I"}</b> <small>in ${spName(q.refSp)} ${q.minor?`minor, counted from ${spName(q.parSp)} (its parent major)`:"major"}</small>`;
   if(ex===3) return q.harm?"Two notes together…":`Note 1… <small>(the reference)</small>`;
   return `This is <b class="nm">${spName(q.refSp)}</b>.` }
 function askText(){ const lv=L();
   if(ex===1){ const how=ansMode==="kb"?"Tap the key.":"Tap its name."; if(lv.two) return `Which two notes, in order? <small>${how}</small>`;
     return `Which note was it? <small>${lv.dir==="up"?`Higher than ${spName(q.refSp)}, or the same. `:lv.dir==="both"?`Higher or lower than ${spName(q.refSp)}. `:""}${how}</small>` }
-  if(ex===2) return `Which scale degree? <small>Key of ${spName(q.refSp)} ${q.minor?"minor":"major"}</small>`;
+  if(ex===2) return `Which scale degree? <small>Key of ${spName(q.refSp)} ${q.minor?`minor · count from ${spName(q.parSp)}`:"major"}</small>`;
   return `Which interval? <small>${q.harm?"Played together":q.semis[0]>0?"Going up":"Going down"}</small>` }
 // the audio for a question, or one part of it
 function seqFor(part){ const ev=[]; let mysAt=0;
@@ -582,7 +584,8 @@ function missKey(){ if(ex===1) return q.semis.map(s=>s===0?"unison":(s>0?"up ":"
 function explain(){ const R=spFull(q.refSp,q.ref);
   if(ex===1){ return q.notes.map((m,i)=>{ const sp=q.sps[i], s=q.semis[i], dg=degreeOf(q.refSp,q.ref,sp,m), en=spName(sp)!==SH[mod(m,12)]&&spName(sp)!==FL[mod(m,12)]?` (the ${keyName(mod(m,12))} key)`:"";
       return `${q.notes.length>1?`Note ${i+1}: `:""}<b>${spFull(sp,m)}</b>${en}: ${dist(s,sp.n)}. Scale degree ${dg} (${SOLF[dg]||"–"}) in ${spName(q.refSp)} major.` }).join("<br>") }
-  if(ex===2){ const sp=q.sps[0], s=q.semis[0]; return `<b>${spName(sp)}</b> is scale degree ${q.deg} (${SOLF[q.deg]}) in ${spName(q.refSp)} ${q.minor?"minor":"major"}${s?`: ${dist(s,sp.n)} from ${spName(q.refSp)}.`:": home, the tonic."}` }
+  if(ex===2){ const sp=q.sps[0], s=q.semis[0]; if(q.minor) return `<b>${spName(sp)}</b> is scale degree ${q.deg} (${SOLF[q.deg]}) counted from ${spName(q.parSp)}, the parent major of ${spName(q.refSp)} minor${s?`: ${dist(s,sp.n)} from ${spName(q.refSp)}.`:`: home, the tonic of ${spName(q.refSp)} minor.`}`;
+    return `<b>${spName(sp)}</b> is scale degree ${q.deg} (${SOLF[q.deg]}) in ${spName(q.refSp)} major${s?`: ${dist(s,sp.n)} from ${spName(q.refSp)}.`:": home, the tonic."}` }
   const sp=q.sps[0], s=q.semis[0], n=sp.n; return `${R} ${q.harm?"with":s>0?"up to":"down to"} <b>${spFull(sp,q.notes[0])}</b>: ${Math.abs(s)===1?"1 half step":Math.abs(s)+" half steps"} = <b>${ivName(s,n)}</b>.` }
 function pairSeq(){ const ev=[{at:0,ms:[q.ref],d:0.9}]; if(ex===3&&q.harm){ ev.push({at:1.1,ms:[q.notes[0]],d:0.9},{at:2.3,ms:[q.ref,q.notes[0]],d:1.4}); return ev } q.notes.forEach((m,i)=>ev.push({at:1.1+i*0.9,ms:[m],d:i===q.notes.length-1?1.2:0.8})); return ev }
 function finish(ok,v,btn){ phase="done"; clearTimers(); $("card").classList.add("answered"); clearMarks(); mark(q.ref,"ref");
