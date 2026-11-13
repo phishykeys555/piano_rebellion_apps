@@ -1,4 +1,4 @@
-// Song Dissector part splitter: one Web Worker = one copy of the htdemucs model (Demucs v4, 4 parts).
+// Song Dissector part splitter: one Web Worker = one copy of a Demucs v4 model (htdemucs: 4 parts, htdemucs_6s: 6 parts).
 // The song never leaves the device: the model runs here with ONNX Runtime Web (WebAssembly, CPU).
 // The model file holds the network without its STFT, so the spectrogram in and out is done here,
 // matching demucs/htdemucs.py (_spec, _magnitude, _mask, _ispec) step for step.
@@ -6,7 +6,7 @@ import * as ort from './vendor/ort/ort.wasm.min.mjs';
 
 const N = 4096, H = 1024, L = 343980, FR = 2048, T = 336, NF = T + 4; // 7.8 s segment at 44.1 kHz
 const PADL = 1536, PADR = PADL + Math.ceil(L / H) * H - L, M = L + PADL + PADR; // demucs's own reflect pad
-let session = null, dsp = 0;
+let session = null, dsp = 0, cacheName = 'song-dissector-models-v1';
 
 // ---------- radix-2 complex FFT, size 4096 ----------
 const LOG = 12, rev = new Uint16Array(N), cosT = new Float64Array(N / 2), sinT = new Float64Array(N / 2), win = new Float64Array(N);
@@ -44,7 +44,7 @@ function spec(l, r) {
   return mag;
 }
 
-// inverse: x [1,4,4,2048,336] (complex-as-channels) -> 4 sources x 2 channels, added to the time branch xt
+// inverse: x [1,S,4,2048,336] (complex-as-channels) -> S sources x 2 channels, added to the time branch xt
 let env = null;
 function ispecAdd(x, xt, s, out) { // out: [Float32Array L, Float32Array L] for source s
   if (!env) { // window-square envelope of torch.istft over all 340 frames (zero frames included)
@@ -70,12 +70,13 @@ function ispecAdd(x, xt, s, out) { // out: [Float32Array L, Float32Array L] for 
 
 async function getBytes(url) {
   let r = null;
-  try { if (self.caches) { const c = await caches.open('song-dissector-models-v1'); r = await c.match(url) } } catch (e) {}
+  try { if (self.caches) { const c = await caches.open(cacheName); r = await c.match(url) } } catch (e) {}
   if (!r) { r = await fetch(url); if (!r.ok) throw new Error('HTTP ' + r.status + ' for ' + url) }
   return new Uint8Array(await r.arrayBuffer());
 }
 
 async function init(m) {
+  if (m.cache) cacheName = m.cache;
   ort.env.wasm.wasmPaths = m.wasmBase;
   ort.env.wasm.numThreads = m.threads || 1;
   ort.env.wasm.proxy = false;
@@ -102,9 +103,9 @@ async function run(mix) { // mix: Float32Array(2*L), left then right
   dsp = performance.now() - t0;
   const res = await session.run({ mix: new ort.Tensor('float32', mix, [1, 2, L]), mag: new ort.Tensor('float32', mag, [1, 4, FR, T]) });
   const x = res.x.data, xt = res.xt.data;
-  const out = new Float32Array(8 * L);
+  const S = res.x.dims[1], out = new Float32Array(2 * S * L);
   t0 = performance.now();
-  for (let s = 0; s < 4; s++) ispecAdd(x, xt, s, [out.subarray((s * 2) * L, (s * 2 + 1) * L), out.subarray((s * 2 + 1) * L, (s * 2 + 2) * L)]);
+  for (let s = 0; s < S; s++) ispecAdd(x, xt, s, [out.subarray((s * 2) * L, (s * 2 + 1) * L), out.subarray((s * 2 + 1) * L, (s * 2 + 2) * L)]);
   dsp += performance.now() - t0;
   try { res.x.dispose(); res.xt.dispose() } catch (e) {}
   return out;

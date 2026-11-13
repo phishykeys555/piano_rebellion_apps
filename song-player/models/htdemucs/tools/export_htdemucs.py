@@ -1,8 +1,11 @@
 # Rebuilds song-player/models/htdemucs from the official Demucs v4 weights. See song-player/vendor/README.md.
-# Usage: python export_htdemucs.py <demucs repo checkout> <955717e8.safetensors> <out dir>
+# Usage: python export_htdemucs.py <demucs repo checkout> <weights .safetensors> <out dir> [name]
+#   4 parts:  ... 955717e8.safetensors ../ htdemucs      (adefossez/HTDemucs)
+#   6 parts:  ... 5c90dfd2.safetensors ../../htdemucs_6s htdemucs_6s   (adefossez/HTDemucs-6s)
 # Needs: torch (CPU), onnx, onnxruntime, safetensors, einops, pyyaml.
 import sys, torch, math
 sys.path.insert(0, sys.argv[1])
+NAME = sys.argv[4] if len(sys.argv) > 4 else 'htdemucs'
 from demucs.hf import load_safetensors_model
 from einops import rearrange
 m = load_safetensors_model(sys.argv[2]).float().eval()
@@ -81,13 +84,13 @@ with torch.no_grad():
     x, xt = core(mix, mag)
     out = xt + m._ispec(m._mask(z, x), L)
 print('core vs full maxdiff', (out - ref).abs().max().item())
-torch.onnx.export(core, (mix, mag), sys.argv[3] + '/htdemucs_core.onnx', input_names=['mix','mag'], output_names=['x','xt'], opset_version=17, do_constant_folding=True, dynamo=False)
+torch.onnx.export(core, (mix, mag), sys.argv[3] + '/' + NAME + '_core.onnx', input_names=['mix','mag'], output_names=['x','xt'], opset_version=17, do_constant_folding=True, dynamo=False)
 print('exported')
 
 # ---- pack: float16 weights (lossless: htdemucs was released as float16) in <50 MB chunks, graph references them as external data
 import onnx, numpy as np, sys, os
 from onnx import numpy_helper, TensorProto
-m = onnx.load(sys.argv[3] + '/htdemucs_core.onnx')
+m = onnx.load(sys.argv[3] + '/' + NAME + '_core.onnx')
 out = sys.argv[3]
 f16 = []; off = 0; inl = 0; nex = 0
 for init in m.graph.initializer:
@@ -104,11 +107,11 @@ for init in m.graph.initializer:
     else:
         inl += a.size * a.itemsize
 blob = b''.join(f16)
-onnx.save(m, out + '/htdemucs.onnx')
-print('external tensors', nex, 'fp32 bytes', off, 'fp16 blob', len(blob), 'inline bytes', inl, 'graph file', os.path.getsize(out + '/htdemucs.onnx'))
+onnx.save(m, out + '/' + NAME + '.onnx')
+print('external tensors', nex, 'fp32 bytes', off, 'fp16 blob', len(blob), 'inline bytes', inl, 'graph file', os.path.getsize(out + '/' + NAME + '.onnx'))
 # split into chunks under 50 MB
 CH = 45 * 1024 * 1024
 parts = [blob[i:i+CH] for i in range(0, len(blob), CH)]
 for i, p in enumerate(parts):
-    open(f'{out}/htdemucs.f16.{i}.bin', 'wb').write(p)
+    open(f'{out}/{NAME}.f16.{i}.bin', 'wb').write(p)
 print('chunks', [len(p) for p in parts])

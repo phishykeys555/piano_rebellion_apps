@@ -68,6 +68,13 @@ select{font:600 13px var(--f-body);color:var(--c-ink);background:var(--c-key);bo
 .part button.m.on{background:var(--c-mut);border-color:var(--c-mut);color:var(--c-panel)}
 .appver{color:var(--c-mut)}
 @media (max-width:440px){.part{grid-template-columns:106px 1fr 38px 38px}}
+.part b{display:flex;align-items:center;gap:7px;min-width:0;line-height:1.15}.part b svg{width:20px;height:20px;flex:none;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round;opacity:.85}
+.part b .pl{display:flex;flex-direction:column;min-width:0}.part b small{font:400 10.5px/1.2 var(--f-body);color:var(--c-mut);white-space:normal}
+#splitPick{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:2px 0 8px}#splitPick[hidden]{display:none}
+.pickopt{display:flex;flex-direction:column;align-items:flex-start;text-align:left;gap:2px;padding:9px 10px;min-height:0;font:400 12px/1.3 var(--f-body);border-radius:12px}
+.pickopt b{font:700 13px var(--f-body)}.pickopt .pd{color:var(--c-ink)}.pickopt .ps{color:var(--c-mut);font-size:11.5px}
+#splitPick .pickopt.on{background:var(--c-panel);color:var(--c-ink);border:2px solid var(--c-act);box-shadow:none}#splitPick .pickopt.on b::before{content:"● ";color:var(--c-act)}
+@media (max-width:440px){#splitPick{grid-template-columns:1fr}}
 #mixChips button{min-height:40px;padding:0 12px;font-size:12.5px}
 .chips button{min-height:40px}select{min-height:40px}.nw{display:inline-flex;align-items:center;gap:6px;white-space:nowrap}
 #xbtn:disabled{opacity:.45;transform:none}
@@ -99,8 +106,8 @@ button,a,label,summary,select,input{-webkit-tap-highlight-color:transparent}
 <div class="row"><label class="chk"><input type="checkbox" id="ramp"> Speed up each loop by</label><select id="rampStep" aria-label="Speed-up step"><option value="2">2%</option><option value="5" selected>5%</option><option value="10">10%</option></select><span class="nw"><span class="hint">until</span> <select id="rampMax" aria-label="Top speed"><option value="100" selected>100%</option><option value="110">110%</option><option value="125">125%</option></select></span><button id="reset">Reset</button></div>
 <div id="mix" hidden><div class="sec">PARTS <span class="hint">split from the record: turn any part down, mute it, or solo it</span></div>
 <div class="chips" id="mixChips" style="margin-left:0"></div><div id="parts"></div></div>
-<div id="splitBox" hidden><div class="row"><button id="splitBtn">✂ Split into parts</button><span class="hint">Drums, bass, vocals and everything else, made on this device.</span></div>
-<div id="splitAsk" hidden><p id="splitInfo"></p><div class="row"><button id="splitGo">Start splitting</button><button id="splitNo">Not now</button><a class="ghostbtn" id="splitFull" target="_blank" rel="noopener" hidden>↗ Open full screen</a></div></div>
+<div id="splitBox" hidden><div class="row"><button id="splitBtn">✂ Split into parts</button><span class="hint" id="splitHint">Drums, bass, vocals, guitar, piano and the rest, made on this device.</span></div>
+<div id="splitAsk" hidden><div id="splitPick" role="radiogroup" aria-label="How many parts"></div><p id="splitInfo"></p><div class="row"><button id="splitGo">Start splitting</button><button id="splitNo">Not now</button><a class="ghostbtn" id="splitFull" target="_blank" rel="noopener" hidden>↗ Open full screen</a></div></div>
 <div id="splitRun" hidden><progress id="splitBar" max="1000" value="0"></progress><div class="row"><span class="hint" id="splitSt" role="status" aria-live="polite"></span><button id="splitCancel">✕ Cancel</button></div></div></div>
 <div class="row" id="xrow"><button id="xbtn" disabled>⬇ Export MP3</button><span id="xrep" hidden><select id="xn" aria-label="How many times to repeat the section"><option value="1">section once</option><option value="2">section 2×</option><option value="4" selected>section 4×</option><option value="8">section 8×</option><option value="16">section 16×</option></select></span><span class="hint" id="xst" role="status" aria-live="polite">Saves exactly what you hear: speed, key and parts.</span></div>
 <div class="row"><label class="ghostbtn" for="file" tabindex="0" role="button">📂 Load your own MP3</label><input type="file" id="file" accept="audio/*,.mp3,.m4a,.wav,.aac" hidden><span class="hint" id="fileTxt">Any song on this device. It stays on your device and is never uploaded.</span></div>
@@ -116,6 +123,16 @@ const SONGS={
  'all-new-kicks':{t:'All New Kicks',sub:'Play-along track',f:'audio/all-new-kicks.mp3',parts:['drums','bass','piano'],rest:'other',boost:2}
 };
 const PN={vocals:'Vocals',drums:'Drums',bass:'Bass',piano:'Piano',guitar:'Guitar',other:'Everything else',mix:'Full record'};
+// part icons (line drawings, currentColor)
+const PI={drums:'<ellipse cx="12" cy="9" rx="8" ry="3"/><path d="M4 9v7c0 1.7 3.6 3 8 3s8-1.3 8-3V9M3 2.5l7 5.5M21 2.5l-7 5.5"/>',
+ bass:'<path d="M4 8.5a5.5 5.5 0 0 1 11 0c0 5.5-5 9.5-11 12"/><circle cx="5.5" cy="9" r="1.6" fill="currentColor"/><circle cx="19" cy="6.5" r=".9" fill="currentColor"/><circle cx="19" cy="11.5" r=".9" fill="currentColor"/>',
+ vocals:'<rect x="9" y="2.5" width="6" height="11" rx="3"/><path d="M5.5 11a6.5 6.5 0 0 0 13 0M12 17.5v4M8.5 21.5h7"/>',
+ guitar:'<path d="M13.5 10.5 20 4M18 2l4 4"/><path d="M11.8 9.2a3 3 0 0 0-4.2.2L4.4 12.6a4.6 4.6 0 0 0 6.5 6.5l3.2-3.2a3 3 0 0 0 .2-4.2z"/><circle cx="9.2" cy="14.8" r="1.3"/>',
+ piano:'<rect x="2.5" y="5" width="19" height="14" rx="1.5"/><path d="M7.25 13v6M12 13v6M16.75 13v6"/><path d="M6 5h2.5v8H6zM10.75 5h2.5v8h-2.5zM15.5 5H18v8h-2.5z" fill="currentColor"/>',
+ other:'<path d="M2.5 10v4h3.5l10 5.5v-15L6 10z"/><path d="M19 9a4 4 0 0 1 0 6M21 6.5a8 8 0 0 1 0 11"/>'};
+// what the leftover part holds: everything the split did not pull out
+function otherSub(){const left=[];if(!parts.includes('piano'))left.push('keys');if(!parts.includes('guitar'))left.push('guitar');return left.concat(['horns','strings','synths']).join(', ')}
+function partLabel(k){const ic=PI[k]?`<svg viewBox="0 0 24 24" aria-hidden="true">${PI[k]}</svg>`:'';return k==='other'?`${ic}<span class="pl">${PN.other}<small>${otherSub()}</small></span>`:`${ic}<span class="pl">${PN[k]||k}</span>`}
 const $=i=>document.getElementById(i),qs=new URLSearchParams(location.search).get('s'),id=qs||'',S=Object.prototype.hasOwnProperty.call(SONGS,id)?SONGS[id]:null; // ?s=constructor etc. is not a song
 const IVN={0:'original key',1:'half step up',2:'whole step up',3:'minor 3rd up',4:'major 3rd up',5:'4th up',6:'tritone up','-1':'half step down','-2':'whole step down','-3':'minor 3rd down','-4':'major 3rd down','-5':'4th down','-6':'tritone down'};
 let an=null,src=[],restName='other',ctx=null,node=null,gain=null,A=null,B=null,dur=0,playing=false,pos=0,posAt=0,lastPos=0,parts=[],pg=[],solo=-1,muted=[],ready=false,SP=null;let KEY='songplayer:'+id;
@@ -174,10 +191,10 @@ function gains(){return parts.map((_,i)=>solo>=0?(i===solo?pg[i]/100:0):(muted[i
 // engine gains: with a 'rest' part the first track is the whole record, so rest = record - parts
 function engineGains(){const u=gains();if(src[0]!=='mix'||src.length<2)return u;const r=u[u.length-1];return [r].concat(u.slice(0,-1).map(g=>g-r))}
 function sendGains(){if(node&&node.setGains)node.setGains(engineGains());[...$('parts').children].forEach((r,i)=>{r.classList.toggle('off',gains()[i]===0);const m=r.querySelector('.m'),so=r.querySelector('.s');m.classList.toggle('on',muted[i]);so.classList.toggle('on',solo===i);m.setAttribute('aria-pressed',!!muted[i]);so.setAttribute('aria-pressed',solo===i)});save()}
-const PRESETS=[['Full band',()=>{solo=-1;muted=parts.map(()=>false)}],['No piano (you play it)',()=>{solo=-1;muted=parts.map(k=>k==='piano')},'piano'],['Piano only',()=>{solo=parts.indexOf('piano')},'piano'],['No vocals',()=>{solo=-1;muted=parts.map(k=>k==='vocals')},'vocals'],['Vocals only',()=>{solo=parts.indexOf('vocals')},'vocals'],['Drums + bass',()=>{solo=-1;muted=parts.map(k=>k!=='drums'&&k!=='bass')},'drums'],['No drums',()=>{solo=-1;muted=parts.map(k=>k==='drums')},'vocals']];
-function buildMix(){const box=$('parts');box.innerHTML='';$('mix').hidden=parts.length<2;$('mixChips').innerHTML='';
+const PRESETS=[['Full band',()=>{solo=-1;muted=parts.map(()=>false)}],['No piano (you play it)',()=>{solo=-1;muted=parts.map(k=>k==='piano')},'piano'],['Piano only',()=>{solo=parts.indexOf('piano')},'piano'],['No guitar (you play it)',()=>{solo=-1;muted=parts.map(k=>k==='guitar')},'guitar'],['Guitar only',()=>{solo=parts.indexOf('guitar')},'guitar'],['No vocals',()=>{solo=-1;muted=parts.map(k=>k==='vocals')},'vocals'],['Vocals only',()=>{solo=parts.indexOf('vocals')},'vocals'],['Drums + bass',()=>{solo=-1;muted=parts.map(k=>k!=='drums'&&k!=='bass')},'drums'],['No drums',()=>{solo=-1;muted=parts.map(k=>k==='drums')},'vocals']];
+function buildMix(){PN.other=parts.includes('guitar')||parts.includes('piano')?'Other':'Everything else';const box=$('parts');box.innerHTML='';$('mix').hidden=parts.length<2;$('mixChips').innerHTML='';
  PRESETS.forEach(([n,f,need])=>{if(need&&!parts.includes(need))return;const b=document.createElement('button');b.textContent=n;b.onclick=()=>{f();sendGains()};$('mixChips').appendChild(b)});
- parts.forEach((k,i)=>{const r=document.createElement('div');r.className='part';r.innerHTML=`<b>${PN[k]||k}</b><input type="range" min="0" max="150" step="5" value="${pg[i]}" aria-label="${PN[k]||k} volume"><button class="m" aria-label="Mute ${PN[k]||k}">M</button><button class="s" aria-label="Solo ${PN[k]||k}">S</button>`;
+ parts.forEach((k,i)=>{const r=document.createElement('div');r.className='part';r.innerHTML=`<b>${partLabel(k)}</b><input type="range" min="0" max="150" step="5" value="${pg[i]}" aria-label="${PN[k]||k} volume"><button class="m" aria-label="Mute ${PN[k]||k}">M</button><button class="s" aria-label="Solo ${PN[k]||k}">S</button>`;
   r.querySelector('input').oninput=e=>{pg[i]=+e.target.value;sendGains()};r.querySelector('.m').onclick=()=>{muted[i]=!muted[i];if(solo===i)solo=-1;sendGains()};r.querySelector('.s').onclick=()=>{solo=solo===i?-1:i;sendGains()};box.appendChild(r)});sendGains()}
 function loopRange(){if(!$('loop').checked)return [0,0];return A!=null&&B!=null?[A,B]:[0,dur]}
 function apply(){const r=rate(),k=semi();
@@ -238,6 +255,8 @@ const allows=f=>{try{const P=document.permissionsPolicy||document.featurePolicy;
 // the same song and settings, full screen (a new tab outside the embed)
 function fullUrl(xp){const o={s:+$('speed').value,k:semi(),v:+$('vol').value,l:$('loop').checked,A,B,pg,muted,solo};return location.origin+location.pathname+'?s='+encodeURIComponent(id)+'&st='+encodeURIComponent(JSON.stringify(o))+(xp?'&xp='+xp:'')}
 let own=false,ownFile=null;
+// Share this app: a song opened from a ?s= link shares that song's link (your own MP3 never leaves the device, so it shares the app)
+window.__songShare=()=>(!own&&S)?{t:S.t,u:location.origin+location.pathname+'?s='+encodeURIComponent(id)}:null;
 // a file that won't open leaves the page's own song ready to load again (it used to leave ▶ greyed out until a reload)
 function backToSong(){ownFile=null;if(SP)SP.cancel();if(!S||!L0){$('title').textContent='Song Dissector';$('sub').textContent='Load an MP3 to start';document.title='Song Dissector · Clarendon Hills Music Academy';$('fileTxt').textContent='Any song on this device. It stays on your device and is never uploaded.';return}own=false;KEY='songplayer:'+id;document.title=S.t+' · Song Dissector';$('title').textContent=S.t;$('sub').textContent=S.sub||'Play-along';$('fileTxt').textContent='Any song on this device. It stays on your device and is never uploaded.';pos=0;A=B=null;restore();showAB();arm(L0,1)}
 let lastX=null;
@@ -304,11 +323,12 @@ $('xbtn').onclick=()=>{if(!inFrame||own||xRun||!ready)return exportMp3();
  $('xst').innerHTML=w?'Opened full screen to make and save your MP3 (Notion blocks saving inside the page).':'Notion blocks saving here, so the export runs full screen.<br><a class="ghostbtn xfull" target="_blank" rel="noopener" id="xfull">↗ Open full screen to export</a>';const xf=$('xfull');if(xf)xf.href=u};
 document.querySelector('.ghostbtn').addEventListener('click',()=>{try{unlock()}catch(e){}});
 document.querySelector('.ghostbtn').addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();e.stopPropagation();$('file').click()}});
-// ✂ Split into parts: any song with no parts (your own MP3 too) gets drums/bass/vocals/everything else, made on this device (splitter.js)
-SP=Split.attachUI({$,inFrame,auto:QP.get('split')==='1',ready:()=>ready,parts:()=>parts.length,dur:()=>dur,
+// ✂ Split into parts: any song with no parts (your own MP3 too) gets drums/bass/vocals/guitar/piano/other (or the classic 4), made on this device (splitter.js)
+SP=Split.attachUI({$,inFrame,auto:QP.get('split')==='1',ready:()=>ready,parts:()=>parts.length,kind:()=>curList&&curList.model||null,dur:()=>dur,
  source:()=>own?(ownFile?{src:ownFile,name:ownFile.name}:null):S?{src:curList&&curList.length===1?curList[0].src:S.f,name:'song:'+id}:null,
  fullUrl:()=>own||!S?null:fullUrl(0)+'&split=1',
  useParts:async list=>{const was=playing,at=now();await loadParts(list,1);seek(at);if(was)start()}});
 window.__sp={exp:exportMp3,ctx:()=>ctx,lastX:()=>lastX,level:()=>{if(!an)return 0;const b=new Float32Array(2048);an.getFloatTimeDomainData(b);let q=0;for(const v of b)q+=v*v;return Math.sqrt(q/2048)},solo:i=>{solo=i;sendGains()},mute:(i,v)=>{muted[i]=v;sendGains()},split:Split,state:()=>({ready,playing,pos:now(),dur,A,B,parts,gains:gains(),eng:engineGains()}),seek,start,stop};
-</script><p class="appver" style="text-align:center;font-size:11px;opacity:.6;margin:12px 0 8px;font-family:ui-monospace,Menlo,monospace">Song Dissector · Version 2026-11-11.14</p><p class="appver" style="text-align:center;font-size:10px;opacity:.5;margin:0 0 10px">Time-stretch: Signalsmith Stretch (MIT). Part splitting: Demucs v4 htdemucs by Meta AI (code MIT), run on your device with ONNX Runtime Web (MIT).</p>
+</script><p class="appver" style="text-align:center;font-size:11px;opacity:.6;margin:12px 0 8px;font-family:ui-monospace,Menlo,monospace">Song Dissector · Version 2026-11-13.15</p><p class="appver" style="text-align:center;font-size:10px;opacity:.5;margin:0 0 10px">Time-stretch: Signalsmith Stretch (MIT). Part splitting: Demucs v4 by Meta AI (code MIT): htdemucs_6s for 6 parts (weights CC BY-NC 4.0, per its author) and htdemucs for 4 parts, run on your device with ONNX Runtime Web (MIT, Microsoft).</p>
+<style>.chma-share{margin-left:auto;min-height:44px;padding:0 12px;white-space:nowrap}</style><script src="../shared/share.js"></script><script>/* Share this app: a small button in the brand header, next to the version (shared/share.js adds the short link + studio site). A song opened from a ?s= link adds its own link as an extra line. */(function(){function add(){try{if(window.chmaHead)chmaHead()}catch(e){}const h=document.querySelector(".chma-head");if(!h||h.querySelector(".chma-share"))return;const b=document.createElement("button");b.type="button";b.className="chma-share";b.textContent="Share this app";b.setAttribute("aria-label","Share this app");b.addEventListener("click",()=>{let t="Song Dissector: slow any song down, change the key, loop a section, and split it into parts.";try{const s=window.__songShare&&window.__songShare();if(s)t+="\n"+s.t+": "+s.u}catch(e){}chmaShare.share({app:"song-player",text:t})});h.insertBefore(b,h.querySelector(".chma-ver"))}if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",add);else add()})();</script>
 </body></html>
