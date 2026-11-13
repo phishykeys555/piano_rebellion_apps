@@ -165,7 +165,7 @@ summary{cursor:pointer;padding:0 14px;min-height:44px;display:flex;align-items:c
 </head>
 <body>
 <div class="wrap">
-  <div data-chma-head data-ver="Riff Simon Says · v2026-11-12.1"></div>
+  <div data-chma-head data-ver="Riff Simon Says · v2026-11-13.1"></div>
   <div class="cols">
   <section class="setup">
     <header>
@@ -221,7 +221,7 @@ summary{cursor:pointer;padding:0 14px;min-height:44px;display:flex;align-items:c
       <h3>Credits</h3>
       <p class="tip">Grand piano: Salamander Grand Piano V3 by Alexander Holm (CC BY 3.0), via sfzinstruments. Drums: AVL Drumkits by Glen MacArthur (CC BY-SA 4.0): Black Pearl kick, snare and cross-stick; Blonde Bop hi-hats and ride. Bass: synthesized in the app. Round music: original, synthesized live (CHMA). Riffs are generated from style vocabulary, never copied from records.</p>
     </div></details>
-    <p class="appver">Riff Simon Says · Version 2026-11-12.1</p>
+    <p class="appver">Riff Simon Says · Version 2026-11-13.1</p>
   </section>
 
   <section class="play">
@@ -266,7 +266,7 @@ summary{cursor:pointer;padding:0 14px;min-height:44px;display:flex;align-items:c
 <script>
 (()=>{
 'use strict';
-const VERSION='2026-11-12.1';
+const VERSION='2026-11-13.1';
 const $=id=>document.getElementById(id);
 const store={get(k,d){try{const v=localStorage.getItem('rs-'+k);return v==null?d:JSON.parse(v)}catch(e){return d}},set(k,v){try{localStorage.setItem('rs-'+k,JSON.stringify(v))}catch(e){}}};
 const clamp=(x,a,b)=>Math.max(a,Math.min(b,x));
@@ -288,19 +288,22 @@ const TON_MAJ=[['C',0,0],['D♭',1,1],['D',1,2],['E♭',2,3],['E',2,4],['F',3,5]
 const TON_MIN=[['C',0,0],['C♯',0,1],['D',1,2],['E♭',2,3],['E',2,4],['F',3,5],['F♯',3,6],['G',4,7],['G♯',4,8],['A',5,9],['B♭',6,10],['B',6,11]];
 // chord tones relative to the chord root
 const QT={'7':[0,4,7,10],'m7':[0,3,7,10],'':[0,4,7],'m':[0,3,7],'5':[0,7,12]};
+// STUDIO RULE (LOCKED 2026-11-13): Roman numerals ALWAYS count from the PARENT MAJOR KEY, never from the mode's root.
+// A Dorian (parent G) is ii7 – V7 · Am7 – D7, never i7 – IV7. parent = [letter steps, half steps] from the style's tonic up to its parent major tonic.
+// chords: [numeral in the parent key, half steps above the tonic, letter steps above the tonic, quality]. numeralAudit() checks every style × key.
 const STYLES={
-  blues:{name:'Blues',sub:'Minor pentatonic + the blue note (♭5), shuffle feel',scale:'blues',minor:true,def:'A',swing:true,groove:'shuffle',
-    chords:[['I7',0,0,'7']],stable:[0,3,7,10],mode:'blues scale'},
+  blues:{name:'Blues',sub:'Minor pentatonic + the blue note (♭5) over a dominant 7th, shuffle feel',scale:'blues',minor:true,def:'A',swing:true,groove:'shuffle',
+    parent:[3,5],chords:[['V7',0,0,'7']],stable:[0,3,7,10],mode:'blues scale'},
   rock:{name:'Rock',sub:'Minor pentatonic, straight 8ths',scale:'minPent',minor:true,def:'A',swing:false,groove:'rock',
-    chords:[['i5',0,0,'5']],stable:[0,3,7],mode:'minor pentatonic'},
+    parent:[2,3],chords:[['vi5',0,0,'5']],stable:[0,3,7],mode:'minor pentatonic'},
   funk:{name:'Funk',sub:'Dorian, syncopated 16ths',scale:'dorian',minor:true,def:'A',swing:false,groove:'funk',
-    chords:[['i7',0,0,'m7'],['IV7',5,3,'7']],stable:[0,3,7,10],mode:'Dorian'},
+    parent:[6,10],chords:[['ii7',0,0,'m7'],['V7',5,3,'7']],stable:[0,3,7,10],mode:'Dorian'},
   pop:{name:'Pop',sub:'Major pentatonic, straight 8ths',scale:'majPent',minor:false,def:'C',swing:false,groove:'pop',
-    chords:[['I',0,0,''],['V',7,4,''],['vi',9,5,'m'],['IV',5,3,'']],stable:[0,4,7,9],mode:'major pentatonic'},
+    parent:[0,0],chords:[['I',0,0,''],['V',7,4,''],['vi',9,5,'m'],['IV',5,3,'']],stable:[0,4,7,9],mode:'major pentatonic'},
   jazz:{name:'Jazz',sub:'Mixolydian / bebop dominant, swing 8ths',scale:'bebop',minor:false,def:'C',swing:true,groove:'swing',
-    chords:[['I7',0,0,'7']],stable:[0,4,7,9,2],mode:'bebop dominant (Mixolydian + major 7th passing tone)'},
+    parent:[3,5],chords:[['V7',0,0,'7']],stable:[0,4,7,9,2],mode:'bebop dominant (Mixolydian + major 7th passing tone)'},
   latin:{name:'Latin',sub:'Major scale, montuno 8ths over a clave',scale:'major',minor:false,def:'C',swing:false,groove:'latin',
-    chords:[['I',0,0,''],['V7',7,4,'7']],stable:[0,4,7],mode:'major (Ionian)'}};
+    parent:[0,0],chords:[['I',0,0,''],['V7',7,4,'7']],stable:[0,4,7],mode:'major (Ionian)'}};
 const STYLE_IDS=Object.keys(STYLES);
 function tonics(st){ return STYLES[st].minor?TON_MIN:TON_MAJ }
 // a key: tonic + scale with each degree's letter (the blue note is ♭5, written ♯4 when ♭5 would need a double flat or F♭/C♭)
@@ -315,6 +318,27 @@ function noteName(m,key,oct=true){ const pc=((m%12)+12)%12; const d=key&&key.not
   if(d){ nm=d.name; const sp=spell(key.letter+d.step,pc); acc=sp.acc } else { nm=(key&&key.flats?FLATN:SHARPN)[pc]; acc=/♯/.test(nm)?1:/♭/.test(nm)?-1:0 }
   return oct?nm+(Math.floor((m-acc)/12)-1):nm }
 function chordName(key,ch){ const [rn,semi,step,q]=ch; return {rn,name:spell(key.letter+step,(key.pc+semi)%12).name+q,root:semi,q} }
+// the parent major key of a style in a key (A Dorian -> G, A minor pentatonic -> C, C bebop dominant -> F)
+function parentKey(st,key){ const [ds,dh]=STYLES[st].parent; const sp=spell(key.letter+ds,(key.pc+dh)%12); return {name:sp.name,letter:sp.letter,pc:(key.pc+dh)%12} }
+// 'ii7 – V7 · Am7 – D7'
+function progText(st,key){ const C=STYLES[st].chords.map(c=>chordName(key,c)); return C.map(c=>c.rn).join(' – ')+' · '+C.map(c=>c.name).join(' – ') }
+function homeText(st,key){ const S=STYLES[st], P=parentKey(st,key), m=S.mode.split(' (')[0]; if(st==='blues') return `${key.tonic} blues over ${key.tonic}7 (V7 of ${P.name})`; return S.parent[1]===0?`${key.tonic} ${m}`:`${key.tonic} ${m} (parent ${P.name})` }
+// the automated check: every chord numeral in every style × key equals that chord's numeral in the parent major key, and the chord is diatonic to it
+const RN=['I','II','III','IV','V','VI','VII'], DIA3=['maj','min','min','maj','maj','min','dim'], DIA7=['maj7','m7','m7','maj7','7','m7','ø7'];
+function numeralAudit(){ const E=[]; let n=0;
+  STYLE_IDS.forEach(st=>tonics(st).forEach(t=>{ const key=makeKey(st,t[0]), P=parentKey(st,key);
+    if(!/^[A-G](♭|♯)?$/.test(P.name)) E.push(`${st} ${t[0]}: parent key spelled ${P.name}`);
+    STYLES[st].chords.forEach(ch=>{ n++; const c=chordName(key,ch), r=spell(key.letter+ch[2],(key.pc+ch[1])%12), deg=((r.letter-P.letter)%7+7)%7;
+      const majPc=(P.pc+NAT[deg])%12, rootPc=(key.pc+ch[1])%12;
+      if(rootPc!==majPc){ E.push(`${st} ${t[0]}: ${c.name} root is not diatonic to ${P.name} major`); return }
+      const q=c.q, want=DIA3[deg], up=want==='maj';
+      if(q==='7'&&DIA7[deg]!=='7') E.push(`${st} ${t[0]}: ${c.name} is a dominant 7th but degree ${deg+1} of ${P.name} major is ${DIA7[deg]}`);
+      if(q==='m7'&&DIA7[deg]!=='m7') E.push(`${st} ${t[0]}: ${c.name} is m7 but degree ${deg+1} of ${P.name} major is ${DIA7[deg]}`);
+      if(q===''&&want!=='maj') E.push(`${st} ${t[0]}: ${c.name} is major but degree ${deg+1} of ${P.name} major is ${want}`);
+      if(q==='m'&&want!=='min') E.push(`${st} ${t[0]}: ${c.name} is minor but degree ${deg+1} of ${P.name} major is ${want}`);
+      const base=up?RN[deg]:RN[deg].toLowerCase(), exp=base+(q==='7'||q==='m7'?(want==='dim'?'ø7':'7'):q==='5'?'5':want==='dim'?'°':'');
+      if(c.rn!==exp) E.push(`${st} ${t[0]}: ${c.name} labelled ${c.rn}, parent ${P.name} major says ${exp}`) }) }));
+  return {checked:n,errors:E} }
 
 // =====================================================================================
 // RIFF GENERATOR: rhythm by level, melody from each style's vocabulary + a scale walk. Range C4–C6, sensible leaps.
@@ -433,7 +457,7 @@ function judge(exp,got,spb){ const n=exp.length, k=got.length, GAP=0.8, beat=spb
   return {pairs,right,wrong,missed,extra,pitch:Math.round(pitch),rhythm:Math.round(rhythm),combined,mean,sd,offs,n,onWin} }
 
 // test hooks (the page's own checks run these)
-window.RiffSays={VERSION,STYLES,LEVELS,SCALES,tonics,makeKey,genRiff,verifyRiff,judge,uTime,swingRatio,noteName,mulberry,LO,HI};
+window.RiffSays={VERSION,STYLES,LEVELS,SCALES,tonics,makeKey,parentKey,progText,numeralAudit,chordName,genRiff,verifyRiff,judge,uTime,swingRatio,noteName,mulberry,LO,HI};
 
 // =====================================================================================
 // AUDIO: Salamander grand (call + your notes + soft chords), AVL drums, a synth bass. Every voice fades in and out (no clicks).
@@ -890,13 +914,13 @@ function buildPickers(){ $('styles').innerHTML=STYLE_IDS.map(id=>`<button data-s
   $('tempoSel').addEventListener('change',e=>{ st.bpm=+e.target.value; store.set('bpm',st.bpm); statsUI() });
   $('modeSeg').addEventListener('click',e=>{ const b=e.target.closest('button[data-m]'); if(!b) return; st.mode=b.dataset.m; store.set('mode',st.mode); mark() });
   $('inSeg').addEventListener('click',e=>{ const b=e.target.closest('button[data-in]'); if(!b) return; st.input=b.dataset.in; store.set('input',st.input); if(st.input!=='mic') micStop(); if(st.input==='midi'&&midiOK()&&!midiAcc) midiConnect(); mark(); calLabel() }) }
-function keyOpts(){ const S=STYLES[st.style]; $('keySel').innerHTML=tonics(st.style).map(t=>`<option value="${t[0]}">${t[0]} ${S.minor?'minor':'major'}${t[0]===S.def?' (default)':''}</option>`).join(''); if(!tonics(st.style).some(t=>t[0]===st.key)) st.key=S.def; $('keySel').value=st.key }
+function keyOpts(){ const S=STYLES[st.style]; $('keySel').innerHTML=tonics(st.style).map(t=>`<option value="${t[0]}">${homeText(st.style,makeKey(st.style,t[0]))}${t[0]===S.def?' (default)':''}</option>`).join(''); if(!tonics(st.style).some(t=>t[0]===st.key)) st.key=S.def; $('keySel').value=st.key }
 function mark(){ document.querySelectorAll('#styles button').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.s===st.style)));
   document.querySelectorAll('#levels button').forEach(b=>b.setAttribute('aria-pressed',String(+b.dataset.l===st.level)));
   document.querySelectorAll('#modeSeg button').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.m===st.mode)));
   document.querySelectorAll('#inSeg button').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.in===st.input)));
   const S=STYLES[st.style], K=makeKey(st.style,st.key);
-  $('styleDesc').innerHTML=`${S.sub}.<br><small>${st.level===7?'Any key':K.tonic+' '+S.mode.split(' (')[0]}: ${st.level===7?'a new one every call':K.notes.map(n=>n.name).join(' ')}</small>`;
+  $('styleDesc').innerHTML=`${S.sub}.<br><small>${st.level===7?'Any key':homeText(st.style,K)}: ${st.level===7?'a new one every call':K.notes.map(n=>n.name).join(' ')}</small>${st.level===7?'':`<br><small>Chords: ${progText(st.style,K)}</small>`}`;
   const L=LEVELS[st.level-1], s=store.get(statKey(),null); $('levelDesc').innerHTML=`<b>L${L.id} · ${L.name}</b>: ${L.sub}${s&&s.n?`<br><small>Your average here: ${Math.round(s.sum/s.n)} over ${s.n} tr${s.n>1?'ies':'y'} · best streak ${s.streak||0}</small>`:''}`;
   $('keySel').disabled=st.level===7||!!(T&&T.running); $('tempoSel').value=String(st.bpm);
   if(!TEMPOS.includes(st.bpm)){ st.bpm=90; $('tempoSel').value='90' }
