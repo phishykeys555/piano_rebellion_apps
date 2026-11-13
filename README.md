@@ -23,7 +23,7 @@ Every app shows its version at the bottom of the page: `Version YYYY-MM-DD.N` (d
 | Major 7th Play-Along | 2026-11-11.8 |
 | Song Dissector | 2026-11-11.14 |
 | Strobe Tuner (Guitar Revolution) | 2026-11-12.1 |
-| Groupies (find the four bands of four) | 2026-11-13.5 |
+| Fab Fours (find the four groups of four; was Groupies) | 2026-11-13.6 |
 | Ear Trainer | 2026-11-13.3 |
 | Meter Master (internal-clock trainer) | 2026-11-13.2 |
 | Symbol Memory (music symbols ↔ names; Bravura font, OFL, in `symbol-memory/fonts/`) | 2026-11-13.3 |
