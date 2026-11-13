@@ -1,0 +1,424 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="robots" content="noindex,nofollow"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Couch Tour</title>
+<meta name="description" content="Couch Tour: a Phish and Grateful Dead connections puzzle.">
+<style>
+
+
+:root{
+  --c-page:#0d0e11; --c-panel:#16171b; --c-panel2:#1d1f24; --c-key:#24262c; --c-key-b:#34373f; --c-key-sh:#0a0b0d;
+  --c-ink:#eceef2; --c-mut:#9aa3b2; --c-line:#2c2f36;
+  --c-act:#ff6a1a; --c-act-ink:#121212; --c-act-sh:#a83c05;       
+  --c-sel:#2f6bff; --c-sel-ink:#ffffff;                           
+  --c-lcd:#0a0b0d; --c-lcd-b:#2a2c33; --c-led:#ff7a2e; --c-led-glow:0 0 12px rgba(255,106,26,.45);
+  --c-ok:#33d17a; --c-bad:#ff4d5e; --c-warn:#ffb21a;
+  --c-stripe:linear-gradient(90deg,#2f6bff 0 25%,#ff6a1a 25% 50%,#ffb21a 50% 75%,#e9e9e9 75%);
+  --f-title:'Space Grotesk',system-ui,sans-serif; --f-body:Inter,system-ui,-apple-system,'Segoe UI',sans-serif; --f-num:'JetBrains Mono',ui-monospace,Menlo,monospace;
+  --r-card:22px; --r-key:12px; --shadow-card:0 1px 0 rgba(255,255,255,.05) inset,0 18px 40px rgba(0,0,0,.45);
+  color-scheme:dark;
+}
+@media (prefers-color-scheme:light){:root{
+  --c-page:#d9d7d1; --c-panel:#ebe9e4; --c-panel2:#e2e0da; --c-key:#f8f7f3; --c-key-b:#d0cec7; --c-key-sh:#c2c0b8;
+  --c-ink:#1b1c1f; --c-mut:#5c5e66; --c-line:#d0cec7;
+  --c-act:#2350c8; --c-act-ink:#ffffff; --c-act-sh:#163a99;
+  --c-sel:#ff5a1f; --c-sel-ink:#ffffff;
+  --c-lcd:#1b1c1f; --c-lcd-b:#1b1c1f; --c-led:#7dff9a; --c-led-glow:0 0 10px rgba(125,255,154,.35);
+  --c-ok:#1f9d55; --c-bad:#d93044; --c-warn:#b77700;
+  --c-stripe:linear-gradient(90deg,#2350c8 0 33%,#ff5a1f 33% 66%,#ffc21f 66%);
+  --shadow-card:0 1px 0 #fff inset,0 16px 34px rgba(0,0,0,.14);
+  color-scheme:light;
+}}
+
+.chma-page{margin:0;background:var(--c-page);color:var(--c-ink);font-family:var(--f-body);-webkit-font-smoothing:antialiased}
+.chma-card{background:var(--c-panel);border-radius:var(--r-card);box-shadow:var(--shadow-card);overflow:hidden}
+.chma-stripe{height:5px;background:var(--c-stripe)}
+.chma-head{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 16px 0}
+.chma-logo{display:flex;align-items:center;min-height:40px;line-height:0;flex:none}.chma-logo img{height:36px;width:auto;display:block}
+.chma-logo:focus-visible{outline:2px solid var(--c-sel);outline-offset:3px;border-radius:4px}
+.chma-ver{font:500 11px var(--f-num);color:var(--c-mut);letter-spacing:.04em;text-align:right}
+.chma-title{font-family:var(--f-title);font-weight:700;letter-spacing:-.01em;line-height:1.05;margin:0}
+.chma-title em{font-style:normal;color:var(--c-act)}
+@media (prefers-color-scheme:light){.chma-title em{color:var(--c-act)}}
+.chma-sub{color:var(--c-mut);font-size:13px;margin:4px 0 0}
+.chma-label{font:700 10.5px var(--f-body);letter-spacing:.16em;text-transform:uppercase;color:var(--c-mut)}
+.chma-key{font:700 14px var(--f-body);color:var(--c-ink);background:var(--c-key);border:1px solid var(--c-key-b);border-radius:var(--r-key);box-shadow:0 3px 0 var(--c-key-sh);min-height:42px;padding:0 14px;cursor:pointer;touch-action:manipulation;transition:transform .05s,box-shadow .05s}
+.chma-key:active{transform:translateY(2px);box-shadow:0 1px 0 var(--c-key-sh)}
+.chma-key.on,.chma-key[aria-pressed="true"]{background:var(--c-sel);border-color:var(--c-sel);color:var(--c-sel-ink)}
+.chma-act{background:var(--c-act);border-color:var(--c-act);color:var(--c-act-ink);box-shadow:0 3px 0 var(--c-act-sh)}
+.chma-lcd{background:var(--c-lcd);border:1px solid var(--c-lcd-b);border-radius:14px;box-shadow:inset 0 2px 8px rgba(0,0,0,.6);color:var(--c-ink)}
+.chma-led{font-family:var(--f-num);font-weight:700;color:var(--c-led);text-shadow:var(--c-led-glow)}
+
+
+:root{
+ --t1:#f6c945;--t1i:#121212; --t2:#e2384d;--t2i:#ffffff; --t3:#2f8f6b;--t3i:#ffffff; --t4:#7b4fd1;--t4i:#ffffff;
+ --c-act:#e2384d;--c-act-ink:#fff;--c-act-sh:#8e1626;--c-sel:#7b4fd1;--c-stripe:linear-gradient(90deg,#e2384d 0 25%,#f6c945 25% 50%,#2f8f6b 50% 75%,#7b4fd1 75%);
+}
+@media (prefers-color-scheme:light){:root{--t1:#f2be2c;--t1i:#1b1c1f;--t2:#c8243a;--t2i:#ffffff;--t3:#23785a;--t3i:#ffffff;--t4:#6a3fc2;--t4i:#ffffff;--c-act:#c8243a;--c-act-ink:#fff;--c-act-sh:#7d1020;--c-sel:#6a3fc2}}
+*{box-sizing:border-box}
+html,body{height:100%}
+body{margin:0;background:var(--c-page);color:var(--c-ink);font:15px/1.35 var(--f-body);-webkit-font-smoothing:antialiased;padding:6px 6px 4px}
+button,a{-webkit-tap-highlight-color:transparent}
+main{max-width:600px;margin:0 auto;background:var(--c-panel);border-radius:var(--r-card);box-shadow:var(--shadow-card);padding:0 9px 8px;overflow:hidden}
+.chma-headwrap{margin:0 -9px 6px}
+.chma-head{padding-top:8px}
+.top{display:flex;align-items:center;gap:8px}
+.ttl{flex:1;min-width:0}
+h1{font:700 24px/1.05 var(--f-title);letter-spacing:-.01em;margin:0}
+h1 em{font-style:normal;color:var(--c-act)}
+.tag{font-size:12px;color:var(--c-mut);margin:2px 0 0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ib{width:38px;height:38px;min-height:38px;padding:0;border-radius:11px;font-size:17px;line-height:1;display:grid;place-items:center}
+button{font:600 14px var(--f-body);color:var(--c-ink);background:var(--c-key);border:1px solid var(--c-key-b);border-radius:var(--r-key);box-shadow:0 3px 0 var(--c-key-sh);min-height:40px;padding:0 12px;cursor:pointer;touch-action:manipulation;transition:transform .05s,box-shadow .05s}
+button:active{transform:translateY(2px);box-shadow:0 1px 0 var(--c-key-sh)}
+button:disabled{opacity:.4;cursor:default;transform:none}
+button:focus-visible,select:focus-visible{outline:2px solid var(--c-sel);outline-offset:2px}
+.bar{display:flex;gap:6px;margin:8px 0 6px;align-items:center}
+.seg{display:flex;gap:4px;background:var(--c-panel2);border:1px solid var(--c-line);border-radius:12px;padding:3px}
+.seg button{min-height:32px;padding:0 10px;font-size:13px;box-shadow:none;border-color:transparent;background:transparent}
+.seg button[aria-pressed="true"]{background:var(--c-sel);color:var(--c-sel-ink)}
+select{font:600 13px var(--f-body);color:var(--c-ink);background:var(--c-key);border:1px solid var(--c-key-b);border-radius:10px;min-height:38px;padding:0 6px;max-width:100%;flex:1;min-width:0}
+.info{display:flex;justify-content:space-between;align-items:baseline;gap:8px;font-size:12px;color:var(--c-mut);margin:0 2px 6px;min-height:16px}
+.info b{color:var(--c-ink);font-weight:700}
+.info span:first-child{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#board{display:grid;gap:6px;grid-template-rows:repeat(4,var(--th))}
+:root{--th:clamp(64px,calc((100dvh - 330px) / 4),92px)}
+.row{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px}
+.tile{position:relative;height:var(--th);min-height:0;padding:3px;border-radius:12px;display:flex;align-items:center;justify-content:center;text-align:center;font:800 16px/1.08 var(--f-body);letter-spacing:0;overflow:hidden;word-break:normal;overflow-wrap:normal;hyphens:manual;-webkit-hyphens:manual;user-select:none}
+.tile span{display:block;width:100%}
+.tile[aria-pressed="true"]{background:var(--c-sel);border-color:var(--c-sel);color:var(--c-sel-ink);transform:translateY(1px);box-shadow:0 2px 0 rgba(0,0,0,.35)}
+.tile.shake{animation:shake .38s}
+@keyframes shake{20%,60%{transform:translateX(-5px)}40%,80%{transform:translateX(5px)}}
+.tile.pop{animation:pop .25s}
+@keyframes pop{50%{transform:translateY(-4px) scale(1.04)}}
+.solved{height:var(--th);border-radius:12px;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:4px 10px;gap:2px;cursor:pointer;border:0;width:100%;box-shadow:0 3px 0 rgba(0,0,0,.28);font-family:var(--f-body)}
+.solved .cat{font:800 14px/1.1 var(--f-body);text-transform:uppercase;letter-spacing:.03em;display:flex;gap:6px;align-items:center;justify-content:center;max-width:100%}
+.solved .its{font:600 13px/1.15 var(--f-body);opacity:.92;max-width:100%}
+.solved .tn{font:700 10px var(--f-num);letter-spacing:.12em;text-transform:uppercase;opacity:.8}
+.ti1{background:var(--t1);color:var(--t1i)}.ti2{background:var(--t2);color:var(--t2i)}.ti3{background:var(--t3);color:var(--t3i)}.ti4{background:var(--t4);color:var(--t4i)}
+.ico{font-family:var(--f-body);font-weight:900}
+.solved.in{animation:slide .35s}
+@keyframes slide{from{transform:scale(.94);opacity:.4}to{transform:none;opacity:1}}
+.mist{display:flex;align-items:center;justify-content:center;gap:8px;margin:8px 0 6px;font-size:13px;color:var(--c-mut);min-height:18px}
+.dots{display:flex;gap:7px}
+.dot{width:12px;height:12px;border-radius:50%;background:var(--c-act);box-shadow:var(--c-led-glow)}
+.dot.gone{background:transparent;border:2px solid var(--c-key-b);box-shadow:none}
+.acts{display:grid;grid-template-columns:1fr 1fr 1.25fr;gap:8px}
+.acts button{min-height:44px;font-size:14px}
+#submit{background:var(--c-act);border-color:var(--c-act);color:var(--c-act-ink);box-shadow:0 3px 0 var(--c-act-sh);font-family:var(--f-title);font-weight:700;font-size:16px}
+#toast{position:fixed;left:50%;top:22%;transform:translate(-50%,-6px);background:var(--c-ink);color:var(--c-page);font:700 15px var(--f-body);padding:10px 16px;border-radius:12px;opacity:0;pointer-events:none;transition:opacity .2s,transform .2s;z-index:50;box-shadow:0 10px 30px rgba(0,0,0,.35)}
+#toast.on{opacity:1;transform:translate(-50%,0)}
+.appver{text-align:center;font:500 10.5px var(--f-num);color:var(--c-mut);margin:8px 0 0}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+/* dialogs */
+dialog{border:0;padding:0;background:transparent;color:var(--c-ink);max-width:min(560px,calc(100vw - 20px));width:100%;max-height:calc(100dvh - 20px)}
+dialog::backdrop{background:rgba(0,0,0,.55)}
+.dlg{background:var(--c-panel);border-radius:20px;box-shadow:var(--shadow-card);padding:16px;max-height:calc(100dvh - 24px);overflow:auto}
+.dlg h2{font:700 22px var(--f-title);margin:0 0 6px}
+.dlg h3{font:700 10.5px var(--f-body);letter-spacing:.16em;text-transform:uppercase;color:var(--c-mut);margin:14px 0 6px}
+.dlg p{margin:6px 0}
+.dhead{display:flex;justify-content:space-between;align-items:center;gap:8px}
+.stats{display:grid;grid-template-columns:repeat(5,1fr);gap:6px;text-align:center}
+.stats div{background:var(--c-lcd);border:1px solid var(--c-lcd-b);border-radius:12px;padding:8px 2px}
+.stats b{display:block;font:700 22px var(--f-num);color:var(--c-led);text-shadow:var(--c-led-glow)}
+.stats span{font-size:10px;color:#9aa3b2;line-height:1.1;display:block}
+.rev{display:grid;gap:8px}
+.rev .rg{border-radius:12px;padding:10px 12px}
+.rev .rg .cat{font:800 13px var(--f-body);text-transform:uppercase;letter-spacing:.03em;display:flex;gap:6px;align-items:center}
+.rev .rg .its{font:600 12.5px var(--f-body);opacity:.9;margin:2px 0 4px}
+.rev .rg .why{font-size:13.5px;line-height:1.35}
+.rev .rg .tn{font:700 9.5px var(--f-num);letter-spacing:.12em;text-transform:uppercase;opacity:.8;margin-left:auto}
+.btnrow{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
+.btnrow button{flex:1}
+.prim{background:var(--c-act);border-color:var(--c-act);color:var(--c-act-ink);box-shadow:0 3px 0 var(--c-act-sh)}
+.tiers{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+.tiers div{border-radius:10px;padding:7px 10px;font:700 13px var(--f-body);display:flex;gap:6px;align-items:center}
+.result{font:700 18px var(--f-title);margin:0 0 4px}
+#shareBox{margin:10px 0 2px}#shareBox .sbh{font-size:13px;color:var(--c-mut);margin:0 0 6px}#shareTa{width:100%;font:13px/1.4 var(--f-num);background:var(--c-panel2);color:var(--c-ink);border:1px solid var(--c-line);border-radius:10px;padding:8px;resize:none;-webkit-user-select:text;user-select:text}#shareCopy{margin-top:6px}
+.arch{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:6px}
+.arch button{text-align:left;min-height:46px;font-size:13px;line-height:1.15;padding:6px 10px}
+.arch button small{display:block;color:var(--c-mut);font-weight:500;font-size:11px}
+.arch button.done small::after{content:" · solved"}
+kbd{font:600 11px var(--f-num);background:var(--c-key);border:1px solid var(--c-key-b);border-radius:5px;padding:1px 5px}
+@media (min-width:700px){
+ body{padding:16px}
+ main{padding:0 18px 10px}.chma-headwrap{margin:0 -18px 8px}
+ h1{font-size:28px}
+ .tile{font-size:18px}
+ :root{--th:clamp(64px,calc((100dvh - 350px) / 4),92px)}
+}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style></head><body><main>
+<div class="chma-stripe"></div>
+<div class="top">
+ <div class="ttl"><h1>Couch <em>Tour</em></h1><p class="tag">Phish and the Dead.</p></div>
+ <button class="ib" id="helpB" aria-label="How to play" title="How to play">?</button>
+ <button class="ib" id="statsB" aria-label="Stats" title="Stats">&#9636;</button>
+ <button class="ib" id="muteB" aria-label="Sound on" aria-pressed="false" title="Sound">&#9835;</button>
+</div>
+<div class="bar">
+ <div class="seg" role="group" aria-label="Mode"><button id="mDaily" aria-pressed="true">Daily</button><button id="mPrac" aria-pressed="false">Practice</button></div>
+ <select id="topic" aria-label="Topic"><option value="all">Both bands</option><option value="phish">Phish</option><option value="dead">Grateful Dead</option><option value="both">Crossover</option></select>
+</div>
+<div class="info"><span id="pLabel">&nbsp;</span><span id="pHint">Pick 4 that belong together</span></div>
+<div id="board" role="grid" aria-label="Puzzle tiles"></div>
+<div class="mist"><span>Mistakes left</span><div class="dots" id="dots" aria-hidden="true"></div><span class="sr" id="mistSr"></span></div>
+<div class="acts">
+ <button id="shuffle">Shuffle</button>
+ <button id="deselect">Deselect all</button>
+ <button id="submit">Submit</button>
+</div>
+<p class="appver">Couch Tour · Version 2026-11-13.2</p>
+</main>
+<div id="toast" role="status" aria-live="assertive"></div>
+<div class="sr" id="live" aria-live="polite"></div>
+
+<dialog id="dEnd" aria-labelledby="endT"><div class="dlg">
+ <div class="dhead"><h2 id="endT">Nice.</h2><button class="ib" data-close aria-label="Close">&times;</button></div>
+ <p class="result" id="endSub"></p>
+ <div class="rev" id="endRev"></div>
+ <div class="btnrow"><button class="prim" id="shareB">Share result</button><button id="nextB">Practice another</button></div>
+ <div id="shareBox" hidden><p class="sbh">Copy this and paste it in a text or post:</p><textarea id="shareTa" readonly rows="9" aria-label="Your result to copy"></textarea><button id="shareCopy">Copy</button></div>
+ <h3>Your stats</h3><div class="stats" id="endStats"></div>
+</div></dialog>
+
+<dialog id="dStats" aria-labelledby="stT"><div class="dlg">
+ <div class="dhead"><h2 id="stT">Stats</h2><button class="ib" data-close aria-label="Close">&times;</button></div>
+ <div class="stats" id="statsBox"></div>
+ <p style="font-size:12.5px;color:var(--c-mut)">Streaks count Daily wins on back-to-back days. Saved on this device only.</p>
+</div></dialog>
+
+<dialog id="dArch" aria-labelledby="arT"><div class="dlg">
+ <div class="dhead"><h2 id="arT">Practice archive</h2><button class="ib" data-close aria-label="Close">&times;</button></div>
+ <p style="font-size:13px;color:var(--c-mut)" id="arSub"></p>
+ <div class="arch" id="archList"></div>
+</div></dialog>
+
+<dialog id="dHelp" aria-labelledby="hpT"><div class="dlg">
+ <div class="dhead"><h2 id="hpT">How to play Couch Tour</h2><button class="ib" data-close aria-label="Close">&times;</button></div>
+ <p>Sixteen words are hiding four groups of four. Pick four that share something, then hit <b>Submit</b>.</p>
+ <p>Watch for red herrings: some words look like they fit two groups. Only one way works. Three right out of four gets you a <b>One away!</b></p>
+ <p>You get <b>4 mistakes</b>. Win or lose, every group is revealed with why it fits.</p>
+ <h3>Difficulty tiers</h3>
+ <div class="tiers" id="tierKey"></div>
+ <h3>Modes</h3>
+ <p><b>Daily</b>: one puzzle a day. <b>Practice</b>: pick any puzzle from the archive. The topic menu works in both.</p>
+ <h3>Keyboard</h3>
+ <p><kbd>Arrows</kbd> move between tiles, <kbd>Enter</kbd> or <kbd>Space</kbd> selects. <kbd>Tab</kbd> reaches Shuffle, Deselect and Submit.</p>
+ <p style="font-size:12px;color:var(--c-mut)">Private build. Not affiliated with Phish or the Grateful Dead.</p>
+</div></dialog>
+
+<script type="application/json" id="puzData">[{"id": 101, "title": "GONE PHISHIN'", "topic": "phish", "groups": [{"name": "ON JOY", "tier": 1, "items": ["OCELOT", "JOY", "LIGHT", "KILL DEVIL FALLS"], "why": "All from Joy (2009), the comeback record. Joy is the title track, which saves everyone a trip to the thesaurus. OCELOT is a cat, and it knows it."}, {"name": "PHISH SONGS NAMED FOR ANIMALS", "tier": 2, "items": ["LLAMA", "POSSUM", "HORSE", "WOMBAT"], "why": "Llama, Possum, The Horse and Wombat. Ocelot, The Sloth and The Lizards all qualify too, which is why this zoo had a waiting list."}, {"name": "GAMEHENDGE", "tier": 3, "items": ["WILSON", "TELA", "SLOTH", "LIZARDS"], "why": "Trey's senior-project saga: Wilson the tyrant, Tela the rebel, the Sloth the hitman, and the Lizards, the people Wilson enslaved. Two of them have song titles and fur or scales to match."}, {"name": "___ GIN", "tier": 4, "items": ["BATHTUB", "COTTON", "SLOE", "DRY"], "why": "Bathtub Gin (Lawn Boy), cotton gin, sloe gin, dry gin. Only one of them has a jam chart."}]}, {"id": 102, "title": "BAKER'S DOZEN", "topic": "phish", "groups": [{"name": "BAKER'S DOZEN FLAVORS", "tier": 1, "items": ["COCONUT", "STRAWBERRY", "POWDERED", "JIMMIES"], "why": "MSG, summer 2017, thirteen nights, one donut a night from Philadelphia's Federal Donuts: Coconut was night 1, Strawberry night 2, Powdered night 5, Jimmies night 8. Three of them also go in milk."}, {"name": "BAKER'S DOZEN OPENERS", "tier": 2, "items": ["STRAWBERRY FIELDS", "SUNDAY MORNING", "CHOCOLATE RAIN", "DOGS STOLE THINGS"], "why": "Strawberry Fields Forever opened Strawberry night, Sunday Morning opened Red Velvet, an a cappella Chocolate Rain opened Double Chocolate, and Dogs Stole Things opened Glazed, the finale. Subtle, these guys."}, {"name": "DONUT SHOPS", "tier": 3, "items": ["DUNKIN'", "KRISPY KREME", "TIM HORTONS", "FEDERAL DONUTS"], "why": "Three chains and Federal Donuts, the Philly shop that supplied the Baker's Dozen. Only one of them got a banner at the Garden."}, {"name": "___ MILK", "tier": 4, "items": ["SOY", "OAT", "ALMOND", "BUTTER"], "why": "Soy, oat, almond and buttermilk. Coconut milk, strawberry milk and powdered milk all wanted in, but they had a residency."}]}, {"id": 103, "title": "MUSICAL COSTUMES", "topic": "phish", "groups": [{"name": "ALBUMS COVERED ON HALLOWEEN", "tier": 1, "items": ["QUADROPHENIA", "LOADED", "WHITE ALBUM", "ZIGGY STARDUST"], "why": "The Who in 1995, the Velvet Underground in 1998, the Beatles in 1994 (the first costume), Bowie in 2016. LOADED is also how half the floor felt by set three."}, {"name": "HALLOWEEN COSTUME CITIES", "tier": 2, "items": ["GLENS FALLS", "ROSEMONT", "ATLANTIC CITY", "LAS VEGAS"], "why": "Glens Falls NY got the White Album, Rosemont IL got Quadrophenia, Atlantic City got Little Feat and the 2013 originals, and Las Vegas got Loaded and Ziggy. Vegas keeps winning, as Vegas does."}, {"name": "DEBUTED HALLOWEEN 2013", "tier": 3, "items": ["FUEGO", "WOMBAT", "SNOW", "MONICA"], "why": "Atlantic City, 2013: Phish covered an album nobody had heard yet, its own, later released as Fuego. Wombat came with dancers. Snow and Monica went acoustic."}, {"name": "HIDDEN ANIMAL", "tier": 4, "items": ["GOATEE", "DOVETAIL", "CATHEDRAL", "FOXGLOVE"], "why": "GOAT, DOVE, CAT, FOX. Also hiding: a HEN in QuadropHENia, an ANT in AtlANTic City and a BAT in WomBAT. The costume rack was crawling."}]}, {"id": 104, "title": "FESTIVAL GROUNDS", "topic": "phish", "groups": [{"name": "NEW YORK TOWNS", "tier": 1, "items": ["WATKINS GLEN", "PLATTSBURGH", "GLENS FALLS", "OSWEGO"], "why": "All upstate. Three of them also hosted a Phish festival, which tells you where the cheap land is."}, {"name": "FESTIVAL HOST TOWNS", "tier": 2, "items": ["LIMESTONE", "INDIO", "COVENTRY", "DOVER"], "why": "Limestone ME (Great Went, Lemonwheel, IT), Indio CA (Festival 8), Coventry VT (2004) and Dover DE (Mondegreen, 2024). Watkins Glen, Plattsburgh and Oswego qualify too, but they had New York business."}, {"name": "PHISH FESTIVALS", "tier": 3, "items": ["GREAT WENT", "LEMONWHEEL", "BIG CYPRESS", "IT"], "why": "The Great Went (1997), Lemonwheel (1998), Big Cypress (NYE 1999) and IT (2003). Camp Oswego (1999) and Coventry (2004) were festivals too, named after the towns, which made them hard to pin down."}, {"name": "___BALL", "tier": 4, "items": ["CLIFFORD", "MAGNA", "CURVE", "SUPER"], "why": "Clifford Ball (1996), Super Ball IX (2011), Magnaball (2015), Curveball (2018, cancelled the day before). Four festivals, one suffix."}]}, {"id": 105, "title": "THE QUARTET", "topic": "phish", "groups": [{"name": "FISH", "tier": 1, "items": ["PIKE", "CARP", "TROUT", "SALMON"], "why": "All fish. BASS and DRUM are fish too, and they swam over from the backline."}, {"name": "STAGE GEAR", "tier": 2, "items": ["BASS", "DRUM", "KEYS", "MONITOR"], "why": "What's on the riser. MIC and MARSHALL (the amp) belong up here too, but both had other gigs."}, {"name": "NON-MEMBER CO-WRITERS", "tier": 3, "items": ["MARSHALL", "POLLAK", "HERMAN", "LINITZ"], "why": "Tom Marshall (most of the catalog), Steve Pollak the Dude of Life (Fluffhead, Suzy Greenberg), Scott Herman (Stealing Time from the Faulty Plan), Joseph Linitz (Train Song with Mike). MARSHALL also makes amps, a career Tom has wisely avoided."}, {"name": "SOUND LIKE PHISH FIRST NAMES", "tier": 4, "items": ["TRAY", "MIC", "PAIGE", "JOHN"], "why": "Trey, Mike, Page, Jon, by ear only. MIC was also a piece of stage gear, which is the trap. JOHN has one letter Fishman does not need."}]}, {"id": 106, "title": "ICCULUS SAYS", "topic": "phish", "groups": [{"name": "ROCK BANDS", "tier": 1, "items": ["KISS", "RUSH", "CREAM", "SUGAR"], "why": "Four bands. Sugar is Bob Mould's early-'90s trio. AC/DC also qualifies, which is exactly why it is not in this group."}, {"name": "GAMEHENDGE CHARACTERS", "tier": 2, "items": ["ICCULUS", "RUTHERFORD", "MCGRUPP", "ERRAND WOOLFE"], "why": "Icculus wrote the Helping Friendly Book, Rutherford the Brave is the aging knight, McGrupp is Colonel Forbin's dog, and Errand Woolfe leads the Lizard rebels. Read the book."}, {"name": "IN A PINT OF PHISH FOOD", "tier": 3, "items": ["MARSHMALLOW", "CARAMEL", "FUDGE FISH", "CHOCOLATE"], "why": "Ben & Jerry's chocolate ice cream with marshmallow and caramel swirls and fudge fish, launched in 1997. Cream and sugar are on the label too, but they were booked as bands."}, {"name": "___ BAG", "tier": 4, "items": ["AC/DC", "SAND", "TEA", "SLEEPING"], "why": "AC/DC Bag (the robotic hangman of Gamehendge), sandbag, teabag, sleeping bag. AC/DC looked like a rock band. It is one. Not today."}]}, {"id": 107, "title": "SUMMER TOUR", "topic": "phish", "groups": [{"name": "SPORTING GOODS CHAINS", "tier": 1, "items": ["REI", "ACADEMY", "CABELA'S", "BASS PRO"], "why": "Four retailers. DICK'S is one too, and it is also the Colorado stadium Phish fills on Labor Day weekend. The store sells camping chairs. The parking lot uses them."}, {"name": "PHISH SUMMER VENUES", "tier": 2, "items": ["GORGE", "ALPINE VALLEY", "DEER CREEK", "DICK'S"], "why": "The Gorge, Alpine Valley, Deer Creek and Dick's. Summer tour is mostly these four plus a lot of gas money."}, {"name": "WHERE THOSE VENUES ARE", "tier": 3, "items": ["GEORGE", "EAST TROY", "NOBLESVILLE", "COMMERCE CITY"], "why": "George WA (the Gorge), East Troy WI (Alpine Valley), Noblesville IN (Deer Creek), Commerce City CO (Dick's). Yes, the Gorge is in George, Washington. Somebody planned that."}, {"name": "STARTS WITH AN ANIMAL", "tier": 4, "items": ["CATWALK", "HORSEPOWER", "BEARSKIN", "RAMROD"], "why": "CAT, HORSE, BEAR, RAM. BASS PRO opens with a fish and DEER CREEK opens with a deer, so both were circling this group."}]}, {"id": 108, "title": "COVER ME", "topic": "phish", "groups": [{"name": "STONES SONGS FROM EXILE", "tier": 1, "items": ["LOVING CUP", "HAPPY", "TUMBLING DICE", "SHINE A LIGHT"], "why": "All from Exile on Main St., which Phish played front to back at Festival 8 on Halloween 2009. Loving Cup had been a Phish staple for years before that."}, {"name": "FISHMAN SINGS LEAD", "tier": 2, "items": ["PURPLE RAIN", "CRACKLIN' ROSIE", "SEXUAL HEALING", "LENGTHWISE"], "why": "Prince, Neil Diamond, Marvin Gaye, and his own Lengthwise from Rift. He also sings Syd Barrett's Love You, Bike and Terrapin, which is why three tiles had two agents. The vacuum gets the solo."}, {"name": "SYD BARRETT SONGS", "tier": 3, "items": ["LOVE YOU", "BIKE", "ARNOLD LAYNE", "SEE EMILY PLAY"], "why": "Barrett wrote all four: Arnold Layne, See Emily Play and Bike with Pink Floyd, Love You on his solo Madcap Laughs. Fishman covers Love You and Bike in the dress."}, {"name": "___ STATION", "tier": 4, "items": ["TERRAPIN", "GAS", "POLICE", "SPACE"], "why": "Terrapin Station, gas station, police station, space station. TERRAPIN is also the Barrett song Fishman sings, so it fit three groups and had to pick the one with a Dead album in it."}]}, {"id": 109, "title": "SECRET LANGUAGE", "topic": "phish", "groups": [{"name": "THE SIMPSONS FAMILY", "tier": 1, "items": ["HOMER", "MARGE", "LISA", "MAGGIE"], "why": "Springfield's finest. Phish played themselves on the show in 2002. Homer approved."}, {"name": "SECRET LANGUAGE SIGNALS", "tier": 2, "items": ["SIMPSONS", "ALL FALL DOWN", "RANDOM NOTE", "TURN TURN TURN"], "why": "Tease the Simpsons theme and the crowd yells D'oh, play All Fall Down and everyone falls down, Turn Turn Turn means face the back, and Random Note means everyone screams a random note. Trey taught them in 1992."}, {"name": "DROPPED AT BOSTON GARDEN, NYE 1994", "tier": 3, "items": ["CONFETTI", "FEATHERS", "PING PONG BALLS", "BALLOONS"], "why": "While the band rode a flying hot dog over the crowd, the ceiling let go of confetti, feathers, ping pong balls and balloons. The hot dog is in the Rock Hall. The feathers are still in someone's car."}, {"name": "HIDDEN 'ALL'", "tier": 4, "items": ["WALLS OF THE CAVE", "HALLEY'S COMET", "KILL DEVIL FALLS", "BIG BALL JAM"], "why": "wALLs, hALLey's, fALLs, bALL. Also carrying an ALL: bALLoons, ping pong bALLs and, out loud, ALL Fall Down. That's ALL."}]}, {"id": 110, "title": "SIDE HUSTLE", "topic": "phish", "groups": [{"name": "MONEY CHANGING HANDS", "tier": 1, "items": ["TOLL", "DUES", "LEVY", "RENT"], "why": "Things you pay or get paid. FEE, TAB and REBATE all qualify, and all three were spoken for."}, {"name": "SIDE PROJECTS", "tier": 2, "items": ["TAB", "VIDA BLUE", "PORK TORNADO", "OYSTERHEAD"], "why": "Trey Anastasio Band, Page's Vida Blue, Fishman's Pork Tornado, and Oysterhead (Trey with Les Claypool and Stewart Copeland). TAB is also what the bar hands you after Oysterhead."}, {"name": "JUNTA TRACKS", "tier": 3, "items": ["FEE", "FLUFFHEAD", "DIVIDED SKY", "YOU ENJOY MYSELF"], "why": "All from Junta (1989). FEE opens it, and is also a fee."}, {"name": "PHISH SONG PLUS LETTERS", "tier": 4, "items": ["HORNET", "REBATE", "JOYSTICK", "MAZEL TOV"], "why": "HORN+ET, REBA+TE, JOY+STICK, MAZE+L TOV. REBATE also looked like money coming back. It was Reba with a tip."}]}, {"id": 111, "title": "AULD LANG PHISH", "topic": "phish", "groups": [{"name": "SMELLS", "tier": 1, "items": ["AROMA", "SCENT", "ODOR", "BOUQUET"], "why": "Ways to describe a smell. PETRICHOR is the smell of rain on dry ground, which is why it wanted in. It had a prior engagement."}, {"name": "CHESS PIECES", "tier": 2, "items": ["KING", "QUEEN", "ROOK", "BISHOP"], "why": "Phish played a band-vs-audience chess match one move per show on fall tour 1995; the audience won game two at MSG. KING and QUEEN also come in sizes."}, {"name": "SONGS STAGED AS NYE GAGS", "tier": 3, "items": ["HOT DOG", "STEAM", "KUNG", "PETRICHOR"], "why": "The flying hot dog (1994), Steam with floating aerialists (2011), Kung with racing golf carts (2012), and Petrichor with indoor rain at MSG (2016). The Garden's insurance carrier has notes."}, {"name": "___ SIZE", "tier": 4, "items": ["BITE", "PLUS", "FUN", "TRAVEL"], "why": "Bite-size, plus-size, fun-size, travel-size. King-size and queen-size were right there on the chessboard."}]}, {"id": 112, "title": "STUDIO TIME", "topic": "phish", "groups": [{"name": "ON BILLY BREATHES", "tier": 1, "items": ["FREE", "TASTE", "TALK", "STEEP"], "why": "All from Billy Breathes (1996). Waste is on it too, but WASTE had a second job."}, {"name": "ON RIFT", "tier": 2, "items": ["HORN", "MOUND", "SPARKLE", "THE WEDGE"], "why": "All from Rift (1993). Maze and Weigh are on it too, and both were moonlighting."}, {"name": "ON A PICTURE OF NECTAR", "tier": 3, "items": ["STASH", "GLIDE", "CAVERN", "MAGILLA"], "why": "A Picture of Nectar (1992), named for Nectar Rorris of Nectar's, the Burlington bar where they cut their teeth. Magilla is one of its instrumentals."}, {"name": "PHISH SONGS THAT ARE HOMOPHONES", "tier": 4, "items": ["WASTE", "WEIGH", "MAZE", "MEAT"], "why": "Waist, way, maize, meet. From Billy Breathes, Rift, Rift and The Story of the Ghost. Read them out loud and the setlist turns into a grocery list."}]}, {"id": 113, "title": "TRACK LISTING", "topic": "phish", "groups": [{"name": "ON JUNTA", "tier": 1, "items": ["ESTHER", "FOAM", "CONTACT", "GOLGI APPARATUS"], "why": "All from Junta (1989), the debut that was once a cassette sold out of a van."}, {"name": "ON HOIST", "tier": 2, "items": ["JULIUS", "LIFEBOY", "DEMAND", "IF I COULD"], "why": "All from Hoist (1994). Wolfman's Brother, Scent of a Mule and Dog Faced Boy are on Hoist too, which made this the busiest group in the puzzle."}, {"name": "ON LAWN BOY", "tier": 3, "items": ["REBA", "MY SWEET ONE", "LAWN BOY", "THE SQUIRMING COIL"], "why": "All from Lawn Boy (1990): the album opener, the 12-minute Reba, the two-minute hoedown and the title track."}, {"name": "ANIMAL INSIDE", "tier": 4, "items": ["WOLFMAN'S BROTHER", "DOG FACED BOY", "SCENT OF A MULE", "CATAPULT"], "why": "WOLF, DOG, MULE, CAT. The first three are Hoist songs, so the album wanted them back. GolgI appaRATus has a RAT in it, but Junta kept it."}]}, {"id": 114, "title": "HENRIETTA", "topic": "phish", "groups": [{"name": "VACUUM BRANDS", "tier": 1, "items": ["HOOVER", "DYSON", "BISSELL", "KIRBY"], "why": "All vacuum brands. Fishman's ELECTROLUX is one too, and so is SHARK, but neither was free."}, {"name": "FISHMAN TRADEMARKS", "tier": 2, "items": ["MUUMUU", "DONUTS", "BOB WEAVER", "ELECTROLUX"], "why": "The donut-print muumuu, the donuts on it, the alias Bob Weaver, and the Electrolux he solos on. Few drummers can clean up after their own solo."}, {"name": "WHAT PHISH PLAYS", "tier": 3, "items": ["GUITAR", "KEYS", "DRUMS", "BASS"], "why": "Trey, Page, Fishman, Mike. The Electrolux is technically also an instrument here, which is Fishman's whole point."}, {"name": "ALSO A FISH", "tier": 4, "items": ["SOLE", "SKATE", "PERCH", "SHARK"], "why": "Words with a second life underwater. BASS is a fish too, but Mike needed it."}]}, {"id": 115, "title": "LINER NOTES", "topic": "phish", "groups": [{"name": "ON THE STORY OF THE GHOST", "tier": 1, "items": ["GUYUTE", "FIKUS", "ROGGAE", "FRANKIE SAYS"], "why": "All from The Story of the Ghost (1998). Roggae is not a typo. Frankie Says is not a T-shirt."}, {"name": "WRITTEN BY MIKE GORDON", "tier": 2, "items": ["MOUND", "SCENT OF A MULE", "TRAIN SONG", "WEIGH"], "why": "Mound and Weigh (Rift), Scent of a Mule (Hoist), Train Song (Billy Breathes, with Joseph Linitz). Mike writes like he plays: sideways and on purpose."}, {"name": "STUDIO-ALBUM INSTRUMENTALS", "tier": 3, "items": ["ELIZA", "FAHT", "BLISS", "CARS TRUCKS BUSES"], "why": "Eliza and Faht (A Picture of Nectar), Bliss and Cars Trucks Buses (Billy Breathes). No lyrics, no arguments."}, {"name": "VEHICLE INSIDE", "tier": 4, "items": ["TRAMPOLINE", "CABARET", "VANILLA", "BUSHEL"], "why": "TRAM, CAB, VAN, BUS. Also on the road: a UTE in GuyUTE, a TRAIN in Train Song, and a whole fleet in Cars Trucks Buses."}]}, {"id": 116, "title": "WHICH BAND?", "topic": "both", "groups": [{"name": "PHISH ORIGINALS", "tier": 1, "items": ["GHOST", "TUBE", "PIPER", "HORN"], "why": "Ghost, Tube, Piper and Horn. All Phish, all short, all capable of turning into 20 minutes without warning."}, {"name": "STUDIO ALBUM TITLES", "tier": 2, "items": ["JUNTA", "HOIST", "FARMHOUSE", "FUEGO"], "why": "Phish records from 1989, 1994, 2000 and 2014. Farmhouse and Fuego are also songs, and Terrapin Station is also a studio album, just from the other band."}, {"name": "DEAD SONGS PHISH HAS PLAYED", "tier": 3, "items": ["TERRAPIN STATION", "BOX OF RAIN", "EYES OF THE WORLD", "SCARLET BEGONIAS"], "why": "Terrapin Station on 8/9/1998, three years to the day after Garcia died. Box of Rain on 10/25/2024, the day Phil Lesh died. Eyes and Scarlet date to the 1984 bar-band days."}, {"name": "___ SONG", "tier": 4, "items": ["MIKE'S", "TRAIN", "MANGO", "BIRD"], "why": "Mike's Song, Train Song and The Mango Song are Phish; Bird Song is the Dead. A which-band question hiding inside a fill-in-the-blank."}]}, {"id": 117, "title": "SHARED STAGES", "topic": "both", "groups": [{"name": "PHISH YES, GRATEFUL DEAD NO", "tier": 1, "items": ["DICK'S", "SPHERE", "LIMESTONE", "BIG CYPRESS"], "why": "Dick's opened in 2007 and the Sphere in 2023, long after the Dead stopped in 1995. Limestone and Big Cypress were Phish festival sites. Dead & Company has played Dick's and the Sphere, but Dead & Company is not the Grateful Dead."}, {"name": "BOTH BANDS PLAYED THERE", "tier": 2, "items": ["HAMPTON", "ALPINE VALLEY", "RED ROCKS", "WATKINS GLEN"], "why": "Hampton Coliseum, Alpine Valley, Red Rocks, and Watkins Glen (the Dead at the 1973 Summer Jam, Phish at Super Ball IX and Magnaball)."}, {"name": "GRATEFUL DEAD YES, PHISH NO", "tier": 3, "items": ["WINTERLAND", "FILLMORE EAST", "FILLMORE WEST", "SWING AUDITORIUM"], "why": "Winterland closed in 1978, both Fillmores in 1971, and San Bernardino's Swing Auditorium was razed after a plane hit it in 1981. Phish formed in 1983. Bad timing, every time."}, {"name": "TREE INSIDE", "tier": 4, "items": ["FIRST TUBE", "ASHBURY", "LEVON HELM", "MAPLE LEAF RAG"], "why": "FIR, ASH, ELM, MAPLE. Also growing: LIME in Limestone, a CYPRESS at Big Cypress and a PINE in Alpine Valley. The venues were a forest."}]}, {"id": 201, "title": "Title Fight", "topic": "dead", "groups": [{"name": "STUDIO ALBUMS", "tier": 1, "items": ["AOXOMOXOA", "AMERICAN BEAUTY", "GO TO HEAVEN", "IN THE DARK"], "why": "Four studio LPs: 1969, 1970, 1980, 1987. None of them has a song of the same name, which is why they're stuck in the easy group."}, {"name": "LIVE ALBUMS", "tier": 2, "items": ["LIVE/DEAD", "EUROPE '72", "DEAD SET", "RECKONING"], "why": "Live/Dead (1969) and Europe '72 are the classics. Dead Set (electric) and Reckoning (acoustic) both came out in 1981, from the same fall 1980 runs at the Warfield and Radio City."}, {"name": "STUDIO ALBUMS WITH A TITLE TRACK", "tier": 3, "items": ["TERRAPIN STATION", "SHAKEDOWN STREET", "BUILT TO LAST", "BLUES FOR ALLAH"], "why": "Also studio albums, but each one holds a song with the same name. Shakedown Street then went on to name the parking-lot market, which is more than most title tracks manage."}, {"name": "___ DEAD", "tier": 4, "items": ["WORKINGMAN'S", "DROP", "BRAIN", "STONE"], "why": "Workingman's Dead is a 1970 studio album, so it looked like a fifth studio album. Here it is just a word that goes before DEAD, with drop, brain and stone."}]}, {"id": 202, "title": "Personnel File", "topic": "dead", "groups": [{"name": "FOUNDING MEMBERS", "tier": 1, "items": ["GARCIA", "LESH", "KREUTZMANN", "MCKERNAN"], "why": "Four of the five who formed the band in 1965. Weir is the fifth, and he has been sent elsewhere for a pun."}, {"name": "KEYBOARDISTS", "tier": 2, "items": ["CONSTANTEN", "GODCHAUX", "MYDLAND", "WELNICK"], "why": "Tom Constanten, Keith Godchaux, Brent Mydland, Vince Welnick. Pigpen McKernan played organ too, but he is a founder first."}, {"name": "CREW AND BOARD", "tier": 3, "items": ["RAMROD", "PARISH", "HEALY", "CANTOR"], "why": "Ram Rod Shurtliff and Steve Parish ran the stage, Dan Healy mixed the sound, and Betty Cantor-Jackson taped the soundboards, Cornell '77 included. A parish, a cantor and a ramrod are also nouns, which is suspicious."}, {"name": "SURNAMES THAT ARE ALSO NOUNS", "tier": 4, "items": ["HART", "WEIR", "HUNTER", "MOUSE"], "why": "A hart is a male deer, a weir is a low dam, a hunter hunts, and a mouse is a mouse. Mickey Hart, Bob Weir, Robert Hunter and poster artist Stanley Mouse, hiding in the dictionary."}]}, {"id": 203, "title": "Segue Way", "topic": "dead", "groups": [{"name": "FIRST HALF OF A CLASSIC PAIR", "tier": 1, "items": ["CHINA CAT", "LOST SAILOR", "HELP ON THE WAY", "SCARLET"], "why": "China Cat > Rider, Lost Sailor > Saint of Circumstance, Help on the Way > Slipknot! > Franklin's Tower, Scarlet > Fire. Dark Star > St. Stephen was a strong fifth candidate."}, {"name": "SECOND HALF OF A CLASSIC PAIR", "tier": 2, "items": ["RIDER", "SAINT", "FRANKLIN'S", "FIRE"], "why": "Where those openers land. SAINT is Saint of Circumstance, not St. Stephen. That one is busy elsewhere in this puzzle."}, {"name": "TRACKS ON LIVE/DEAD", "tier": 3, "items": ["DARK STAR", "ST. STEPHEN", "THE ELEVEN", "FEEDBACK"], "why": "From the 1969 double LP, which opened with a full side of Dark Star. Yes, Feedback is an actual track title. It does what it says."}, {"name": "SCARLET ___", "tier": 4, "items": ["BEGONIAS", "LETTER", "FEVER", "WITCH"], "why": "Scarlet Begonias, The Scarlet Letter, scarlet fever, the Scarlet Witch. SCARLET itself was a decoy: it's the opener, and only BEGONIAS is in this group."}]}, {"id": 204, "title": "Who's Who", "topic": "dead", "groups": [{"name": "SONG TITLES THAT ARE NAMES", "tier": 1, "items": ["BERTHA", "ALTHEA", "SUGAREE", "CASSIDY"], "why": "Four Dead songs titled with a name. Casey Jones, Black Peter, Stagger Lee and Jack Straw also have names, and every one of them had somewhere else to be."}, {"name": "ON WORKINGMAN'S DEAD", "tier": 2, "items": ["CASEY JONES", "BLACK PETER", "DIRE WOLF", "HIGH TIME"], "why": "All from the 1970 LP. Dire Wolf is the one where the narrator says please don't murder me, which is a strong hint about where it nearly went."}, {"name": "MURDER BALLADS", "tier": 3, "items": ["STAGGER LEE", "EL PASO", "JACK STRAW", "ME AND MY UNCLE"], "why": "Someone ends up dead in each. Me and My Uncle was the band's most-played song, so the Dead sang about it more than about anything else."}, {"name": "___ JONES", "tier": 4, "items": ["CASEY", "DOW", "DAVY", "INDIANA"], "why": "Casey Jones, Dow Jones, Davy Jones, Indiana Jones. CASEY looked like a title. Here it's just a train engineer with famous neighbors."}]}, {"id": 205, "title": "Venue Diagram", "topic": "dead", "groups": [{"name": "SAN FRANCISCO VENUES", "tier": 1, "items": ["WINTERLAND", "FILLMORE", "AVALON", "KEZAR"], "why": "Home turf. Kezar Stadium on 5/26/73 was a three-set marathon, with Waylon Jennings opening. Winterland closed on New Year's Eve 1978, with the Dead on stage."}, {"name": "FESTIVALS THEY PLAYED", "tier": 2, "items": ["WOODSTOCK", "MONTEREY POP", "WATKINS GLEN", "FESTIVAL EXPRESS"], "why": "Monterey Pop (June 1967), Woodstock (1969), the Festival Express train across Canada (1970), and the Watkins Glen Summer Jam (7/28/73), with a crowd of about 600,000."}, {"name": "SITES OF OFFICIAL LIVE RELEASES", "tier": 3, "items": ["VENETA", "ENGLISHTOWN", "GIZA", "CORNELL"], "why": "Veneta 8/27/72 (Sunshine Daydream), Englishtown 9/3/77 (Dick's Picks 15), Giza 1978 (Rocking the Cradle) and Cornell 5/8/77. Winterland, the Fillmore, Woodstock and Kezar all have official releases too (The Closing of Winterland, Fillmore West 1969, the 2019 Woodstock box, Here Comes Sunshine 1973), so this group had a line out the door."}, {"name": "___ HALL", "tier": 4, "items": ["BARTON", "TOWN", "MESS", "POOL"], "why": "Barton Hall, town hall, mess hall, pool hall. BARTON looked like a fifth live-release site, but CORNELL got that seat, so Barton gets hall duty."}]}, {"id": 206, "title": "Side Hustle", "topic": "dead", "groups": [{"name": "BANDS GARCIA PLAYED IN", "tier": 1, "items": ["OLD & IN THE WAY", "LEGION OF MARY", "NEW RIDERS", "JERRY GARCIA BAND"], "why": "Bluegrass (Old & In the Way, 1973), jazz-funk (Legion of Mary, 1974-75), and pedal steel with the New Riders (1969-71). The JGB was his weeknight job."}, {"name": "BOB WEIR SIDE BANDS", "tier": 2, "items": ["KINGFISH", "RATDOG", "WOLF BROS", "MIDNITES"], "why": "Kingfish (mid-'70s), Bobby and the Midnites (1980s), RatDog (1995 on) and Wolf Bros (2018 on). Weir was in all four reunion bands too, so every one of them could have landed here."}, {"name": "POST-JERRY REUNION BANDS", "tier": 3, "items": ["THE OTHER ONES", "THE DEAD", "FURTHUR", "DEAD & COMPANY"], "why": "The Other Ones (1998), The Dead (2003), Furthur (2009, spelled like Kesey's bus) and Dead & Company (2015). Same family, different hats."}, {"name": "___ DRUM", "tier": 4, "items": ["PLANET", "STEEL", "BASS", "KETTLE"], "why": "Mickey Hart's Planet Drum won the first ever Grammy for Best World Music Album. Steel drum, bass drum and kettle drum make up the rest of the percussion section. BASS is not Phil."}]}, {"id": 207, "title": "Cover Charge", "topic": "dead", "groups": [{"name": "DYLAN COVERS", "tier": 1, "items": ["WATCHTOWER", "QUEEN JANE", "DESOLATION ROW", "MAGGIE'S FARM"], "why": "All Along the Watchtower, Queen Jane Approximately, Desolation Row and Maggie's Farm all lived in the 1980s and '90s repertoire. The 1987 tour with Dylan helped."}, {"name": "COUNTRY COVERS", "tier": 2, "items": ["MAMA TRIED", "BIG RIVER", "SING ME BACK HOME", "OKIE FROM MUSKOGEE"], "why": "Three by Merle Haggard and Big River by Johnny Cash. The Dead played all three Haggards at one Fillmore East show on 4/27/71, which is more Merle than anyone expected from a band of hippies."}, {"name": "SOUL AND R&B COVERS", "tier": 3, "items": ["LOVELIGHT", "MIDNIGHT HOUR", "HARD TO HANDLE", "GOOD LOVIN'"], "why": "Bobby Bland, Wilson Pickett, Otis Redding, and the Olympics' song the Rascals made a hit. Pigpen fronted the first three. Good Lovin' started with Pigpen and ended up with Weir."}, {"name": "HIDDEN BODY PART", "tier": 4, "items": ["EARTHQUAKE", "SHIPWRECK", "THUMBTACK", "LEGACY"], "why": "EAR, HIP, THUMB, LEG. Also hiding: an ARM in Maggie's Farm, a BACK in Sing Me Back Home and a HAND in Hard to Handle. The covers were full of spare parts."}]}, {"id": 208, "title": "Pen Pals", "topic": "dead", "groups": [{"name": "GARCIA AND HUNTER SONGS", "tier": 1, "items": ["DEAL", "LOSER", "BERTHA", "TOUCH OF GREY"], "why": "Jerry's music, Robert Hunter's words. Touch of Grey was the band's only Top 10 single (No. 9, 1987)."}, {"name": "BARLOW CO-WRITES", "tier": 2, "items": ["CASSIDY", "LOOKS LIKE RAIN", "LOST SAILOR", "MEXICALI BLUES"], "why": "John Perry Barlow wrote the words, Weir the music. He also co-wrote Easy to Love You and Blow Away with Brent, which is the trap."}, {"name": "BRENT MYDLAND ORIGINALS", "tier": 3, "items": ["TONS OF STEEL", "FAR FROM ME", "EASY TO LOVE YOU", "BLOW AWAY"], "why": "Brent wrote them and sang them. Two have Barlow lyrics, so they could have gone either way. They went Brent."}, {"name": "HIDDEN GUY'S NAME", "tier": 4, "items": ["TEDIUM", "BENCH", "SALAMI", "CARLOAD"], "why": "TED, BEN, SAL, CARL. Also hiding: BERT in Bertha, SID in Cassidy, ALI in Mexicali, and AL dealing cards in DEAL."}]}, {"id": 209, "title": "Lot Life", "topic": "dead", "groups": [{"name": "DEADHEAD TRIBES", "tier": 1, "items": ["SPINNER", "TAPER", "TOUCHHEAD", "WHARF RAT"], "why": "Spinners twirled, tapers recorded, Touchheads arrived with the 1987 hit, and the Wharf Rats were the sober crew who met at set break under yellow balloons."}, {"name": "TAPE-TRADING JARGON", "tier": 2, "items": ["SBD", "AUD", "FOB", "MATRIX"], "why": "Soundboard, audience, front-of-board, and a matrix that blends the two. TAPER is jargon too, but it had a tribe."}, {"name": "GRATEFUL DEAD SONGS", "tier": 3, "items": ["SUGAR MAGNOLIA", "BROKEDOWN PALACE", "MORNING DEW", "STELLA BLUE"], "why": "Four of the catalog's best. Wharf Rat is a Dead song too, which is how the sober crew got its name."}, {"name": "HIDDEN BEER", "tier": 4, "items": ["BUDGET", "CORONATION", "CONSTELLATION", "SCALE"], "why": "BUD, CORONA, STELLA, ALE. STELLA BLUE starts with one, but it had a ballad to finish. The Wharf Rats would like everyone to know they had none of the above."}]}, {"id": 210, "title": "Card Sharks", "topic": "dead", "groups": [{"name": "POKER TERMS", "tier": 1, "items": ["FOLD", "RAISE", "CHECK", "CALL"], "why": "Table basics. DEAL was sitting at this table too, but it had other plans."}, {"name": "ON GARCIA (1972)", "tier": 2, "items": ["BIRD SONG", "SUGAREE", "THE WHEEL", "TO LAY ME DOWN"], "why": "All from Jerry's first solo album. Deal and Loser are on it too, and both were gambling."}, {"name": "GAMBLING SONGS", "tier": 3, "items": ["LOSER", "DEAL", "CANDYMAN", "ME AND MY UNCLE"], "why": "Card players in Loser and Deal, dice in Candyman, and a crooked poker game in Santa Fe in Me and My Uncle. The house still wins."}, {"name": "HIDDEN SWEET", "tier": 4, "items": ["CAKEWALK", "GUMSHOE", "PIEDMONT", "TARTAN"], "why": "CAKE, GUM, PIE, TART. SUGAREE and CANDYMAN are also carrying sweets, which is how they get away with it."}]}, {"id": 211, "title": "Road Map", "topic": "dead", "groups": [{"name": "CITIES IN TRUCKIN'", "tier": 1, "items": ["CHICAGO", "DETROIT", "DALLAS", "HOUSTON"], "why": "Hunter wrote it on the road in 1970, and it checks in at all four. Houston also appears in Promised Land, so it had a choice of buses."}, {"name": "PLACE IN THE TITLE", "tier": 2, "items": ["TENNESSEE", "MISSISSIPPI", "WEST L.A.", "EL PASO"], "why": "Tennessee Jed, Mississippi Half-Step Uptown Toodeloo, West L.A. Fadeaway, El Paso. U.S., Cumberland and Mexicali are places too, but they were in a band called ___ BLUES. Mississippi also gets a line in Promised Land."}, {"name": "PROMISED LAND ROUTE", "tier": 3, "items": ["NORFOLK", "RALEIGH", "CHARLOTTE", "ROCK HILL"], "why": "The Chuck Berry cover Weir sang for years: a Greyhound out of Norfolk, past Raleigh, a stop in Charlotte, Rock Hill bypassed. Houston and Mississippi are on the route too, later in the song."}, {"name": "___ BLUES", "tier": 4, "items": ["U.S.", "DUPREE'S", "CUMBERLAND", "MEXICALI"], "why": "U.S. Blues, Dupree's Diamond Blues (diamond optional), Cumberland Blues, Mexicali Blues. Three of the four are places, which is the trap."}]}, {"id": 212, "title": "Animal House", "topic": "dead", "groups": [{"name": "DEAD ICONOGRAPHY", "tier": 1, "items": ["BEAR", "SKULL", "ROSE", "UNCLE SAM"], "why": "Dancing bears, skulls and roses, and the skeleton in an Uncle Sam hat. The terrapins and the lightning bolt also wanted in. They have other jobs today."}, {"name": "ANIMALS IN SONG TITLES", "tier": 2, "items": ["BIRD", "ROOSTER", "MONKEY", "TERRAPIN"], "why": "Bird Song, Little Red Rooster, Monkey and the Engineer, and Terrapin Station. WOLF (Dire Wolf) and RAT (Wharf Rat) also qualify, but both are busy."}, {"name": "GARCIA GUITARS", "tier": 3, "items": ["TIGER", "WOLF", "ROSEBUD", "LIGHTNING BOLT"], "why": "Doug Irwin built Wolf (1973), Tiger (1979) and Rosebud (1990). Stephen Cripe built Lightning Bolt (1993). Garcia named his guitars the way other people name dogs."}, {"name": "___TAIL", "tier": 4, "items": ["PIG", "PONY", "FISH", "RAT"], "why": "Pigtail, ponytail, fishtail, rattail. PIG was not Pigpen and RAT was not Wharf Rat. Wordplay doesn't care about your tapes."}]}, {"id": 213, "title": "Setlist Snob", "topic": "dead", "groups": [{"name": "ON THE 1967 DEBUT", "tier": 1, "items": ["COLD RAIN & SNOW", "CREAM PUFF WAR", "VIOLA LEE BLUES", "GOLDEN ROAD"], "why": "From The Grateful Dead (1967). New, New Minglewood Blues is on it too, and it opened Cornell ten years later."}, {"name": "ON EUROPE '72", "tier": 2, "items": ["HE'S GONE", "MR. CHARLIE", "HURTS ME TOO", "RAMBLE ON ROSE"], "why": "All from the triple LP. Jack Straw and Brown-Eyed Women are on it too, and both turned up at Cornell."}, {"name": "PLAYED AT CORNELL 5/8/77", "tier": 3, "items": ["SUPPLICATION", "JACK STRAW", "BROWN-EYED WOMEN", "MINGLEWOOD"], "why": "First set, Barton Hall. Minglewood opened, Supplication came out of Lazy Lightning, and Jack Straw and Brown-Eyed Women were both Europe '72 veterans."}, {"name": "___DEW", "tier": 4, "items": ["HONEY", "MOUNTAIN", "SUN", "MORNING"], "why": "Honeydew, Mountain Dew, sundew (a carnivorous plant) and Morning Dew, which was on the debut, on Europe '72 and at Cornell, and still ended up in the wordplay group."}]}, {"id": 214, "title": "Mic Check", "topic": "dead", "groups": [{"name": "PIGPEN SANG LEAD", "tier": 1, "items": ["LOVELIGHT", "OPERATOR", "HARD TO HANDLE", "EASY WIND"], "why": "Bobby Bland's Lovelight, his own Operator, Otis Redding's Hard to Handle, and Easy Wind from Workingman's Dead."}, {"name": "PHIL SANG LEAD", "tier": 2, "items": ["BOX OF RAIN", "UNBROKEN CHAIN", "PRIDE OF CUCAMONGA", "TOM THUMB'S BLUES"], "why": "Box of Rain (American Beauty), the two Mars Hotel songs, and the Dylan cover he took on in the mid-'80s."}, {"name": "WEIR SANG LEAD", "tier": 3, "items": ["LOOKS LIKE RAIN", "LAZY LIGHTNING", "MEXICALI BLUES", "THROWING STONES"], "why": "Looks Like Rain and Mexicali Blues from Ace, Lazy Lightning (opened the Cornell Supplication), and Throwing Stones from In the Dark. All Barlow lyrics, all Bobby."}, {"name": "WEATHER INSIDE", "tier": 4, "items": ["COLD RAIN & SNOW", "MORNING DEW", "SUNSHINE DAYDREAM", "ROLLING THUNDER"], "why": "Rain and snow, dew, sunshine (the Veneta film, named for the Sugar Magnolia coda), thunder (Mickey Hart's 1972 solo LP). Also in the forecast: Easy WIND, Box of RAIN, Looks Like RAIN and Lazy LIGHTNING. Every singer brought an umbrella."}]}, {"id": 215, "title": "Further", "topic": "dead", "groups": [{"name": "ACID TEST CIRCLE", "tier": 1, "items": ["KESEY", "CASSADY", "BABBS", "OWSLEY"], "why": "Ken Kesey ran the Acid Tests, Neal Cassady drove the bus, Ken Babbs hosted the first one, and Owsley Stanley met the band there and became their soundman."}, {"name": "ALBUM-COVER ARTISTS", "tier": 2, "items": ["KELLEY", "MOUSE", "GRIFFIN", "GARRIS"], "why": "Kelley and Mouse made Skull & Roses, Rick Griffin painted Aoxomoxoa, and Philip Garris painted the fiddling skeleton on Blues for Allah."}, {"name": "MANAGED THE BAND", "tier": 3, "items": ["SCULLY", "RIFKIN", "MCINTIRE", "HART"], "why": "Rock Scully and Danny Rifkin from the start, Jon McIntire in the '70s, and Lenny Hart, Mickey's father, who embezzled about $70,000. Family business."}, {"name": "ALSO A CREATURE", "tier": 4, "items": ["BEAR", "WOLF", "TIGER", "TERRAPIN"], "why": "Bear is Owsley's nickname, Wolf and Tiger are Garcia guitars, Terrapin is a station. MOUSE, GRIFFIN and HART (a deer) are creatures too, and all three had day jobs."}]}, {"id": 218, "title": "Sit-Ins", "topic": "both", "groups": [{"name": "PHISH", "tier": 1, "items": ["MCCONNELL", "FISHMAN", "GORDON", "ANASTASIO"], "why": "Page, Jon, Mike and Trey, formed at UVM in 1983. Trey also played Fare Thee Well, but Phish needed its guitarist back."}, {"name": "PLAYED FARE THEE WELL, 2015", "tier": 2, "items": ["HORNSBY", "LESH", "WEIR", "HART"], "why": "The 50th-anniversary shows in Santa Clara and Chicago: the core four plus Trey, Jeff Chimenti and Bruce Hornsby."}, {"name": "DEAD & CO, NOT GRATEFUL DEAD", "tier": 3, "items": ["MAYER", "BURBRIDGE", "CHIMENTI", "LANE"], "why": "John Mayer, Oteil Burbridge, Jeff Chimenti (who also played Fare Thee Well), and Jay Lane, who drummed the 2023 final tour."}, {"name": "HIDDEN INSTRUMENT", "tier": 4, "items": ["ORGANIC", "SHARPEN", "DRUMLIN", "VIOLATE"], "why": "ORGAN, HARP, DRUM, VIOLA. Also packing: a HORN in Hornsby and a CHIME in Chimenti."}]}]</script>
+<script>
+"use strict";
+const $=id=>document.getElementById(id);
+const TIERS={1:{name:"Soundcheck",ico:"♩",emo:"🟨"},2:{name:"First set",ico:"♫",emo:"🌹"},3:{name:"Second set",ico:"◉",emo:"🐢"},4:{name:"Type II",ico:"✸",emo:"🍩"}};
+const TOPIC_NAME={all:"Both bands",phish:"Phish",dead:"Grateful Dead",both:"Crossover"};
+const EPOCH=Date.UTC(2026,10,12); /* Daily #1 = 2026-11-12 */
+const URL_LIVE="https://is.gd/couchtourjam";
+let PUZ=[];
+
+/* ---------- storage (always guarded) ---------- */
+/* Storage and daily-seed keys keep the old "groupies" prefix on purpose: renaming them would wipe players' stats and change every Daily puzzle. */
+const store={get(k,d){try{const v=localStorage.getItem("couchtour."+k);return v==null?d:JSON.parse(v)}catch(e){return d}},
+ set(k,v){try{localStorage.setItem("couchtour."+k,JSON.stringify(v))}catch(e){}}};
+
+/* ---------- seeded random ---------- */
+function hash(s){let h=2166136261;for(let i=0;i<s.length;i++){h^=s.charCodeAt(i);h=Math.imul(h,16777619)}return h>>>0}
+function rng(seed){let a=seed>>>0;return()=>{a=(a+0x6D2B79F5)>>>0;let t=a;t=Math.imul(t^t>>>15,t|1);t^=t+Math.imul(t^t>>>7,t|61);return((t^t>>>14)>>>0)/4294967296}}
+function shuffled(arr,r){const a=arr.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(r()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a}
+
+/* ---------- dates ---------- */
+function todayKey(d){d=d||new Date();const y=d.getFullYear(),m=d.getMonth()+1,dd=d.getDate();return y+"-"+String(m).padStart(2,"0")+"-"+String(dd).padStart(2,"0")}
+function dayNum(key){const[y,m,d]=key.split("-").map(Number);return Math.round((Date.UTC(y,m-1,d)-EPOCH)/86400000)}
+function pool(topic){return PUZ.filter(p=>topic==="all"||p.topic===topic)}
+/* Daily: a fixed shuffled order per topic, walked one per day. Same date + topic = same puzzle, same tile order. */
+function dailyPuzzle(key,topic){const list=pool(topic);const order=shuffled(list,rng(hash("couchtour-order-"+topic)));const n=dayNum(key);return order[((n%order.length)+order.length)%order.length]}
+
+/* ---------- state ---------- */
+let mode="daily",topic=store.get("topic","all"),cur=null,dateKey=todayKey();
+let tiles=[],sel=[],solved=[],mistakes=0,guesses=[],over=false,won=false,focusIdx=0,guessSet=new Set();
+if(!TOPIC_NAME[topic])topic="all";
+
+function tierOf(word){return cur.groups.find(g=>g.items.includes(word))}
+function start(p,opts){
+ cur=p;opts=opts||{};sel=[];solved=[];mistakes=0;guesses=[];over=false;won=false;focusIdx=0;guessSet=new Set();
+ const seed=mode==="daily"?hash("couchtour-"+dateKey+"-"+p.id):(Date.now()>>>0);
+ tiles=shuffled(p.groups.flatMap(g=>g.items),rng(seed));
+ const lab=mode==="daily"?("Daily #"+(dayNum(dateKey)+1)+" · "+dateKey+" · "+TOPIC_NAME[topic]):("Practice #"+p.id+" · "+p.title);
+ $("pLabel").innerHTML=mode==="daily"?("<b>Daily #"+(dayNum(dateKey)+1)+"</b> · "+esc(p.title)+" · "+TOPIC_NAME[topic]):("<b>Practice #"+p.id+"</b> · "+esc(p.title));
+ $("pLabel").title=lab;
+ /* restore a finished or in-progress daily */
+ if(mode==="daily"){const sv=store.get("daily."+dateKey+"."+topic,null);if(sv&&sv.id===p.id){restore(sv)}}
+ render();setHint();
+ if(over&&!opts.quiet)setTimeout(()=>showEnd(false),250);
+}
+function restore(sv){
+ guesses=sv.guesses||[];mistakes=0;solved=[];
+ for(const gs of guesses){const g=cur.groups.find(G=>gs.every(w=>G.items.includes(w)));guessSet.add(gs.slice().sort().join("|"));if(g){solved.push(g)}else mistakes++}
+ tiles=tiles.filter(w=>!solved.some(g=>g.items.includes(w)));
+ if(solved.length===4){over=true;won=true}else if(mistakes>=4){over=true;won=false;revealAll()}
+}
+function saveDaily(){if(mode!=="daily")return;store.set("daily."+dateKey+"."+topic,{id:cur.id,guesses,over,won})}
+
+/* ---------- render ---------- */
+function esc(s){return String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]))}
+function render(newSolved){
+ const b=$("board");b.innerHTML="";
+ solved.forEach((g,i)=>{const r=document.createElement("button");r.className="solved ti"+g.tier+(g===newSolved?" in":"");r.setAttribute("role","row");
+  r.setAttribute("aria-label","Solved, "+TIERS[g.tier].name+": "+g.name+". "+g.items.join(", "));
+  r.innerHTML='<span class="tn"><span class="ico" aria-hidden="true">'+TIERS[g.tier].ico+'</span> '+TIERS[g.tier].name+'</span><span class="cat">'+esc(g.name)+'</span><span class="its">'+g.items.map(esc).join(" · ")+'</span>';
+  r.onclick=()=>toast(g.why,4200);b.appendChild(r);fitSolved(r)});
+ for(let row=0;row<tiles.length/4;row++){const r=document.createElement("div");r.className="row";r.setAttribute("role","row");
+  for(let c=0;c<4;c++){const i=row*4+c,w=tiles[i];const t=document.createElement("button");t.className="tile";t.dataset.i=i;t.setAttribute("role","gridcell");
+   const on=sel.includes(w);t.setAttribute("aria-pressed",on);t.setAttribute("aria-label",w+(on?", selected":""));t.tabIndex=i===focusIdx?0:-1;
+   t.innerHTML="<span>"+esc(w)+"</span>";t.onclick=()=>{focusIdx=i;toggle(w)};r.appendChild(t)}
+  b.appendChild(r)}
+ b.querySelectorAll(".tile").forEach(fitTile);
+ const d=$("dots");d.innerHTML="";for(let i=0;i<4;i++){const x=document.createElement("span");x.className="dot"+(i<4-mistakes?"":" gone");d.appendChild(x)}
+ $("mistSr").textContent=(4-mistakes)+" of 4 mistakes left";
+ $("submit").disabled=over||sel.length!==4;$("deselect").disabled=over||!sel.length;$("shuffle").disabled=over;
+ if(over){$("submit").textContent="See results";$("submit").disabled=false}else $("submit").textContent="Submit";
+}
+/* Fitting: shrink the label down to 11px without breaking words. If a long word still will not fit,
+   give it one soft hyphen at a natural split and fit again from 15px, so kids never squint at 8px text. */
+const SPLIT={SPRINGSTEEN:"SPRING|STEEN",RATTLESNAKE:"RATTLE|SNAKE",PARADIDDLE:"PARA|DIDDLE",SUMMERTIME:"SUMMER|TIME",HAMMERKLAVIER:"HAMMER|KLAVIER",NUTCRACKER:"NUT|CRACKER",STAGECOACH:"STAGE|COACH",HARPSICHORD:"HARPSI|CHORD",VIOLONCELLO:"VIOLON|CELLO",FLUGELHORN:"FLUGEL|HORN",APPOGGIATURA:"APPOGGIA|TURA",LOLLAPALOOZA:"LOLLA|PALOOZA",GLASTONBURY:"GLASTON|BURY",STRATOCASTER:"STRATO|CASTER",TELECASTER:"TELE|CASTER",PENTATONIC:"PENTA|TONIC",DIMINUENDO:"DIMIN|UENDO",CRESCENDO:"CRES|CENDO",SFORZANDO:"SFOR|ZANDO",TAMBOURINE:"TAMBOU|RINE",SANDPAPER:"SAND|PAPER",WASHBOARD:"WASH|BOARD",XYLOPHONE:"XYLO|PHONE",SUBWOOFER:"SUB|WOOFER",CROSSOVER:"CROSS|OVER",LARGHETTO:"LARG|HETTO",APPASSIONATA:"APPASSIO|NATA",REVOLUTIONARY:"REVOLU|TIONARY",TETRACHORD:"TETRA|CHORD",QUADRUPLET:"QUADRU|PLET",STRAVINSKY:"STRA|VINSKY",CHOPSTICKS:"CHOP|STICKS",WATERMELON:"WATER|MELON",LUFTBALLONS:"LUFT|BALLONS",ROCKETMAN:"ROCKET|MAN",WOODSTOCK:"WOOD|STOCK",ARMSTRONG:"ARM|STRONG",SEMIBREVE:"SEMI|BREVE",SOUNDBOARD:"SOUND|BOARD",FALLBOARD:"FALL|BOARD",KEYSTONE:"KEY|STONE",BLUEBERRY:"BLUE|BERRY",GUACAMOLE:"GUACA|MOLE",SEABISCUIT:"SEA|BISCUIT",EYEPATCH:"EYE|PATCH",AUTOGRAPH:"AUTO|GRAPH",YEARBOOK:"YEAR|BOOK",MONOTONE:"MONO|TONE",BARITONE:"BARI|TONE",FRANKENSTRAT:"FRANKEN|STRAT",SECRETARIAT:"SECRE|TARIAT",TEMPTATIONS:"TEMP|TATIONS",COMMODORES:"COMMO|DORES"};
+function splitWord(x){const u=x.toUpperCase();if(SPLIT[u])return SPLIT[u].split("|").map((p,k)=>k?x.slice(SPLIT[u].indexOf("|")):x.slice(0,SPLIT[u].indexOf("|")));
+ const m=Math.floor(x.length/2),V=/[AEIOUY]/i,C=c=>/[A-Z]/i.test(c)&&!V.test(c),DI=/^(CH|TH|SH|PH|CK|QU)$/i;
+ for(const d of [0,1,-1,2,-2]){const i=m+d;if(i<3||i>x.length-3)continue;const a=x[i-1],b=x[i],c=x[i+1];
+  if(C(a)&&a===b)return[x.slice(0,i),x.slice(i)];
+  if(C(a)&&C(b)&&!DI.test(a+b))return[x.slice(0,i),x.slice(i)];
+  if(C(b)&&V.test(c)&&V.test(a))return[x.slice(0,i),x.slice(i)]}
+ return[x.slice(0,m),x.slice(m)]}
+function softBreak(w){return w.split(" ").map(x=>x.length<8?esc(x):splitWord(x).map(esc).join("&shy;")).join(" ")}
+function overflows(t,s){return s.scrollWidth>s.clientWidth+0.5||s.offsetHeight>t.clientHeight-6}
+function fitTile(t){const s=t.firstChild,w=s.textContent;let f=parseFloat(getComputedStyle(t).fontSize);
+ while(overflows(t,s)&&f>11){f-=0.5;s.style.fontSize=f+"px"}
+ if(overflows(t,s)){s.innerHTML=softBreak(w);f=Math.min(15,parseFloat(getComputedStyle(t).fontSize));s.style.fontSize=f+"px";
+  while(overflows(t,s)&&f>10){f-=0.5;s.style.fontSize=f+"px"}}}
+function fitSolved(r){const c=r.querySelector(".cat"),it=r.querySelector(".its");let f=14,g=13;
+ for(let k=0;k<8&&r.scrollHeight>r.clientHeight+1;k++){f-=.8;g-=.8;c.style.fontSize=f+"px";it.style.fontSize=g+"px"}}
+function setHint(){$("pHint").textContent=over?(won?"Solved!":"Out of mistakes"):(sel.length?sel.length+" of 4 picked":"Pick 4 that belong together")}
+
+/* ---------- play ---------- */
+function toggle(w){if(over)return;const kb=!!(document.activeElement&&document.activeElement.classList.contains("tile"));const i=sel.indexOf(w);
+ if(i>=0){sel.splice(i,1);snd("off")}else{if(sel.length>=4){snd("nope");return}sel.push(w);snd("on")}
+ render();setHint();if(kb)focusTile(true)}
+function submit(){
+ if(over){showEnd(true);return}
+ if(sel.length!==4)return;
+ const key=sel.slice().sort().join("|");
+ if(guessSet.has(key)){toast("Already tried that one");snd("nope");return}
+ guessSet.add(key);guesses.push(sel.slice());
+ const g=cur.groups.find(G=>sel.every(w=>G.items.includes(w)));
+ if(g){solved.push(g);tiles=tiles.filter(w=>!g.items.includes(w));sel=[];snd("right");announce("Correct: "+g.name);
+  if(solved.length===4){over=true;won=true;finish()}
+  focusIdx=0;render(g);setHint();saveDaily();if(over)setTimeout(()=>{snd("win");showEnd(true)},650);return}
+ mistakes++;const best=Math.max(...cur.groups.map(G=>sel.filter(w=>G.items.includes(w)).length));
+ const els=[...document.querySelectorAll(".tile[aria-pressed=true]")];els.forEach(e=>{e.classList.remove("shake");void e.offsetWidth;e.classList.add("shake")});
+ if(best===3){toast("One away!");snd("close");announce("One away")}else{snd("wrong");announce("Not a group")}
+ if(mistakes>=4){over=true;won=false;sel=[];setTimeout(()=>{revealAll();finish();render();setHint();snd("lose");saveDaily();setTimeout(()=>showEnd(true),500)},450)}
+ else setTimeout(()=>{render();setHint()},380);
+ saveDaily();
+}
+function revealAll(){cur.groups.slice().sort((a,b)=>a.tier-b.tier).forEach(g=>{if(!solved.includes(g))solved.push(g)});tiles=[]}
+function finish(){
+ /* stats */
+ const st=store.get("stats",{played:0,wins:0,clean:0,cur:0,best:0,lastDaily:null});
+ st.played++;if(won){st.wins++;if(mistakes===0)st.clean++}
+ if(mode==="daily"){const n=dayNum(dateKey);if(won){st.cur=(st.lastDaily===n-1)?st.cur+1:1;st.best=Math.max(st.best,st.cur);st.lastDaily=n}else{st.cur=0;st.lastDaily=n}}
+ store.set("stats",st);
+ const done=store.get("done",{});done[cur.id]=done[cur.id]||won;store.set("done",done);
+}
+function statsHTML(){const st=store.get("stats",{played:0,wins:0,clean:0,cur:0,best:0});
+ const pct=st.played?Math.round(100*st.wins/st.played):0;
+ return[[st.played,"Played"],[pct,"Win %"],[st.cur,"Current streak"],[st.best,"Best streak"],[st.clean,"No-mistake wins"]].map(a=>"<div><b>"+a[0]+"</b><span>"+a[1]+"</span></div>").join("")}
+function showEnd(fresh){
+ $("shareBox").hidden=true;
+ $("endT").textContent=won?(mistakes===0?"Flawless.":["Nailed it.","Solved.","Got there."][Math.min(mistakes,2)]):"So close.";
+ $("endSub").textContent=won?("Solved with "+mistakes+" mistake"+(mistakes===1?"":"s")+"."):"Out of mistakes. Here is how it breaks down:";
+ $("endRev").innerHTML=cur.groups.slice().sort((a,b)=>a.tier-b.tier).map(g=>'<div class="rg ti'+g.tier+'"><div class="cat"><span class="ico" aria-hidden="true">'+TIERS[g.tier].ico+'</span>'+esc(g.name)+'<span class="tn">'+TIERS[g.tier].name+'</span></div><div class="its">'+g.items.map(esc).join(" · ")+'</div><div class="why">'+esc(g.why)+'</div></div>').join("");
+ $("endStats").innerHTML=statsHTML();
+ $("nextB").textContent=mode==="daily"?"Play practice":"Next puzzle";
+ openD("dEnd");
+}
+const SITE="";
+function shareText(){
+ const head=mode==="daily"?("Couch Tour · Daily #"+(dayNum(dateKey)+1)+" ("+TOPIC_NAME[topic]+")"):("Couch Tour · Practice #"+cur.id);
+ const rows=guesses.map(gs=>gs.map(w=>TIERS[tierOf(w).tier].emo).join(""));
+ const play=mode==="daily"?"Play today's puzzle free: ":"Play free: ";
+ return head+"\n"+rows.join("\n")+"\n"+(won?"Solved, "+mistakes+" mistake"+(mistakes===1?"":"s"):"Ran out of mistakes")+"\n\nPlay Couch Tour: "+URL_LIVE;
+}
+async function copyText(t){
+ try{const pp=document.permissionsPolicy||document.featurePolicy;const blocked=pp&&pp.allowsFeature&&!pp.allowsFeature("clipboard-write");
+  if(!blocked&&navigator.clipboard&&window.isSecureContext){await navigator.clipboard.writeText(t);return true}}catch(e){}
+ try{const ta=document.createElement("textarea");ta.value=t;ta.setAttribute("readonly","");ta.style.position="fixed";ta.style.top="0";ta.style.opacity="0";document.body.appendChild(ta);ta.focus();ta.select();ta.setSelectionRange(0,t.length);const ok=document.execCommand("copy");ta.remove();return ok}catch(e){return false}
+}
+function showShareBox(t){const b=$("shareBox");$("shareTa").value=t;b.hidden=false;const ta=$("shareTa");setTimeout(()=>{try{ta.focus({preventScroll:true});ta.select();ta.setSelectionRange(0,t.length);ta.scrollTop=0;b.scrollIntoView({block:"nearest",behavior:"smooth"})}catch(e){}},30)}
+async function share(){const t=shareText();window.__lastShare=t;snd("on");
+ /* 1. Phone share sheet (Messages, Mail, Instagram...). Blocked inside some embeds (Notion), so it falls through. */
+ if(navigator.share&&matchMedia("(pointer:coarse)").matches){try{await navigator.share({text:t});toast("Shared.");return}catch(e){if(e&&e.name==="AbortError")return}}
+ /* 2. Clipboard. 3. A box with the text selected, so a long-press copy always works. */
+ const ok=await copyText(t);
+ showShareBox(t);
+ toast(ok?"Result copied. Paste it anywhere.":"Copy the text below.",2200)}
+$("shareCopy").onclick=async()=>{const ok=await copyText($("shareTa").value);toast(ok?"Copied.":"Press and hold the text to copy.",2000)};
+
+/* ---------- UI helpers ---------- */
+let tT;function toast(m,ms){const t=$("toast");t.textContent=m;t.classList.add("on");clearTimeout(tT);tT=setTimeout(()=>t.classList.remove("on"),ms||1500)}
+function announce(m){$("live").textContent=m}
+function openD(id){const d=$(id);try{if(!d.open)d.showModal()}catch(e){d.setAttribute("open","")}}
+document.querySelectorAll("dialog").forEach(d=>{d.addEventListener("click",e=>{if(e.target===d||e.target.closest("[data-close]"))d.close()})});
+function focusTile(){const t=document.querySelector('.tile[data-i="'+focusIdx+'"]');if(t)t.focus()}
+$("board").addEventListener("keydown",e=>{const t=e.target.closest(".tile");if(!t)return;let i=+t.dataset.i,n=tiles.length;
+ const mv={ArrowLeft:-1,ArrowRight:1,ArrowUp:-4,ArrowDown:4}[e.key];
+ if(mv!==undefined){e.preventDefault();let j=i+mv;if(j<0||j>=n)return;focusIdx=j;document.querySelectorAll(".tile").forEach(x=>x.tabIndex=-1);const nt=document.querySelector('.tile[data-i="'+j+'"]');nt.tabIndex=0;nt.focus()}
+ else if(e.key==="Enter"||e.key===" "){e.preventDefault();focusIdx=i;toggle(tiles[i])}});
+$("submit").onclick=submit;
+$("deselect").onclick=()=>{sel=[];snd("off");render();setHint()};
+$("shuffle").onclick=()=>{tiles=shuffled(tiles,rng(Date.now()>>>0));snd("shuf");render();setHint()};
+$("shareB").onclick=share;
+$("nextB").onclick=()=>{$("dEnd").close();if(mode==="daily"){setMode("practice")}else{const l=pool(topic);const i=l.indexOf(cur);start(l[(i+1)%l.length])}};
+$("statsB").onclick=()=>{$("statsBox").innerHTML=statsHTML();openD("dStats")};
+$("helpB").onclick=()=>openD("dHelp");
+$("tierKey").innerHTML=[1,2,3,4].map(t=>'<div class="ti'+t+'"><span class="ico" aria-hidden="true">'+TIERS[t].ico+'</span>'+TIERS[t].name+'</div>').join("");
+function setMode(m){mode=m;$("mDaily").setAttribute("aria-pressed",m==="daily");$("mPrac").setAttribute("aria-pressed",m==="practice");
+ if(m==="daily"){dateKey=todayKey();start(dailyPuzzle(dateKey,topic))}else{openArchive()}}
+function openArchive(){const done=store.get("done",{});const l=pool(topic);$("arSub").textContent=l.length+" puzzles · "+TOPIC_NAME[topic];
+ $("archList").innerHTML=l.map(p=>'<button data-id="'+p.id+'" class="'+(done[p.id]?"done":"")+'">#'+p.id+" "+esc(p.title)+"<small>"+TOPIC_NAME[p.topic]+"</small></button>").join("");
+ $("archList").querySelectorAll("button").forEach(b=>b.onclick=()=>{$("dArch").close();mode="practice";$("mDaily").setAttribute("aria-pressed",false);$("mPrac").setAttribute("aria-pressed",true);start(PUZ.find(p=>p.id===+b.dataset.id))});
+ openD("dArch");
+ if(mode==="practice"&&(!cur||(topic!=="all"&&cur.topic!==topic)))start(l[0],{quiet:true});}
+$("mDaily").onclick=()=>setMode("daily");$("mPrac").onclick=()=>setMode("practice");
+$("topic").value=topic;
+$("topic").onchange=e=>{topic=e.target.value;store.set("topic",topic);if(mode==="daily")start(dailyPuzzle(dateKey,topic));else openArchive()};
+addEventListener("resize",()=>{clearTimeout(window.__rz);window.__rz=setTimeout(()=>render(),120)});
+
+/* ---------- sound (Web Audio, original, subtle) ---------- */
+let AC=null,muted=store.get("muted",false);
+function ac(){if(!AC){try{AC=new (window.AudioContext||window.webkitAudioContext)()}catch(e){AC=null}}if(AC&&AC.state==="suspended")AC.resume();return AC}
+function tone(f,t0,dur,type,vol){const a=ac();if(!a)return;const o=a.createOscillator(),g=a.createGain();o.type=type||"sine";o.frequency.value=f;
+ const t=a.currentTime+t0;g.gain.setValueAtTime(0.0001,t);g.gain.exponentialRampToValueAtTime(vol||0.08,t+0.012);g.gain.exponentialRampToValueAtTime(0.0001,t+dur);o.connect(g).connect(a.destination);o.start(t);o.stop(t+dur+0.02)}
+const N=m=>440*Math.pow(2,(m-69)/12);
+function snd(k){if(muted)return;try{
+ if(k==="on")tone(N(84),0,.07,"triangle",.05);
+ else if(k==="off")tone(N(79),0,.06,"triangle",.04);
+ else if(k==="nope")tone(N(60),0,.08,"square",.025);
+ else if(k==="shuf"){[76,79,83,86].forEach((m,i)=>tone(N(m),i*.035,.06,"triangle",.035))}
+ else if(k==="wrong"){tone(N(52),0,.18,"sawtooth",.03);tone(N(51),.09,.22,"sawtooth",.03)}
+ else if(k==="close"){tone(N(67),0,.1,"triangle",.05);tone(N(68),.09,.16,"triangle",.05)}
+ else if(k==="right"){[72,76,79].forEach((m,i)=>tone(N(m),i*.07,.22,"triangle",.06))}
+ else if(k==="win"){/* Cmaj9 rising, then a high G: a tiny original sting */[60,64,67,71,74].forEach((m,i)=>tone(N(m),i*.085,.6,"triangle",.055));tone(N(79),.5,.9,"sine",.06);tone(N(48),.5,.9,"sine",.05)}
+ else if(k==="lose"){[67,63,60].forEach((m,i)=>tone(N(m),i*.16,.4,"triangle",.05))}
+}catch(e){}}
+function setMuteUI(){$("muteB").setAttribute("aria-pressed",muted);$("muteB").setAttribute("aria-label",muted?"Sound off (tap to turn on)":"Sound on (tap to mute)");$("muteB").innerHTML=muted?"&#10005;":"&#9835;";$("muteB").style.opacity=muted?.6:1}
+$("muteB").onclick=()=>{muted=!muted;store.set("muted",muted);setMuteUI();if(!muted)snd("on")};setMuteUI();
+
+/* ---------- boot ---------- */
+Promise.resolve(JSON.parse(document.getElementById("puzData").textContent)).then(p=>{PUZ=p;window.__G={get cur(){return cur},get tiles(){return tiles},dailyPuzzle,todayKey,shareText,get over(){return over},get won(){return won}};
+ const q=new URLSearchParams(location.search);
+ if(q.get("date")&&/^\d{4}-\d{2}-\d{2}$/.test(q.get("date")))dateKey=q.get("date");
+ if(q.get("p")){mode="practice";$("mDaily").setAttribute("aria-pressed",false);$("mPrac").setAttribute("aria-pressed",true);start(PUZ.find(x=>x.id===+q.get("p"))||PUZ[0])}
+ else start(dailyPuzzle(dateKey,topic));
+ if(!store.get("seenHelp",false)&&!q.get("nohelp")){store.set("seenHelp",true);openD("dHelp")}
+}).catch(e=>{$("pLabel").textContent="Could not load puzzles. Refresh to try again."});
+</script>
+</body></html>
