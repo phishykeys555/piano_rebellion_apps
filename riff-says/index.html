@@ -187,6 +187,7 @@ summary{cursor:pointer;padding:0 14px;min-height:44px;display:flex;align-items:c
         <button data-in="midi">MIDI keyboard</button><button data-in="screen">On-screen</button><button data-in="mic">Mic<span class="beta">BETA</span></button>
       </div>
       <p class="instat" id="inStat" role="status" aria-live="polite"></p>
+      <div id="midiBox" hidden></div>
     </div>
     <details class="s-how"><summary>How it works</summary><div class="set">
       <p class="tip">A groove plays the whole time. The app plays a riff (the <b>call</b>, orange lamp). Then it's <b>your turn</b> (blue lamp): play the same riff back over the same groove, starting on beat 1. Then the next call comes right away, like trading licks in a jam.</p>
@@ -221,7 +222,7 @@ summary{cursor:pointer;padding:0 14px;min-height:44px;display:flex;align-items:c
       <h3>Credits</h3>
       <p class="tip">Grand piano: Salamander Grand Piano V3 by Alexander Holm (CC BY 3.0), via sfzinstruments. Drums: AVL Drumkits by Glen MacArthur (CC BY-SA 4.0): Black Pearl kick, snare and cross-stick; Blonde Bop hi-hats and ride. Bass: synthesized in the app. Round music: original, synthesized live (CHMA). Riffs are generated from style vocabulary, never copied from records.</p>
     </div></details>
-    <p class="appver">Riff Simon Says · Version 2026-11-13.1</p>
+    <p class="appver">Riff Simon Says · Version 2026-11-13.2</p>
   </section>
 
   <section class="play">
@@ -636,8 +637,56 @@ function followRegister(riff){ const ms=riff.notes.map(n=>n.m), mid=(Math.min(..
 // ---------- Web MIDI ----------
 let midiAcc=null;
 const midiOK=()=>!!navigator.requestMIDIAccess;
-async function midiConnect(){ if(!midiOK()){ inStat(); return } try{ midiAcc=await navigator.requestMIDIAccess({sysex:false}); midiAcc.onstatechange=()=>midiBind(); midiBind() }catch(e){ midiAcc=null; inStatMsg('<span class="warn">MIDI was blocked.</span> Allow MIDI for this page in the browser settings, then press Connect.',true) } }
-function midiBind(){ if(!midiAcc) return; const ins=[...midiAcc.inputs.values()]; ins.forEach(i=>{ i.onmidimessage=midiMsg }); midiDev=ins[0]?(ins[0].name||ins[0].id):''; inStat(); calLabel() }
+// the studio's one MIDI block (device picker when more than one input, hot-plug, Connected: <device>), the same in every app.
+// Calibration stays per device: midiDev is the picked device (or, with all inputs, the one that played).
+/* ---- CHMA MIDI input v1 (2026-11-13). The same block in every app that listens to a keyboard (copied in, never imported).
+   Web MIDI: Chrome and Edge on a computer (Safari, iPhone and iPad have none). One device picker when more than one input is plugged in,
+   hot-plug (onstatechange), note-on with velocity > 0 only, the choice of device saved. onNote(note, velocity, timeStamp, deviceName):
+   timeStamp is the event's performance.now() time; ctxTime() maps it to an AudioContext clock where timing matters. ---- */
+function chmaMidi(o){
+  const sk="chma-midi-dev-"+(o.app||"app"), ls={get(){ try{ return localStorage.getItem(sk)||"" }catch(e){ return "" } },set(v){ try{ localStorage.setItem(sk,v) }catch(e){} }};
+  if(!document.getElementById("chma-midi-css")){ const s=document.createElement("style"); s.id="chma-midi-css";
+    s.textContent=".chma-midi{display:flex;flex-wrap:wrap;align-items:center;gap:6px 12px;font-size:14px;line-height:1.4;margin-top:8px}.chma-midi[hidden]{display:none}.chma-midi .cm-st{flex:1 1 220px}.chma-midi .cm-ok{color:#33d17a;margin-right:4px}.chma-midi .cm-pk{display:flex;align-items:center;gap:6px;margin:0}.chma-midi .cm-pk[hidden]{display:none}.chma-midi .cm-pk span{white-space:nowrap}.chma-midi select{font:inherit;min-height:36px;max-width:240px}.chma-midi a{color:inherit;text-decoration:underline}";
+    document.head.appendChild(s) }
+  const M={acc:null,dev:ls.get(),state:"off",p:null}, h=o.host;
+  h.classList.add("chma-midi"); h.innerHTML='<span class="cm-st" role="status" aria-live="polite"></span><label class="cm-pk" hidden><span>MIDI device</span><select></select></label>';
+  const st=h.querySelector(".cm-st"), pk=h.querySelector(".cm-pk"), sel=pk.querySelector("select");
+  const esc=s=>String(s).replace(/[<>&"]/g,c=>({"<":"&lt;",">":"&gt;","&":"&amp;",'"':"&quot;"})[c]);
+  const nm=i=>String(i&&i.name||"MIDI keyboard").trim()||"MIDI keyboard";
+  const ins=()=>{ const a=[]; if(M.acc&&M.acc.inputs) M.acc.inputs.forEach(i=>{ if(i&&i.state!=="disconnected") a.push(i) }); return a };
+  const picked=()=>{ const a=ins(); return M.dev&&a.some(i=>i.id===M.dev)?a.filter(i=>i.id===M.dev):a };   // the saved device, or every input when it is unplugged
+  const framedOff=()=>{ try{ const pp=document.permissionsPolicy||document.featurePolicy; return !!(pp&&pp.allowsFeature&&!pp.allowsFeature("midi")) }catch(e){ return false } };
+  const full=()=>` <a href="${esc(location.href.split("#")[0])}" target="_blank" rel="noopener">Open full screen</a>.`;
+  function msg(ev){ const d=ev&&ev.data; if(!d||d.length<3) return; if((d[0]&0xf0)!==0x90||!(d[2]>0)) return;   // note-on, velocity > 0 (velocity 0 = note-off)
+    const i=ev.currentTarget||ev.target; if(i&&!picked().some(x=>x===i||x.id===i.id)) return;
+    const ts=ev.timeStamp>0?ev.timeStamp:performance.now(); try{ o.onNote(d[1],d[2],ts,nm(i)) }catch(e){ console.warn(e) } }
+  function bind(){ ins().forEach(i=>{ i.onmidimessage=msg }); show() }
+  function show(){ let t="";
+    if(M.state==="none") t="MIDI works in Chrome or Edge on a computer.";
+    else if(M.state==="framed") t="MIDI can't turn on inside this page."+full();
+    else if(M.state==="blocked") t="MIDI was blocked. Allow MIDI for this page (the icon in the address bar), then pick MIDI again.";
+    else if(M.state==="asking") t="Connecting to MIDI…";
+    else if(M.state==="on"){ const a=ins(), p=picked(); t=a.length?`<span class="cm-ok" aria-hidden="true">●</span>Connected: <b>${esc(p.map(nm).join(", "))}</b>`:"No MIDI keyboard found. Plug it in by USB and switch it on: it connects by itself." }
+    else t="Pick MIDI to connect your keyboard (Chrome or Edge on a computer).";
+    st.innerHTML=t; const a=M.state==="on"?ins():[]; pk.hidden=a.length<2;
+    if(a.length>1){ const v=M.dev&&a.some(i=>i.id===M.dev)?M.dev:""; sel.innerHTML='<option value="">All MIDI inputs</option>'+a.map(i=>`<option value="${esc(i.id)}">${esc(nm(i))}</option>`).join(""); sel.value=v }
+    if(o.onStatus) try{ o.onStatus(M.state,picked().map(nm)) }catch(e){} }
+  sel.addEventListener("change",()=>{ M.dev=sel.value; ls.set(M.dev); show() });
+  M.start=()=>{ if(M.acc){ bind(); return Promise.resolve(true) } if(M.p) return M.p;
+    if(!navigator.requestMIDIAccess){ M.state=framedOff()?"framed":"none"; show(); return Promise.resolve(false) }
+    if(framedOff()){ M.state="framed"; show(); return Promise.resolve(false) }
+    M.state="asking"; show();
+    M.p=navigator.requestMIDIAccess({sysex:false}).then(a=>{ M.acc=a; M.state="on"; M.p=null; a.onstatechange=()=>bind(); bind(); return true },()=>{ M.state="blocked"; M.p=null; show(); return false });
+    return M.p };
+  M.devName=()=>picked().map(nm).join(", ");
+  M.ready=()=>M.state==="on"&&picked().length>0;
+  // performance.now() time -> AudioContext time (the moment that sound is heard at the speaker, when the browser can say)
+  M.ctxTime=(ts,ac)=>{ if(!ac) return null; try{ const t=ac.getOutputTimestamp&&ac.getOutputTimestamp(); if(t&&t.performanceTime>0&&t.contextTime>0) return t.contextTime+(ts-t.performanceTime)/1000 }catch(e){} return ac.currentTime-(performance.now()-ts)/1000-((ac.outputLatency||0)+(ac.baseLatency||0)) };
+  M.show=show; show(); return M }
+/* ---- end CHMA MIDI input v1 ---- */
+const MIDI=chmaMidi({app:"riff-says",host:$('midiBox'),onNote:(n,v,ts,name)=>{ AC(); midiDev=name||midiDev; noteIn(n,perfToCtx(ts),v/127,'midi') },
+  onStatus:(state,names)=>{ if(names&&names.length===1) midiDev=names[0]; try{ calLabel() }catch(e){} }});
+async function midiConnect(){ const ok=await MIDI.start(); midiAcc=ok?MIDI.acc:null; inStat(); calLabel() }
 function midiMsg(e){ const d=e.data; if(!d||d.length<3) return; const cmd=d[0]&0xf0; if(cmd===0x90&&d[2]>0){ AC(); midiDev=(e.target&&(e.target.name||e.target.id))||midiDev; noteIn(d[1],perfToCtx(e.timeStamp||performance.now()),d[2]/127,'midi') } }
 
 // ---------- Microphone (Beta): AudioWorklet, spectral-flux onsets on every 128-sample hop + YIN pitch per onset ----------
@@ -743,9 +792,8 @@ $('micSel').addEventListener('change',()=>{ if(mic){ micStop(); micStart() } cal
 // ---------- input status line ----------
 function inStatMsg(h){ $('inStat').innerHTML=h }
 function inStat(){ const s=st.input; $('kbHint').hidden=s!=='screen';
-  if(s==='midi'){ if(!midiOK()) return inStatMsg('<span class="warn">No Web MIDI in this browser.</span> Use Chrome or Edge on a computer (Safari has no Web MIDI), or pick On-screen.');
-    if(!midiAcc) return inStatMsg('Plug in your digital piano (USB or Bluetooth MIDI). <button id="midiBtn">Connect</button>');
-    const ins=[...midiAcc.inputs.values()]; return inStatMsg(ins.length?`<span class="okc">●</span> <b>${ins.map(i=>(i.name||'MIDI keyboard').replace(/</g,'&lt;')).join(', ')}</b> connected.`:'No MIDI keyboard found. Plug it in and switch it on. <button id="midiBtn">Check again</button>') }
+  $('midiBox').hidden=s!=='midi';
+  if(s==='midi'){ if(!midiOK()){ MIDI.start(); return inStatMsg('') } if(midiAcc) return inStatMsg(''); return inStatMsg('Plug in your digital piano (USB or Bluetooth MIDI). <button id="midiBtn">Connect</button>') }
   if(s==='mic'){ if(!mic) return inStatMsg('Beta: the mic listens to your piano. Headphones help a lot. <button id="micBtn">Turn on mic</button>');
     return inStatMsg('<span class="okc">●</span> Mic on <span class="meter"><i id="micFill"></i></span> <button id="micOff">Turn off</button>') }
   inStatMsg(matchMedia('(pointer:coarse)').matches?'Tap the keys below.':'Tap the keys below, or play the computer keys A to K.') }
@@ -934,7 +982,7 @@ const warm=()=>{ AC(); loadSounds(); window.removeEventListener('pointerdown',wa
 window.addEventListener('pointerdown',warm,true); window.addEventListener('keydown',warm,true);
 if(st.input==='midi'&&midiOK()) midiConnect();
 // test hooks for the browser checks
-Object.assign(window.RiffSays,{state:()=>({T,st,loaded,inLog,micLog}),noteIn,perfToCtx,lag,latKey,start:()=>start(false),grade,load:()=>loadSounds(),ac:()=>ac,midiMsg,endOfRun});
+Object.assign(window.RiffSays,{midi:()=>MIDI,state:()=>({T,st,loaded,inLog,micLog}),noteIn,perfToCtx,lag,latKey,start:()=>start(false),grade,load:()=>loadSounds(),ac:()=>ac,midiMsg,endOfRun});
 })();
 </script>
 </body>

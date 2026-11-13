@@ -15,8 +15,8 @@ Every app shows its version at the bottom of the page: `Version YYYY-MM-DD.N` (d
 
 | App | Version |
 |---|---|
-| Note Sprint | 2026-11-13.1 |
-| Key Finder | 2026-11-12.1 |
+| Note Sprint | 2026-11-13.2 |
+| Key Finder | 2026-11-13.1 |
 | Rhythm Trainer | 2026-11-12.2 |
 | Modal Metronome | 2026-11-13.1 |
 | Hanon Speed Trainer | 2026-11-11.7 |
@@ -24,9 +24,9 @@ Every app shows its version at the bottom of the page: `Version YYYY-MM-DD.N` (d
 | Song Dissector | 2026-11-11.14 |
 | Strobe Tuner (Guitar Revolution) | 2026-11-12.1 |
 | Groupies (find the four bands of four) | 2026-11-13.1 |
-| Ear Trainer | 2026-11-13.1 |
-| Meter Master (internal-clock trainer) | 2026-11-12.1 |
+| Ear Trainer | 2026-11-13.2 |
+| Meter Master (internal-clock trainer) | 2026-11-13.1 |
 | Symbol Memory (music symbols ↔ names; Bravura font, OFL, in `symbol-memory/fonts/`) | 2026-11-12.1 |
 | Music Games (home) | 2026-11-12.2 |
 | Round music (`shared/hype.js`) | 2026-11-12.1 |
-| Riff Simon Says | 2026-11-13.1 |
+| Riff Simon Says | 2026-11-13.2 |
