@@ -104,7 +104,7 @@ a.primary{display:inline-flex;align-items:center;justify-content:center;min-heig
 .meter{width:100%;max-width:320px;height:6px;border-radius:3px;background:var(--border);overflow:hidden}
 .meter i{display:block;height:100%;width:0;background:var(--good)}
 .rotate{font-size:13px;color:var(--accent);text-align:center;margin:6px 0 0;font-weight:600}
-.seg{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}
+.seg{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}
 .seg button{padding:9px 6px;font-weight:600;font-size:13px;min-height:44px}
 .seg button[aria-pressed="true"]{background:var(--ink);color:var(--panel);border-color:var(--ink)}
 .ivpad{display:flex;flex-direction:column;gap:10px}
@@ -329,7 +329,7 @@ details.how p{margin:0;padding:0 16px 12px;line-height:1.45;color:var(--muted)}
   <div class="levels" id="levels" role="group" aria-label="Level"></div></div>
   <div class="sect s-game"><div class="lbl" aria-hidden="true">Answer with</div>
   <div class="seg" id="seg" role="group" aria-label="Answer with">
-    <button data-mode="letters">Tap letters</button><button data-mode="piano">Tap piano keys</button><button data-mode="mic">Play my piano</button>
+    <button data-mode="letters">Tap letters</button><button data-mode="piano">Tap piano keys</button><button data-mode="mic">Play my piano</button><button data-mode="midi">MIDI keyboard</button>
   </div>
   <div class="keyrow"><label for="keySel">Key signature</label><select id="keySel"></select></div></div>
   <details class="how"><summary>How it works</summary>
@@ -379,10 +379,11 @@ details.how p{margin:0;padding:0 16px 12px;line-height:1.45;color:var(--muted)}
         <label><input type="radio" name="mode" id="mLetters" value="letters" checked> Letter buttons</label>
         <label><input type="radio" name="mode" id="mPiano" value="piano"> Piano keys</label>
         <label><input type="radio" name="mode" id="mMic" value="mic"> My real piano (microphone)</label>
+        <label><input type="radio" name="mode" id="mMidi" value="midi"> My MIDI keyboard (Chrome or Edge on a computer)</label>
       </fieldset>
     </div>
   </details>
-  <p class="tip appverp" id="appVer"><span class="appver">Note Sprint · Version 2026-11-13.1</span></p>
+  <p class="tip appverp" id="appVer"><span class="appver">Note Sprint · Version 2026-11-13.2</span></p>
   </div>
   <div class="play">
 
@@ -433,6 +434,10 @@ details.how p{margin:0;padding:0 16px 12px;line-height:1.45;color:var(--muted)}
         <p class="dnote">The last 20 sounds the microphone heard, newest last. Something missed? Tap Copy log and paste it to your teacher.</p>
         <pre id="micDiagLog">Nothing heard yet.</pre>
       </div>
+    </div>
+    <div id="midiPad" class="micpad" hidden>
+      <div class="heard" id="midiHeard" aria-live="polite">–</div>
+      <div id="midiBox"></div>
     </div>
     <div id="pianoPad" hidden><div class="pianoWrap" id="pianoWrap"><div class="pianoScroll" id="pianoScroll"><div class="piano" id="piano"></div></div></div><p class="swipe" id="rotateHint" hidden>Swipe the keyboard to see more keys</p></div>
 
@@ -540,7 +545,7 @@ details.how p{margin:0;padding:0 16px 12px;line-height:1.45;color:var(--muted)}
     const near=LM.filter(l=>lmOn.includes(l.id)&&LMCLEF[n.clef].includes(l.id)).map(l=>({l,o:d-l.dia})).filter(x=>Math.abs(x.o)<=2).sort((a,b)=>Math.abs(a.o)-Math.abs(b.o))[0];
     if(!near) return ""; return ` ${Math.abs(near.o)===1?"One step":"A skip"} ${near.o>0?"above":"below"} ${near.l.name}.` }
   const custom=store.get("custom",null);
-  $("soundOn").checked=store.get("sound",true); $("hypeOn").checked=store.get("hype",true); $("retryOn").checked=store.get("retry2",false); { const MODES=["letters","piano","mic"], qm=QS.get("mode"), m=MODES.includes(qm)?qm:store.get("mode","letters"); setRadio("mode",MODES.includes(m)?m:"letters"); if(MODES.includes(qm)) store.set("mode",qm) }
+  $("soundOn").checked=store.get("sound",true); $("hypeOn").checked=store.get("hype",true); $("retryOn").checked=store.get("retry2",false); { const MODES=["letters","piano","mic","midi"], qm=QS.get("mode"), m=MODES.includes(qm)?qm:store.get("mode","letters"); setRadio("mode",MODES.includes(m)?m:"letters"); if(MODES.includes(qm)) store.set("mode",qm) }
   function saveCustom(){ const s=readSettings(); store.set("custom",{staffMode:s.staffMode,acc:s.acc,iv:s.iv,b:s.b,lm:s.lm,ls:s.ls}); selectLevel("C",true) }
   ["tLo","tHi","bLo","bHi","lmSel","lsSel"].forEach(id=>$(id).addEventListener("change",()=>{ lmUi(); saveCustom(); layout(); newQuestion(true) }));
   document.querySelectorAll(".rngq button").forEach(b=>b.addEventListener("click",()=>{ const r=+b.dataset.r; setBounds({treble:rb(r),bass:rb(r)}); saveCustom(); layout(); newQuestion(true) }));
@@ -573,12 +578,12 @@ details.how p{margin:0;padding:0 16px 12px;line-height:1.45;color:var(--muted)}
   function keySetting(){return $("keySel").value}
   function layout(){const s=readSettings(), ks=keySetting();
     document.querySelectorAll("#seg button").forEach(b=>b.setAttribute("aria-pressed",String(b.dataset.mode===s.mode)));
-    $("accRow").hidden=!((s.acc||ks!=="0")&&s.mode==="letters"); $("letterPad").hidden=s.mode!=="letters"; $("pianoPad").hidden=s.mode!=="piano"; $("micPad").hidden=s.mode!=="mic"; if(s.mode!=="mic") micStop(); else micIntro();
+    $("accRow").hidden=!((s.acc||ks!=="0")&&s.mode==="letters"); $("letterPad").hidden=s.mode!=="letters"; $("pianoPad").hidden=s.mode!=="piano"; $("micPad").hidden=s.mode!=="mic"; if(s.mode!=="mic") micStop(); else micIntro(); $("midiPad").hidden=s.mode!=="midi"; if(s.mode==="midi") MIDI.start();
     document.querySelector(".wrap").classList.toggle("wide",s.mode==="piano");
-    if(s.iv){ $("letterPad").hidden=true; $("pianoPad").hidden=true; $("micPad").hidden=true; micStop(); $("ivPad").hidden=false; $("seg").style.display="none"; document.querySelector(".wrap").classList.remove("wide") }
+    if(s.iv){ $("letterPad").hidden=true; $("pianoPad").hidden=true; $("micPad").hidden=true; $("midiPad").hidden=true; micStop(); $("ivPad").hidden=false; $("seg").style.display="none"; document.querySelector(".wrap").classList.remove("wide") }
     else { $("ivPad").hidden=true; $("seg").style.display=""; if(s.mode==="piano") buildPiano(s) }
     // the tip matches what is on screen: intervals answer with 3–8, piano and mic need the exact key
-    $("kbTip").textContent=s.iv?"Keyboard: press 3–8 to answer (8 = octave). Count every line and space, bottom note = 1.":s.mode==="letters"?"Keyboard: A–G to answer. In a key with sharps or flats, tap ♯ or ♭ first (or press = / −).":s.mode==="piano"?"Tap the exact key, right octave. Middle C is marked.":"Play the exact key on your piano, right octave.";
+    $("kbTip").textContent=s.iv?"Keyboard: press 3–8 to answer (8 = octave). Count every line and space, bottom note = 1.":s.mode==="letters"?"Keyboard: A–G to answer. In a key with sharps or flats, tap ♯ or ♭ first (or press = / −).":s.mode==="piano"?"Tap the exact key, right octave. Middle C is marked.":s.mode==="midi"?"Play the exact key on your MIDI keyboard, right octave. Grand staff: both notes, in either order or together.":"Play the exact key on your piano, right octave.";
     const lowD=Math.min(...["treble","bass"].flatMap(c=>cands(s,c).map(p=>BASE[c]+p))), lowM=12*(Math.floor(lowD/7)+1)+PC[LET[lowD%7]]-1;
     MINHZ=Math.min(45,440*Math.pow(2,(lowM-69)/12)*0.95) }
   // keyboard covers exactly the register the staff can show, padded one key each side
@@ -1175,6 +1180,60 @@ details.how p{margin:0;padding:0 16px 12px;line-height:1.45;color:var(--muted)}
   function micAskId(){ return q?qTok+"/"+idx+"/"+(locked||q.wait?1:0):"-" }
   function micTarget(){ const n=q&&!q.iv&&!locked&&!q.wait&&q.notes&&q.notes[idx]; return n?midiOf(n):null }
   function answerHeard(md){ if(!q||locked||q.wait)return; const t=midiOf(q.notes[idx]); grade(md===t,{midi:md,label:mname(md)}) }
+  // ---------- MIDI keyboard: the exact key, octave included (the same as the mic) ----------
+  /* ---- CHMA MIDI input v1 (2026-11-13). The same block in every app that listens to a keyboard (copied in, never imported).
+     Web MIDI: Chrome and Edge on a computer (Safari, iPhone and iPad have none). One device picker when more than one input is plugged in,
+     hot-plug (onstatechange), note-on with velocity > 0 only, the choice of device saved. onNote(note, velocity, timeStamp, deviceName):
+     timeStamp is the event's performance.now() time; ctxTime() maps it to an AudioContext clock where timing matters. ---- */
+  function chmaMidi(o){
+    const sk="chma-midi-dev-"+(o.app||"app"), ls={get(){ try{ return localStorage.getItem(sk)||"" }catch(e){ return "" } },set(v){ try{ localStorage.setItem(sk,v) }catch(e){} }};
+    if(!document.getElementById("chma-midi-css")){ const s=document.createElement("style"); s.id="chma-midi-css";
+      s.textContent=".chma-midi{display:flex;flex-wrap:wrap;align-items:center;gap:6px 12px;font-size:14px;line-height:1.4;margin-top:8px}.chma-midi[hidden]{display:none}.chma-midi .cm-st{flex:1 1 220px}.chma-midi .cm-ok{color:#33d17a;margin-right:4px}.chma-midi .cm-pk{display:flex;align-items:center;gap:6px;margin:0}.chma-midi .cm-pk[hidden]{display:none}.chma-midi .cm-pk span{white-space:nowrap}.chma-midi select{font:inherit;min-height:36px;max-width:240px}.chma-midi a{color:inherit;text-decoration:underline}";
+      document.head.appendChild(s) }
+    const M={acc:null,dev:ls.get(),state:"off",p:null}, h=o.host;
+    h.classList.add("chma-midi"); h.innerHTML='<span class="cm-st" role="status" aria-live="polite"></span><label class="cm-pk" hidden><span>MIDI device</span><select></select></label>';
+    const st=h.querySelector(".cm-st"), pk=h.querySelector(".cm-pk"), sel=pk.querySelector("select");
+    const esc=s=>String(s).replace(/[<>&"]/g,c=>({"<":"&lt;",">":"&gt;","&":"&amp;",'"':"&quot;"})[c]);
+    const nm=i=>String(i&&i.name||"MIDI keyboard").trim()||"MIDI keyboard";
+    const ins=()=>{ const a=[]; if(M.acc&&M.acc.inputs) M.acc.inputs.forEach(i=>{ if(i&&i.state!=="disconnected") a.push(i) }); return a };
+    const picked=()=>{ const a=ins(); return M.dev&&a.some(i=>i.id===M.dev)?a.filter(i=>i.id===M.dev):a };   // the saved device, or every input when it is unplugged
+    const framedOff=()=>{ try{ const pp=document.permissionsPolicy||document.featurePolicy; return !!(pp&&pp.allowsFeature&&!pp.allowsFeature("midi")) }catch(e){ return false } };
+    const full=()=>` <a href="${esc(location.href.split("#")[0])}" target="_blank" rel="noopener">Open full screen</a>.`;
+    function msg(ev){ const d=ev&&ev.data; if(!d||d.length<3) return; if((d[0]&0xf0)!==0x90||!(d[2]>0)) return;   // note-on, velocity > 0 (velocity 0 = note-off)
+      const i=ev.currentTarget||ev.target; if(i&&!picked().some(x=>x===i||x.id===i.id)) return;
+      const ts=ev.timeStamp>0?ev.timeStamp:performance.now(); try{ o.onNote(d[1],d[2],ts,nm(i)) }catch(e){ console.warn(e) } }
+    function bind(){ ins().forEach(i=>{ i.onmidimessage=msg }); show() }
+    function show(){ let t="";
+      if(M.state==="none") t="MIDI works in Chrome or Edge on a computer.";
+      else if(M.state==="framed") t="MIDI can't turn on inside this page."+full();
+      else if(M.state==="blocked") t="MIDI was blocked. Allow MIDI for this page (the icon in the address bar), then pick MIDI again.";
+      else if(M.state==="asking") t="Connecting to MIDI…";
+      else if(M.state==="on"){ const a=ins(), p=picked(); t=a.length?`<span class="cm-ok" aria-hidden="true">●</span>Connected: <b>${esc(p.map(nm).join(", "))}</b>`:"No MIDI keyboard found. Plug it in by USB and switch it on: it connects by itself." }
+      else t="Pick MIDI to connect your keyboard (Chrome or Edge on a computer).";
+      st.innerHTML=t; const a=M.state==="on"?ins():[]; pk.hidden=a.length<2;
+      if(a.length>1){ const v=M.dev&&a.some(i=>i.id===M.dev)?M.dev:""; sel.innerHTML='<option value="">All MIDI inputs</option>'+a.map(i=>`<option value="${esc(i.id)}">${esc(nm(i))}</option>`).join(""); sel.value=v }
+      if(o.onStatus) try{ o.onStatus(M.state,picked().map(nm)) }catch(e){} }
+    sel.addEventListener("change",()=>{ M.dev=sel.value; ls.set(M.dev); show() });
+    M.start=()=>{ if(M.acc){ bind(); return Promise.resolve(true) } if(M.p) return M.p;
+      if(!navigator.requestMIDIAccess){ M.state=framedOff()?"framed":"none"; show(); return Promise.resolve(false) }
+      if(framedOff()){ M.state="framed"; show(); return Promise.resolve(false) }
+      M.state="asking"; show();
+      M.p=navigator.requestMIDIAccess({sysex:false}).then(a=>{ M.acc=a; M.state="on"; M.p=null; a.onstatechange=()=>bind(); bind(); return true },()=>{ M.state="blocked"; M.p=null; show(); return false });
+      return M.p };
+    M.devName=()=>picked().map(nm).join(", ");
+    M.ready=()=>M.state==="on"&&picked().length>0;
+    // performance.now() time -> AudioContext time (the moment that sound is heard at the speaker, when the browser can say)
+    M.ctxTime=(ts,ac)=>{ if(!ac) return null; try{ const t=ac.getOutputTimestamp&&ac.getOutputTimestamp(); if(t&&t.performanceTime>0&&t.contextTime>0) return t.contextTime+(ts-t.performanceTime)/1000 }catch(e){} return ac.currentTime-(performance.now()-ts)/1000-((ac.outputLatency||0)+(ac.baseLatency||0)) };
+    M.show=show; show(); return M }
+  /* ---- end CHMA MIDI input v1 ---- */
+  // Grand staff: both notes count in either order or together (a bottom note played first waits for the top one). Intervals answer with 3-8.
+  function midiNote(n){ $("midiHeard").textContent=mname(n); if(readSettings().mode!=="midi"||!q||locked||q.wait||q.iv) return;
+    const t=midiOf(q.notes[idx]), lbl={midi:n,label:mname(n)};
+    if(n===t){ grade(true,lbl); if(q.grand&&idx===1&&!locked&&q.midiLo){ q.midiLo=false; grade(true,{midi:midiOf(q.notes[1]),label:mname(midiOf(q.notes[1]))}) } return }
+    if(q.grand&&idx===0&&n===midiOf(q.notes[1])){ q.midiLo=true; return }
+    if(q.grand&&idx===1&&n===midiOf(q.notes[0])) return;   // the top note again (a chord played twice): already counted
+    grade(false,lbl) }
+  const MIDI=chmaMidi({app:"note-sprint",host:$("midiBox"),onNote:n=>midiNote(n)});
   $("micBtn").addEventListener("click",()=>micStart($("micSel").value||undefined));
   document.querySelectorAll("#seg button").forEach(b=>b.addEventListener("click",()=>{setRadio("mode",b.dataset.mode);store.set("mode",b.dataset.mode);layout();newQuestion(true)}));
 
@@ -1276,7 +1335,7 @@ details.how p{margin:0;padding:0 16px 12px;line-height:1.45;color:var(--muted)}
 
   selectLevel(level,true); if(level==="C") applySettings(store.get("custom",null)||{});   // Custom with nothing saved (new tab, private mode, a full-screen link from an embed) starts from a normal range, never one stray note
   layout(); render(); newQuestion(true);
-  window.__ns={note:()=>q&&!locked?q.notes[idx]:null, q:()=>q, state:()=>({timer:!!timer,arc:!!arc,locked,sprintOver,mic:!!mic,micBusy,idx,timeLeft,st:{...st}})};   // test hooks (read-only)
+  window.__ns={note:()=>q&&!locked?q.notes[idx]:null, q:()=>q, midiOf:n=>midiOf(n), midi:()=>MIDI, state:()=>({timer:!!timer,arc:!!arc,locked,sprintOver,mic:!!mic,micBusy,idx,timeLeft,st:{...st}})};   // test hooks (read-only)
   if(document.fonts){ const redraw=()=>{ for(const k in GM) delete GM[k]; q&&draw() };
     document.fonts.load("100px 'Noto Music'","𝄞𝄢♯♭♮").then(redraw).catch(()=>{}); document.fonts.ready.then(redraw);
     try{ document.fonts.addEventListener("loadingdone",redraw) }catch(e){} }
