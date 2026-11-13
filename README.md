@@ -24,7 +24,7 @@ Every app shows its version at the bottom of the page: `Version YYYY-MM-DD.N` (d
 | Song Dissector | 2026-11-11.14 |
 | Strobe Tuner (Guitar Revolution) | 2026-11-12.1 |
 | Fab Fours (find the four groups of four; was Groupies) | 2026-11-13.6 |
-| Music Trivia (18 topics, Daily 10, Party mode) | 2026-11-13.1 |
+| Pop Quiz (music trivia: 18 topics, Daily 10, Party mode) | 2026-11-13.2 |
 | Ear Trainer | 2026-11-13.3 |
 | Meter Master (internal-clock trainer) | 2026-11-13.2 |
 | Symbol Memory (music symbols ↔ names; Bravura font, OFL, in `symbol-memory/fonts/`) | 2026-11-13.3 |
