@@ -57,9 +57,9 @@ button:focus-visible,summary:focus-visible,input:focus-visible,a:focus-visible{o
 .info{flex:none;min-height:38px;max-height:38px;overflow:hidden;font-size:14px;line-height:1.35;display:flex;align-items:center;color:var(--c-mut)}
 .info b{color:var(--c-ink)} .info.good{color:var(--c-ink)} .info.good b{color:var(--good)} .info.bad b{color:var(--bad)}
 /* board: sized in JS so every card fits the space (no scrolling) */
-.boardwrap{flex:1;min-height:0;position:relative;display:flex;align-items:center;justify-content:center}
+.boardwrap{flex:1;min-height:0;position:relative;display:flex;align-items:center;justify-content:center;overflow:hidden}
 .board{display:grid;gap:var(--gap,8px);justify-content:center;align-content:center}
-.board.scroll{overflow:auto;max-height:100%}
+.board.scroll{overflow-y:auto;align-self:stretch;height:100%;max-height:100%;align-content:start;padding:2px 0}
 .mc{position:relative;padding:0;border:0;background:none;cursor:pointer;perspective:700px;border-radius:12px;color:inherit}
 .mc .in{position:absolute;inset:0;transition:transform .34s cubic-bezier(.3,.7,.3,1);transform-style:preserve-3d}
 .mc.up .in{transform:rotateY(180deg)}
@@ -218,7 +218,7 @@ h2[tabindex]:focus{outline:none}
       <label><input type="checkbox" id="speakOn" checked> Read meanings aloud in Learn</label>
       <label class="selrow">Voice <select id="voiceSel"><option value="">Most natural on this device</option></select></label>
     </details>
-    <p class="appver" id="appVer">Symbol Memory · Version 2026-11-13.2</p>
+    <p class="appver" id="appVer">Symbol Memory · Version 2026-11-13.3</p>
     <p class="credit">Music symbols: <a href="https://github.com/steinbergmedia/bravura" target="_blank" rel="noopener">Bravura</a> by Steinberg, <a href="fonts/OFL.txt" target="_blank" rel="noopener">SIL Open Font License</a>.</p>
   </aside>
 
@@ -475,17 +475,21 @@ function peek(){ if(mode!=="learn"||peeked||busy||gameOver) return; peeked=true;
   peekT=setTimeout(()=>{ deck.forEach((c,i)=>{ if(!c.done) setUp(i,false) }); open=[]; busy=false; $("board").classList.remove("peek"); info("Go! Flip two cards.") },FAST?300:3000) }
 
 // fit the grid to the space: try every column count for this card count, keep the biggest cards (aspect between 0.72 and 1.4)
-function layout(){ const wrap=$("boardWrap"), b=$("board"); if(!deck.length||b.hidden) return; const n=deck.length, W=wrap.clientWidth, H=wrap.clientHeight; if(!W||!H) return;
+function layout(){ const wrap=$("boardWrap"), b=$("board"); if(!deck.length||b.hidden) return; const n=deck.length, W=wrap.clientWidth; let H=wrap.clientHeight; if(!W||!H) return;
+  { /* iPhone in-app browsers (Notion, Instagram) change the visible height after load: cap the board by what is really on screen above the action bar */
+    const vh=window.visualViewport?window.visualViewport.height:window.innerHeight, top=wrap.getBoundingClientRect().top, ab=document.querySelector(".actbar"), abH=ab&&getComputedStyle(ab).position!=="static"?ab.getBoundingClientRect().height:0, bot=ab?ab.getBoundingClientRect().top:vh;
+    H=Math.max(120,Math.min(H,vh-top-abH-8,bot-top-8)) }
   const g=W<520?6:8, opts={12:[3,4,6],16:[4,8],20:[4,5],24:[4,6,8]}[n]||[4];
   let best=null; opts.forEach(c=>{ const r=Math.ceil(n/c); let w=(W-(c-1)*g)/c, h=(H-(r-1)*g)/r; if(w/h>1.4) w=h*1.4; if(h/w>1/0.72) h=w/0.72; const area=w*h; if(!best||area>best.area) best={c,r,w,h,area} });
-  let {c,w,h}=best; const scroll=w<64||h<64; if(scroll){ w=Math.max(64,w); h=Math.max(64,h) } cols=c;
+  let {c,w,h}=best; const scroll=w<60||h<52; if(scroll){ w=Math.max(60,w); h=Math.max(52,h) } cols=c;
   b.classList.toggle("scroll",scroll); b.style.setProperty("--gap",g+"px"); b.style.gridTemplateColumns=`repeat(${c},${Math.floor(w)}px)`; b.style.gridAutoRows=`${Math.floor(h)}px`;
   fitNames() }
 function fitNames(){ document.querySelectorAll("#board .front.combo .cnm").forEach(sp=>{ const box=sp.parentNode, W=box.clientWidth-6; let fs=Math.max(12,Math.min(16,Math.round(box.clientHeight*0.13))); sp.style.fontSize=fs+"px"; while(fs>12&&sp.scrollWidth>W){ fs--; sp.style.fontSize=fs+"px" } });
   document.querySelectorAll("#board .front.nm span").forEach(sp=>{ const box=sp.parentNode, H=box.clientHeight-4, W=box.clientWidth-6;
   let fs=Math.max(14,Math.min(22,Math.round(Math.min(H*0.26,W*0.2)))); sp.style.fontSize=fs+"px";
   while(fs>14&&(sp.scrollHeight>H||sp.scrollWidth>W)){ fs--; sp.style.fontSize=fs+"px" } }) }
-let rz=null; window.addEventListener("resize",()=>{ cancelAnimationFrame(rz); rz=requestAnimationFrame(layout) });
+let rz=null; const relayout=()=>{ cancelAnimationFrame(rz); rz=requestAnimationFrame(layout) }; window.addEventListener("resize",relayout); window.addEventListener("orientationchange",()=>setTimeout(relayout,250));
+try{ window.visualViewport&&window.visualViewport.addEventListener("resize",relayout); new ResizeObserver(relayout).observe($("boardWrap")) }catch(e){} try{ document.fonts&&document.fonts.ready.then(relayout) }catch(e){} setTimeout(relayout,400); setTimeout(relayout,1200);
 // keyboard: arrows move between cards (one tab stop for the whole board)
 function rove(){ [...$("board").children].forEach((el,i)=>el.tabIndex=i===focusI?0:-1) }
 $("board").addEventListener("keydown",e=>{ const n=deck.length; let i=focusI; const k=e.key;
