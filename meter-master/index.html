@@ -74,6 +74,7 @@ input[type=range]{accent-color:var(--c-act)}
 .pad:focus-visible,button:focus-visible,summary:focus-visible,input:focus-visible,select:focus-visible{outline:3px solid var(--c-sel);outline-offset:2px}
 .ticks{width:100%;height:40px;display:block;background:var(--c-lcd);border-radius:10px}
 .tickcap{font-size:14px;color:var(--c-mut);margin:-6px 0 0}
+.latnote{font-size:14px;color:var(--c-mut);margin:0;line-height:1.4}.latnote b{color:var(--c-ink)}
 .actbar .actions{display:flex;gap:8px}
 .actbar .btn{min-height:52px;font-size:16px}
 .btn.primary{background:var(--c-act);border-color:var(--c-act);color:var(--c-act-ink);box-shadow:0 3px 0 var(--c-act-sh);flex:2 1 0}
@@ -230,7 +231,7 @@ input[type=range]{accent-color:var(--c-act)}
         <details id="dbgBox" style="margin-top:8px"><summary>Show details</summary><div class="dbg" id="dbg">No mic events yet.</div></details>
       </div>
     </details>
-    <p class="appver" id="appVer">Meter Master · Version 2026-11-13.1</p>
+    <p class="appver" id="appVer">Meter Master · Version 2026-11-13.2</p>
   </section>
 
   <section class="play">
@@ -248,6 +249,7 @@ input[type=range]{accent-color:var(--c-act)}
       <button class="pad" id="pad" type="button" aria-label="Tap pad: tap every quarter note">TAP<small id="padHint">Space bar or tap here</small></button>
       <svg class="ticks" id="ticks" aria-hidden="true"></svg>
       <p class="tickcap" id="tickCap">Your taps in this bar: green = on the beat, yellow = close, red = off.</p>
+      <p class="latnote" id="latLive" hidden></p>
 
       <div class="arcsplash" id="splash" hidden><div class="pre" id="spP"></div><b id="spT">ROUND 1</b><div class="tp" id="spB"></div><span id="spS"></span><div class="tapgo" id="spTap" hidden>Tap to start now</div></div>
       <div class="hitstamp" id="hitStamp" aria-hidden="true">TARGET HIT!</div>
@@ -258,6 +260,8 @@ input[type=range]{accent-color:var(--c-act)}
         <div class="score" id="rScore"><span id="rPts">0</span><small id="rOf"></small><span class="nb" id="rNew" hidden>NEW BEST</span></div>
         <div class="verdict" id="rVerdict"></div>
         <p class="fix" id="rFix"></p>
+        <p class="latnote" id="rAvg"></p>
+        <p class="latnote" id="rLat"></p>
         <div class="rgrid">
           <div><b id="rAcc">–</b><span>Accuracy</span></div><div><b id="rOff">–</b><span>Avg in silence</span></div><div><b id="rSpread">–</b><span>Steadiness</span></div>
           <div><b id="rTempo">–</b><span>Your tempo</span></div><div><b id="rMiss">–</b><span>Missed / extra</span></div><div><b id="rRe">–</b><span>Re-entry</span></div>
@@ -282,7 +286,7 @@ input[type=range]{accent-color:var(--c-act)}
 <script>
 (()=>{
 'use strict';
-const VER="2026-11-13.1";
+const VER="2026-11-13.2";
 const $=id=>document.getElementById(id);
 const store={get(k,d){try{const v=localStorage.getItem("mm-"+k);return v==null?d:JSON.parse(v)}catch(e){return d}},set(k,v){try{localStorage.setItem("mm-"+k,JSON.stringify(v))}catch(e){}}};
 const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
@@ -484,7 +488,7 @@ document.addEventListener("keydown",e=>{ if(e.code!=="Space") return; const tg=e
   e.preventDefault(); if(e.repeat) return; hit(evToCtxSafe(e.timeStamp),"tap") });
 function evToCtxSafe(ts){ if(!audio) return null; return evToCtx(ts||performance.now()) }
 // MIDI: the studio's one picker and status (Connected: <device>), the same block in every app
-/* ---- CHMA MIDI input v1 (2026-11-13). The same block in every app that listens to a keyboard (copied in, never imported).
+/* ---- CHMA MIDI input v1.1 (2026-11-13). The same block in every app that listens to a keyboard (copied in, never imported).
    Web MIDI: Chrome and Edge on a computer (Safari, iPhone and iPad have none). One device picker when more than one input is plugged in,
    hot-plug (onstatechange), note-on with velocity > 0 only, the choice of device saved. onNote(note, velocity, timeStamp, deviceName):
    timeStamp is the event's performance.now() time; ctxTime() maps it to an AudioContext clock where timing matters. ---- */
@@ -504,7 +508,11 @@ function chmaMidi(o){
   const full=()=>` <a href="${esc(location.href.split("#")[0])}" target="_blank" rel="noopener">Open full screen</a>.`;
   function msg(ev){ const d=ev&&ev.data; if(!d||d.length<3) return; if((d[0]&0xf0)!==0x90||!(d[2]>0)) return;   // note-on, velocity > 0 (velocity 0 = note-off)
     const i=ev.currentTarget||ev.target; if(i&&!picked().some(x=>x===i||x.id===i.id)) return;
-    const ts=ev.timeStamp>0?ev.timeStamp:performance.now(); try{ o.onNote(d[1],d[2],ts,nm(i)) }catch(e){ console.warn(e) } }
+    // the event's time, unless the driver gave none (0) or one from another clock: then the moment it arrived
+    const now=performance.now(), ts=ev.timeStamp>0&&Math.abs(ev.timeStamp-now)<1000?ev.timeStamp:now;
+    // one key = one note: the same note again within 30 ms (a keyboard on two ports, a double trigger) is dropped
+    if(M.last&&M.last.n===d[1]&&Math.abs(ts-M.last.ts)<30) return; M.last={n:d[1],ts};
+    try{ o.onNote(d[1],d[2],ts,nm(i)) }catch(e){ console.warn(e) } }
   function bind(){ ins().forEach(i=>{ i.onmidimessage=msg }); show() }
   function show(){ let t="";
     if(M.state==="none") t="MIDI works in Chrome or Edge on a computer.";
@@ -528,8 +536,10 @@ function chmaMidi(o){
   // performance.now() time -> AudioContext time (the moment that sound is heard at the speaker, when the browser can say)
   M.ctxTime=(ts,ac)=>{ if(!ac) return null; try{ const t=ac.getOutputTimestamp&&ac.getOutputTimestamp(); if(t&&t.performanceTime>0&&t.contextTime>0) return t.contextTime+(ts-t.performanceTime)/1000 }catch(e){} return ac.currentTime-(performance.now()-ts)/1000-((ac.outputLatency||0)+(ac.baseLatency||0)) };
   M.show=show; show(); return M }
-/* ---- end CHMA MIDI input v1 ---- */
-const MIDI=chmaMidi({app:"meter-master",host:$("midiBox"),onNote:(n,v,ts)=>{ if(inMode==="midi") hit(evToCtxSafe(ts),"midi") }});
+/* ---- end CHMA MIDI input v1.1 ---- */
+let midiLast=-1e9;
+const MIDI=chmaMidi({app:"meter-master",host:$("midiBox"),onNote:(n,v,ts)=>{ if(inMode!=="midi") return; const now=performance.now(); if(!(ts>0)||Math.abs(ts-now)>1000) ts=now;
+  if(ts-midiLast<40) return; midiLast=ts; hit(evToCtxSafe(ts),"midi") }});
 const midiStart=()=>MIDI.start();
 
 function setInput(i){ const was=inMode; inMode=i; store.set("in",i); if(mic&&i!==was) micStop(); mark(); if(i==="midi") midiStart() }
@@ -715,7 +725,7 @@ const tickBuf=[];
 function hit(t,src,isMic){ if(t==null) return; padFlash();
   if(calHook){ calHook(t,src); return }
   if(!run) return;
-  const rel=t-lagOf(src)-run.t0; if(rel<-run.plan.P) return; run.taps.push(rel); run.raw.push({t,src}); addTick(rel) }
+  const rel=t-lagOf(src)-run.t0; if(rel<-run.plan.P) return; run.taps.push(rel); run.raw.push({t,src}); addTick(rel-(run.auto||0)) }
 function addTick(rel){ if($("ticks").hidden) return; const P=run.plan.P, k=Math.round(rel/P), b=run.plan.beats[clamp(k,0,run.plan.beats.length-1)], off=rel-k*P;
   tickBuf.push({pos:((rel/P)%run.plan.bpb+run.plan.bpb)%run.plan.bpb,off}); if(tickBuf.length>8) tickBuf.shift(); drawTicks() }
 function drawTicks(){ const svg=$("ticks"), w=svg.clientWidth||300, h=40, n=bpb; let s="";
@@ -734,11 +744,11 @@ async function startRun(L,done){ const a=ctx(); try{ await a.resume() }catch(e){
   const plan=buildPlan(L,bpm,bpb); let wait=0; if(isMic(inMode)&&window.chmaHype){ try{ wait=Math.max(0,chmaHype.endsAt+200-performance.now()) }catch(e){} }
   const t0=a.currentTime+0.35+wait/1000;
   hush(); const sounds=schedule(a,a.destination,plan,t0,$("sndSel").value,$("accOn").checked,track).map(t=>t-t0);
-  run={plan,t0,taps:[],raw:[],sounds,done,phase:"",lastGrade:null,gradeOn:!isMic(inMode)||$("phonesOn").checked}; tickBuf.length=0; drawTicks(); lockUI();
+  run={plan,t0,taps:[],raw:[],sounds,done,phase:"",lastGrade:null,gradeOn:!isMic(inMode)||$("phonesOn").checked,src:inMode,auto:null,autoDone:false,autoMsg:""}; $("latLive").hidden=true; tickBuf.length=0; drawTicks(); lockUI();
   if(mic&&mic.fx){ fxPost({reset:1}); fxSync(); fxFeed(run); fxWins(plan.beats.filter(b=>b.graded).map(b=>t0+b.t),Math.min(0.08,0.45*plan.P)) }
   $("sPts").textContent="0"; $("sPct").textContent="–"; $("sTempo").textContent="–";
   requestAnimationFrame(loop) }
-function loop(){ const R=run; if(!R) return; fxFeed(R); const P=R.plan.P, rt=heardNow()-R.t0, k=Math.floor(rt/P), B=R.plan.beats;
+function loop(){ const R=run; if(!R) return; fxFeed(R); autoLearn(R); const P=R.plan.P, rt=heardNow()-R.t0, k=Math.floor(rt/P), B=R.plan.beats;
   if(rt<0){ light(false); setState("Get ready",inMode==="clap"?"Clap or snap on every beat. Listen to the count-in first.":inMode==="note"?`Play ${noteName()} on every beat. Listen to the count-in first.`:inMode==="midi"?"Play a key on every beat. Count-in first.":"Tap every beat, the whole time. Count-in first.") }
   else if(k<B.length){ const b=B[k], into=rt-k*P, flash=b.sound&&into<Math.min(0.12,0.45*P);
     if(b.ph==="gap"){ light(false,false,true); setState("SILENCE: keep going","Keep tapping. The beat comes back. Don't wait for it.","sil") }
@@ -747,10 +757,28 @@ function loop(){ const R=run; if(!R) return; fxFeed(R); const P=R.plan.P, rt=hea
     const ph=b.ph+(b.gap>=0?b.gap:""); if(ph!==R.phase){ const was=R.phase; R.phase=ph; if(b.ph==="gap"){ tickBuf.length=0; drawTicks() } if(was.startsWith("gap")) setTimeout(()=>liveGrade(R),Math.round(P*600)) } }
   if(rt>R.plan.end+0.15*P){ light(false); return finishRun(R) }
   requestAnimationFrame(loop) }
-function liveGrade(R){ if(run!==R) return; const rt=heardNow()-R.t0, res=grade(R.plan,R.taps,{until:rt-0.45*R.plan.P,gradeOn:R.gradeOn}); R.lastGrade=res; showLive(res) }
+// ---- AUTO LATENCY (2026-11-13.2) ----
+// With the sound on, you are copying a beat you can hear, so a steady offset there is your device's delay (Bluetooth, the audio driver,
+// a MIDI keyboard's USB lag), not your clock. From the first sounding bars of each run (up to 8 graded beats with sound, never the
+// silences) the median offset is learned; when those offsets agree (spread under 20 ms) and it is under 150 ms, every tap of the run is
+// graded through it, silences included, so rushing and dragging in the silence still show exactly as before.
+// A saved Calibrate value always wins. Too uneven or too far off: nothing is set, and the results say "Tap Calibrate for best results".
+const tapsOf=R=>R.auto?R.taps.map(x=>x-R.auto):R.taps;
+function autoLearn(R,final){ if(R.autoDone) return; if(store.get("lat-"+R.src,null)!=null){ R.autoDone=true; return }
+  const P=R.plan.P, B=R.plan.beats, firstGap=B.find(b=>b.ph==="gap"), rt=heardNow()-R.t0;
+  let S=B.filter(b=>b.graded&&b.sound&&(!firstGap||b.t<firstGap.t)); if(!S.length) S=B.filter(b=>b.graded&&b.sound); S=S.slice(0,8);
+  if(!S.length) { R.autoDone=true; return } if(!final&&rt<S[S.length-1].t+0.5*P) return;
+  R.autoDone=true; const offs=[]; S.forEach(b=>{ let best=null; R.taps.forEach(x=>{ const d=x-b.t; if(Math.abs(d)<0.45*P&&(best==null||Math.abs(d)<Math.abs(best))) best=d }); if(best!=null) offs.push(best) });
+  if(offs.length<4||offs.length<0.5*S.length) return;
+  const q=offs.slice().sort((a,b)=>a-b), med=q[q.length>>1], mad=offs.map(d=>Math.abs(d-med)).sort((a,b)=>a-b)[offs.length>>1];
+  if(mad>0.02||Math.abs(med)>0.15){ R.autoMsg=`Your taps with the sound ${Math.abs(med)>=0.005?`sat ${fmtMs(med)} off the beat${mad>0.02?" and ":""}`:""}${mad>0.02?`moved around (±${Math.round(mad*1000)} ms)`:""}, so no latency was auto-set. Tap Calibrate for best results.`; return }
+  if(Math.abs(med)<0.004) return;
+  R.auto=med; R.autoMsg=`Latency auto-set: ${med>0?"+":"−"}${Math.round(Math.abs(med)*1000)} ms (learned from the bars with sound; Calibrate overrides it).`;
+  $("latLive").textContent=R.autoMsg; $("latLive").hidden=false }
+function liveGrade(R){ if(run!==R) return; autoLearn(R); const rt=heardNow()-R.t0, res=grade(R.plan,tapsOf(R),{until:rt-0.45*R.plan.P,gradeOn:R.gradeOn}); R.lastGrade=res; showLive(res) }
 function showLive(res){ $("sPts").textContent=res.score; $("sPct").textContent=res.max?Math.round(res.pct*100)+"%":"–"; const lg=res.gaps[res.gaps.length-1]; $("sTempo").textContent=lg&&lg.bpm?Math.round(lg.bpm):"–";
   if(arc&&arc.round>1){ const hitT=res.pct>=arc.need/100; $("arcFill").style.width=Math.min(100,res.pct*100)+"%"; $("arcMeter").classList.toggle("hit",hitT); if(hitT&&!arc.hit){ arc.hit=true; const hs=$("hitStamp"); hs.classList.remove("go"); void hs.offsetWidth; hs.classList.add("go") } } }
-function finishRun(R){ if(run!==R) return; setTimeout(()=>{ if(run!==R) return; run=null; const res=grade(R.plan,R.taps,{gradeOn:R.gradeOn}); res.plan=R.plan; res.rawTaps=R.taps.slice(); res.gradeOn=R.gradeOn; lastRes=res; showLive(res); lockUI(); R.done(res) },Math.round(R.plan.P*450)) }
+function finishRun(R){ if(run!==R) return; setTimeout(()=>{ if(run!==R) return; run=null; autoLearn(R,true); const res=grade(R.plan,tapsOf(R),{gradeOn:R.gradeOn}); res.plan=R.plan; res.rawTaps=tapsOf(R).slice(); res.auto=R.auto; res.autoMsg=R.autoMsg; { const o=res.beats.filter(x=>x.off!=null).map(x=>x.off); res.avgOff=o.length?o.reduce((a,c)=>a+c,0)/o.length:null } res.gradeOn=R.gradeOn; lastRes=res; showLive(res); lockUI(); R.done(res) },Math.round(R.plan.P*450)) }
 function abort(msg){ hush(); if(run){ run=null } calHook=null; if(arc){ arc=null; $("arcRow").hidden=true; $("arcMeter").hidden=true } hypeStop(); $("splash").hidden=true; starting=false; lockUI(); light(false); setState("Stopped",msg||"Press Start to go again.") }
 document.addEventListener("visibilitychange",()=>{ if(document.hidden&&(run||arc||calHook)) abort("The app was in the background, so this run stopped. Press Start to go again.") });
 
@@ -809,6 +837,8 @@ function detail(res,isCh){ const plan=res.plan, V=$("rVerdict"), good=res.key===
   $("rAcc").textContent=Math.round(res.pct*100)+"%"; $("rOff").textContent=res.gMean==null?"–":fmtMs(res.gMean); $("rSpread").textContent=res.gSpread==null?"–":"±"+Math.round(res.gSpread*1000)+" ms";
   $("rTempo").textContent=res.gBpm==null?"–":`${Math.round(res.gBpm)} / ${plan.bpm}`; $("rMiss").textContent=`${res.gMissed} / ${res.gExtra}`;
   $("rRe").textContent=res.reMean==null?"–":`${Math.round(res.reMean*1000)} ms${res.reProj?"*":""}`;
+  $("rAvg").innerHTML=res.avgOff==null?"":`Your average: <b>${res.avgOff>=0?"+":"−"}${Math.round(Math.abs(res.avgOff)*1000)} ms</b> (${Math.abs(res.avgOff)<0.005?"right on it":res.avgOff>0?"late":"early"}), every graded beat.`;
+  $("rLat").textContent=res.autoMsg||""; $("rLat").hidden=!res.autoMsg;
   drawCharts(res); gapCards(res) }
 function gapCards(res){ const P=res.plan.P, rk={on:"right on it",early:"early",late:"late",none:"no tap"};
   $("rGaps").innerHTML=res.gaps.map(S=>{ const cls=S.key==="solid"?"good":S.key==="lost"?"bad":"warn";
