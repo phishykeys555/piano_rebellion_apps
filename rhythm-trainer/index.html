@@ -61,6 +61,8 @@ svg{display:block;width:100%;height:auto}
 .primary{background:var(--accent);color:var(--accent-ink);border-color:var(--accent);font-weight:700;padding:11px 16px}
 .ghost{padding:11px 14px}
 .tip{font-size:13px;color:var(--muted);text-align:center;margin:0}
+.subrow{display:flex;justify-content:flex-end} .chip{min-height:36px;padding:6px 12px;border-radius:999px;font-size:13px;font-weight:700} .chip[aria-pressed="true"]{background:var(--c-sel);border-color:var(--c-sel);color:var(--c-sel-ink)}
+.diag{margin-top:8px;border:1px solid var(--border);border-radius:10px;padding:8px 10px;font-size:12px} .diag pre{margin:6px 0 0;max-height:220px;overflow:auto;font-family:var(--mono);font-size:11px;white-space:pre-wrap}
 details{border:1px solid var(--border);border-radius:12px;background:var(--panel)} summary{cursor:pointer;padding:12px 16px;font-weight:600}
 .set{padding:4px 16px 16px;display:flex;flex-direction:column;gap:10px;font-size:14px}
 .set label{display:flex;gap:8px;align-items:center}
@@ -139,22 +141,87 @@ button:disabled{opacity:.45;cursor:default;box-shadow:none;transform:none}
 button:focus-visible,select:focus-visible,summary:focus-visible,input:focus-visible,a:focus-visible{outline:3px solid var(--c-act);outline-offset:2px}
 @media (prefers-reduced-motion:reduce){ .arcsplash.go b{animation:fadein .2s} .hitstamp.go{animation:stampfade 1.1s} .arcmeter i{transition:none} button{transition:none}
   @keyframes fadein{from{opacity:0}to{opacity:1}} @keyframes stampfade{0%{opacity:0;transform:translate(-50%,-50%) rotate(-8deg) scale(1)}15%,75%{opacity:1;transform:translate(-50%,-50%) rotate(-8deg) scale(1)}100%{opacity:0;transform:translate(-50%,-50%) rotate(-8deg) scale(1)}} }
+
+/* ---- Layout v2 (2026-11-12): one consistent 12/16 px rhythm, labelled groups, Start always in reach ----
+   Phones and tablets: one column; Hear it / Start live in a sticky bar at the bottom of the screen (safe-area aware).
+   Desktop (900 px and wider): setup on the left (levels, speed and time, Single/Challenge, microphone, settings), play on the right
+   (stats, staff, how you answer, pad, then Hear it / Start right under the pad), so the whole play area fits a 720 px-tall window. */
+.wrap{gap:12px}
+.setup{display:contents}
+.setup>details{order:3} .card{order:2}
+.sec{margin:4px 0 -4px;font-size:10.5px;font-weight:700;letter-spacing:.16em;text-transform:uppercase;color:var(--c-mut)}
+.levels{gap:6px} .lvl{padding:6px 2px;gap:1px} .lvl b{font-size:14px} .lvl span{font-size:10.5px;line-height:1.15}
+.tempo,.tsig{gap:6px} .tempo button,.tsig button{min-height:40px}
+.subrow{margin-top:-2px}
+.card{gap:12px}
+.stats{padding:8px 12px} .stat b{font-size:18px}
+.msg{min-height:40px}
+.actions{justify-content:space-between;gap:12px}
+.actions .primary{min-width:120px}
+details.how{border:0;background:none;margin-top:-4px} details.how summary{padding:4px 0;text-align:center;font-size:13px;font-weight:600;color:var(--c-mut)}
+details.how p{margin-top:6px}
+@media (max-width:899px){
+  .pad{height:104px}
+  .actions{position:fixed;left:0;right:0;bottom:0;z-index:20;margin:0;padding:10px max(16px,env(safe-area-inset-right,0px)) calc(10px + env(safe-area-inset-bottom,0px)) max(16px,env(safe-area-inset-left,0px));background:var(--c-panel2);border-top:1px solid var(--c-line);box-shadow:0 -6px 14px rgba(0,0,0,.14);flex-wrap:nowrap}
+  .actions>*{flex:1 1 0;min-height:46px} .actions .primary{flex:1.4 1 0}
+  body{padding-bottom:calc(84px + env(safe-area-inset-bottom,0px))}
+}
+@media (max-width:440px){ .lvl span{font-size:10px} .stat b{font-size:16px} .stat span{font-size:10px} }
+@media (min-width:900px){
+  body{padding-top:14px;padding-bottom:14px}
+  .wrap{max-width:1180px;display:grid;grid-template-columns:minmax(300px,370px) minmax(0,1fr);column-gap:20px;row-gap:12px;align-items:start;padding-bottom:16px}
+  .wrap>.chma-headwrap{grid-column:1/-1}
+  .setup{display:flex;flex-direction:column;gap:12px;grid-column:1;grid-row:2}
+  .card{grid-column:2;grid-row:2;padding:14px}
+  h1{font-size:28px}
+  .levels{grid-template-columns:repeat(3,minmax(0,1fr))}
+  .pad{height:92px}
+  .paper svg{max-height:max(200px,calc(100vh - 448px))}
+  #micSlot #micBox{border:1px solid var(--c-line);border-radius:12px;padding:12px;background:var(--c-panel2)}
+}
+@media (min-width:900px) and (max-height:760px){ .wrap>.chma-headwrap{margin-bottom:-6px} }
 </style>
 </head>
 <body>
 <div class="wrap">
   <div data-chma-head></div>
+  <div class="setup">
   <header>
     <h1>Rhythm <em>Trainer</em></h1>
     <p class="sub">Count it. Tap it. Line up with every note.</p>
   </header>
 
+  <p class="sec">Level</p>
   <div class="levels" id="levels" role="group" aria-label="Level"></div>
+  <p class="sec">Speed and time</p>
   <div class="tempo" id="tempo" role="group" aria-label="Tempo"><span id="tempoLbl">Tempo</span></div>
   <div class="tsig" id="meterSeg" role="group" aria-label="Time signature"><span>Time</span></div>
+  <div class="subrow"><button class="chip" id="subChip" aria-pressed="false" title="A soft tick on every 8th-note &amp;">♪♪ 8th-note ticks: <b>Off</b></button></div>
+  <p class="sec">Play</p>
+  <div class="seg modes" id="modeSeg" role="group" aria-label="Mode"><button data-m="practice"><span aria-hidden="true">🎯</span> Single tries</button><button data-m="chal"><span aria-hidden="true">🏆</span> Challenge</button></div>
+  <div id="micSlot"></div>
+
+
+  <details>
+    <summary>Settings</summary>
+    <div class="set">
+      <label><input type="checkbox" id="counts" checked> Show the counts under the notes</label>
+      <label><input type="checkbox" id="guide"> Play the rhythm with me (easier)</label>
+      <label id="subRow"><input type="checkbox" id="subdiv"> Subdivide: 8th notes (a soft tick on every "&amp;")</label>
+      <label><input type="checkbox" id="cursor" checked> Show the moving cursor (turn off to read without it)</label>
+      <label><input type="checkbox" id="lightup" checked> Light up each note in blue when it should be hit</label>
+      <label><input type="checkbox" id="ramp" checked> Challenge: speed up as you play</label>
+      <label><input type="checkbox" id="hypeOn" checked> Music on round screens</label>
+      <span class="stamp">On: every rhythm you play well nudges the tempo up (95%+: +2 BPM, 80%+: +1, under 60%: −2), up to 8% faster each round, never below where the round started. Off: one steady tempo. A change applies from the next Start.</span>
+      <label><input type="checkbox" id="holds" checked> Grade how long I hold (Tap)</label>
+      <span class="stamp">Tap only: quarter notes and longer, dotted and tied notes, and notes right before a rest are also graded on when you let go (the bar under each note shows how long you held it; the tick is where it ends). Clap or snap and One note grade only when each note starts.</span>
+      <div class="row"><button class="ghost" id="cal">Calibrate timing</button><span class="stamp" id="calTxt" role="status" aria-live="polite"></span></div>
+      <span class="stamp">Calibrate once per device, and again with Bluetooth headphones: tap (or clap, or play your note) along with 12 clicks. Tap, Clap and One note each keep their own setting.</span>
+    </div>
+  </details>
+  </div>
 
   <section class="card" id="card">
-    <div class="seg modes" id="modeSeg" role="group" aria-label="Mode"><button data-m="practice"><span aria-hidden="true">🎯</span> Single tries</button><button data-m="chal"><span aria-hidden="true">🏆</span> Challenge</button></div>
     <div class="stats">
       <div class="stat"><b id="sRound">0</b><span id="lRound">Tries</span></div>
       <div class="stat"><b id="sScore">–</b><span id="lScore">Last</span></div>
@@ -175,15 +242,17 @@ button:focus-visible,select:focus-visible,summary:focus-visible,input:focus-visi
         <span>Level</span><div class="meter"><i id="meterFill"></i><span class="thr" id="thr"></span></div>
       </div>
       <p class="tip" id="micStat" role="status" aria-live="polite" style="margin-top:6px">Clap or snap once: the Level bar should jump past the line and the pad lights up.</p>
+      <p class="tip noteonly" style="margin-top:2px"><a href="#" id="diagLink">Mic not catching hits? Show details</a></p>
+      <div id="diag" class="diag" hidden><div class="row" style="justify-content:space-between"><b>What the mic decided (newest first)</b><button class="ghost" id="diagCopy">Copy log</button></div><pre id="diagRows"></pre></div>
       <p class="tip" style="margin-top:4px">Clap or snap and One note grade when each note starts, not how long you hold it. To grade your holds, use Tap.</p>
     </div>
     <button class="pad" id="pad">TAP</button>
-    <div class="row" style="justify-content:space-between">
+    <div class="row actions">
       <button class="ghost" id="hear"><span aria-hidden="true">▶</span> Hear it</button>
       <button class="ghost" id="again" hidden><span aria-hidden="true">↺</span> Try this one again</button>
       <button class="primary" id="go">Start</button>
     </div>
-    <p class="tip">Tap the pad or the space bar, or switch to Clap or snap. Rests are silent: don't tap them. In Tap, hold long notes down for their full length and let go on time. Clapping or playing with speakers? Headphones are best: the mic never hears the clicks at all.</p>
+    <details class="how"><summary>How it works</summary><p class="tip">Tap the pad or the space bar, or switch to Clap or snap. Rests are silent: don't tap them. In Tap, hold long notes down for their full length and let go on time. Clapping or playing with speakers? Headphones are best: the mic never hears the clicks at all.</p></details>
 
     <div class="arcsplash" id="arcSplash" hidden><div class="pre" id="spP"></div><b id="spT"></b><em id="spB" hidden></em><span id="spS"></span><small class="sptap" id="spTap" hidden>Tap to start</small></div><div class="hitstamp" id="hitStamp">ON TARGET!</div>
     <div class="results" id="results" role="region" aria-label="Results" hidden>
@@ -203,23 +272,6 @@ button:focus-visible,select:focus-visible,summary:focus-visible,input:focus-visi
       <div class="row" style="justify-content:space-between"><button class="ghost" id="close">Back</button><button class="primary" id="newRound">Play again</button></div>
     </div>
   </section>
-
-  <details>
-    <summary>Settings</summary>
-    <div class="set">
-      <label><input type="checkbox" id="counts" checked> Show the counts under the notes</label>
-      <label><input type="checkbox" id="guide"> Play the rhythm with me (easier)</label>
-      <label><input type="checkbox" id="cursor" checked> Show the moving cursor (turn off to read without it)</label>
-      <label><input type="checkbox" id="lightup" checked> Light up each note in blue when it should be hit</label>
-      <label><input type="checkbox" id="ramp" checked> Challenge: speed up as you play</label>
-      <label><input type="checkbox" id="hypeOn" checked> Music on round screens</label>
-      <span class="stamp">On: every rhythm you play well nudges the tempo up (95%+: +2 BPM, 80%+: +1, under 60%: −2), up to 8% faster each round, never below where the round started. Off: one steady tempo. A change applies from the next Start.</span>
-      <label><input type="checkbox" id="holds" checked> Grade how long I hold (Tap)</label>
-      <span class="stamp">Tap only: quarter notes and longer, dotted and tied notes, and notes right before a rest are also graded on when you let go (the bar under each note shows how long you held it; the tick is where it ends). Clap or snap and One note grade only when each note starts.</span>
-      <div class="row"><button class="ghost" id="cal">Calibrate timing</button><span class="stamp" id="calTxt" role="status" aria-live="polite"></span></div>
-      <span class="stamp">Calibrate once per device, and again with Bluetooth headphones: tap (or clap, or play your note) along with 12 clicks. Tap, Clap and One note each keep their own setting.</span>
-    </div>
-  </details>
 </div>
 
 <script>
@@ -422,12 +474,21 @@ button:focus-visible,select:focus-visible,summary:focus-visible,input:focus-visi
     return base.find(far)||330 }
   // amp: 1 = a normal beat; 6/8 uses 1.3 for beat 4 (the secondary accent) and 0.7 for the eighths between the beats
   const outG=new Map(); // each click's own loudness (accent, soft in your bar), so the strike detector knows how loud that click should sound
-  function click(t,accent,soft,amp){ amp=amp||1; outT.push(t); if(outT.length>64) outT.shift(); outG.set(t,(accent?0.55:0.38)*(soft?0.35:1)*amp); if(outG.size>64) outG.delete(outG.keys().next().value); const a=ctx(), f=tockF()*(accent?1.335:1), out=a.createBiquadFilter(); out.type="lowpass"; out.frequency.value=2600; out.connect(a.destination);
-    const o=a.createOscillator(), g=a.createGain(), o2=a.createOscillator(), g2=a.createGain(); o.type="sine"; o2.type="sine";
-    o.frequency.setValueAtTime(f*1.35,t); o.frequency.exponentialRampToValueAtTime(f,t+0.012); o2.frequency.setValueAtTime(f*2.76,t);
-    g.gain.setValueAtTime(0.0001,t); g.gain.exponentialRampToValueAtTime((accent?0.55:0.38)*(soft?0.35:1)*amp,t+0.0015); g.gain.exponentialRampToValueAtTime(0.0001,t+0.09);
-    g2.gain.setValueAtTime(0.0001,t); g2.gain.exponentialRampToValueAtTime((accent?0.16:0.11)*(soft?0.35:1)*amp,t+0.001); g2.gain.exponentialRampToValueAtTime(0.0001,t+0.035);
+  // learn/first: a count-in click, which One note's detector studies (how it sounds through your speaker and how late it arrives)
+  function click(t,accent,soft,amp,learn,first){ amp=amp||1; outT.push(t); if(outT.length>64) outT.shift(); const G=(accent?0.55:0.38)*(soft?0.35:1)*amp; outG.set(t,G); if(outG.size>64) outG.delete(outG.keys().next().value); const a=ctx(), f=tockF()*(accent?1.335:1), out=a.createBiquadFilter(); out.type="lowpass"; out.frequency.value=2600; out.connect(a.destination);
+    const o=a.createOscillator(), g=a.createGain(), o2=a.createOscillator(), g2=a.createGain(); o.type="sine"; o2.type="sine"; fxClick(t,accent?"a":"n",G,learn,first);
+    // One note: no pitch sweep and a 6 ms rise, so the click's sound stays on its own two pitches (which the note detector masks out)
+    const nm=inMode==="note"&&mic, atk=nm?0.006:0.0015;
+    if(nm) o.frequency.setValueAtTime(f,t); else { o.frequency.setValueAtTime(f*1.35,t); o.frequency.exponentialRampToValueAtTime(f,t+0.012) } o2.frequency.setValueAtTime(f*2.76,t);
+    g.gain.setValueAtTime(0.0001,t); g.gain[nm?"linearRampToValueAtTime":"exponentialRampToValueAtTime"](G,t+atk); g.gain.exponentialRampToValueAtTime(0.0001,t+0.09);
+    g2.gain.setValueAtTime(0.0001,t); g2.gain[nm?"linearRampToValueAtTime":"exponentialRampToValueAtTime"]((accent?0.16:0.11)*(soft?0.35:1)*amp,t+(nm?atk:0.001)); g2.gain.exponentialRampToValueAtTime(0.0001,t+0.035);
     o.connect(g).connect(out); o2.connect(g2).connect(out); track(o); track(o2); o.start(t); o2.start(t); o.stop(t+0.1); o2.stop(t+0.05) }
+  // Subdivision: a softer, higher, shorter "tick" on every 8th-note "&" (about 9 dB under the beat click), a single pure tone so the
+  // mic modes can tell it apart; it is reported to the note detector like every click.
+  function sub(t,soft,learn,first){ outT.push(t); if(outT.length>64) outT.shift(); const G=0.135*(soft?0.35:1); outG.set(t,G); if(outG.size>64) outG.delete(outG.keys().next().value);
+    const a=ctx(), f=tockF()*2, o=a.createOscillator(), g=a.createGain(), out=a.createBiquadFilter(); out.type="lowpass"; out.frequency.value=2600; out.connect(a.destination); fxClick(t,"s",G,learn,first);
+    o.type="sine"; o.frequency.setValueAtTime(f,t); g.gain.setValueAtTime(0.0001,t); g.gain.linearRampToValueAtTime(G,t+0.004); g.gain.exponentialRampToValueAtTime(0.0001,t+0.05);
+    o.connect(g).connect(out); track(o); o.start(t); o.stop(t+0.06) }
   // (unused) pitchless tick
   function tick(t,accent){ outT.push(t); const a=ctx(), L=Math.floor(a.sampleRate*0.03), nb=a.createBuffer(1,L,a.sampleRate), d=nb.getChannelData(0);
     for(let i=0;i<L;i++) d[i]=(Math.random()*2-1)*Math.exp(-i/a.sampleRate/0.004);
@@ -461,21 +522,26 @@ button:focus-visible,select:focus-visible,summary:focus-visible,input:focus-visi
     const M=MT(), SP=spb(), U=SP/M.beatU; // this bar's tempo, fixed for the whole bar (count-in, clicks, cursor and grading)
     const t0=a.currentTime+0.15-(mode==="hear"?M.beats*SP:0), start=t0+M.beats*SP, end=start+M.units*U; // Hear it starts right away (no silent bar)
     // while you play into the mic, the clicks in your bar are softer so the mic hears you, not them
-    if(!M.compound) for(let b=0;b<2*M.beats;b++){ if(mode==="hear"&&b<M.beats) continue; click(t0+b*SP,b%M.beats===0,b>=M.beats&&mode==="test"&&inMode!=="tap") }
+    if(!M.compound) for(let b=0;b<2*M.beats;b++){ if(mode==="hear"&&b<M.beats) continue; const ci=mode==="test"&&b<M.beats, sf=b>=M.beats&&mode==="test"&&inMode!=="tap"; click(t0+b*SP,b%M.beats===0,sf,1,ci,ci&&b<2);
+      if(subOn()&&mode==="test") sub(t0+b*SP+SP/2,sf,ci,ci&&b===0) }
     else { // 6/8: the count-in bar clicks all six eighths (accent on 1, secondary accent on 4); the bar you play clicks the two dotted-quarter beats
-      if(mode!=="hear") for(let k=0;k<6;k++) click(t0+k*SP/3,k===0,false,k===3?1.3:k===0?1:0.7);
+      if(mode!=="hear") for(let k=0;k<6;k++) click(t0+k*SP/3,k===0,false,k===3?1.3:k===0?1:0.7,mode==="test",mode==="test"&&k<2);
       for(let b=0;b<2;b++) click(start+b*SP,b===0,mode==="test"&&inMode!=="tap",b===1?1.3:1) }
     if(mode==="hear"||$("guide").checked) bar.notes.forEach(n=>(mode==="test"&&inMode==="clap"&&mic)?wood(start+n.s*U,n.d*U):hand(start+n.s*U));
     msg(null, mode==="hear"?"Listen…":"Count in: "+countWords(), mode==="hear"?"":"Start tapping on beat 1 of the next bar.");
     // Tap with "Grade how long I hold" on: releases are graded too. A note that ends with the bar may be let go after the bar ends,
     // so grading waits (only while it is still held) until that note's Good window has passed.
     const holds=mode==="test"&&inMode==="tap"&&$("holds").checked, endL=holds?Math.max(0,...holdSpec(bar.ev).filter(h=>h.graded&&h.end===M.units).map(h=>h.len)):0;
-    const R=run={mode,start,end,t0,u:U,holds,grace:Math.min(2,0.35+(endL?holdWin(endL*U,SP).g+0.05:0))}; if(mode==="test"){ lastStart=start; lastU=U; lastHolds=holds } lockUI();
+    // mic modes: the take stays open past the bar for the late window (250 ms) + the mic lag + the detector's confirm time (~200 ms),
+    // so a last note played late (or loud and long) is always heard before grading
+    const mlag=inMode==="tap"?0:(manLag("mic")!=null?manLag("mic")/1000:autoLag("mic")), tail=inMode==="tap"?0.35:Math.max(0.35,0.25+mlag+0.22);
+    const R=run={mode,start,end,t0,u:U,holds,tail,grace:Math.min(2,0.35+(endL?holdWin(endL*U,SP).g+0.05:0))};
+    if(mode==="test"&&inMode==="note") fxWins(bar.notes.map(n=>start+n.s*U),null,U,mlag); if(mode==="test"){ lastStart=start; lastU=U; lastHolds=holds } lockUI();
     const tick=()=>{ if(run!==R) return; /* this bar was stopped (or replaced): its frame loop ends here */ const now=a.currentTime; let px=null, pos=null;
       if(now>=start&&now<=end){ pos=(now-start)/U; px=$("cursor").checked?xOf(pos):null; if(mode==="test"&&!run.go){ run.go=true; msg(null,"Go!",inMode==="clap"?"Clap or snap every note.":inMode==="note"?"Play your note for every note.":"Tap every note.") } }
       else if(now<start&&mode==="test"){ const n=M.compound?6:M.beats, left=Math.ceil((start-now)/(M.compound?SP/3:SP)); $("msg").querySelector(".v").textContent=left<=n?"Count in: "+(n+1-left):"Get ready"; }
       drawBar(null,px,pos);
-      if(now>end+0.35&&!(R.holds&&now<end+R.grace&&[...held.values()].some(h=>h.arr===taps&&h.i>=0))){ const m=run.mode; run=null; $("go").disabled=false; lockUI(); $("hear").disabled=!!sess; if(m==="test") grade(); else { drawBar(null); msg(null,"Your turn","Press Start, count in, then tap it.") } return }
+      if(now>end+R.tail&&!(R.holds&&now<end+R.grace&&[...held.values()].some(h=>h.arr===taps&&h.i>=0))){ const m=run.mode; run=null; $("go").disabled=false; lockUI(); $("hear").disabled=!!sess; if(m==="test") grade(); else { drawBar(null); msg(null,"Your turn","Press Start, count in, then tap it.") } return }
       requestAnimationFrame(tick) };
     tick() }
 
@@ -704,12 +770,19 @@ button:focus-visible,select:focus-visible,summary:focus-visible,input:focus-visi
     if(gmode!=="practice") return arcStart(); if($("go").textContent==="Next rhythm"||!bar) newBar(); $("go").textContent="Start"; $("again").hidden=true; await startTest() });
   $("again").addEventListener("click",async()=>{ if(run||starting||calHook) return; $("again").hidden=true; if(round.length) round.pop(); stats(); await startTest() });
   $("hear").addEventListener("click",()=>{ if(!bar) newBar(); play("hear") });
-  async function startTest(){ await play("test") }
+  // phones: when a try starts, scroll so the staff, the pad and the Start bar share the screen
+  function playView(){ try{ if(wideMQ&&wideMQ.matches) return; const r=$("pad").getBoundingClientRect(), st=document.querySelector(".stats").getBoundingClientRect(); if(r.bottom>innerHeight-70||st.top<0) window.scrollBy({top:st.top-8,behavior:"smooth"}) }catch(e){} }
+  async function startTest(){ playView(); await play("test") }
   // while the results sheet covers the card, the controls under it are out of the Tab order (no tabbing into hidden buttons)
   new MutationObserver(()=>{ const on=!$("results").hidden; [...$("card").children].forEach(el=>{ if(el.id!=="results"&&el.id!=="hitStamp"){ if(on) el.setAttribute("inert",""); else el.removeAttribute("inert") } }) }).observe($("results"),{attributes:true,attributeFilter:["hidden"]});
   $("close").addEventListener("click",()=>{ $("results").hidden=true; stats(); newBar(); msg(null,"Ready","Press Start."); $("go").focus({preventScroll:true}) });
   $("newRound").addEventListener("click",()=>{ $("results").hidden=true; if(gmode==="chal") arcStart(); else { round=[]; stats(); newBar() } $("go").focus({preventScroll:true}) });
   ["counts","guide"].forEach(id=>{ $(id).checked=store.get(id,id==="counts"); $(id).addEventListener("change",e=>{ store.set(id,e.target.checked); if(!run) drawBar(curRes) }) });
+  // Subdivide: 8th notes. Off by default; the chip by the tempo row and the Settings box are the same switch.
+  // 6/8 already clicks in eighths, so there both are hidden (and it is off).
+  function subUI(){ const c=MT().compound, on=$("subdiv").checked; $("subRow").hidden=c; $("subChip").hidden=c; $("subChip").setAttribute("aria-pressed",String(on&&!c)); $("subChip").querySelector("b").textContent=on?"On":"Off" }
+  $("subdiv").checked=store.get("subdiv",false)===true; $("subdiv").addEventListener("change",e=>{ store.set("subdiv",e.target.checked); subUI() });
+  $("subChip").addEventListener("click",()=>{ $("subdiv").checked=!$("subdiv").checked; store.set("subdiv",$("subdiv").checked); subUI() }); subUI();
   ["cursor","lightup","ramp","hypeOn","holds"].forEach(id=>{ $(id).checked=store.get(id,true)!==false; $(id).addEventListener("change",e=>{ store.set(id,e.target.checked); if(id==="hypeOn"&&!e.target.checked) hypeStop(120) }) }); $("ramp").addEventListener("change",()=>stats()); try{store.set("who","")}catch(e){} // no names stored (privacy)
   LEVELS.forEach(L=>{ const b=document.createElement("button"); b.className="lvl"; b.innerHTML=`<b>L${LEVELS.indexOf(L)+1}</b><span>${L.name.replace("Syncopation","Synco&shy;pation")}</span>`;
     b.addEventListener("click",()=>{ hypeStop(120); if(sess||arc) stopSession(true); level=L.id; store.set("level",level); mark(); round=[]; stats(); newBar(); $("go").textContent="Start"; msg(null,"Level "+(LEVELS.indexOf(L)+1)+": "+lvlName(L),"Press Hear it to listen first, or Start.") }); b.dataset.id=L.id; $("levels").appendChild(b) });
@@ -722,7 +795,7 @@ button:focus-visible,select:focus-visible,summary:focus-visible,input:focus-visi
   // A change of time signature stops everything cleanly (a challenge, a bar still playing, the round music) and deals a new bar.
   function setMeter(id){ if(!METERS[id]) return; hypeStop(120); if(sess||arc) stopSession(true); if(run){ run=null; hush(); $("go").disabled=false; $("hear").disabled=false; lockUI() }
     meterId=id; store.set("meter",id); const sb=+store.get(bpmKey(),NaN); bpm=tempoList().includes(sb)?sb:MT().compound?56:72;
-    buildTempo(); mark(); lockUI(); round=[]; $("results").hidden=true; $("again").hidden=true; stats(); newBar(); $("go").textContent="Start";
+    buildTempo(); mark(); lockUI(); subUI(); round=[]; $("results").hidden=true; $("again").hidden=true; stats(); newBar(); $("go").textContent="Start";
     msg(null,"Time: "+id,MT().compound?"Two beats in a bar, each a dotted quarter (3 eighths). Count the eighths 1 2 3 4 5 6, leaning on 1 and 4. Tempo counts the dotted quarters (♩.).":`${MT().beats} quarter-note beats in a bar. Count ${countWords().replace(/ · /g," ")}.`) }
   Object.keys(METERS).forEach(id=>{ const b=document.createElement("button"); b.textContent=id; b.dataset.m=id; b.setAttribute("aria-label",`${id} time`); b.addEventListener("click",()=>setMeter(id)); $("meterSeg").appendChild(b) });
   function mark(){ document.querySelectorAll(".lvl").forEach(b=>{ b.setAttribute("aria-pressed",String(b.dataset.id===level)); const L=LEVELS.find(x=>x.id===b.dataset.id); b.querySelector("span").innerHTML=lvlName(L).replace("Syncopation","Synco&shy;pation") });
@@ -733,7 +806,7 @@ button:focus-visible,select:focus-visible,summary:focus-visible,input:focus-visi
   const calLabel=()=>{ const v=inMode==="note"?latNote:inMode==="clap"?latClap:latency; $("calTxt").textContent=v!=null?`${inMode==="clap"?"Clap":inMode==="note"?"Note":"Tap"} offset ${v} ms`:"" }; calLabel();
   $("cal").addEventListener("click",async()=>{ if(run||calHook||starting||sess||arc) return; const a=ctx(); await a.resume(); if(run||calHook||starting||sess||arc) return; if(inMode!=="tap"&&!mic&&!(await micStart($("micSel").value||undefined))){ $("calTxt").textContent="Turn on the microphone first (see the message above), or switch to Tap."; return }
     if(run||calHook||starting||sess||arc) return; // a try or a challenge started while the microphone was opening
-    const NC=12, t0=a.currentTime+0.6, sp=0.6, hits=[]; for(let i=0;i<NC;i++) click(t0+i*sp,i===0);
+    const NC=12, t0=a.currentTime+0.6, sp=0.6, hits=[]; for(let i=0;i<NC;i++) click(t0+i*sp,i===0,false,1,i<3,i<2); fxWins(Array.from({length:NC},(_,i)=>t0+i*sp),0.15);
     $("calTxt").textContent=inMode==="clap"?"Listen to 2 clicks, then clap with each click…":inMode==="note"?"Listen to 2 clicks, then play your note with each click…":"Tap the pad with each click…";
     // Clap: the detector's lockout after a hit drops to 6 ms, so a clap just after the click is never swallowed by it. The first 2 clicks are a
     // count-in: whatever the mic hears there is the speaker's own click (its arrival time and loudness). Later, when a click brings that same
@@ -795,7 +868,95 @@ button:focus-visible,select:focus-visible,summary:focus-visible,input:focus-visi
       this.port.postMessage({no:1,t:tt,s:c.s,e:c.e,nf:this.nf,g:(A/6)/(Z/16+1e-13)}); /* g: the level after against before (a strike adds sound, a damper takes it away) */this.cap=null;this.last=tt;this.lastE=c.e}return}
     if(t-this.last<this.refr&&!(s>=1.5&&(at(0)+at(1))/2>6*this.lastE))return; // inside the gap only a much louder strike (your note right after a click) gets through
     if(s>=1.5&&(at(0)+at(1))/2>this.nf*3)this.cap={b0:b,s,sb:b,ref,e:(at(0)+at(1))/2}}}
-  registerProcessor('rt-note',NoteOn);`;
+  registerProcessor('rt-note',NoteOn);
+  // One note mode v3 (2026-11-12): NoteFlux. Every 128 samples (2.7 ms) an FFT of the last 21 ms. A note counts when a large share of the
+  // spectrum jumps at once (+3.5 dB or more against the loudest each bin was 13-43 ms earlier). A hammer strike does that even on top of a loud,
+  // flat digital-piano sustain (fresh upper partials and the strike's noise); a ringing or beating note never does. The app's own clicks are
+  // taken out: their partials are masked, and what each click adds to every other bin is learned on the count-in and subtracted.
+  // Near a written note a smaller jump counts (a soft re-strike); away from the written notes (an extra) it takes a full strike of your pitch.
+  // Every hit is stamped on the audio clock (sample-exact); one strike gives one hit (two jumps closer than 110 ms for the same written note are one).
+class NoteFlux{
+   constructor(sr,post){ this.sr=sr; this.post=post; const N=this.N=sr>66000?2048:1024; this.HL=18; this.H=N/8; this.x=new Float32Array(N); this.xi=0; this.cnt=0; const PN=this.PN=2*N; this.px=new Float32Array(PN); this.pi=0; this.pre=new Float64Array(PN); this.pim=new Float64Array(PN); this.prev2=new Uint32Array(PN); for(let i=0,j=0;i<PN;i++){ this.prev2[i]=j; let b=PN>>1; while(j&b){ j^=b; b>>=1 } j|=b } this.phw=new Float32Array(PN); for(let i=0;i<PN;i++) this.phw[i]=0.5-0.5*Math.cos(2*Math.PI*i/PN); this.pend=[]; this.now=0;
+    this.hw=new Float32Array(N); for(let i=0;i<N;i++) this.hw[i]=0.5-0.5*Math.cos(2*Math.PI*i/N);
+    this.re=new Float64Array(N); this.im=new Float64Array(N); this.rev=new Uint32Array(N); for(let i=0,j=0;i<N;i++){ this.rev[i]=j; let b=N>>1; while(j&b){ j^=b; b>>=1 } j|=b }
+    this.cs=new Float64Array(N/2); this.sn=new Float64Array(N/2); for(let k=0;k<N/2;k++){ this.cs[k]=Math.cos(-2*Math.PI*k/N); this.sn[k]=Math.sin(-2*Math.PI*k/N) }
+    this.bw=sr/N; this.kLo=Math.max(1,Math.floor(55/this.bw)); this.kHi=Math.min(N/2-2,Math.ceil(8000/this.bw));
+    this.M=[]; for(let i=0;i<this.HL;i++) this.M.push(new Float32Array(N/2)); this.Mx=this.M.map(()=>new Float32Array(N/2)); this.mi=0; this.fr=0;
+    this.D=new Float32Array(16); this.Ev=new Float32Array(16); this.Rr=new Float32Array(16); this.T=new Float64Array(16); this.di=0;
+    this.g=3; this.midi=60; this.refr=0.05; this.clicks=[]; this.ckLat=null; this.tmpl={}; this.last=-1; this.nf=1e-5; this.log=0; this.mask(); }
+   set(o){ if(o.click){ this.clicks=this.clicks.filter(c=>c.t>this.now-2).slice(-80); this.clicks.push(o.click); return } if(o.reset){ this.pend=[]; this.hold=null; this.last=-1; this.eRef=0; return } const m=this.midi; Object.assign(this,o); if(o.midi!=null&&o.midi!==m) this.mask(); if(o.clickF!=null) this.mask() }
+   mask(){ const N=this.N, bw=this.bw, f0=440*Math.pow(2,(this.midi-69)/12); const hm=new Uint8Array(N/2);
+    for(let h=1;h*f0<8000;h++){ const f=h*f0*Math.sqrt(1+0.0003*h*h), k=f/bw, w=Math.max(1,Math.round(0.012*h*f0/bw)); for(let j=Math.floor(k-w);j<=Math.ceil(k+w);j++) if(j>=this.kLo&&j<=this.kHi) hm[j]=1 }
+    if(this.allBins) for(let k=this.kLo;k<=this.kHi;k++) hm[k]=1;
+    const cf=this.clickF; if(cf) for(const f of [cf,cf*1.335]) for(const [a,b] of [[f*0.97,f*1.37],[2.7*f,2.82*f],[1.96*f,2.04*f]]) for(let j=Math.floor(a/bw)-1;j<=Math.ceil(b/bw)+1;j++) if(j>=0&&j<N/2) hm[j]=0;
+    this.bins=[]; for(let k=this.kLo;k<=this.kHi;k++) if(hm[k]) this.bins.push(k); this.bins=Int32Array.from(this.bins) }
+   fft(){ const N=this.N, re=this.re, im=this.im, rv=this.rev;
+    for(let i=0;i<N;i++){ const j=rv[i]; if(j>i){ let t=re[i]; re[i]=re[j]; re[j]=t; t=im[i]; im[i]=im[j]; im[j]=t } }
+    for(let L=2;L<=N;L<<=1){ const h=L>>1, st=N/L; for(let i=0;i<N;i+=L) for(let k=0;k<h;k++){ const c=this.cs[k*st], s=this.sn[k*st], p=i+k, q=p+h, tr=re[q]*c-im[q]*s, ti=re[q]*s+im[q]*c; re[q]=re[p]-tr; im[q]=im[p]-ti; re[p]+=tr; im[p]+=ti } } }
+   push(x,t0){ const N=this.N; for(let i=0;i<x.length;i++){ this.x[this.xi]=x[i]; this.xi=(this.xi+1)%N; this.px[this.pi]=x[i]; this.pi=(this.pi+1)%this.PN; if(++this.cnt>=this.H){ this.cnt=0; this.now=t0+(i+1)/this.sr; this.frame(this.now); this.due() } } }
+   // pitch check, 45 ms after the onset (the window then holds the new sound): is this your note? (not needed for a strike on your ringing note)
+   due(){ if(this.hold&&this.now>this.hold.t+this.sat+0.06) this.flush(); while(this.pend.length&&this.now>=this.pend[0].t+this.pdel){ const p=this.pend.shift(); const pc=this.pitchOK(); p.pf=pc.f; p.pr=pc.r; p.pc=pc.c; if(!pc.ok&&!p.inW){ p.why="pitch"; if(this.log) this.post({rej:1,...p}); continue } this.emit(p) } }
+   comb(P,f0){ const PN=this.PN, bw=this.sr/PN; let s=0, nb=0; for(let h=1;h*f0<4500;h++){ const f=h*f0*Math.sqrt(1+0.0003*h*h), k=Math.round(f/bw), w=Math.max(1,Math.round(0.012*h*f0/bw)); let m=0; for(let j=k-w;j<=k+w;j++) if(j>0&&j<PN/2&&P[j]>m) m=P[j]; s+=m; nb+=2*w+1 } return {s,nb} }
+   pitchOK(){ const PN=this.PN, re=this.pre, im=this.pim, rv=this.prev2; for(let i=0;i<PN;i++){ re[i]=this.px[(this.pi+i)%PN]*this.phw[i]; im[i]=0 }
+    for(let i=0;i<PN;i++){ const j=rv[i]; if(j>i){ let t=re[i]; re[i]=re[j]; re[j]=t } }
+    for(let L=2;L<=PN;L<<=1){ const h=L>>1, a=-2*Math.PI/L; for(let i=0;i<PN;i+=L) for(let k=0;k<h;k++){ const c=Math.cos(a*k), s=Math.sin(a*k), p=i+k, q=p+h, tr=re[q]*c-im[q]*s, ti=re[q]*s+im[q]*c; re[q]=re[p]-tr; im[q]=im[p]-ti; re[p]+=tr; im[p]+=ti } }
+    const bw=this.sr/PN, P=this.pP||(this.pP=new Float64Array(PN/2)); const f0=440*Math.pow(2,(this.midi-69)/12); const k0=Math.max(1,Math.floor(f0*0.8/bw)), k1=Math.floor(4500/bw); let T=0; for(let k=1;k<PN/2;k++) P[k]=re[k]*re[k]+im[k]*im[k];
+    // the app's click partials (and the sweep's range) are blanked out: a click heard with your note is not your note's pitch
+    const cf=this.clickF; if(cf) for(const f of [cf,cf*1.335]) for(const [a,b] of [[f*0.96,f*1.38],[2.68*f,2.84*f],[1.94*f,2.06*f]]) for(let j=Math.floor(a/bw)-1;j<=Math.ceil(b/bw)+1;j++) if(j>0&&j<PN/2) P[j]=0;
+    for(let k=k0;k<=k1;k++) T+=P[k];
+    const me=this.comb(P,f0), fr=me.s/(T+1e-20), dens=me.nb/(k1-k0+1); let best=0; for(const d of [-2,-1,1,2]){ const o=this.comb(P,f0*Math.pow(2,d/12)); best=Math.max(best,o.s/(T+1e-20)) }
+    return {ok:fr>=Math.min(this.pCap,this.pMin*dens)&&fr>=this.pRel*best,f:fr,r:fr/(best+1e-9),c:dens} }
+   frame(t){ const N=this.N, re=this.re, im=this.im; for(let i=0;i<N;i++){ re[i]=this.x[(this.xi+i)%N]*this.hw[i]; im[i]=0 } this.fft();
+    const M=this.M[this.mi]; const sc=4/N; for(let k=this.kLo;k<=this.kHi+1;k++) M[k]=Math.sqrt(re[k]*re[k]+im[k]*im[k])*sc;
+    const fr=++this.fr; const HL=this.HL, Mx=this.Mx[this.mi]; for(let k=this.kLo;k<=this.kHi;k++) Mx[k]=this.fmax?Math.max(M[k-1],M[k],M[k+1]):M[k];
+    // the reference: the loudest each bin has been 13-43 ms ago (a strike jumps above all of it; a beating or swelling ring does not)
+    const Rf=this.Rf||(this.Rf=new Float32Array(N/2)); Rf.fill(0); for(let l=this.l0;l<=this.l1;l++){ const X=this.Mx[(this.mi+HL-l)%HL]; for(let k=this.kLo;k<=this.kHi;k++) if(X[k]>Rf[k]) Rf[k]=X[k] }
+    const A=Rf, B=Rf; this.mi=(this.mi+1)%HL; if(fr<HL) return;
+    // click arrival window: [t_click+lat-0.005, +0.045]; expected click rise per bin = template x (this click's gain / count-in click's gain)
+    const lat=this.ckLat!=null?this.ckLat:this.lat0||0; let ck=null; for(const c of this.clicks){ const d=t-(c.t+lat); if(d>-0.004&&d<0.05){ ck=c; break } }
+    const tp=ck?this.tmpl[ck.k||(ck.a?"a":"n")]:null, ks=ck?ck.g:0;
+    const bins=this.bins, nb=bins.length; let lev=0; for(let j=0;j<nb;j++){ const k=bins[j]; lev+=Math.max(A[k],B[k]) } lev/=nb;
+    // room noise: the spectrum of the quietest moment heard lately (the running minimum of the level creeps up ~1.5 dB/s)
+    const nz=this.nz||(this.nz=new Float32Array(N/2)); let lnow=0; for(let j=0;j<nb;j++) lnow+=M[bins[j]]; lnow/=nb; this.minLev=this.minLev==null?lnow:this.minLev*1.0005; if(lnow<=this.minLev){ this.minLev=lnow; for(let j=0;j<nb;j++){ const k=bins[j]; nz[k]=M[k] } }
+    let nzm=0; for(let j=0;j<nb;j++) nzm+=nz[bins[j]]; nzm/=nb;
+    const fl0=Math.max(0.004*lev,this.nfl/this.g); let D=0, E=0, nA=0, nU=0, Er=0, Ec=0, nUr=0, Ea=0;
+    for(let j=0;j<nb;j++){ const k=bins[j]; const ref=Rf[k]; let d=M[k]-ref; if(tp) d-=this.kap*ks*tp[k]; const fk=Math.max(fl0,2.5*nz[k]); const dr=M[k]-ref; if(dr>0) Ea+=dr; if(tp){ if(dr>0) Er+=dr; Ec+=ks*tp[k] } if(M[k]>2*fk||ref>2*fk){ nA++; if(d>this.fr0*ref&&d>fk) nU++; if(dr>this.fr0*ref&&dr>fk) nUr++ } if(d>0){ E+=d; const r=d/(ref+fk); D+=r>4?4:r } }
+    D/=nb; E/=nb; Er/=nb; Ec/=nb; Ea/=nb; let F=nA>=8?nU/nA:0;
+    // how late the app's clicks reach the mic (speaker + Bluetooth delay): the first jump after each count-in click; the median of the last 4
+    for(const c of this.clicks){ if(!c.learn||c.arr!=null||t<c.t-0.002||t>c.t+0.4) continue; if(Ea>6*nzm&&Ea>this.gAbs&&(nA>=8?nUr/nA:0)>0.3){ c.arr=t-this.off-0.004; const L=(this.lats=(this.lats||[]).concat(c.arr-c.t).slice(-4)).slice().sort((x,y)=>x-y); this.ckLat=Math.max(0,L[L.length>>1]-0.006); if(this.log>1) this.post({lat:1,t:c.t,v:c.arr-c.t,ckLat:this.ckLat}) } break }
+    // on a click: what the click alone would add is known; clearly more than that (1.6x) is your note too
+    if(tp&&Er>=this.ckR*Ec&&Er-Ec>E){ E=Er-Ec; F=Math.max(F,nA>=8?nUr/nA:0) } const R=E/(lev+1e-9); this.nzm=nzm;
+    // learn the click: count-in clicks (no note expected) -> per-bin rise template, worst case of the clicks heard
+    // (per unit of click volume; the first count-in click of each kind starts it afresh, so it follows the speaker volume)
+    if(ck&&ck.learn){ const key=ck.k||(ck.a?"a":"n"); let tp2=this.tmpl[key]; if(!tp2||ck.first){ tp2=this.tmpl[key]=new Float32Array(N/2); ck.first=false }
+      for(let k=this.kLo;k<=this.kHi;k++){ const d=Math.max(0,M[k]-Rf[k])/ck.g; if(d>tp2[k]) tp2[k]=d } }
+    const i=this.di++&15; this.Nz=this.Nz||new Float32Array(16); this.Nz[i]=nzm; this.Ea=this.Ea||new Float32Array(16); this.Ea[i]=Ea; this.Fr=this.Fr||new Float32Array(16); this.Fr[i]=F; this.D[i]=this.useF?F:D; this.D0=this.D0||new Float32Array(16); this.D0[i]=D; this.Ev[i]=E; this.Rr[i]=R; this.T[i]=t;
+    // peak pick with a 2-frame look-ahead: frame i-2 is an onset if it is the largest of i-6..i and passes both gates
+    const at=k=>(this.di-1-k)&15, c=at(2); let mx=true; for(let k=0;k<=6;k++) if(k!==2&&this.D[at(k)]>this.D[c]) mx=false;
+    const gAbs=this.gAbs/this.g;
+    if(this.log>2&&mx) this.post({f:1,t:this.T[c],F:this.Fr[c],D0:this.D0[c],D:this.D[c],E:this.Ev[c],R:this.Rr[c],nz:this.Nz[c],ck:!!ck});
+    if(!mx||this.D[c]<=0.02) return; const tc=this.T[c]-this.off; let inW=false, wid=-1; for(let q=0;q<this.wins.length;q++){ const w=this.wins[q]; if(tc>=w[0]&&tc<=w[1]){ inW=true; wid=q; break } }
+    const gate=this.Ev[c]>=Math.max(gAbs,(inW?this.nzKin:this.nzK)*this.Nz[c]);
+    // away from the written notes (an extra), it must also be a real strike: at least a quarter as much new sound as your recent notes made
+    const eRef=this.eRef||0; const why=!gate?"quiet":this.D[c]<(inW?this.thIn:this.thOut)?(inW?"weak":"weak-out"):(!inW&&this.Ev[c]<this.eOut*eRef)?"small-out":null;
+    if(this.log>1&&(why!=="quiet"||this.Fr[c]>0.15)) this.post({cand:1,t:tc,F:this.Fr[c],D0:this.D0[c],E:this.Ev[c],inW,why,ck:!!ck});
+    if(why) return;
+    this.eRef=Math.max(this.Ea[c],eRef*Math.exp(-(this.T[c]-(this.eT||0))/1.5)); this.eT=this.T[c];
+    // onset time: walk back while the new energy is still above 20% of the peak
+    let j=2; while(j<12&&this.D[at(j+1)]>0.2*this.D[c]&&this.T[at(j+1)]>this.T[c]-0.03) j++;
+    const ton=this.T[at(j)]-this.off; if(ton-this.last<this.refr) return; this.last=ton;
+    this.pend.push({on:1,t:ton,F:this.Fr[c],D0:this.D0[c],E:this.Ev[c],inW,wid,ck:!!ck}) }
+   // one strike, one hit: two onsets closer than 110 ms that are not for two different written notes are one note (a sample's
+   // second bump, a damper thud just before the key): the stronger one wins, decided 120 ms after the first
+   emit(p){ const h=this.hold; if(h&&Math.abs(p.t-h.t)<this.sat&&!(p.wid>=0&&h.wid>=0&&p.wid!==h.wid)){ if(p.E>h.E){ p.over=h.t; this.hold=p } else if(this.log) this.post({rej:1,...p,why:"double"}); return }
+    this.flush(); this.hold=p }
+   flush(){ if(this.hold){ this.post(this.hold); this.hold=null } }
+  }
+  class NoteFluxP extends AudioWorkletProcessor{constructor(){super();const d=this.d=new NoteFlux(sampleRate,m=>this.port.postMessage(m));
+    Object.assign(d,{allBins:1,fr0:0.41,useF:1,thIn:0.08,thOut:0.3,wins:[],fmax:0,l0:5,l1:16,pdel:0.045,pMin:1.5,pCap:0.3,pRel:0.8,eOut:0.3,ckR:1.6,nzKin:1.5,sat:0.11,off:0.008,kap:1,nfl:0.00003,gAbs:0.000005,nzK:3,refr:0.03,log:2});
+    this.port.onmessage=e=>d.set(e.data)}
+   process(ins){const x=ins[0]&&ins[0][0];if(x){this.d.push(x,currentFrame/sampleRate)}else{this.d.now=currentFrame/sampleRate;this.d.due()}return true}}
+  registerProcessor('rt-flux',NoteFluxP);`;
   let detURL=null; async function detNode(a){ if(!a.__det){ detURL=detURL||URL.createObjectURL(new Blob([DET_SRC],{type:"text/javascript"})); a.__det=a.audioWorklet.addModule(detURL) } await a.__det; return new AudioWorkletNode(a,"rt-onset",{numberOfInputs:1,numberOfOutputs:1,outputChannelCount:[1]}) }
   const DET_THR=0.025, BAND_LAG=0; // BAND_LAG: ms the two band-pass stages add to a note's start (measured on the bench)
   const ckLevel=()=>mic&&mic.ck?mic.ck():0;
@@ -813,6 +974,20 @@ button:focus-visible,select:focus-visible,summary:focus-visible,input:focus-visi
   function micMsg(html){ $("micStat").innerHTML=html }
   function micHint(){ if(micPolicyOff()) micMsg(FRAMED_MSG+fullLink()+" to clap or play, or use Tap here."); else micMsg(inMode==="note"?"Turn on the microphone, then play your note once: the Level bar should jump and the pad lights up.":"Turn on the microphone, then clap or snap once: the Level bar should jump past the line and the pad lights up.") }
   function setThr(v){ thr=v; $("thr").style.left=Math.min(100,thr*300)+"%" }
+  // ---------- One note detector (NoteFlux) wiring ----------
+  const fxPost=m=>{ try{ if(mic&&mic.fx) mic.fx.port.postMessage(m) }catch(e){} };
+  function fxSync(){ if(!mic||!mic.fx) return; const a=audio; const m={midi:+$("noteSel").value,clickF:tockF(),g:+$("micGain").value}; if(!mic.fxLat){ m.ckLat=(a&&(a.outputLatency||0)+(a.baseLatency||0))||0; mic.fxLat=1 } fxPost(m) }
+  function fxClick(t,k,g,learn,first){ fxPost({click:{t,k,a:k==="a",g,learn:!!learn,first:!!first}}) }
+  // where your notes should arrive at the mic: written time + your lag, +/- up to 80 ms (less when notes are close together)
+  function fxWins(ts,W,U,lag){ if(lag==null) lag=latNote!=null?latNote/1000:autoLag("mic"); const s=ts.slice().sort((x,y)=>x-y);
+    fxPost({wins:s.map((t,i)=>{ const gp=Math.min(i?t-s[i-1]:9,i<s.length-1?s[i+1]-t:9), w=W!=null?W:Math.min(0.08,Math.max(0.03,0.45*gp)); return [t+lag-w,t+lag+w] })}) }
+  const subOn=()=>!!$("subdiv").checked&&!MT().compound;
+  // Diagnostics (?debug=1 or "Mic not catching hits?"): the last 30 things the One note detector decided, with the numbers
+  const fxLog=[]; function fxNote(m){ if(!(m.on||m.cand||m.rej||m.lat)) return; const st=run&&run.mode==="test"?run.start:lastStart, u=run?run.u:lastU;
+    const pos=st!=null&&u?((m.t-(latNote!=null?latNote/1000:autoLag("mic"))-st)/u/MT().beatU):null;
+    fxLog.push({t:+m.t.toFixed(4),beat:pos==null?null:+(pos+1).toFixed(2),F:m.F!=null?+m.F.toFixed(3):null,E:m.E!=null?+m.E.toExponential(2):null,dec:m.on?"HIT":m.lat?"click lag "+Math.round(m.v*1000)+" ms":"no",why:m.why||(m.on?(m.inW?"near a written note":"extra (away from the notes)"):""),click:!!m.ck,pitch:m.pf!=null?+m.pf.toFixed(2):null});
+    if(fxLog.length>30) fxLog.shift(); if(!$("diag").hidden) drawDiag() }
+  function drawDiag(){ $("diagRows").textContent=fxLog.slice().reverse().map(r=>`${r.beat==null?"–":("beat "+r.beat).padEnd(10)} ${r.dec.padEnd(4)} jump ${r.F==null?"–":r.F.toFixed(2)}  level ${r.E==null?"–":r.E.toExponential(1)}${r.click?"  on a click":""}  ${r.why}`).join("\n")||"Nothing heard yet. Play your note." }
   let micBusy=false, micTries=0;
   async function micStart(deviceId){
     if(!window.isSecureContext||!navigator.mediaDevices||!navigator.mediaDevices.getUserMedia){ micMsg("This browser can't reach the microphone here. Use Safari or Chrome (the address must start with https)."+(framed?fullLink()+".":"")); return false }
@@ -862,7 +1037,9 @@ button:focus-visible,select:focus-visible,summary:focus-visible,input:focus-visi
       src.connect(hp); hp.connect(g); g.connect(an); an.connect(mute); mute.connect(a.destination);
       const buf=new Float32Array(an.fftSize), noteHist=[]; let last=0, prev=0, pend=null, ckR=0, ckN=0;
       let det=null; try{ det=await detNode(a); src.connect(det); det.connect(mute); det.port.postMessage({g:+$("micGain").value,thr:DET_THR}) }catch(e){ det=null }
-      let nd=null; if(wantNote) try{ detURL=detURL||URL.createObjectURL(new Blob([DET_SRC],{type:"text/javascript"})); a.__det=a.__det||a.audioWorklet.addModule(detURL); await a.__det; nd=new AudioWorkletNode(a,"rt-note",{numberOfInputs:1,numberOfOutputs:1,outputChannelCount:[1]}); src.connect(nd); nd.connect(mute) }catch(e){ nd=null }
+      let nd=null, fx=null; if(wantNote) try{ detURL=detURL||URL.createObjectURL(new Blob([DET_SRC],{type:"text/javascript"})); a.__det=a.__det||a.audioWorklet.addModule(detURL); await a.__det;
+        try{ fx=new AudioWorkletNode(a,"rt-flux",{numberOfInputs:1,numberOfOutputs:1,outputChannelCount:[1]}); src.connect(fx); fx.connect(mute) }catch(e){ fx=null } // One note v3
+        if(!fx){ nd=new AudioWorkletNode(a,"rt-note",{numberOfInputs:1,numberOfOutputs:1,outputChannelCount:[1]}); src.connect(nd); nd.connect(mute) } }catch(e){ nd=null; fx=null }
       // One note mode: every hit of your note, from either detector, is kept for a moment so one strike is never counted twice
       const accN=[]; let ckS=0, pick=null, pickT=0; const flushPick=()=>{ const c=pick; pick=null; if(c&&!dupe(c.t)) takeN(c.t,"re") }; const dupe=t=>accN.some(x=>Math.abs(x-t)<Math.max(0.035,0.5*noteRefr()));
       const takeN=(t,via)=>{ accN.push(t); if(accN.length>32) accN.shift(); tapAt(t,"mic",{via}); $("pad").classList.add("hit"); setTimeout(()=>$("pad").classList.remove("hit"),90) };
@@ -870,6 +1047,7 @@ button:focus-visible,select:focus-visible,summary:focus-visible,input:focus-visi
       const expWin=t=>{ if(!run||run.mode!=="test"||!bar) return false; const lag=latNote!=null?latNote/1000:autoLag("mic"), W=Math.min(0.07,0.45*run.u); return bar.notes.some(n=>Math.abs(t-lag-(run.start+n.s*run.u))<W) };
       mic={s,g,mute,an,buf,timer:setInterval(()=>{ an.getFloatTimeDomainData(buf); let r=0, pk=0; for(let i=0;i<buf.length;i++){ r+=buf[i]*buf[i]; pk=Math.max(pk,Math.abs(buf[i])) } r=Math.sqrt(r/buf.length);
         if(!(det&&inMode!=="note")) $("meterFill").style.width=Math.min(100,r*300)+"%"; const now=a.currentTime;
+        if(fx&&inMode==="note"){ prev=r*0.5+prev*0.5; return } // One note: NoteFlux (in the audio engine) finds every hit; this loop only drives the Level bar
         // judge a hit ~20 ms in, when the analyser window is full of the new sound
         if(!pend){ const h0=hb(); hbBase=hbBase?hbBase*0.9+h0*0.1:h0 }
         // One note mode: loudness from the unfiltered mic (a low piano note lives below the 500 Hz high-pass), and a short history of
@@ -908,9 +1086,11 @@ button:focus-visible,select:focus-visible,summary:focus-visible,input:focus-visi
         if(pend&&inMode==="note") pend.rmax=Math.max(pend.rmax||0,rn);
         prev=r*0.5+prev*0.5 },8)};
       // after the round-screen music: start the onset detectors and the learned click level fresh (the count-in teaches the click again)
-      mic.reset=()=>{ prev=0; last=a.currentTime; pend=null; ckR=0; ckN=0; hbBase=0; noteHist.length=0; accN.length=0; ckS=0; if(det) try{ det.port.postMessage({sl:0,mn:0,hold:0,hp:0,cap:null,warm:Math.round(0.15*a.sampleRate)}) }catch(e){} };
+      mic.reset=()=>{ if(fx) try{ fx.port.postMessage({reset:1}) }catch(e){} prev=0; last=a.currentTime; pend=null; ckR=0; ckN=0; hbBase=0; noteHist.length=0; accN.length=0; ckS=0; if(det) try{ det.port.postMessage({sl:0,mn:0,hold:0,hp:0,cap:null,warm:Math.round(0.15*a.sampleRate)}) }catch(e){} };
       // re-strikes: a hammer strike on your note while it is still ringing counts at once (no fresh 110 ms pitch check: the pitch is already yours).
       // Score needed: 8 (and louder after than before) anywhere, 1.8 within a written note's window. Never on a click unless clearly louder than the click; a fresh note is left to the level path.
+      if(fx){ mic.fx=fx; fxSync(); fx.port.onmessage=e=>{ const m=e.data; fxNote(m); if(!m.on||inMode!=="note") return;
+          tapAt(m.t,"mic",{via:"flux"}); $("pad").classList.add("hit"); setTimeout(()=>$("pad").classList.remove("hit"),90) } }
       if(nd){ mic.nd=nd; nd.port.postMessage({refr:Math.max(0.03,noteRefr()-0.01)}); nd.port.onmessage=e=>{ const m=e.data; if(inMode!=="note"||calHook||hypeWait()>0) return; const t=m.t, near=outT.some(o=>Math.abs(t-o)<0.03);
         const ck=outT.filter(o=>Math.abs(t-o)<0.03).sort((x,y)=>Math.abs(t-x)-Math.abs(t-y))[0], cg=ck==null?0:(outG.get(ck)||0.6);
         // count-in: how loud a click looks to this detector, per unit of click volume (the quietest one, so one stray sound can't raise it)
@@ -944,14 +1124,21 @@ button:focus-visible,select:focus-visible,summary:focus-visible,input:focus-visi
       else if(n==="NotReadableError"||n==="AbortError") micMsg("Another app is using the microphone. Close it (or end the call), then tap the button again.");
       else micMsg("No microphone found. Plug one in or pick another, then tap the button again.");
       return false } }
-  function micStop(){ if(!mic) return; aSess("playback"); clearInterval(mic.timer); mic.s.getTracks().forEach(t=>t.stop()); try{mic.mute.disconnect()}catch(e){} if(mic.nd) try{ mic.nd.port.onmessage=null; mic.nd.disconnect() }catch(e){} mic=null;
+  function micStop(){ if(!mic) return; aSess("playback"); clearInterval(mic.timer); mic.s.getTracks().forEach(t=>t.stop()); try{mic.mute.disconnect()}catch(e){} if(mic.nd) try{ mic.nd.port.onmessage=null; mic.nd.disconnect() }catch(e){} if(mic.fx) try{ mic.fx.port.onmessage=null; mic.fx.disconnect() }catch(e){} mic=null;
     $("micBtn").textContent="Turn on the microphone"; $("micBtn").disabled=false; $("micCtl").hidden=true; micHint() }
   $("micBtn").addEventListener("click",()=>micStart($("micSel").value||undefined));
   $("micSel").addEventListener("change",e=>micStart(e.target.value));
-  { const gv=+store.get("gain","3"); $("micGain").value=isFinite(gv)&&gv>=0.25&&gv<=12?String(gv):"3" } $("micGain").addEventListener("input",e=>{ if(mic){ mic.g.gain.value=+e.target.value; if(mic.det) mic.det.port.postMessage({g:+e.target.value}) } store.set("gain",e.target.value) });
+  { const gv=+store.get("gain","3"); $("micGain").value=isFinite(gv)&&gv>=0.25&&gv<=12?String(gv):"3" } $("micGain").addEventListener("input",e=>{ if(mic){ mic.g.gain.value=+e.target.value; if(mic.det) mic.det.port.postMessage({g:+e.target.value}); fxSync() } store.set("gain",e.target.value) });
+  const wideMQ=window.matchMedia?matchMedia("(min-width:900px)"):null;
+  function placeMic(){ const mb=$("micBox"); if(wideMQ&&wideMQ.matches){ if(mb.parentNode!==$("micSlot")) $("micSlot").appendChild(mb) } else if(mb.previousElementSibling!==$("inSeg")) $("inSeg").after(mb) }
+  placeMic(); if(wideMQ){ try{ wideMQ.addEventListener("change",placeMic) }catch(e){ try{ wideMQ.addListener(placeMic) }catch(_){} } }
   function setIn(m){ hypeStop(120); const was=inMode; inMode=m; if(mic&&m!=="tap"&&(was==="note")!==(m==="note")) micStart($("micSel").value||undefined); store.set("in",m); document.querySelectorAll("#inSeg button").forEach(b=>b.setAttribute("aria-pressed",String(b.dataset.in===m)));
     $("micBox").hidden=m==="tap"; if(m!=="tap"&&!mic&&!micBusy) micHint(); document.querySelectorAll(".noteonly").forEach(e=>e.hidden=m!=="note"); $("pad").textContent=m==="clap"?"CLAP · SNAP · TAP":m==="note"?"PLAY YOUR NOTE · TAP":"TAP"; if(m==="tap") micStop(); calLabel() }
-  $("noteSel").value=String(store.get("note","60")); if(!$("noteSel").value) $("noteSel").value="60"; $("noteSel").addEventListener("change",e=>store.set("note",e.target.value));
+  $("noteSel").value=String(store.get("note","60")); if(!$("noteSel").value) $("noteSel").value="60"; $("noteSel").addEventListener("change",e=>{ store.set("note",e.target.value); fxSync() });
+  $("diagLink").addEventListener("click",e=>{ e.preventDefault(); $("diag").hidden=!$("diag").hidden; if(!$("diag").hidden) drawDiag() });
+  $("diagCopy").addEventListener("click",()=>{ const txt=JSON.stringify({app:"Rhythm Trainer "+(document.querySelector(".appver")||{}).textContent,note:+$("noteSel").value,sens:+$("micGain").value,bpm:curBpm(),latNote,ua:navigator.userAgent,log:fxLog},null,1);
+    try{ navigator.clipboard.writeText(txt).then(()=>{ $("diagCopy").textContent="Copied" },()=>{ $("diagRows").textContent=txt }) }catch(e){ $("diagRows").textContent=txt } });
+  if(/[?&]debug=1/.test(location.search)) $("diag").hidden=false;
   document.querySelectorAll("#inSeg button").forEach(b=>b.addEventListener("click",()=>setIn(b.dataset.in)));
   setIn(inMode);
 
@@ -964,6 +1151,6 @@ button:focus-visible,select:focus-visible,summary:focus-visible,input:focus-visi
   if(document.fonts) document.fonts.ready.then(()=>{ if(!run) drawBar(curRes) });
 })();
 </script>
-<p class="appver" style="text-align:center;font-size:11px;opacity:.6;margin:18px 0 10px;font-family:ui-monospace,Menlo,monospace">Rhythm Trainer · Version 2026-11-11.23</p>
+<p class="appver" style="text-align:center;font-size:11px;opacity:.6;margin:18px 0 10px;font-family:ui-monospace,Menlo,monospace">Rhythm Trainer · Version 2026-11-12.1</p>
 </body>
 </html>
