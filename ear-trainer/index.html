@@ -5,6 +5,7 @@
 <link rel="stylesheet" href="../shared/chma.css">
 <script src="../shared/brand.js"></script>
 <script src="../shared/hype.js"></script>
+<script src="../shared/share.js"></script>
 <style>
 /* One practice card: score strip, prompt, keyboard, answer pad. Results sheet over the card when a challenge ends. */
 :root{
@@ -329,7 +330,7 @@ details .note{font-size:14px;color:var(--c-mut);margin:8px 0 0}
     <label><input type="checkbox" id="hypeOn" checked> Music on round screens</label>
     <p class="note">MIDI keyboard (Chrome or Edge on a computer): press a key to answer. Mystery note = that key; Scale degree and Interval = its distance from the reference, the same as on the keyboard here. Play-it-on-your-piano (microphone) answers are not in this version.</p>
   </details>
-  <p class="appver" id="appVer">Ear Trainer · Version 2026-11-13.3</p>
+  <p class="appver" id="appVer">Ear Trainer · Version 2026-11-13.4</p>
   <p class="credit">Piano: Salamander Grand Piano V3 by Alexander Holm (<a href="https://creativecommons.org/licenses/by/3.0/" target="_blank" rel="noopener">CC BY 3.0</a>), retuned by Markus Fiedler, via sfzinstruments. Song cues name public-domain or traditional tunes; no recordings are used.</p>
   </section>
 
@@ -357,6 +358,7 @@ details .note{font-size:14px;color:var(--c-mut);margin:8px 0 0}
       <div><b>Missed most</b><div class="miss" id="rMiss"></div></div>
       <div class="why" id="rWhy"></div><div class="stamp" id="rStamp"></div>
       <p class="tip">Screenshot this screen and send it to your Instructor.</p>
+      <button class="btn primary" id="shareBtn" style="width:100%">Share result</button>
       <div class="actions"><button class="btn" id="closeBtn">Back to single tries</button><button class="btn primary" id="againBtn">Challenge again</button></div>
     </div>
   </div>
@@ -579,7 +581,7 @@ function answer(v,btn){ if(!q||phase!=="answer") return;
     if(q.notes.length>1&&i<q.notes.length-1){ if(ansMode==="kb") mark(v,"pend",String(i+1)); else if(btn){ btn.classList.add("hit"); setTimeout(()=>btn.classList.remove("hit"),250) } $("fb").innerHTML=`Note 1: ${valName(v)}. Now note 2.`; return } }
   const ok=ex===1?q.taps.every(t=>t.ok):ex===2?v===q.deg:v===q.ivs;
   const first=!q.tried;
-  if(first){ st.total++; const lf=life[ex]; lf.n++; if(ok){ const fast=arc&&performance.now()-q.mysAt<=3000, x=(arc&&arc.bonus?2:1)*(arc?(fast?2:1):1); st.pts+=x; q.got=x; st.correct++; st.streak++; st.best=Math.max(st.best,st.streak); lf.ok++; lf.streak++; lf.best=Math.max(lf.best,lf.streak) }
+  if(first){ st.total++; (st.row=st.row||[]).push({r:arc?(arc.bonus?6:arc.round):0,e:ok?(arc&&performance.now()-q.mysAt<=3000?"⚡":"🟩"):"🟥"}); const lf=life[ex]; lf.n++; if(ok){ const fast=arc&&performance.now()-q.mysAt<=3000, x=(arc&&arc.bonus?2:1)*(arc?(fast?2:1):1); st.pts+=x; q.got=x; st.correct++; st.streak++; st.best=Math.max(st.best,st.streak); lf.ok++; lf.streak++; lf.best=Math.max(lf.best,lf.streak) }
     else { st.streak=0; lf.streak=0; const k=missKey(); st.miss[k]=(st.miss[k]||0)+1 } store.set("life",life) }
   if(!ok&&first&&gmode==="single"&&!arc&&$("retryOn").checked){ q.tried=true; if(btn) btn.classList.add("miss"); if(ex===1&&ansMode==="kb") q.taps.forEach(t=>mark(t.v,"miss")); render();
     $("fb").innerHTML=`<span class="no">Not ${ex===1?q.taps.map(t=>valName(t.v)).join(", then "):valName(v)}.</span> Listen again and try once more.`; q.taps=[]; setTimeout(()=>{ if(phase==="answer"){ clearMarks(); mark(q.ref,"ref"); document.querySelectorAll("#padWrap button.miss").forEach(b=>b.classList.remove("miss")) } },700); return }
@@ -657,7 +659,12 @@ function arcRoundEnd(){ clearTimers(); phase="splash"; const got=st.pts-arc.star
   const cleared=arc.round; arc.round++; arc.inc[arc.round-1]=Math.min(15,Math.max(arc.inc[arc.round-1],Math.round(got*1.05),arc.inc[arc.round-2]+1)); arc.need=arc.inc[arc.round-1]; arcBar();
   arcSplash(`ROUND ${arc.round}`,`Target this round: ${arc.need} points in 8 questions. Fresh count from 0.`,arcRound,`ROUND ${cleared} CLEARED ✓`) }
 function sheet(on){ $("results").hidden=!on; [...$("card").children].forEach(c=>{ if(c!==$("results")) c.inert=on }); $("actbar").inert=on; $("actbar").hidden=on }
+let shareTxt="";
 function arcFinish(won,need,got){ const reached=arc.bonus?"Bonus round":`Round ${arc.round}`, failed=arc.round, key=`arcbest-${ex}-${level}`, prev=Math.max(0,Math.floor(+store.get(key,0)||0)), best=Math.max(prev,st.pts), isNew=st.pts>0&&st.pts>prev; store.set(key,best);
+  { const lv=L(), pc=st.total?Math.round(100*st.correct/st.total):0, g={}; (st.row||[]).forEach(x=>{(g[x.r]=g[x.r]||[]).push(x.e)});
+    shareTxt=[`👂 Ear Trainer · ${EXS[ex].name} · Level ${level} ${lv.name} · ${won?(got>=need?"Bonus cleared":"All 5 rounds"):"Round "+failed+" of 5"}`,
+      `${st.pts} points · ${pc}% right · ${st.correct}/${st.total} · best streak ${st.best}`,
+      Object.keys(g).sort((a,b)=>a-b).map(k=>g[k].join("")).join(" ")||"No answers"].concat(isNew&&prev>0?[`🏆 New high score (beat ${prev})`]:[]).join("\n") }
   splashTok++; hypeStop(120); clearTimers(); arc=null; arcUI(false); phase="idle"; q=null;
   $("rTitle").textContent=won?"Challenge cleared!":"Challenge over";
   $("rWhy").textContent=won?(got>=need?`All 5 rounds cleared and the bonus target hit (${got} / ${need}).`:`All 5 rounds cleared. Bonus target was ${need}; you had ${got}.`):`Round ${failed} target was ${need}. You had ${got}. Hit the target within 8 questions to unlock Round ${failed+1}.`;
@@ -688,6 +695,7 @@ document.querySelectorAll("#ansSeg button").forEach(b=>b.addEventListener("click
   if(id==="solfOn"&&ex===2) buildPad(); if(id==="cueOn") cueSheet(); if(id==="hypeOn"&&!$(id).checked) hypeStop(120) }) });
 { const v=store.get("dirSel","up"); if(["up","down","both","harm"].includes(v)) $("dirSel").value=v; $("dirSel").addEventListener("change",()=>{ store.set("dirSel",$("dirSel").value); cueSheet() }) }
 $("againBtn").addEventListener("click",arcStart);
+$("shareBtn").addEventListener("click",()=>chmaShare.share({app:"ear-trainer",text:shareTxt}));
 $("closeBtn").addEventListener("click",()=>{ sheet(false); gmode="single"; store.set("mode",gmode); setup() });
 document.addEventListener("visibilitychange",()=>{ if(document.hidden){ hypeStop(60); hush() } else if(ac&&ac.state!=="running") ac.resume().catch(()=>{}) });
 // ================= MIDI KEYBOARD =================

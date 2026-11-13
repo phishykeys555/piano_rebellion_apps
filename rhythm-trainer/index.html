@@ -832,7 +832,7 @@ details.how p{margin-top:6px}
     const hN=bars.reduce((a,b)=>a+(b.holdN||0),0); $("rHoldBox").hidden=!hN; $("rHold").textContent=hN?`${bars.reduce((a,b)=>a+(b.holdOk||0),0)}/${hN}`:"–";
     const L=LEVELS.find(x=>x.id===level), d=new Date(), how=inMode==="tap"?"Tap":inMode==="clap"?"Clap":inMode==="midi"?"MIDI":"One note";
     $("rStamp").textContent=`${tag} · High score ${half(best)} · Level ${LEVELS.indexOf(L)+1} · ${lvlName(L)} · ${meterId} · ${tempoTxt||tl(bpm)} · ${how} · ${d.toLocaleDateString(undefined,{weekday:"short",month:"short",day:"numeric"})} ${d.toLocaleTimeString([],{hour:"numeric",minute:"2-digit"})}`;
-    { const acc=bars.length?Math.round(bars.reduce((a,b)=>a+b.score,0)/bars.length):0, far=/ALL ROUNDS/.test(tag)?"All rounds cleared":tag.replace(/^CHALLENGE · ROUND /,"Round "),
+    { const acc=bars.length?Math.round(bars.reduce((a,b)=>a+b.score,0)/bars.length):0, far=/ALL ROUNDS/.test(tag)?"All rounds cleared":/ROUND 6$/.test(tag)?"Bonus round":tag.replace(/^CHALLENGE · ROUND /,"Round ")+" of 5",
         sq=bars.map(b=>b.score>=90?"🟩":b.score>=70?"🟨":"🟥"), row=[]; for(let i=0;i<sq.length;i+=10) row.push(sq.slice(i,i+10).join(""));
       shareTxt=[`🥁 Rhythm Trainer Challenge · Level ${LEVELS.indexOf(L)+1} ${lvlName(L)} · ${far}`, `${meterId} · ${tempoTxt||tl(bpm)} · ${how}`,
         `${acc}% accuracy · ${half(S.points)} points · ${bars.reduce((a,b)=>a+b.perfect,0)}/${bars.reduce((a,b)=>a+b.notes,0)} perfect hits`, row.join(" ")||"No tries"]

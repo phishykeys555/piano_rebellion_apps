@@ -103,7 +103,7 @@ button,a,label,summary,select,input{-webkit-tap-highlight-color:transparent}
  <p class="tip" style="margin-top:10px">Start at a tempo you can play clean. Switching tempo keeps your place in the exercise. Light touch = faster.</p>
 </div>
 
-<p class="appver">Hanon Speed Trainer · Version 2026-11-11.7</p>
+<p class="appver">Hanon Speed Trainer · Version 2026-11-13.1</p>
 </main>
 <script>
 const $=id=>document.getElementById(id);
@@ -179,4 +179,5 @@ $('grid').onclick=e=>{const b=e.target.closest('button');if(!b)return;setBpm(+b.
 try{if(navigator.audioSession)navigator.audioSession.type='playback'}catch(e){}
 document.addEventListener('keydown',e=>{if(e.ctrlKey||e.metaKey||e.altKey||e.target.tagName==='INPUT')return;if(e.code==='Space'){if(e.target.closest&&e.target.closest('button,a,summary'))return; /* Space on a focused button presses that button */e.preventDefault();$('play').click()}else if(e.key==='ArrowUp'||e.key==='ArrowRight')setBpm(bpm+10);else if(e.key==='ArrowDown'||e.key==='ArrowLeft')setBpm(bpm-10)});
 load(false);
-</script></body></html>
+</script><style>.chma-share{margin-left:auto;min-height:44px;padding:0 14px;font-size:13px;white-space:nowrap}</style><script src="../shared/share.js"></script><script>/* Share this app: a small button in the brand header, next to the version (shared/share.js adds the short link + studio site) */(function(){function add(){try{if(window.chmaHead)chmaHead()}catch(e){}const h=document.querySelector(".chma-head");if(!h||h.querySelector(".chma-share"))return;const b=document.createElement("button");b.type="button";b.className="chma-share";b.textContent="Share this app";b.setAttribute("aria-label","Share this app");b.addEventListener("click",()=>chmaShare.share({app:"hanon-player",text:"Hanon Speed Trainer: Hanon Exercises 1 and 2, 50 to 280 BPM, with level tempo goals."}));h.insertBefore(b,h.querySelector(".chma-ver"))}if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",add);else add()})();</script>
+</body></html>
