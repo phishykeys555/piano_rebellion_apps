@@ -746,6 +746,7 @@ details.how p{margin-top:6px}
       else if(avg<-45) c=`Rushing: about ${Math.round(-avg)} ms early on average. Wait for the beat.`;
       else if(avg>45) c=`Dragging: about ${Math.round(avg)} ms late on average. Lock onto the click.`;
       else { const worst=bar.notes[errs.map(Math.abs).indexOf(Math.max(...errs.map(Math.abs)))]; c=worst?`Close. Watch "${CNT(worst.s)}". Say the counts out loud while you tap.`:"Close. Say the counts out loud while you tap." } }
+    if(inMode==="midi"&&latMidi==null&&errs.length>=3&&Math.abs(avg)>25&&Math.max(...errs)-Math.min(...errs)<40) c+=` (Every note ${Math.round(Math.abs(avg))} ms ${avg>0?"late":"early"}? That's keyboard delay: tap Calibrate once.)`;
     msg(cls,v,c);
     lastGrade={score,cpts:Math.max(0,cp-0.5*extras.length),holds:holds.map(h=>({s:h.s,end:h.end,len:h.len,tied:h.tied,g:h.g,err:h.err==null?null:Math.round(h.err*1000)})),v,c};
     afterGrade({score,perfect,ok:okN,notes:notes.length,errs,missed:missed.length,extras:extras.length,cpts:lastGrade.cpts,holdN:holds.length,holdOk:holds.filter(h=>h.g==="perfect"||h.g==="good").length}) }
@@ -819,7 +820,7 @@ details.how p{margin-top:6px}
   function stopSession(silent){ hypeStop(120); if(!sess) return; clearInterval(sess.timer); sess.stopped=true; sess=null; arc=null; splashTok++; if(run){ run=null; hush(); drawBar(null); $("go").disabled=false } lockUI(); $("arcbar").hidden=true; $("arcMeter").hidden=true; $("cxBar").hidden=true; $("arcSplash").hidden=true; $("hear").disabled=false; $("go").textContent="Start"; if(!silent) msg(null,"Stopped","Press Start to go again."); stats() }
   function sessionOver(){ if(!sess) return; if(arc) return arcRoundEnd(); stopSession(true) }
   function showResults(title,S,why,tag,tempoTxt,steady){ const bars=S.bars, all=bars.flatMap(r=>r.errs), mean=all.length?all.reduce((a,b)=>a+b,0)/all.length:0, key=bestKey(steady), prev=bestNum(key)||0, best=Math.max(prev,S.points), isNew=S.points>0&&S.points>=best;
-    store.set(key,best); $("rTitle").textContent=title; $("rWhy").textContent=why||"";
+    store.set(key,best); $("rTitle").textContent=title; $("rWhy").textContent=(why||"")+(inMode==="midi"&&latMidi==null&&all.length>=6&&Math.abs(mean)>25?` Your notes averaged ${Math.round(Math.abs(mean))} ms ${mean>0?"late":"early"}. If they felt on time, that's keyboard delay: tap Calibrate once and it's gone.`:"");
     $("rScore").innerHTML=`${half(S.points)} <small>points</small>${isNew?"<small>· new high score</small>":""}`; // two pieces: on a narrow phone "new high score" wraps to its own line instead of running off the card
     $("rAcc").textContent=bars.length?Math.round(bars.reduce((a,b)=>a+b.score,0)/bars.length)+"%":"–";
     $("rPerfect").textContent=`${bars.reduce((a,b)=>a+b.perfect,0)}/${bars.reduce((a,b)=>a+b.notes,0)}`;
@@ -1262,12 +1263,14 @@ class NoteFlux{
   let midiAcc=null, midiAsk=null; const keyIn=()=>inMode==="tap"||inMode==="midi";
   function midiT(ts){ const a=audio; if(!a) return 0; try{ const o=a.getOutputTimestamp&&a.getOutputTimestamp(); if(o&&o.performanceTime>0) return o.contextTime+(ts-o.performanceTime)/1000 }catch(e){}
     return a.currentTime-(performance.now()-ts)/1000-((a.outputLatency||0)+(a.baseLatency||0)) }
-  function midiMsg(e){ if(inMode!=="midi"||!e.data||e.data.length<2) return; const st=e.data[0]&0xF0, n=e.data[1], v=e.data.length>2?e.data[2]:0, id="midi"+n, t=midiT(e.timeStamp||performance.now());
+  const midiLast={};
+  function midiMsg(e){ if(inMode!=="midi"||!e.data||e.data.length<2) return; const st=e.data[0]&0xF0, n=e.data[1], v=e.data.length>2?e.data[2]:0, id="midi"+n, now=performance.now(), ts0=e.timeStamp, ts=(ts0>0&&Math.abs(ts0-now)<1000)?ts0:now, t=midiT(ts);   /* 0 or other-clock timestamps (some drivers) fall back to arrival time */
+    { const on=st===0x90&&v>0, k=(on?"on":"off")+n, last=midiLast[k]; midiLast[k]=ts; if(last!=null&&ts-last<30) return }   /* dual-port keyboards (MPK mkII etc.) and "All devices" deliver each key twice: one key = one hit */
     if(st===0x90&&v>0){ if(!audio) return; pressAt(t,id,"midi"); $("pad").classList.add("hit"); setTimeout(()=>$("pad").classList.remove("hit"),90) } else if(st===0x80||(st===0x90&&v===0)) releaseAt(t,id) }
   function midiList(){ if(!midiAcc) return; const ins=[...midiAcc.inputs.values()], sel=$("midiSel"), cur=sel.value||store.get("midiDev","all");
     sel.innerHTML='<option value="all">All connected devices</option>'+ins.map(i=>`<option value="${String(i.id).replace(/"/g,"")}">${String(i.name||"MIDI device").replace(/[<>&]/g,"")}</option>`).join(""); sel.value=ins.some(i=>i.id===cur)?cur:"all";
     ins.forEach(i=>{ i.onmidimessage=(sel.value==="all"||sel.value===i.id)?midiMsg:null });
-    $("midiStat").textContent=ins.length?`${ins.length===1?"1 MIDI device":ins.length+" MIDI devices"} connected. Play any key with each note: key down starts it, key up lets go.`:"No MIDI keyboard found. Plug one in (USB or Bluetooth MIDI): it shows up here by itself." }
+    $("midiStat").textContent=ins.length?`${ins.length===1?"1 MIDI device":ins.length+" MIDI devices"} connected. Play any key with each note: key down starts it, key up lets go.${latMidi==null?" First time? Tap Calibrate once so your keyboard's delay doesn't count against you.":""}`:"No MIDI keyboard found. Plug one in (USB or Bluetooth MIDI): it shows up here by itself." }
   async function midiStart(){ if(!navigator.requestMIDIAccess){ $("midiStat").textContent="MIDI works in Chrome, Edge or Opera on a computer or Android. Safari and iPhone/iPad don't support Web MIDI: use Tap or One note there."; return false }
     if(midiAcc){ midiList(); return true } if(!midiAsk) midiAsk=navigator.requestMIDIAccess({sysex:false}).then(acc=>{ midiAcc=acc; acc.onstatechange=()=>midiList(); midiList(); return true }).catch(()=>{ midiAsk=null; $("midiStat").textContent="MIDI is blocked. Allow MIDI devices for this site in the browser's site settings, then pick MIDI again."; return false });
     return midiAsk }
@@ -1289,6 +1292,6 @@ class NoteFlux{
   if(document.fonts) document.fonts.ready.then(()=>{ if(!run) drawBar(curRes) });
 })();
 </script>
-<p class="appver" style="text-align:center;font-size:11px;opacity:.6;margin:18px 0 10px;font-family:ui-monospace,Menlo,monospace">Rhythm Trainer · Version 2026-11-13.1</p>
+<p class="appver" style="text-align:center;font-size:11px;opacity:.6;margin:18px 0 10px;font-family:ui-monospace,Menlo,monospace">Rhythm Trainer · Version 2026-11-13.2</p>
 </body>
 </html>
