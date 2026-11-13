@@ -30,6 +30,8 @@ h1{font-weight:800;font-size:30px;letter-spacing:-.02em;margin:0} h1 em{font-sty
 .byline{font-weight:600;font-size:15px;margin:2px 0 0} .sub{color:var(--muted);font-size:13px;margin:2px 0 0}
 button{font:inherit;cursor:pointer;border-radius:10px;border:1px solid var(--border);background:var(--panel);color:var(--ink)}
 button:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+/* 2026-11-13.4: rapid taps on phones are clean hits, never a text selection, callout or double-tap zoom (pad, Start, Hear it) */
+#pad,#pad *,#go,#go *,#hear,#hear *{-webkit-user-select:none;user-select:none;-webkit-touch-callout:none;touch-action:manipulation;-webkit-tap-highlight-color:transparent}
 .row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
 .levels{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}
 .lvl{padding:8px 4px;display:flex;flex-direction:column;gap:2px;align-items:center;text-align:center}
@@ -249,7 +251,7 @@ details.how p{margin-top:6px}
         <label for="micGain">Sensitivity</label><input type="range" id="micGain" min="0.25" max="12" step="0.25" value="3">
         <span>Level</span><div class="meter"><i id="meterFill"></i><span class="thr" id="thr"></span></div>
       </div>
-      <p class="tip" id="micStat" role="status" aria-live="polite" style="margin-top:6px">Clap or snap once: the Level bar should jump past the line and the pad lights up.</p>
+      <p class="tip" id="micStat" role="status" aria-live="polite" style="margin-top:6px">Clap or snap once: the Level bar should jump past the line.</p>
       <p class="tip noteonly" style="margin-top:2px"><a href="#" id="diagLink">Mic not catching hits? Show details</a></p>
       <div id="diag" class="diag" hidden><div class="row" style="justify-content:space-between"><b>What the mic decided (newest first)</b><button class="ghost" id="diagCopy">Copy log</button></div><pre id="diagRows"></pre></div>
       <p class="tip" style="margin-top:4px">Clap or snap and One note grade when each note starts, not how long you hold it. To grade your holds, use Tap.</p>
@@ -658,6 +660,9 @@ details.how p{margin-top:6px}
   function pressAt(t,id,src){ src=src||"tap"; if(held.has(id)) releaseAt(t,id); const man=manLag(src), lag=man!=null?man/1000:autoLag(src), i=tapAt(t,src==="tap"?undefined:src); held.set(id,{arr:taps,i,lag}); padDown(); return i }
   function releaseAt(t,id){ const h=held.get(id); if(!h) return; held.delete(id); if(h.i>=0&&h.arr===taps&&rels[h.i]==null) rels[h.i]=t-h.lag; padDown() }
   function releaseAll(){ const t=audio?audio.currentTime:0; [...held.keys()].forEach(id=>releaseAt(t,id)) }
+  // pointerdown is the pad's only input path (no click, touchstart or mousedown handler), so each physical tap is one hit; preventDefault stops the
+  // synthetic mouse events, and the long-press menu and selection are blocked (2026-11-13.4)
+  ["contextmenu","selectstart","dragstart"].forEach(k=>$("pad").addEventListener(k,e=>e.preventDefault()));
   $("pad").addEventListener("pointerdown",e=>{ e.preventDefault(); try{ $("pad").setPointerCapture(e.pointerId) }catch(_){} if(audio) pressAt(audio.currentTime,e.pointerId) });
   const lift=e=>{ if(held.has(e.pointerId)) releaseAt(audio?audio.currentTime:0,e.pointerId) };
   ["pointerup","pointercancel","lostpointercapture"].forEach(k=>$("pad").addEventListener(k,lift)); ["pointerup","pointercancel"].forEach(k=>document.addEventListener(k,lift,true));
@@ -891,12 +896,18 @@ details.how p{margin-top:6px}
   // the complexity bar under the round meter: where this rhythm sits between the round's easiest and hardest
   function cxShow(){ const on=!!(arc&&arc.deck&&bar&&bar.diff!=null); $("cxBar").hidden=!on; if(!on) return; const D=arc.deck.map(x=>x.diff), lo=Math.min(...D), hi=Math.max(...D);
     $("cxFill").style.width=(hi>lo?8+92*(bar.diff-lo)/(hi-lo):100)+"%"; (window.__rtSeq=window.__rtSeq||[]).push({round:arc.round,i:arc.bi,diff:bar.diff,lv:bar.lv,r:sig(bar),bpm:arc.bpm}) }
-  $("go").addEventListener("click",async()=>{ if(gmode!=="practice"&&(sess||arc)){ stopSession(); return } if(run||starting) return; if(calHook){ msg(null,"Calibrating…","Finish the 8 clicks first (Settings), then press Start."); return }
+  // Start and Hear it act on pointerdown (2026-11-13.4), once per press: the click that follows the same press is skipped, while a keyboard or
+  // scripted click (detail 0) still runs. Until the audio is running, a touch waits for its click: only the click (touchend) can unlock audio on a phone.
+  function fastPress(el,fn){ let at=-1e9;
+    ["contextmenu","selectstart","dragstart"].forEach(k=>el.addEventListener(k,e=>e.preventDefault()));
+    el.addEventListener("pointerdown",e=>{ if(e.button>0||el.disabled) return; if(e.pointerType!=="mouse"&&!(audio&&audio.state==="running")) return; e.preventDefault(); at=performance.now(); fn() });
+    el.addEventListener("click",e=>{ if(e.detail>0&&performance.now()-at<1500){ at=-1e9; return } fn() }) }
+  fastPress($("go"),async()=>{ if(gmode!=="practice"&&(sess||arc)){ stopSession(); return } if(run||starting) return; if(calHook){ msg(null,"Calibrating…","Finish the 8 clicks first (Settings), then press Start."); return }
     if(gmode!=="practice") return arcStart(); if($("go").textContent==="Next rhythm"||!bar) newBar(); $("go").textContent="Start"; $("again").hidden=true; await startTest() });
   $("again").addEventListener("click",async()=>{ if(run||starting||calHook) return; $("again").hidden=true; if(round.length) round.pop(); stats(); await startTest() });
-  $("hear").addEventListener("click",()=>{ if(!bar) newBar(); play("hear") });
+  fastPress($("hear"),()=>{ if(!bar) newBar(); play("hear") });
   // phones: when a try starts, scroll so the staff, the pad and the Start bar share the screen
-  function playView(){ try{ if(wideMQ&&wideMQ.matches) return; const r=$("pad").getBoundingClientRect(), st=document.querySelector(".stats").getBoundingClientRect(); if(r.bottom>innerHeight-70||st.top<0) window.scrollBy({top:st.top-8,behavior:"smooth"}) }catch(e){} }
+  function playView(){ try{ if(wideMQ&&wideMQ.matches) return; const r=($("pad").hidden?$("go"):$("pad")).getBoundingClientRect(), st=document.querySelector(".stats").getBoundingClientRect(); if(r.bottom>innerHeight-70||st.top<0) window.scrollBy({top:st.top-8,behavior:"smooth"}) }catch(e){} }
   async function startTest(){ playView(); await play("test") }
   // while the results sheet covers the card, the controls under it are out of the Tab order (no tabbing into hidden buttons)
   new MutationObserver(()=>{ const on=!$("results").hidden; [...$("card").children].forEach(el=>{ if(el.id!=="results"&&el.id!=="hitStamp"){ if(on) el.setAttribute("inert",""); else el.removeAttribute("inert") } }) }).observe($("results"),{attributes:true,attributeFilter:["hidden"]});
@@ -1105,7 +1116,7 @@ class NoteFlux{
   const micPolicyOff=()=>{ try{ const pp=document.permissionsPolicy||document.featurePolicy; return !!(pp&&pp.allowsFeature&&!pp.allowsFeature("microphone")) }catch(e){ return false } };
   const FRAMED_MSG="The microphone can't turn on inside this page (Notion and other embeds keep it off).";
   function micMsg(html){ $("micStat").innerHTML=html }
-  function micHint(){ if(micPolicyOff()) micMsg(FRAMED_MSG+fullLink()+" to clap or play, or use Tap here."); else micMsg(inMode==="note"?"Turn on the microphone, then play your note once: the Level bar should jump and the pad lights up.":"Turn on the microphone, then clap or snap once: the Level bar should jump past the line and the pad lights up.") }
+  function micHint(){ if(micPolicyOff()) micMsg(FRAMED_MSG+fullLink()+" to clap or play, or use Tap here."); else micMsg(inMode==="note"?"Turn on the microphone, then play your note once: the Level bar should jump.":"Turn on the microphone, then clap or snap once: the Level bar should jump past the line.") }
   function setThr(v){ thr=v; $("thr").style.left=Math.min(100,thr*300)+"%" }
   // ---------- One note detector (NoteFlux) wiring ----------
   const fxPost=m=>{ try{ if(mic&&mic.fx) mic.fx.port.postMessage(m) }catch(e){} };
@@ -1266,7 +1277,7 @@ class NoteFlux{
   function placeMic(){ const mb=$("micBox"); if(wideMQ&&wideMQ.matches){ if(mb.parentNode!==$("micSlot")) $("micSlot").appendChild(mb) } else if(mb.previousElementSibling!==$("inSeg")) $("inSeg").after(mb) }
   placeMic(); if(wideMQ){ try{ wideMQ.addEventListener("change",placeMic) }catch(e){ try{ wideMQ.addListener(placeMic) }catch(_){} } }
   function setIn(m){ hypeStop(120); const was=inMode; inMode=m; if(mic&&m!=="tap"&&(was==="note")!==(m==="note")) micStart($("micSel").value||undefined); store.set("in",m); document.querySelectorAll("#inSeg button").forEach(b=>b.setAttribute("aria-pressed",String(b.dataset.in===m)));
-    $("micBox").hidden=!micMode(); $("midiBox").hidden=m!=="midi"; if(micMode()&&!mic&&!micBusy) micHint(); document.querySelectorAll(".noteonly").forEach(e=>e.hidden=m!=="note"); $("pad").textContent=m==="clap"?"CLAP · SNAP · TAP":m==="note"?"PLAY YOUR NOTE · TAP":m==="midi"?"PLAY ANY KEY · TAP":"TAP"; if(!micMode()) micStop(); if(m==="midi") midiStart(); calLabel(); if(typeof clkUI==="function") try{ clkUI() }catch(e){} }
+    $("micBox").hidden=!micMode(); $("midiBox").hidden=m!=="midi"; if(micMode()&&!mic&&!micBusy) micHint(); document.querySelectorAll(".noteonly").forEach(e=>e.hidden=m!=="note"); $("pad").textContent="TAP"; $("pad").hidden=m!=="tap"; if(m!=="tap") releaseAll(); /* 2026-11-13.4: the pad shows in Tap only (Space still taps in MIDI) */ if(!micMode()) micStop(); if(m==="midi") midiStart(); calLabel(); if(typeof clkUI==="function") try{ clkUI() }catch(e){} }
   // ---------- MIDI input (Chrome, Edge, Opera; not Safari) ----------
   // note-on (velocity > 0) = a press, note-off = a release, each on the audio clock of what you heard (getOutputTimestamp), so holds are exact
   let midiAcc=null, midiAsk=null; const keyIn=()=>inMode==="tap"||inMode==="midi";
@@ -1301,6 +1312,6 @@ class NoteFlux{
   if(document.fonts) document.fonts.ready.then(()=>{ if(!run) drawBar(curRes) });
 })();
 </script>
-<p class="appver" style="text-align:center;font-size:11px;opacity:.6;margin:18px 0 10px;font-family:ui-monospace,Menlo,monospace">Rhythm Trainer · Version 2026-11-13.3</p>
+<p class="appver" style="text-align:center;font-size:11px;opacity:.6;margin:18px 0 10px;font-family:ui-monospace,Menlo,monospace">Rhythm Trainer · Version 2026-11-13.4</p>
 </body>
 </html>
