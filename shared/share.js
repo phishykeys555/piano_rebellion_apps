@@ -9,7 +9,7 @@
   const LINKS={hub:"https://is.gd/chmagames","fab-fours":"https://is.gd/chmafabfours","note-sprint":"https://is.gd/chmanotesprint",
     "key-finder":"https://is.gd/chmakeyfinder","rhythm-trainer":"https://is.gd/chmarhythm","riff-says":"https://is.gd/chmariff",
     "meter-master":"https://is.gd/chmametermaster","symbol-memory":"https://is.gd/chmasymbols","ear-trainer":"https://is.gd/chmaeartrainer",
-    "trivia":"https://is.gd/chmatrivia","drum-machine":"https://is.gd/chmametronome","song-player":"https://is.gd/chmadissector",
+    "trivia":"https://is.gd/chmapopquiz","drum-machine":"https://is.gd/chmametronome","song-player":"https://is.gd/chmadissector",
     "hanon-player":"https://is.gd/chmahanon","guitar-tuner":"https://is.gd/chmatuner"};
   function link(app){return LINKS[app]||LINKS.hub}
   function compose(o){const lead=o.playLine||"Play free:";return (o.text?o.text.replace(/\s+$/,"")+"\n\n":"")+lead+" "+link(o.app)+"\nClarendon Hills Music Academy · "+SITE}

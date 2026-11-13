@@ -7,6 +7,7 @@
 <link rel="stylesheet" href="../shared/chma.css">
 <script src="../shared/brand.js"></script>
 <script src="../shared/hype.js"></script>
+<script src="../shared/share.js"></script>
 <style>
 /* One practice card: score strip, prompt, keyboard, answer pad. Results sheet over the card when a challenge ends. */
 :root{
@@ -273,7 +274,7 @@ details.how p{margin:10px 0 0}
     <label><input type="checkbox" id="retryOn"> Second try on a miss (practice only)</label>
     <label><input type="checkbox" id="flatsOn"> Call black keys by their flat name (D♭) in Find the key</label>
   </details>
-  <p class="appver" id="appVer">Key Finder · Version 2026-11-13.2</p>
+  <p class="appver" id="appVer">Key Finder · Version 2026-11-13.3</p>
   </section>
 
   <section class="play">
@@ -316,6 +317,7 @@ details.how p{margin:10px 0 0}
       <div><b>Missed most</b><div class="miss" id="rMiss"></div></div>
       <div class="why" id="rWhy"></div><div class="stamp" id="rStamp"></div>
       <p class="tip" style="text-align:left">Screenshot this screen and send it to your instructor.</p>
+      <button class="btn primary" id="shareBtn" style="width:100%">Share result</button>
       <div class="actions"><button class="btn" id="closeBtn">Back to practice</button><button class="btn primary" id="againBtn">Challenge again</button></div>
     </div>
   </div>
@@ -463,8 +465,14 @@ details.how p{margin:10px 0 0}
     // adapt round to round: the next target is at least 5% more than what was just scored, so a strong round raises the bar right away
     arc.inc[arc.round-1]=Math.max(arc.inc[arc.round-1],Math.round(got*1.05),arc.inc[arc.round-2]+1); arc.start=st.pts; arc.needs[arc.round-1]=st.pts+arc.inc[arc.round-1]; arc.hit=false; arcBar();
     arcSplash(`ROUND ${arc.round}`,`Target this round: ${arc.inc[arc.round-1]} points. Fresh count, extras don't carry.`,2400,arcRound,`ROUND ${cleared} CLEARED ✓`) }
+  let shareTxt="";
   function arcFinish(won,need,got){ const failedRound=won?0:arc.round, reached=arc.bonus?"Bonus round":`Round ${arc.round}`, key="arcbest-"+level+"-"+mode;
     const old=+store.get(key,0), prev=Number.isFinite(old)&&old>=0?Math.floor(old):0, best=Math.max(prev,st.pts), isNew=st.pts>0&&st.pts>prev; store.set(key,best);
+    { const lv=L(), pc=st.total?Math.min(100,Math.round(100*st.correct/st.total)):0, bonusHit=arc.bonus&&got>=need;
+      const far=arc.bonus?(bonusHit?"Bonus round cleared":"Bonus round reached"):`Round ${arc.round} of 5`;
+      const row=arc.bonus?"🟩🟩🟩🟩🟩"+(bonusHit?"🌟":"⬜"):"🟩".repeat(Math.max(0,arc.round-1))+"🟥";
+      shareTxt=[`🎹 Key Finder · Level ${lv.id} ${lv.name} (${lv.sub}) · ${far}`, `${st.pts} points · ${pc}% accuracy · ${st.total} keys · best streak ${st.best}`,
+        `${mode==="name"?"Name the key":"Find the key"} · ${row}`].concat(isNew&&prev>0?[`🏆 New high score (beat ${prev})`]:[]).join("\n") }
     splashTok++; hypeStop(120); clearInterval(timer); timer=null; clearTimeout(nextT); arc=null; arcUI(false); locked=true;
     $("rTitle").textContent=won?"Challenge cleared!":"Challenge over";
     $("rWhy").textContent=won?(got>=need?`All 5 rounds cleared and the bonus target hit (${got} / ${need}).`:`All 5 rounds cleared. Bonus target was ${need}; you had ${got}.`):`Round ${failedRound} target was ${need}. You had ${got}. Hit the target before the 30 seconds run out to unlock Round ${failedRound+1}.`;
@@ -498,6 +506,7 @@ details.how p{margin:10px 0 0}
   $("resetBtn").addEventListener("click",()=>{ stopChallenge(); resetScore(); newQ() });
   $("chalBtn").addEventListener("click",()=>{ if(arc){ stopChallenge(); newQ() } else arcStart() });   // Start Challenge doubles as Stop while a run is on (splash included)
   $("againBtn").addEventListener("click",arcStart);
+  $("shareBtn").addEventListener("click",()=>chmaShare.share({app:"key-finder",text:shareTxt}));
   $("closeBtn").addEventListener("click",()=>{ sheet(false); resetScore(); newQ(); try{ $("chalBtn").focus({preventScroll:true}) }catch(e){} });
   document.addEventListener("keydown",e=>{ if(mode!=="name"||e.target.tagName==="INPUT"||e.repeat||e.metaKey||e.ctrlKey||e.altKey) return; const k=e.key.toUpperCase(); const i=["C","D","E","F","G","A","B"].indexOf(k); if(i<0) return;
     let pc=[0,2,4,5,7,9,11][i]; if(e.shiftKey){ if(!BLACK.includes(pc+1)) return; pc++ } const btn=document.querySelector(`.pad button[data-pc="${pc}"]`); padTap(pc,btn) });

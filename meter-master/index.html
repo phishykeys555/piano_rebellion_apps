@@ -5,6 +5,7 @@
 <link rel="stylesheet" href="../shared/chma.css">
 <script src="../shared/brand.js"></script>
 <script src="../shared/hype.js"></script>
+<script src="../shared/share.js"></script>
 <style>
 /* Setup on the left, play card + action bar on the right (desktop). Phone: compact setup, big tap pad, fixed bottom bar. */
 *{box-sizing:border-box} [hidden]{display:none!important}
@@ -231,7 +232,7 @@ input[type=range]{accent-color:var(--c-act)}
         <details id="dbgBox" style="margin-top:8px"><summary>Show details</summary><div class="dbg" id="dbg">No mic events yet.</div></details>
       </div>
     </details>
-    <p class="appver" id="appVer">Meter Master · Version 2026-11-13.2</p>
+    <p class="appver" id="appVer">Meter Master · Version 2026-11-13.3</p>
   </section>
 
   <section class="play">
@@ -273,6 +274,7 @@ input[type=range]{accent-color:var(--c-act)}
         <div class="gaps" id="rGaps"></div>
         <div class="stamp" id="rStamp"></div>
         <p class="fix" style="color:var(--c-mut)">Screenshot this screen and send it to your Instructor.</p>
+        <button class="btn primary" id="shareBtn" type="button" style="width:100%;min-height:48px">Share result</button>
         <div class="actions"><button class="btn" id="closeBtn" type="button">Back</button><button class="btn primary" id="againBtn" type="button">Go again</button></div>
       </div>
     </div>
@@ -286,7 +288,7 @@ input[type=range]{accent-color:var(--c-act)}
 <script>
 (()=>{
 'use strict';
-const VER="2026-11-13.2";
+const VER="2026-11-13.3";
 const $=id=>document.getElementById(id);
 const store={get(k,d){try{const v=localStorage.getItem("mm-"+k);return v==null?d:JSON.parse(v)}catch(e){return d}},set(k,v){try{localStorage.setItem("mm-"+k,JSON.stringify(v))}catch(e){}}};
 const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
@@ -788,7 +790,7 @@ $("goBtn").addEventListener("click",async()=>{ if(run||arc){ abort(); return } i
   $("results").hidden=true; $("card").classList.remove("showres");
   if(mode==="chal") return arcStart();
   const L=LEVELS.find(x=>x.id===lvl); await startRun(L,res=>{ setState("Done","Here's how your clock held up."); saveBest(res); showResults(res,`Level ${lvl} · ${lvlName(L)}`) }) });
-function saveBest(res){ if(!res.max) return; const all=store.get("best",{}), k=bestKey(), B=all[k]; res.isBest=!B||res.pct>B.pct+1e-9; if(res.isBest){ all[k]={pct:res.pct,score:res.score,at:Date.now()}; store.set("best",all) } showBest() }
+function saveBest(res){ if(!res.max) return; const all=store.get("best",{}), k=bestKey(), B=all[k]; res.isBest=!B||res.pct>B.pct+1e-9; res.hadBest=!!B; if(res.isBest){ all[k]={pct:res.pct,score:res.score,at:Date.now()}; store.set("best",all) } showBest() }
 
 // ================= CHALLENGE =================
 let splashTok=0;
@@ -815,7 +817,7 @@ function arcRoundEnd(res){ if(!arc) return; const r=arc.round, p=Math.round(res.
   splash(`${rName(r)} CLEARED ✓ · ${p}%`,rName(arc.round),rDesc(ROUNDS[arc.round-1]),arc.round===6?`Bonus: 16 bars of silence. Target ${arc.need}%. Count the bars.`:`Longer silence. Target: ${arc.need}% of the points.`,arcRound) }
 function arcFinish(won,res){ hypeStop(); const A=arc; arc=null; $("arcRow").hidden=true; $("arcMeter").hidden=true; lockUI();
   const cleared=won?6:A.round-1, tot=A.results.reduce((s,r)=>s+r.score,0);
-  const all=store.get("best",{}), k=bestKey(), B=all[k]; const isBest=!B||cleared>B.r||(cleared===B.r&&tot>B.score); if(isBest){ all[k]={r:cleared,score:tot,at:Date.now()}; store.set("best",all) } showBest();
+  const all=store.get("best",{}), k=bestKey(), B=all[k]; const isBest=!B||cleared>B.r||(cleared===B.r&&tot>B.score); res.hadBest=!!B; if(isBest){ all[k]={r:cleared,score:tot,at:Date.now()}; store.set("best",all) } showBest();
   const why=won?`All 5 rounds cleared, and the bonus round too. ${tot} points at ${bpm} BPM.`:A.round===1?"":`${A.round===6?"The bonus round":"Round "+A.round} needed ${A.need}%. You had ${Math.round(res.pct*100)}%. ${cleared>=1?`Rounds cleared: ${cleared}.`:""}`;
   res.isBest=isBest; res.chal={won,results:A.results,why,tot}; setState(won?"Challenge cleared!":"Challenge over",why||"Here's how your clock held up.");
   showResults(res,won?"Challenge cleared!":"Challenge over") }
@@ -829,7 +831,17 @@ function showResults(res,title){ $("card").classList.add("showres"); $("results"
   const total=ch?ch.tot:res.score, max=ch?ch.results.reduce((s,r)=>s+r.max,0):res.max;
   $("rOf").textContent=`/ ${max} points`; $("rNew").hidden=!res.isBest; countUp($("rPts"),total);
   detail(res,!!ch); $("rStamp").textContent=`${new Date().toLocaleString()} · ${bpm} BPM · ${bpb}/4 · ${IN_NAME[inMode]} · Meter Master ${VER}`;
+  shareTxt=meterShare(res,total,max);
   setTimeout(()=>{ try{ $("rTitle").focus({preventScroll:true}) }catch(e){} },50) }
+// share text: brag line, tempo + meter, the numbers, one square per round (challenge) or per silence (practice)
+let shareTxt="";
+function meterShare(res,total,max){ const ch=res.chal, how=IN_NAME[inMode]||inMode, acc=max?Math.round(100*total/max):0;
+  if(ch){ const R=ch.results, row=R.map((r,i)=>r.round===1?"🟩":(i<R.length-1&&R[i+1].round===r.round)||(i===R.length-1&&!ch.won)?"🟥":r.round===6?"🌟":"🟩").join(""), last=R[R.length-1];
+    return [`⏱️ Meter Master Challenge · ${ch.won?"All 5 rounds + bonus cleared":`Reached ${last.round===6?"the bonus round":"Round "+last.round}`}`, `${bpm} BPM · ${bpb}/4 · ${how}`,
+      `${acc}% accuracy · ${total} / ${max} points`, row].concat(res.isBest&&res.hadBest?["🏆 New personal best"]:[]).join("\n") }
+  const L=LEVELS.find(x=>x.id===lvl)||LEVELS[0], row=(res.gaps||[]).map(S=>S.key==="solid"?"🟩":S.key==="lost"?"🟥":"🟨").join("");
+  return [`⏱️ Meter Master · Level ${L.id} (${lvlName(L)}) · ${Math.round(res.pct*100)}% accuracy`, `${bpm} BPM · ${bpb}/4 · ${how}`,
+    `${total} / ${max} points${res.gSpread==null?"":` · steady to ±${Math.round(res.gSpread*1000)} ms`}`].concat(row?[row]:[]).concat(res.isBest&&res.hadBest?["🏆 New personal best"]:[]).join("\n") }
 function countUp(el,to){ const t0=performance.now(), dur=Math.min(1400,300+to*6); cancelAnimationFrame(countUp.r); const f=()=>{ const p=Math.min(1,(performance.now()-t0)/dur); el.textContent=Math.round(to*(1-Math.pow(1-p,3))); if(p<1) countUp.r=requestAnimationFrame(f) }; f() }
 function detail(res,isCh){ const plan=res.plan, V=$("rVerdict"), good=res.key==="solid", bad=res.key==="lost";
   let v=res.headline||""; if(isCh&&res.round) v=`${res.round===6?"Bonus":"Round "+res.round}: `+v; if(res.chal&&res.chal.why) v=res.chal.why+" "+v; V.textContent=v;
@@ -870,6 +882,7 @@ function drawCharts(res){ const plan=res.plan, P=plan.P, B=plan.beats, first=B.f
   c+=`<path d="${path}" fill="none" stroke="#6e95ff" stroke-width="2.5" stroke-linejoin="round"/>`;
   res.beats.forEach(r=>{ if(r.off==null) return; c+=`<circle cx="${X(r.b.t).toFixed(1)}" cy="${Y(-r.off).toFixed(1)}" r="3.5" fill="${col(r.pts)}"/>` });
   const sc=$("svgC"); sc.setAttribute("width",W); sc.setAttribute("height",CH); sc.setAttribute("viewBox",`0 0 ${W} ${CH}`); sc.innerHTML=c }
+$("shareBtn").addEventListener("click",()=>chmaShare.share({app:"meter-master",text:shareTxt}));
 $("closeBtn").addEventListener("click",()=>{ $("results").hidden=true; $("card").classList.remove("showres"); setState("Ready","Pick a level and tempo, then press Start.") });
 $("againBtn").addEventListener("click",()=>{ $("results").hidden=true; $("card").classList.remove("showres"); $("goBtn").click() });
 

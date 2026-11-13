@@ -4,6 +4,7 @@
 <meta name="description" content="Fab Fours: find the four groups of four. A daily music word puzzle with theory, history and pop culture topics.">
 <link rel="stylesheet" href="../shared/chma.css">
 <script src="../shared/brand.js"></script>
+<script src="../shared/share.js"></script>
 <style>
 :root{
  --t1:#ff6a1a;--t1i:#121212; --t2:#ff4d5e;--t2i:#160608; --t3:#2f6bff;--t3i:#ffffff; --t4:#e9e9e9;--t4i:#121212;
@@ -87,7 +88,6 @@ dialog::backdrop{background:rgba(0,0,0,.55)}
 .tiers{display:grid;grid-template-columns:1fr 1fr;gap:6px}
 .tiers div{border-radius:10px;padding:7px 10px;font:700 13px var(--f-body);display:flex;gap:6px;align-items:center}
 .result{font:700 18px var(--f-title);margin:0 0 4px}
-#shareBox{margin:10px 0 2px}#shareBox .sbh{font-size:13px;color:var(--c-mut);margin:0 0 6px}#shareTa{width:100%;font:13px/1.4 var(--f-num);background:var(--c-panel2);color:var(--c-ink);border:1px solid var(--c-line);border-radius:10px;padding:8px;resize:none;-webkit-user-select:text;user-select:text}#shareCopy{margin-top:6px}
 .arch{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:6px}
 .arch button{text-align:left;min-height:46px;font-size:13px;line-height:1.15;padding:6px 10px}
 .arch button small{display:block;color:var(--c-mut);font-weight:500;font-size:11px}
@@ -102,7 +102,7 @@ kbd{font:600 11px var(--f-num);background:var(--c-key);border:1px solid var(--c-
 }
 @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
 </style></head><body><main>
-<div data-chma-head data-ver="v2026-11-13.6"></div>
+<div data-chma-head data-ver="v2026-11-13.7"></div>
 <div class="top">
  <div class="ttl"><h1>Fab <em>Fours</em></h1><p class="tag">Find the four bands of four.</p></div>
  <button class="ib" id="helpB" aria-label="How to play" title="How to play">?</button>
@@ -121,7 +121,7 @@ kbd{font:600 11px var(--f-num);background:var(--c-key);border:1px solid var(--c-
  <button id="deselect">Deselect all</button>
  <button id="submit">Submit</button>
 </div>
-<p class="appver">Fab Fours · Version 2026-11-13.6</p>
+<p class="appver">Fab Fours · Version 2026-11-13.7</p>
 </main>
 <div id="toast" role="status" aria-live="assertive"></div>
 <div class="sr" id="live" aria-live="polite"></div>
@@ -131,7 +131,6 @@ kbd{font:600 11px var(--f-num);background:var(--c-key);border:1px solid var(--c-
  <p class="result" id="endSub"></p>
  <div class="rev" id="endRev"></div>
  <div class="btnrow"><button class="prim" id="shareB">Share result</button><button id="nextB">Practice another</button></div>
- <div id="shareBox" hidden><p class="sbh">Copy this and paste it in a text or post:</p><textarea id="shareTa" readonly rows="9" aria-label="Your result to copy"></textarea><button id="shareCopy">Copy</button></div>
  <h3>Your stats</h3><div class="stats" id="endStats"></div>
 </div></dialog>
 
@@ -167,7 +166,6 @@ const $=id=>document.getElementById(id);
 const TIERS={1:{name:"Warm-up",ico:"♩",emo:"🎹"},2:{name:"Groove",ico:"♫",emo:"🥁"},3:{name:"Deep cut",ico:"◉",emo:"💿"},4:{name:"Brain melter",ico:"✸",emo:"🤯"}};
 const TOPIC_NAME={all:"All topics",theory:"Theory",history:"History",pop:"Pop Culture"};
 const EPOCH=Date.UTC(2026,10,12); /* Daily #1 = 2026-11-12 */
-const URL_LIVE="https://phishykeys555.github.io/piano_rebellion_apps/fab-fours/";
 let PUZ=[];
 
 /* ---------- storage (always guarded) ---------- */
@@ -286,7 +284,6 @@ function statsHTML(){const st=store.get("stats",{played:0,wins:0,clean:0,cur:0,b
  const pct=st.played?Math.round(100*st.wins/st.played):0;
  return[[st.played,"Played"],[pct,"Win %"],[st.cur,"Current streak"],[st.best,"Best streak"],[st.clean,"No-mistake wins"]].map(a=>"<div><b>"+a[0]+"</b><span>"+a[1]+"</span></div>").join("")}
 function showEnd(fresh){
- $("shareBox").hidden=true;
  $("endT").textContent=won?(mistakes===0?"Flawless.":["Nailed it.","Solved.","Got there."][Math.min(mistakes,2)]):"So close.";
  $("endSub").textContent=won?("Solved with "+mistakes+" mistake"+(mistakes===1?"":"s")+"."):"Out of mistakes. Here is how it breaks down:";
  $("endRev").innerHTML=cur.groups.slice().sort((a,b)=>a.tier-b.tier).map(g=>'<div class="rg ti'+g.tier+'"><div class="cat"><span class="ico" aria-hidden="true">'+TIERS[g.tier].ico+'</span>'+esc(g.name)+'<span class="tn">'+TIERS[g.tier].name+'</span></div><div class="its">'+g.items.map(esc).join(" · ")+'</div><div class="why">'+esc(g.why)+'</div></div>').join("");
@@ -294,27 +291,15 @@ function showEnd(fresh){
  $("nextB").textContent=mode==="daily"?"Play practice":"Next puzzle";
  openD("dEnd");
 }
-const SITE="chmusicacademy.com";
 function shareText(){
  const head=mode==="daily"?("Fab Fours · Daily #"+(dayNum(dateKey)+1)+" ("+TOPIC_NAME[topic]+")"):("Fab Fours · Practice #"+cur.id);
  const rows=guesses.map(gs=>gs.map(w=>TIERS[tierOf(w).tier].emo).join(""));
- const play=mode==="daily"?"Play today's puzzle free: ":"Play free: ";
- return head+"\n"+rows.join("\n")+"\n"+(won?"Solved, "+mistakes+" mistake"+(mistakes===1?"":"s"):"Ran out of mistakes")+"\n\n"+play+URL_LIVE+"\nClarendon Hills Music Academy · "+SITE;
+ return head+"\n"+rows.join("\n")+"\n"+(won?"Solved, "+mistakes+" mistake"+(mistakes===1?"":"s"):"Ran out of mistakes");
 }
-async function copyText(t){
- try{const pp=document.permissionsPolicy||document.featurePolicy;const blocked=pp&&pp.allowsFeature&&!pp.allowsFeature("clipboard-write");
-  if(!blocked&&navigator.clipboard&&window.isSecureContext){await navigator.clipboard.writeText(t);return true}}catch(e){}
- try{const ta=document.createElement("textarea");ta.value=t;ta.setAttribute("readonly","");ta.style.position="fixed";ta.style.top="0";ta.style.opacity="0";document.body.appendChild(ta);ta.focus();ta.select();ta.setSelectionRange(0,t.length);const ok=document.execCommand("copy");ta.remove();return ok}catch(e){return false}
-}
-function showShareBox(t){const b=$("shareBox");$("shareTa").value=t;b.hidden=false;const ta=$("shareTa");setTimeout(()=>{try{ta.focus({preventScroll:true});ta.select();ta.setSelectionRange(0,t.length);ta.scrollTop=0;b.scrollIntoView({block:"nearest",behavior:"smooth"})}catch(e){}},30)}
-async function share(){const t=shareText();window.__lastShare=t;snd("on");
- /* 1. Phone share sheet (Messages, Mail, Instagram...). Blocked inside some embeds (Notion), so it falls through. */
- if(navigator.share&&matchMedia("(pointer:coarse)").matches){try{await navigator.share({text:t});toast("Shared.");return}catch(e){if(e&&e.name==="AbortError")return}}
- /* 2. Clipboard. 3. A box with the text selected, so a long-press copy always works. */
- const ok=await copyText(t);
- showShareBox(t);
- toast(ok?"Result copied. Paste it anywhere.":"Copy the text below.",2200)}
-$("shareCopy").onclick=async()=>{const ok=await copyText($("shareTa").value);toast(ok?"Copied.":"Press and hold the text to copy.",2000)};
+async function share(){snd("on");
+ /* shared/share.js: share sheet, then clipboard, then an on-screen copy box (works in Notion embeds). It adds the short link and the studio site. */
+ const r=await chmaShare.share({app:"fab-fours",text:shareText(),playLine:mode==="daily"?"Play today's puzzle free:":"Play free:"});
+ if(r==="shared")toast("Shared.");else if(r==="copied")toast("Result copied. Paste it anywhere.",2200)}
 
 /* ---------- UI helpers ---------- */
 let tT;function toast(m,ms){const t=$("toast");t.textContent=m;t.classList.add("on");clearTimeout(tT);tT=setTimeout(()=>t.classList.remove("on"),ms||1500)}
