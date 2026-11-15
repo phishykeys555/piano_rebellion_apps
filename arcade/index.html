@@ -148,7 +148,9 @@ defSprite('pp_er',SMUDGE_O,{'3':'e','2':'f'});defSprite('pp_erb',SMUDGE2,{'3':'e
 defSprite('pp_pale',SMUDGE_O,{'3':'b','2':'d'});defSprite('pp_paleb',SMUDGE2,{'3':'b','2':'d'});
 /* SOLVENT CAN power-up: small can with a bubbling cap, 2 frames */
 const CAN=["...b.d..","..d..b..",".eeeeee.",".e6666e.",".edddde.",".e6666e.",".e6666e.",".eeeeee."];
-defSprite('pp_can',outline(CAN));defSprite('pp_can2',outline(["..d..b..","...b....",...CAN.slice(2)]));
+defSprite('pp_can',outline(CAN));
+/* HIDDEN GIFT: box with a bow (sparkles drawn on top) */
+defSprite('pp_gift',outline(["..5...5..","...5.5...","cccc5cccc","cdcc5ccdc","555555555","cccc5cccc","cccc5cccc","222252222"]));defSprite('pp_can2',outline(["..d..b..","...b....",...CAN.slice(2)]));
 defSprite('pp_frz',SMUDGE_O,{'3':'b','2':'a','0':'9'});defSprite('pp_frz2',SMUDGE_O,{'3':'d','2':'b','0':'9'});
 // PEBBLE PEAK
 const HIK=["..333...",".33333..","..dd0d..","..dddd..",".44444..","4444444.","4.444.4.","d.444.d.",".99.99..",".99.99..",".9...9..","ff...ff."];
@@ -364,12 +366,12 @@ const PP_ROLE_SPR={chase:'pp_sm0',cutter:'pp_sm1',patrol:'pp_sm2',warden:'pp_sm3
 const PP_RIB=132;
 class PaintGame{
   constructor(){this.score=0;this.lives=3;this.over=false;this.stage=0;this.level=0;this.nextLife=10000;this.t=0;
-    this.loops=0;this.traps=0;this.pailsGot=0;this.bombsUsed=0;this.munches=0;this.munchAlt=0;this.dissolves=0;this.cansGot=0;this.newStage();}
+    this.loops=0;this.traps=0;this.pailsGot=0;this.bombsUsed=0;this.munches=0;this.munchAlt=0;this.dissolves=0;this.cansGot=0;this.giftsGot={solvent:0,speed:0,bomb:0,bonus:0};this.newStage();}
   newStage(){
     this.stage++;this.level=this.stage;this.grid=genMaze(this.stage);this.paint=[];this.total=0;this.done=0;
     for(let y=0;y<MR;y++){this.paint.push(new Array(MC).fill(0));for(let x=0;x<MC;x++)if(this.grid[y][x]===0)this.total++;}
     this.clearT=0;this.banner=110;this.dead=0;this.bombN=2;this.bombR=0;this.pail=null;this.pailDone=false;this.wide=0;
-    this.cans=[];this.solv=0;this.stageDiss=0;const nc=2+rnd(2);this.canPlan=[];for(let i=0;i<nc;i++)this.canPlan.push(420+i*(700+rnd(300))+rnd(200));this.stageT=0;
+    this.solv=0;this.boost=0;this.stageDiss=0;this.gifts=[];this.giftQ=[];this.stageT=0;this.giftsPlaced=false;
     this.tuneT=this.stage===1?48:1;
     this.resetActors();this.buildCache();this.paintTile(this.p.tx,this.p.ty,true);
   }
@@ -470,6 +472,18 @@ class PaintGame{
     for(const d of opts){const nx=e.tx+DX[d],ny=e.ty+DY[d],dd=(nx-gx)*(nx-gx)+(ny-gy)*(ny-gy);if(dd<bd){bd=dd;best=d;}}
     return best;}
   isEraser(e){return e.role==='erase';}
+  giftSpotOK(x,y){if(!this.open(x,y))return false;for(const [cx,cy] of [[1,1],[MC-2,1],[1,MR-2],[MC-2,MR-2]])if(Math.max(Math.abs(x-cx),Math.abs(y-cy))<4)return false;return true;}
+  placeGift(q){const p=this.p,qs=[0,1,2,3].map(i=>this.gifts.filter(g=>((g.x>=MC/2)|0)+2*((g.y>=MR/2)|0)===i).length);
+    const want=q!=null?q:qs.indexOf(Math.min(...qs)),c=[],any=[];
+    for(let y=1;y<MR-1;y++)for(let x=1;x<MC-1;x++){if(!this.giftSpotOK(x,y)||this.gifts.some(g=>g.x===x&&g.y===y)||Math.abs(x-p.tx)+Math.abs(y-p.ty)<5)continue;
+      any.push([x,y]);if(((x>=MC/2)|0)+2*((y>=MR/2)|0)===want)c.push([x,y]);}
+    const pool=c.length?c:any;if(!pool.length)return;const [x,y]=pool[rnd(pool.length)];
+    const r=Math.random(),type=r<0.35?'solvent':r<0.6?'speed':r<0.8?'bomb':'bonus';this.gifts.push({x,y,type,vis:0,reveals:0});}
+  openGift(k){const p=this.p,px=this.ppx(p),py=this.ppy(p);this.giftsGot[k.type]++;burst(px,py,[5,12,13,11],20,2);
+    if(k.type==='solvent'){this.solv=this.solvDur();this.cansGot++;floater(px,py-10,'GIFT: SOLVENT!',11);SFX.solvent();}
+    else if(k.type==='speed'){this.boost=this.solvDur();floater(px,py-10,'GIFT: SPEED!',6);tone(300,0.25,{to:1800,vol:0.05,type:'sawtooth'});tone(900,0.15,{to:2400,vol:0.03,at:0.1});}
+    else if(k.type==='bomb'){this.bombN=Math.min(3,this.bombN+1);floater(px,py-10,'GIFT: PAINT BOMB!',4);noise(0.15,{f:2500,fto:600,vol:0.15});tone(500,0.12,{to:900,vol:0.05,at:0.05});}
+    else{const b=500*this.stage;this.addScore(b);floater(px,py-10,'GIFT: BONUS +'+b,5);jingle([[79,1],[84,1],[88,1],[91,2]],{beat:0.05,vol:0.07});}}
   solvDur(){return Math.max(240,360-(this.stage-1)*25);}  // 6 s at stage 1, down to 4 s
   dissolve(e){const [x,y]=this.tileOf(e),cx=this.ppx(e),cy=this.ppy(e);let n=0;
     for(let dy=-1;dy<=1;dy++)for(let dx=-1;dx<=1;dx++)if(this.paintTile(x+dx,y+dy,true)){this.addScore(10);n++;}
@@ -495,7 +509,7 @@ class PaintGame{
     while(this.rib.length>1&&this.t-this.rib[0].t>PP_RIB)this.rib.shift();
     const wants=[];if(h.up)wants.push(0);if(h.down)wants.push(2);if(h.left)wants.push(3);if(h.right)wants.push(1);
     if(wants.length){p.buf=wants;p.bufT=18;}else if(p.bufT>0&&--p.bufT===0)p.buf=null;
-    const psp=(1.1+Math.min(0.25,this.stage*0.03))*(this.solv>0?1.35:1);
+    const psp=(1.1+Math.min(0.25,this.stage*0.03))*(this.solv>0||this.boost>0?1.35:1);
     if(p.dir>=0&&wants.includes((p.dir+2)%4)&&!wants.includes(p.dir)){p.tx+=DX[p.dir];p.ty+=DY[p.dir];p.prog=TS-p.prog;p.dir=(p.dir+2)%4;}
     if(p.dir<0){const d=this.pick(p);if(d>=0){p.dir=d;p.prog=0;}}
     if(p.dir>=0){p.anim++;if(p.dir===3)p.face=true;else if(p.dir===1)p.face=false;
@@ -508,15 +522,16 @@ class PaintGame{
     if(this.bombN<2&&++this.bombR>=Math.max(300,420-this.stage*10)){this.bombR=0;this.bombN++;SFX.ppRecharge();}
     for(let i=this.bombs.length-1;i>=0;i--){if(--this.bombs[i].t<=0){const b=this.bombs.splice(i,1)[0];this.detonate(b);}}
     if(this.wide>0)this.wide--;
-    // solvent cans: pop up over the stage at reachable spots away from the corners and the painter
+    // hidden gifts: 4 per stage, one per quadrant where possible, never within 3 tiles of a corner; invisible until the painter is near
     this.stageT++;
-    if(this.canPlan.length&&this.stageT>=this.canPlan[0]){this.canPlan.shift();const c=[];
-      for(let y=1;y<MR-1;y++)for(let x=1;x<MC-1;x++){if(!this.open(x,y))continue;const corner=(x<=3||x>=MC-4)&&(y<=3||y>=MR-4);
-        if(!corner&&Math.abs(x-p.tx)+Math.abs(y-p.ty)>=6&&!this.cans.some(k=>k.x===x&&k.y===y))c.push([x,y]);}
-      if(c.length){const [x,y]=c[rnd(c.length)];this.cans.push({x,y,life:1200});floater(MOX+x*TS+6,MOY+y*TS-2,'SOLVENT',11);SFX.blip();}}
-    for(let i=this.cans.length-1;i>=0;i--){const k=this.cans[i];if(--k.life<=0){this.cans.splice(i,1);continue;}
-      if(Math.abs(MOX+k.x*TS+6-this.ppx(p))<8&&Math.abs(MOY+k.y*TS+6-this.ppy(p))<8){this.cans.splice(i,1);this.cansGot++;
-        this.solv=this.solvDur();floater(this.ppx(p),this.ppy(p)-10,'SOLVENT!',11);SFX.solvent();burst(this.ppx(p),this.ppy(p),[11,13,6],18,2);}}
+    if(!this.giftsPlaced){this.giftsPlaced=true;for(let i=0;i<4;i++)this.placeGift(i);}
+    for(let i=this.giftQ.length-1;i>=0;i--)if(--this.giftQ[i]<=0){this.giftQ.splice(i,1);this.placeGift();}
+    {const [ptx,pty]=this.tileOf(p);
+      for(let i=this.gifts.length-1;i>=0;i--){const k=this.gifts[i],near=Math.abs(k.x-ptx)+Math.abs(k.y-pty)<=3;
+        if(near&&k.vis===0){k.reveals++;tone(1568,0.08,{vol:0.03,type:'triangle'});tone(2093,0.12,{vol:0.025,type:'triangle',at:0.07});}
+        k.vis=near?Math.min(1,k.vis+0.08):Math.max(0,k.vis-0.06);
+        if(k.vis>0.3&&Math.abs(MOX+k.x*TS+6-this.ppx(p))<8&&Math.abs(MOY+k.y*TS+6-this.ppy(p))<8){this.gifts.splice(i,1);this.openGift(k);this.giftQ.push(480+rnd(241));}}}
+    if(this.boost>0&&--this.boost===0&&this.solv<=0){SFX.powerDown();floater(this.ppx(p),this.ppy(p)-10,'BOOST OVER',14);}
     if(this.solv>0&&--this.solv===0){SFX.powerDown();floater(this.ppx(p),this.ppy(p)-10,'SOLVENT GONE',14);}
     if(this.done>=this.total){this.stageClear();return;}
     // bonus pail: appears once the stage is 40% painted, wanders, fades out
@@ -580,7 +595,8 @@ class PaintGame{
     for(const b of this.bombs){const bx=MOX+b.x*TS+2,by=MOY+b.y*TS+2;spr('pp_bomb',bx,by-(b.t<15&&(b.t&2)?1:0));
       if((t>>1)&1){ctx.fillStyle=PAL[5];ctx.fillRect(bx+5,by-1,1,1);}}
     if(this.pail&&(this.pail.life>120||(t>>2)&1))spr('pp_pail',this.ppx(this.pail)-4,this.ppy(this.pail)-5+((t>>3)&1));
-    for(const k of this.cans){if(k.life<180&&(t>>2)&1)continue;spr((t>>3)&1?'pp_can2':'pp_can',MOX+k.x*TS+1,MOY+k.y*TS+((t>>4)&1));}
+    for(const k of this.gifts){if(k.vis<=0)continue;const gx=MOX+k.x*TS+6,gy=MOY+k.y*TS+6;ctx.globalAlpha=k.vis<1?k.vis*(0.6+0.4*((t>>1)&1)):1;
+      sprC('pp_gift',gx,gy-((t>>4)&1));ctx.globalAlpha=1;if(k.vis>=1){const sp=(t>>2)%8;ctx.fillStyle=PAL[sp<4?13:5];ctx.fillRect(gx+4-(sp&3),gy-7+(sp&1),1,1);ctx.fillRect(gx-5+(sp&2),gy-3,1,1);}}
     for(const e of this.ens){if(e.wait>0&&(e.wait>>3)&1)continue;const fr=(e.anim>>3)&1;let ex=this.ppx(e),ey=this.ppy(e);
       let n;if(e.stun>0||e.trap>0)n=(e.stun>0&&e.stun<60&&(e.stun>>3)&1)?'pp_frz2':'pp_frz';
       else n=(e.role==='erase'?'pp_er':PP_ROLE_SPR[e.role])+(fr?'b':'');
@@ -590,20 +606,21 @@ class PaintGame{
       else if(e.stun>0&&(t>>3)&1){ctx.fillStyle=PAL[5];ctx.fillRect(ex-4,ey-9,1,1);ctx.fillRect(ex+3,ey-10,1,1);}
       else if(e.role==='patrol'&&e.spot>0&&(t>>2)&1){ctx.fillStyle=PAL[3];ctx.fillRect(ex,ey-10,1,3);}}
     if(!this.dead&&!(p.inv>0&&(p.inv>>2)&1)){const bk=ppBot(th.p);sprC((p.anim>>3)&1?bk+'b':bk,this.ppx(p),this.ppy(p)-1,p.face);
+      if(this.boost>0&&!(this.solv>0)&&(t>>1)&1){ctx.fillStyle=PAL[6];ctx.fillRect(this.ppx(p)-(p.face?-6:8),this.ppy(p)-2,2,4);}
       if(this.solv>0&&(this.solv>90||(t>>2)&1)){ctx.fillStyle=PAL[(t>>1)&1?11:13];ctx.fillRect(this.ppx(p)-5,this.ppy(p)-8,10,1);}
       if(this.wide>0&&(this.wide>60||(t>>2)&1)){ctx.fillStyle=PAL[RC[(t>>2)%4]];ctx.fillRect(this.ppx(p)-7,this.ppy(p)+5,14,1);}}
     if(this.banner>0&&(this.banner>>3)&1){ctx.fillStyle=PAL[0];ctx.fillRect(84,92,88,13);ctext('STAGE '+this.stage,95,5,1);}
   }
   drawHud(){hudBase(this);
     text('ST'+this.stage,68,2,11);
-    for(let i=0;i<2;i++){const on=i<this.bombN;ctx.fillStyle=PAL[on?14:15];ctx.fillRect(88+i*8,3,5,4);ctx.fillStyle=PAL[on?5:1];ctx.fillRect(91+i*8,2,1,1);}
+    for(let i=0;i<Math.max(2,this.bombN);i++){const on=i<this.bombN;ctx.fillStyle=PAL[on?14:15];ctx.fillRect(88+i*8,3,5,4);ctx.fillStyle=PAL[on?5:1];ctx.fillRect(91+i*8,2,1,1);}
     if(this.bombN<2){ctx.fillStyle=PAL[5];ctx.fillRect(88,8,Math.round(13*this.bombR/Math.max(300,420-this.stage*10)),1);}
     const pct=Math.floor(this.done/this.total*100);text(pct+'%',108,2,6);
     ctx.fillStyle=PAL[1];ctx.fillRect(128,3,90,3);ctx.fillStyle=PAL[this.th.p];ctx.fillRect(128,3,Math.round(90*this.done/this.total),3);
     if(this.wide>0){ctx.fillStyle=PAL[11];ctx.fillRect(128,7,Math.round(90*this.wide/360),1);}}
   dbgState(){return {done:this.done,total:this.total,stage:this.stage,p:{tx:this.p.tx,ty:this.p.ty},rib:this.rib.length,loops:this.loops,traps:this.traps,
     bombN:this.bombN,bombsUsed:this.bombsUsed,pail:!!this.pail,pailsGot:this.pailsGot,wide:this.wide,roles:this.ens.map(e=>e.role),
-    stunned:this.ens.filter(e=>e.stun>0).length,trapped:this.ens.filter(e=>e.trap>0).length,munches:this.munches,theme:PP_THEME,paint:this.th.p,cans:this.cans.length,canPlan:this.canPlan.slice(),solv:this.solv,dissolves:this.dissolves,cansGot:this.cansGot};}
+    stunned:this.ens.filter(e=>e.stun>0).length,trapped:this.ens.filter(e=>e.trap>0).length,munches:this.munches,theme:PP_THEME,paint:this.th.p,gifts:this.gifts.map(g=>({x:g.x,y:g.y,type:g.type,vis:+g.vis.toFixed(2),reveals:g.reveals})),giftQ:this.giftQ.slice(),giftsGot:{...this.giftsGot},boost:this.boost,solv:this.solv,dissolves:this.dissolves,cansGot:this.cansGot};}
 }
 
 /* ==========================================================
@@ -1404,8 +1421,8 @@ const GAMES=[
   help:['D-PAD FLY   A CANNON: FULL HEAT LOSES A SHIP','B  SPARK BURST · IN A WORMHOLE: B = NOVA','1/2/3 SPEED: SLOW X0.75  MED  FAST X1.5']},
  {id:'paint',lvl:'ST',name:'PAINT PATROL',color:12,icon:'pp_bot',cls:PaintGame,
   pitch:['ROLL EVERY TILE OF THE MAZE IN PAINT.','LOOP YOUR GLOWING RIBBON AROUND SMUDGERS','TO TRAP THEM. GREY BLOTTERS WIPE PAINT.'],
-  keys:['ARROWS/WASD ROLL   SOLVENT CAN: DISSOLVE','X/SHIFT PAINT BOMB','P PAUSE  M SOUND  F FULL  ESC MENU'],
-  help:['D-PAD ROLL   SOLVENT CAN: DISSOLVE SMUDGERS','B  PAINT BOMB: SPLASH + STUN (RECHARGES)','CLOSE A LOOP: TRAP SMUDGERS, FILL INSIDE']},
+  keys:['ARROWS/WASD ROLL   FIND HIDDEN GIFTS','X/SHIFT PAINT BOMB','P PAUSE  M SOUND  F FULL  ESC MENU'],
+  help:['D-PAD ROLL   HIDDEN GIFTS: SOLVENT, SPEED, BOMB','B  PAINT BOMB: SPLASH + STUN (RECHARGES)','CLOSE A LOOP: TRAP SMUDGERS, FILL INSIDE']},
  {id:'peak',lvl:'P',name:'PEBBLE PEAK',color:4,icon:'pk_hiker',cls:PeakGame,
   pitch:['CLIMB THE LEDGES TO THE SUMMIT FLAG.','ROCKS TUMBLE DOWN FROM THE CAVE.','JUMP THEM OR SMASH THEM WITH A PICK.'],
   keys:['ARROWS/WASD WALK / CLIMB LADDERS','SPACE/Z JUMP   X/SHIFT SWING PICK','P PAUSE  M SOUND  F FULL  ESC MENU'],
