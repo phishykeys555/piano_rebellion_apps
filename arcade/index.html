@@ -996,13 +996,59 @@ const CC_RIFT_WARN=180,CC_RIFT_EVERY=2,CC_MOTE_GAP=12;
 function ccRift(w){const t=clamp((w-1)/11,0,1);
   return {half:Math.round(31-15*t),slope:0.3+0.4*t,cols:Math.min(420,280+10*w),taper:22};}
 /* WORMHOLE bonus stage: after every 3rd sector. An obstacle run down a tunnel; nothing fires at you. */
-const CC_WORM_EVERY=3,CC_WORM_SHAPES=['circle','hexagon','star','oval','halfpipe'],CC_SHARDS=6;
-const CC_WORM_MUSIC=[57,64,69,72,71,67,64,60,62,69,74,77,76,72,69,65];
-function wormRim(shape){const N=shape==='halfpipe'?12:16,cx=128,cy=106,R=76,P=[];
+const CC_WORM_EVERY=3,CC_WORM_SHAPES=['circle','hexagon','star','oval','halfpipe'],CC_SHARDS=7;
+/* difficulty per visit: d = visit + 1 (visit 1 plays like the old visit 2), each step about 20% steeper than before */
+function wormDiff(v){const d=v+1;return {d,climb:(0.0042+0.00084*d)*1.15,gap:40-4.8*d,gate:Math.min(0.34,0.20+0.036*(d-2)),debris:Math.min(0.34,0.20+0.036*(d-2)),
+  shard:0.14,pattern:v>=2?Math.min(0.4,0.14+0.06*v):0};}
+/* tunnel palettes: [far, mid, near, rim, spoke]; held 3-5 s, then a 2 s wave flows from the core to the rim */
+const WPAL=[[1,9,10,11,15],[2,12,13,13,15],[8,7,6,5,15],[2,3,4,5,15],[1,8,11,13,15],[9,12,11,13,15]];
+const WPAL_HOLD=[180,300],WPAL_MORPH=120;
+/* WORMHOLE MUSIC: an original trippy vamp synthesized live. 96 BPM, D Mixolydian two-chord sway (D - C), 16-bar loop (40 s).
+   Organ pad (detuned square+saw, tremolo, phaser sweep), drony bass, lazy shuffle drums, fuzz lead with echo. */
+const WM={on:false,bus:null,nodes:[],next:0,step:0,duck:1};
+const WM_BPM=96,WM_8=60/WM_BPM/2,WM_STEPS=128;
+const WM_CH=[[50,54,57],[48,52,55]];          // D major / C major (MIDI, low register)
+const WM_LEAD=[74,0,72,0,69,71,72,0, 74,76,74,0,72,0,69,0, 67,0,69,72,0,71,69,0, 67,0,0,0,62,0,64,66,
+               69,0,0,72,71,0,69,0, 67,69,0,64,0,62,0,0, 74,0,0,76,0,79,77,0, 76,74,0,72,0,0,0,0];
+function wmStart(){const a=AU.ctx;if(!a||WM.on)return;WM.on=true;const t=a.currentTime;
+  const bus=a.createGain();bus.gain.setValueAtTime(0.0001,t);bus.gain.setTargetAtTime(0.55,t,0.7);bus.connect(AU.master);WM.bus=bus;WM.nodes=[];WM.duck=1;
+  const keep=n=>{WM.nodes.push(n);return n;};
+  // phaser: 4 swept allpass stages on the pad
+  const phIn=keep(a.createGain()),dry=keep(a.createGain());dry.gain.value=0.6;phIn.connect(dry);dry.connect(bus);let last=phIn;const lfo=keep(a.createOscillator());lfo.frequency.value=0.13;const lg=keep(a.createGain());lg.gain.value=700;lfo.connect(lg);
+  for(let i=0;i<4;i++){const ap=keep(a.createBiquadFilter());ap.type='allpass';ap.frequency.value=900+i*300;ap.Q.value=0.7;lg.connect(ap.frequency);last.connect(ap);last=ap;}
+  const wet=keep(a.createGain());wet.gain.value=0.6;last.connect(wet);wet.connect(bus);lfo.start();
+  // organ pad: 3 voices x (square + saw), detuned, lowpassed, with tremolo
+  const padF=keep(a.createBiquadFilter());padF.type='lowpass';padF.frequency.value=1700;const trem=keep(a.createGain());trem.gain.value=0.05;
+  const tl=keep(a.createOscillator());tl.frequency.value=5.2;const tg=keep(a.createGain());tg.gain.value=0.018;tl.connect(tg);tg.connect(trem.gain);tl.start();
+  padF.connect(trem);trem.connect(phIn);WM.pad=[];
+  WM_CH[0].forEach((n,i)=>{for(const [ty,dt] of [['square',-6],['sawtooth',7]]){const o=keep(a.createOscillator());o.type=ty;o.frequency.value=NOTE(n+12);o.detune.value=dt;o.connect(padF);o.start();WM.pad.push({o,i});}});
+  // bass voice (envelope per note) and fuzz lead (waveshaper + echo)
+  const bF=keep(a.createBiquadFilter());bF.type='lowpass';bF.frequency.value=420;const bG=keep(a.createGain());bG.gain.value=0;const bO=keep(a.createOscillator());bO.type='sawtooth';bO.connect(bF);bF.connect(bG);bG.connect(bus);bO.start();WM.bO=bO;WM.bG=bG;
+  const fz=keep(a.createWaveShaper());const cv=new Float32Array(256);for(let i=0;i<256;i++){const x=i/128-1;cv[i]=Math.tanh(x*4)*0.6;}fz.curve=cv;
+  const lF=keep(a.createBiquadFilter());lF.type='lowpass';lF.frequency.value=2300;const lG=keep(a.createGain());lG.gain.value=0;const lO=keep(a.createOscillator());lO.type='square';lO.connect(fz);fz.connect(lF);lF.connect(lG);
+  const dl=keep(a.createDelay(1));dl.delayTime.value=WM_8*3;const fb=keep(a.createGain());fb.gain.value=0.33;const ech=keep(a.createGain());ech.gain.value=0.35;
+  lG.connect(bus);lG.connect(dl);dl.connect(fb);fb.connect(dl);dl.connect(ech);ech.connect(bus);lO.start();WM.lO=lO;WM.lG=lG;
+  WM.next=t+0.1;WM.step=0;}
+function wmStop(){if(!WM.on)return;WM.on=false;const a=AU.ctx,t=a.currentTime,ns=WM.nodes,bus=WM.bus;bus.gain.cancelScheduledValues(t);bus.gain.setValueAtTime(bus.gain.value,t);bus.gain.setTargetAtTime(0,t,0.45);
+  setTimeout(()=>{for(const n of ns){try{n.stop&&n.stop();}catch(e){}try{n.disconnect();}catch(e){}}try{bus.disconnect();}catch(e){}},2200);}
+function wmTick(active){const a=AU.ctx;if(!a)return;if(!active){if(WM.on)wmStop();return;}if(!WM.on)wmStart();
+  const t0=a.currentTime,duck=voiceBusy()?0.35:1;if(duck!==WM.duck){WM.duck=duck;WM.bus.gain.setTargetAtTime(0.55*duck,t0,0.12);}
+  while(WM.next<t0+0.25){const st=WM.step%WM_STEPS,bar=st>>3,b8=st&7,ch=WM_CH[(bar>>1)&1],swing=(st&1)?WM_8*0.18:0,t=WM.next+swing;
+    if(b8===0)WM.pad.forEach(v=>v.o.frequency.setTargetAtTime(NOTE(ch[v.i]+12),t,0.25));
+    // bass: root drone with a fifth and octave step
+    if(st%2===0){const bn=[ch[0]-12,ch[0]-12,ch[0]-5,ch[0]][(st>>1)&3];WM.bO.frequency.setValueAtTime(NOTE(bn),t);WM.bG.gain.setValueAtTime(0.0001,t);WM.bG.gain.linearRampToValueAtTime(0.16,t+0.02);WM.bG.gain.setTargetAtTime(0.05,t+0.05,0.15);}
+    // drums: kick on 1 and 3, soft noise snare on 2 and 4, swung hats
+    if(b8===0||b8===4){const o=a.createOscillator(),g=a.createGain();o.frequency.setValueAtTime(110,t);o.frequency.exponentialRampToValueAtTime(42,t+0.12);g.gain.setValueAtTime(0.32,t);g.gain.exponentialRampToValueAtTime(0.001,t+0.2);o.connect(g);g.connect(WM.bus);o.start(t);o.stop(t+0.22);}
+    if((b8===2||b8===6)&&AU.noise){const n=a.createBufferSource(),f=a.createBiquadFilter(),g=a.createGain();n.buffer=AU.noise;f.type='bandpass';f.frequency.value=1800;f.Q.value=0.8;g.gain.setValueAtTime(0.12,t);g.gain.exponentialRampToValueAtTime(0.001,t+0.18);n.connect(f);f.connect(g);g.connect(WM.bus);n.start(t,Math.random()*0.5);n.stop(t+0.2);}
+    if(AU.noise&&(st&1)){const n=a.createBufferSource(),f=a.createBiquadFilter(),g=a.createGain();n.buffer=AU.noise;f.type='highpass';f.frequency.value=7000;g.gain.setValueAtTime(0.035,t);g.gain.exponentialRampToValueAtTime(0.001,t+0.05);n.connect(f);f.connect(g);g.connect(WM.bus);n.start(t,Math.random()*0.5);n.stop(t+0.06);}
+    // fuzz lead: plays the wandering line on bars 5-16 so the loop opens with groove only
+    if(bar>=4){const ln=WM_LEAD[(st-32)%64];if(ln){WM.lO.frequency.setTargetAtTime(NOTE(ln),t,0.025);WM.lG.gain.setValueAtTime(0.0001,t);WM.lG.gain.linearRampToValueAtTime(0.07,t+0.03);WM.lG.gain.setTargetAtTime(0.0001,t+WM_8*1.4,0.08);}}
+    WM.next+=WM_8;WM.step++;}}
+function wormRim(shape){const N=shape==='halfpipe'?12:16,cx=128,cy=106,R=84,P=[];
   if(shape==='halfpipe'){for(let k=0;k<=N;k++){const a=Math.PI*k/N;P.push([cx+Math.cos(a)*R*1.15,cy-12+Math.sin(a)*R*0.95]);}return {N,P,open:true,cx,cy:cy-12};}
   for(let k=0;k<N;k++){const a=-Math.PI/2+2*Math.PI*k/N;let x=Math.cos(a),y=Math.sin(a),r=R;
     if(shape==='hexagon'){const seg=Math.PI/3,aa=((a+Math.PI/2)%(2*Math.PI)+2*Math.PI)%(2*Math.PI),m=aa%seg-seg/2;r=R*Math.cos(Math.PI/6)/Math.cos(m);}
-    else if(shape==='star')r=k%2?R*0.6:R;
+    else if(shape==='star')r=k%2?R*0.56:R*0.92;
     P.push(shape==='oval'?[cx+x*r*1.28,cy+y*r*0.72]:[cx+x*r,cy+y*r]);}
   return {N,P,open:false,cx,cy};}
 const CC_RIFT_MUSIC=[62,69,74,69,65,72,77,72,60,67,72,67,64,71,76,71];
@@ -1073,39 +1119,56 @@ class CorsairGame{
     this.alert('FUEL RIFT OPENING · THREAD IT SLOW',12,true);say('Fuel rift opening. Thread it slow.');SFX.rift();}
   startWorm(){const v=(this.wormVisits=(this.wormVisits||0)+1),shape=CC_WORM_SHAPES[(v-1)%CC_WORM_SHAPES.length],G0=wormRim(shape);
     this.phase='worm';this.ens=[];this.ebul=[];this.rocks=[];this.bul=[];
-    this.worm={v,shape,G:G0,lane:G0.open?(G0.N>>1):0,warn:150,t:0,dur:3000,obs:[],shots:[],shards:0,nova:false,novaFx:0,spawnT:60,toSpawn:44+10*v,
-      cleared:0,hits:0,mv:0,cool:0,swipe:0,ringPh:0};
+    this.worm={v,shape,G:G0,lane:G0.open?(G0.N>>1):0,warn:150,t:0,dur:2400,obs:[],shots:[],shards:0,nova:false,novaFx:0,spawnT:20,toSpawn:52+12*v,
+      cleared:0,hits:0,mv:0,cool:0,swipe:0,ringPh:0,snap:0,flash:0,pal:0,nextPal:1,morph:-1,hold:240,palLog:[{at:0,ev:'hold',len:240}]};
     this.alert('WORMHOLE DETECTED · BRACE FOR TRANSIT',12,true);say('Wormhole detected.');SFX.rift();}
   wormLane(i){const W2=this.worm.G;return W2.open?clamp(i,0,W2.N-1):((i%W2.N)+W2.N)%W2.N;}
   wormPt(lane,z){const G0=this.worm.G,N=G0.N,P=G0.P,a=P[lane],b=P[G0.open?lane+1:(lane+1)%N],mx=(a[0]+b[0])/2,my=(a[1]+b[1])/2,sc=0.1+0.9*z*z;
     return [G0.cx+(mx-G0.cx)*sc,G0.cy+(my-G0.cy)*sc,sc];}
   wormEdge(k,z){const G0=this.worm.G,p=G0.P[G0.open?k:k%G0.N],sc=0.1+0.9*z*z;return [G0.cx+(p[0]-G0.cx)*sc,G0.cy+(p[1]-G0.cy)*sc];}
-  wormSpawn(){const W2=this.worm,N=W2.G.N,v=W2.v,r=Math.random(),lane=rnd(N);
-    if(Math.random()<0.16){W2.obs.push({k:'shard',lane,z:0,hp:99});return;}
-    if(r<0.38)W2.obs.push({k:'crystal',lane,z:0,hp:Math.random()<0.25+0.05*v?2:1,big:0});
-    else if(r<0.58)W2.obs.push({k:'debris',lane,lf:lane,z:0,hp:1,dr:(Math.random()<0.5?-1:1)*rr(0.008,0.016),rot:0});
-    else if(r<0.78)W2.obs.push({k:'gate',lane,z:0,hp:1e9});
-    else W2.obs.push({k:'spore',lane,z:0,hp:1,small:false});
-    W2.toSpawn--;if(W2.obs[W2.obs.length-1].k==='crystal')W2.obs[W2.obs.length-1].big=W2.obs[W2.obs.length-1].hp>1;}
-  updWorm(h,pr){const W2=this.worm,s=this.ship,N=W2.G.N,g=this.gear;W2.t++;W2.ringPh=(W2.ringPh+0.012*g.w)%1;
-    if(this.t%9===0){const n=CC_WORM_MUSIC[(this.t/9|0)%16],dk=voiceBusy()?0.35:1;tone(NOTE(n+12),0.12,{type:'square',vol:0.025*dk});if(this.t%36===0)tone(NOTE(n-12),0.5,{type:'triangle',vol:0.07*dk});}
+  wormSpawn(){const W2=this.worm,N=W2.G.N,D=wormDiff(W2.v),late=W2.t>W2.dur*0.5;
+    const add=o=>{if(o.k==='gate'&&!this.gateOK(o.lane))o={k:'crystal',lane:o.lane,z:o.z,hp:1};W2.obs.push(o);};
+    const one=(lane,z)=>{const r=Math.random();
+      if(r<D.shard)return add({k:'shard',lane,z,hp:99});
+      const q=(r-D.shard)/(1-D.shard);
+      if(q<D.gate)add({k:'gate',lane,z,hp:1e9});
+      else if(q<D.gate+D.debris)add({k:'debris',lane,lf:lane,z,hp:1,dr:(Math.random()<0.5?-1:1)*rr(0.008,0.016),rot:0});
+      else if(Math.random()<0.6){const big=Math.random()<0.25+0.05*D.d;add({k:'crystal',lane,z,hp:big?2:1,big});}
+      else add({k:'spore',lane,z,hp:1,small:false});};
+    const L=rnd(N);
+    if(D.pattern&&Math.random()<D.pattern){const kind=rnd(3);W2.patterns=(W2.patterns||0)+1;
+      if(kind===0){for(let i=0;i<3;i++)add({k:'gate',lane:this.wormLane(L+i),z:0,hp:1e9});}                          // gate wall, 3 lanes wide
+      else if(kind===1){const dr=(Math.random()<0.5?-1:1)*0.014;for(let i=0;i<2;i++)add({k:'debris',lane:this.wormLane(L+i),lf:this.wormLane(L+i),z:-0.03*i,hp:1,dr,rot:0});
+        for(const d of [3,4])add({k:'spore',lane:this.wormLane(L+d),z:0,hp:1,small:false});}                          // debris sweep + pods
+      else{add({k:'gate',lane:L,z:0,hp:1e9});add({k:'crystal',lane:this.wormLane(L-1),z:0,hp:2,big:true});add({k:'crystal',lane:this.wormLane(L+1),z:0,hp:2,big:true});}
+      W2.toSpawn-=2;}
+    else{one(L,0);if(late&&Math.random()<0.3){one(this.wormLane(L+(Math.random()<0.5?1:-1)),-0.02);W2.pairs=(W2.pairs||0)+1;}}
+    W2.toSpawn--;}
+  /* fairness: gates arriving together may never cover more than N-3 lanes, so a survivable lane always exists */
+  gateOK(lane){const W2=this.worm,N=W2.G.N,set=new Set([lane]);for(const o of W2.obs)if(o.k==='gate'&&Math.abs(o.z)<0.14)set.add(Math.round(o.lane)%N);return set.size<=N-3;}
+  updWorm(h,pr){const W2=this.worm,s=this.ship,N=W2.G.N,g=this.gear;W2.t++;W2.ringPh=(W2.ringPh+0.004*g.w)%1;
+    // palette clock: hold, then morph (logged for the test)
+    if(W2.morph>=0){if(++W2.morph>=WPAL_MORPH){W2.pal=W2.nextPal;W2.morph=-1;W2.hold=WPAL_HOLD[0]+rnd(WPAL_HOLD[1]-WPAL_HOLD[0]+1);W2.palLog.push({at:W2.t,ev:'hold',len:W2.hold});}}
+    else if(--W2.hold<=0){W2.nextPal=(W2.pal+1)%WPAL.length;W2.morph=0;W2.palLog.push({at:W2.t,ev:'morph',len:WPAL_MORPH});}
     if(W2.warn>0){W2.warn--;return;}
     // fuel still burns
     this.fuel-=CC_BURN*(1+0.03*(this.wave-1))*g.f;if(this.fuel<=0&&!s.dead){this.fuel=0;this.kill();}
     if(s.inv>0)s.inv--;if(W2.cool>0)W2.cool--;if(W2.novaFx>0)W2.novaFx--;
+    if(W2.snap>0)W2.snap--;if(W2.flash>0)W2.flash--;
     if(!s.dead){const dx=(h.right?1:0)-(h.left?1:0),pl=pr.left||pr.right;
-      if(dx&&(pl||++W2.mv>=7)){W2.mv=0;W2.lane=this.wormLane(W2.lane+dx);SFX.move();}if(!dx)W2.mv=0;
-      if(W2.swipe){W2.lane=this.wormLane(W2.lane+W2.swipe);W2.swipe=0;SFX.move();}
+      const step=d=>{const nl=this.wormLane(W2.lane+d);if(nl!==W2.lane){W2.lane=nl;W2.snap=2;W2.moves=(W2.moves||0)+1;tone(1900,0.018,{vol:0.04});noise(0.012,{f:6000,vol:0.06});}};
+      if(dx){if(pl){step(dx);W2.mv=-10;}else if(++W2.mv>=5){W2.mv=0;step(dx);}}else W2.mv=0;
+      if(W2.swipe){step(W2.swipe);W2.swipe=0;}
       if(h.a&&W2.cool===0&&W2.shots.length<6){W2.shots.push({lane:W2.lane,z:1});W2.cool=8;SFX.bolt();}
       if(pr.b&&W2.shards>=CC_SHARDS&&!W2.nova){W2.nova=true;W2.novaFx=40;let n=0;for(const o of W2.obs)if(o.k!=='shard'){n++;}W2.obs=W2.obs.filter(o=>o.k==='shard');
         const b=this.addScore(150*n+500);floater(128,90,'NOVA! +'+b,5);SFX.bigboom();APP.shake=10;burst(128,100,[5,13,11,12],50,3.5);}}
     // spawn ramp: denser and faster each visit and as the run goes on
-    const ramp=1+W2.t/3000,climb=(0.0042+0.0007*W2.v)*ramp*[0.75,1,1.35][this.mode];
-    if(W2.toSpawn>0&&--W2.spawnT<=0){this.wormSpawn();W2.spawnT=Math.max(14,Math.round((52-5*W2.v)/ramp))+rnd(14);}
+    const D=wormDiff(W2.v),ramp=1+W2.t/2400,climb=D.climb*ramp*[0.75,1,1.35][this.mode];
+    if(W2.toSpawn>0&&--W2.spawnT<=0){this.wormSpawn();W2.spawnT=Math.max(10,Math.round(D.gap/ramp))+rnd(6);}
     for(let i=W2.shots.length-1;i>=0;i--){const b=W2.shots[i];b.z-=0.045;let hit=false;
       for(let j=W2.obs.length-1;j>=0&&!hit;j--){const o=W2.obs[j];if(o.k==='shard'||Math.round(o.lane)!==b.lane&&!(o.k==='debris'&&Math.abs(o.lf-b.lane)<0.6))continue;
         if(Math.abs(o.z-b.z)<0.06){hit=true;if(o.k==='gate'){SFX.tink();continue;}
-          if(--o.hp<=0){W2.obs.splice(j,1);W2.cleared++;const [x,y]=this.wormPt(Math.round(o.lane),o.z);burst(x,y,o.k==='spore'?[6,7]:o.k==='debris'?[14,13]:[11,12,13],8,1.4);SFX.pop();
+          if(--o.hp<=0){W2.obs.splice(j,1);W2.cleared++;W2.flash=3;noise(0.09,{f:3500,fto:500,vol:0.22});tone(160,0.07,{to:70,vol:0.06});const [x,y]=this.wormPt(Math.round(o.lane),o.z);burst(x,y,o.k==='spore'?[6,7]:o.k==='debris'?[14,13]:[11,12,13],8,1.4);SFX.pop();
             this.addScore(o.k==='crystal'?(o.big?150:80):o.k==='debris'?120:60);
             if(o.k==='spore'&&!o.small)for(const d of [-1,1])W2.obs.push({k:'spore',lane:this.wormLane(o.lane+d),z:o.z,hp:1,small:true});}
           else SFX.tink();}}
@@ -1123,28 +1186,45 @@ class CorsairGame{
     const s=this.ship;s.x=44;s.y=86;s.inv=90;this.nextWave();}
   drawWorm(){const W2=this.worm,t=this.t,G0=W2.G,N=G0.N,K=G0.open?N+1:N;ctx.fillStyle=PAL[0];ctx.fillRect(0,0,W,H);
     const line=(x0,y0,x1,y1,c)=>{ctx.fillStyle=PAL[c];const n=Math.max(Math.abs(x1-x0),Math.abs(y1-y0))|0;for(let i=0;i<=n;i+=1){const u=n?i/n:0;ctx.fillRect(Math.round(x0+(x1-x0)*u),Math.round(y0+(y1-y0)*u),1,1);}};
-    const ringC=[12,11,10,9,13,5,4,3];
-    for(let r=0;r<9;r++){const z=((r/9)+W2.ringPh)%1,c=ringC[(r+(t>>3))%ringC.length];let prev=null;
-      for(let k=0;k<K;k++){const p=this.wormEdge(k,z);if(prev&&(k%1===0))line(prev[0],prev[1],p[0],p[1],z<0.25?1:c);prev=p;}
-      if(!G0.open){const p=this.wormEdge(0,z);line(prev[0],prev[1],p[0],p[1],z<0.25?1:c);}}
-    for(let k=0;k<K;k++){const a=this.wormEdge(k,0.02),b=this.wormEdge(k,1);line(a[0],a[1],b[0],b[1],9);}
-    // player lane edges glow
-    {const a=this.wormEdge(W2.lane,0.02),b=this.wormEdge(W2.lane,1),c=this.wormEdge(W2.lane+1,0.02),d=this.wormEdge(W2.lane+1,1);const col=(t>>2)&1?5:13;line(a[0],a[1],b[0],b[1],col);line(c[0],c[1],d[0],d[1],col);}
-    for(const o of W2.obs){const ln=o.k==='debris'?Math.round(o.lf)%N:Math.round(o.lane)%N,[x,y,sc]=this.wormPt(ln,o.z),r=Math.max(1,Math.round(sc*(o.k==='crystal'&&o.big?9:6)));
-      if(o.k==='crystal'){ctx.fillStyle=PAL[o.big?12:11];for(let i=0;i<=r;i++)ctx.fillRect(Math.round(x-(r-i)),Math.round(y-i),2*(r-i)+1,2*i?1:1);for(let i=0;i<=r;i++)ctx.fillRect(Math.round(x-(r-i)),Math.round(y+i),2*(r-i)+1,1);
-        ctx.fillStyle=PAL[13];ctx.fillRect(Math.round(x-r/3),Math.round(y-r/2),1,1);}
-      else if(o.k==='debris'){ctx.fillStyle=PAL[14];for(let i=-r;i<=r;i++){const a=o.rot;ctx.fillRect(Math.round(x+Math.cos(a)*i),Math.round(y+Math.sin(a)*i),2,2);ctx.fillRect(Math.round(x-Math.sin(a)*i*0.6),Math.round(y+Math.cos(a)*i*0.6),1,1);}}
-      else if(o.k==='gate'){const a=this.wormEdge(ln,o.z),b=this.wormEdge(ln+1,o.z),th=Math.max(1,Math.round(sc*4));
-        for(let q=0;q<th;q++){const n=Math.max(Math.abs(b[0]-a[0]),Math.abs(b[1]-a[1]))|0;for(let i=0;i<=n;i++){const u=n?i/n:0;ctx.fillStyle=PAL[((i>>2)+(t>>3))&1?3:5];ctx.fillRect(Math.round(a[0]+(b[0]-a[0])*u),Math.round(a[1]+(b[1]-a[1])*u)+q-(th>>1),1,1);}}}
-      else if(o.k==='spore'){const rr2=o.small?Math.max(1,r>>1):r;ctx.fillStyle=PAL[7];ctx.fillRect(Math.round(x-rr2),Math.round(y-rr2),2*rr2+1,2*rr2+1);ctx.fillStyle=PAL[6];ctx.fillRect(Math.round(x-rr2+1),Math.round(y-rr2+1),Math.max(1,2*rr2-1),Math.max(1,2*rr2-1));
-        ctx.fillStyle=PAL[2];ctx.fillRect(Math.round(x),Math.round(y),1,1);}
-      else{const tw=(t>>2)&1;ctx.fillStyle=PAL[tw?5:13];ctx.fillRect(Math.round(x)-r,Math.round(y),2*r+1,1);ctx.fillRect(Math.round(x),Math.round(y)-r,1,2*r+1);ctx.fillStyle=PAL[4];ctx.fillRect(Math.round(x),Math.round(y),1,1);}}
+    // palette for a depth: during a morph the new palette flows from the core (z=0) toward the rim
+    const palAt=z=>{if(W2.morph<0)return WPAL[W2.pal];const m=W2.morph/WPAL_MORPH;return z<=m*1.15-0.1?WPAL[W2.nextPal]:WPAL[W2.pal];};
+    const band=(P,z)=>P[z<0.3?0:z<0.6?1:z<0.92?2:3];
+    // current lane: steady filled strip (palette independent) with yellow rails
+    for(let q=0;q<12;q++){const z0=q/12,z1=(q+1)/12,a=this.wormEdge(W2.lane,z0),b=this.wormEdge(W2.lane+1,z0),c=this.wormEdge(W2.lane+1,z1),d=this.wormEdge(W2.lane,z1);
+      ctx.fillStyle=PAL[W2.snap>0?13:q%2?1:0];ctx.globalAlpha=W2.snap>0?0.9:0.85;ctx.beginPath();ctx.moveTo(a[0],a[1]);ctx.lineTo(b[0],b[1]);ctx.lineTo(c[0],c[1]);ctx.lineTo(d[0],d[1]);ctx.closePath();ctx.fill();ctx.globalAlpha=1;}
+    const ring=(z,c,th)=>{let prev=null;for(let k=0;k<K;k++){const p=this.wormEdge(k,z);if(prev){line(prev[0],prev[1],p[0],p[1],c);if(th>1)line(prev[0],prev[1]+1,p[0],p[1]+1,c);}prev=p;}
+      if(!G0.open){const p=this.wormEdge(0,z);line(prev[0],prev[1],p[0],p[1],c);if(th>1)line(prev[0],prev[1]+1,p[0],p[1]+1,c);}};
+    for(let k=0;k<K;k++){for(let q=0;q<4;q++){const z0=0.04+q*0.24,z1=z0+0.24,a=this.wormEdge(k,z0),b=this.wormEdge(k,Math.min(1,z1));line(a[0],a[1],b[0],b[1],palAt((z0+z1)/2)[4]===15?(q<1?1:15):15);}}
+    for(let r=0;r<6;r++){const z=((r/6)+W2.ringPh)%1;ring(z,band(palAt(z),z),z>0.35?2:1);}
+    ring(1,band(palAt(1),1),2);
+    {const a=this.wormEdge(W2.lane,0.04),b=this.wormEdge(W2.lane,1),c=this.wormEdge(W2.lane+1,0.04),d=this.wormEdge(W2.lane+1,1);
+      line(a[0],a[1],b[0],b[1],5);line(c[0],c[1],d[0],d[1],5);line(a[0]+1,a[1],b[0]+1,b[1],5);line(c[0]-1,c[1],d[0]-1,d[1],5);}
+    // glowing core (slow breathing, no flicker)
+    {const cr=3.5+Math.sin(t*0.03),cx=G0.cx,cy=G0.cy,P=palAt(0);for(let i=Math.ceil(cr+3);i>=0;i--){ctx.fillStyle=PAL[i>cr+1?P[1]:i>cr?P[2]:i>1?13:5];ctx.beginPath();ctx.arc(cx,cy,i,0,6.283);ctx.fill();}}
+    const poly=(pts,fill)=>{ctx.beginPath();ctx.moveTo(pts[0][0],pts[0][1]);for(let i=1;i<pts.length;i++)ctx.lineTo(pts[i][0],pts[i][1]);ctx.closePath();
+      ctx.strokeStyle=PAL[0];ctx.lineWidth=2;ctx.stroke();ctx.fillStyle=PAL[fill];ctx.fill();};
+    for(const o of W2.obs.slice().sort((a,b)=>a.z-b.z)){const ln=o.k==='debris'?Math.round(o.lf)%N:Math.round(o.lane)%N,[x,y,sc]=this.wormPt(ln,o.z),S=Math.max(2,sc*(o.k==='crystal'&&o.big?13:o.small?7:10));
+      if(o.z>0.72&&o.k!=='shard'){const mine=ln===W2.lane;ctx.globalAlpha=Math.min(0.55,(o.z-0.72)*2)*(mine?1:0.6);ctx.fillStyle=PAL[mine?3:13];ctx.beginPath();ctx.arc(x,y,S*1.5,0,6.283);ctx.fill();ctx.globalAlpha=1;}
+      if(o.k==='crystal'){const c=o.big?[12,13,2]:[11,13,10],h=S*0.55;   // faceted cube: top, left and right faces
+        poly([[x,y-S],[x+S,y-h],[x,y],[x-S,y-h]],c[1]);poly([[x-S,y-h],[x,y],[x,y+S],[x-S,y+S-h]],c[0]);poly([[x+S,y-h],[x,y],[x,y+S],[x+S,y+S-h]],c[2]);}
+      else if(o.k==='debris'){const a=o.rot,pts=[];for(let i=0;i<7;i++){const ang=a+i*0.898,rr3=S*(i%2?0.5:1.15);pts.push([x+Math.cos(ang)*rr3,y+Math.sin(ang)*rr3*0.8]);}poly(pts,14);
+        ctx.fillStyle=PAL[13];ctx.fillRect(Math.round(x+Math.cos(a)*S*0.4),Math.round(y+Math.sin(a)*S*0.3),2,2);}
+      else if(o.k==='gate'){const a=this.wormEdge(ln,o.z),b=this.wormEdge(ln+1,o.z),th=Math.max(2,sc*7),nx=-(b[1]-a[1]),ny=b[0]-a[0],nl=Math.hypot(nx,ny)||1,ox=nx/nl*th/2,oy=ny/nl*th/2;
+        poly([[a[0]-ox,a[1]-oy],[b[0]-ox,b[1]-oy],[b[0]+ox,b[1]+oy],[a[0]+ox,a[1]+oy]],3);
+        ctx.save();ctx.beginPath();ctx.moveTo(a[0]-ox,a[1]-oy);ctx.lineTo(b[0]-ox,b[1]-oy);ctx.lineTo(b[0]+ox,b[1]+oy);ctx.lineTo(a[0]+ox,a[1]+oy);ctx.closePath();ctx.clip();
+        ctx.fillStyle=PAL[5];const L2=Math.hypot(b[0]-a[0],b[1]-a[1]);for(let i=-th;i<L2;i+=Math.max(3,th*1.2)){const u=i/L2,px=a[0]+(b[0]-a[0])*u,py=a[1]+(b[1]-a[1])*u;ctx.fillRect(Math.round(px),Math.round(py-th),Math.max(1,Math.round(th*0.5)),Math.ceil(th*2));}ctx.restore();}
+      else if(o.k==='spore'){ctx.fillStyle=PAL[0];for(let i=0;i<6;i++){const ang=i*1.047+t*0.01;ctx.beginPath();ctx.arc(x+Math.cos(ang)*S*0.85,y+Math.sin(ang)*S*0.85,S*0.38+1,0,6.283);ctx.fill();}
+        for(let i=0;i<6;i++){const ang=i*1.047+t*0.01;ctx.fillStyle=PAL[7];ctx.beginPath();ctx.arc(x+Math.cos(ang)*S*0.85,y+Math.sin(ang)*S*0.85,S*0.38,0,6.283);ctx.fill();}
+        ctx.fillStyle=PAL[0];ctx.beginPath();ctx.arc(x,y,S*0.8+1,0,6.283);ctx.fill();ctx.fillStyle=PAL[6];ctx.beginPath();ctx.arc(x,y,S*0.8,0,6.283);ctx.fill();
+        ctx.fillStyle=PAL[8];ctx.fillRect(Math.round(x-S*0.3),Math.round(y-S*0.2),Math.max(1,S*0.25),Math.max(1,S*0.25));ctx.fillRect(Math.round(x+S*0.15),Math.round(y+S*0.15),Math.max(1,S*0.2),Math.max(1,S*0.2));}
+      else{const r=S*0.8,pts=[];for(let i=0;i<8;i++){const ang=i*0.785,rr3=i%2?r*0.35:r;pts.push([x+Math.cos(ang)*rr3,y+Math.sin(ang)*rr3]);}poly(pts,5);ctx.fillStyle=PAL[13];ctx.fillRect(Math.round(x)-1,Math.round(y)-1,2,2);}}
     for(const b of W2.shots){const [x,y]=this.wormPt(b.lane,b.z);ctx.fillStyle=PAL[13];ctx.fillRect(Math.round(x)-1,Math.round(y)-1,2,2);ctx.fillStyle=PAL[11];const [x2,y2]=this.wormPt(b.lane,Math.min(1,b.z+0.05));ctx.fillRect(Math.round(x2),Math.round(y2),1,1);}
     const s=this.ship;
     if(!s.dead&&!(s.inv>0&&(s.inv>>2)&1)){const a=this.wormEdge(W2.lane,1),b=this.wormEdge(W2.lane+1,1),[mx,my]=this.wormPt(W2.lane,1),[ix,iy]=this.wormPt(W2.lane,0.9);
       line(a[0],a[1],ix,iy,5);line(b[0],b[1],ix,iy,5);line(a[0],a[1],mx,my,13);line(b[0],b[1],mx,my,13);ctx.fillStyle=PAL[10];ctx.fillRect(Math.round(mx)-1,Math.round(my)-1,3,3);}
-    for(let i=0;i<CC_SHARDS;i++){ctx.fillStyle=PAL[i<W2.shards?5:1];ctx.fillRect(104+i*8,184,6,4);}text(W2.shards>=CC_SHARDS&&!W2.nova?'NOVA: B':'SHARDS',W2.shards>=CC_SHARDS&&!W2.nova?72:76,183,W2.shards>=CC_SHARDS&&!W2.nova&&(t>>3)&1?5:14);
-    ctx.fillStyle=PAL[1];ctx.fillRect(200,184,50,3);ctx.fillStyle=PAL[11];ctx.fillRect(200,184,Math.round(50*(1-W2.t/W2.dur)),3);
+    {const ready=W2.shards>=CC_SHARDS&&!W2.nova,pu=ready?((t>>2)&1):0;for(let i=0;i<CC_SHARDS;i++){ctx.fillStyle=PAL[i<W2.shards?(ready?(pu?13:5):5):1];ctx.fillRect(34+i*7-pu,184-pu,5+2*pu,4+2*pu);}}text(W2.shards>=CC_SHARDS&&!W2.nova?'NOVA B':'SHARD',4,183,W2.shards>=CC_SHARDS&&!W2.nova&&(t>>3)&1?5:14);
+    ctx.fillStyle=PAL[1];ctx.fillRect(202,185,50,3);ctx.fillStyle=PAL[11];ctx.fillRect(202,185,Math.round(50*(1-W2.t/W2.dur)),3);
+    if(W2.flash>0){ctx.fillStyle=PAL[13];ctx.globalAlpha=0.12*W2.flash;ctx.fillRect(0,18,W,H-18);ctx.globalAlpha=1;}
     if(W2.novaFx>0){ctx.fillStyle=PAL[W2.novaFx&2?13:5];ctx.globalAlpha=W2.novaFx/50;ctx.fillRect(0,18,W,H-18);ctx.globalAlpha=1;}
     if(W2.warn>0&&(t>>3)&1){ctext('WORMHOLE',70,12,2,0);ctext(W2.shape.toUpperCase()+' TRANSIT · DODGE OR SHOOT',90,11,1,0);}}
   riftX(i){return 262+i*4-this.rift.d;}
@@ -1406,7 +1486,7 @@ class CorsairGame{
     else{ctx.fillStyle=PAL[9];for(let x=(((-t>>1)%8)+8)%8;x<W;x+=8)ctx.fillRect(x,13,2,1);}
   }
   dbgState(){const s=this.ship,r=this.rift;return {phase:this.phase,wave:this.wave,fuel:this.fuel,heat:this.heat,hotWarned:this.hotWarned,overheats:this.overheats,
-    worm:this.worm?{v:this.worm.v,shape:this.worm.shape,lane:this.worm.lane,N:this.worm.G.N,warn:this.worm.warn,t:this.worm.t,obs:this.worm.obs.length,shots:this.worm.shots.length,shards:this.worm.shards,nova:this.worm.nova,toSpawn:this.worm.toSpawn,cleared:this.worm.cleared,hits:this.worm.hits}:null,lastWorm:this.lastWorm||null,
+    worm:this.worm?{palLog:this.worm.palLog.slice(),pal:this.worm.pal,morph:this.worm.morph,music:WM.on,v:this.worm.v,shape:this.worm.shape,lane:this.worm.lane,N:this.worm.G.N,warn:this.worm.warn,t:this.worm.t,obs:this.worm.obs.length,shots:this.worm.shots.length,shards:this.worm.shards,nova:this.worm.nova,toSpawn:this.worm.toSpawn,cleared:this.worm.cleared,hits:this.worm.hits}:null,lastWorm:this.lastWorm||null,
     belt:this.phase==='belt'?{warn:this.beltWarn,left:this.beltT,rocks:this.beltRocks,warnAt:this.beltWarnAt,startAt:this.beltStartAt,p:this.belt}:null,nextLife:this.nextLife,
     mode:this.gear.n,mult:this.gear.m,sp:this.sp,scrollX:this.scrollX,modeChanges:this.modeChanges,th:this.th,
     rocks:this.rocks.length,ens:this.ens.length,ebul:this.ebul.length,rift:r?{warn:r.warn,d:r.d,cols:r.C.length,motes:r.M.length,got:r.got,fuelGot:r.fuelGot,hits:r.hits,half:r.P.half}:null,lastRift:this.lastRift||null,riftHits:this.riftHits,refuels:this.refuels,fuelGainOutside:this.fuelGainOutside,
@@ -1471,6 +1551,7 @@ function togglePause(){if(APP.scene!=='play')return;APP.paused=!APP.paused;if(AP
 function cartRect(i){return {x:3+i*63,y:58,w:60,h:76};}
 function step(){
   stepCore();
+  wmTick(!!(APP.scene==='play'&&!APP.paused&&G&&G.worm&&G.worm.warn<120&&!AU.muted));
   let hv=0,hf=40;if(APP.scene==='play'&&!APP.paused&&G&&G.hum)[hv,hf]=G.hum();if(voiceBusy())hv*=0.15;humSet(hv,hf);
   voicePump();
 }
@@ -1789,6 +1870,7 @@ if(DEBUG){
     vstatus(){return {clips:Object.keys(VCLIPS).length,decoded:Object.keys(VB.raw).length,errors:Object.keys(VB.err),pending:VB.pending,ctx:AU.ctx&&AU.ctx.state,pick:VOICE.pick,fx:VOICE.fx,on:VOICE.on,retro:vRetro()};},
     vclips:l=>vClips(l),
     hs:id=>loadTable(id),hsAdd:(id,n,s,l)=>addHi(id,n,s,l),entry:()=>APP.entry&&{...APP.entry,name:entryName()},scoresOpen:()=>APP.scores,
+    wm:()=>({on:WM.on,step:WM.step}),
     vsched(){return {sched:VB.sched.slice(),starts:VB.starts,trimmed:VB.trimmed,humRamps:HUM.ramps||0,prepped:Object.keys(VB.proc).length,fx:VOICE.fx};},
     vcur(){const c=VOICE.cur;return c&&{line:c.line,clips:c.clips||null,retro:!!c.retro,n:c.srcs?c.srcs.length:0,dur:c.hardEnd-c.start,done:c.done};},
     vproc(){const o={},was=VOICE.fx;for(const q of ['clean','crunch','extreme']){setVoiceFx(q,true);let n=0;for(const id in VCLIPS)if(vBuf(id))n++;o[q]=n;}setVoiceFx(was,true);return o;},
