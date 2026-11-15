@@ -34,6 +34,8 @@ canvas{image-rendering:pixelated;image-rendering:crisp-edges;display:block}
 #panel .box{background:var(--panel);border:2px solid #4a7cf0;border-radius:8px;padding:12px;display:grid;grid-template-columns:1fr 1fr;gap:8px;max-width:92vw}
 #panel .pb{position:static;display:flex;align-items:center;justify-content:center;min-height:40px;min-width:120px}
 #tFS{display:none;z-index:6}
+#tType{display:none;z-index:7}
+#nameIn{position:fixed;left:50%;top:8px;transform:translateX(-50%);width:200px;font:16px monospace;text-transform:uppercase;opacity:0.01;z-index:-1;border:0;background:transparent;color:transparent}
 #keysOv{position:fixed;inset:0;display:none;align-items:center;justify-content:center;background:rgba(0,0,0,.6);z-index:11}
 #keysOv .box{background:var(--panel);border:2px solid #f7d64a;border-radius:8px;padding:14px 16px;display:flex;flex-direction:column;gap:7px;line-height:0;max-height:92vh;overflow:auto}
 body.fsidle{cursor:none}
@@ -61,9 +63,12 @@ body.fsidle{cursor:none}
     <div id="tScale" class="tb pb"></div><div id="tPads" class="tb pb"></div>
     <div id="tFull" class="tb pb"></div><div id="tTheme" class="tb pb"></div>
     <div id="tVfx" class="tb pb"></div><div id="tVpick" class="tb pb"></div>
-    <div id="tKeys" class="tb pb"></div><div id="tClose" class="tb pb"></div>
+    <div id="tKeys" class="tb pb"></div><div id="tScores" class="tb pb"></div>
+    <div id="tClose" class="tb pb" style="grid-column:1/3"></div>
   </div></div>
   <div id="tip"></div>
+  <div id="tType" class="tb"></div>
+  <input id="nameIn" maxlength="8" autocomplete="off" autocapitalize="characters" spellcheck="false" enterkeyhint="done" aria-label="name">
   <div id="hint"></div>
   <div id="safe"></div>
 </div>
@@ -252,7 +257,10 @@ const KEYS={ArrowUp:'up',KeyW:'up',ArrowDown:'down',KeyS:'down',ArrowLeft:'left'
   Space:'a',KeyZ:'a',Enter:'a',KeyJ:'a',KeyX:'b',KeyK:'b',ShiftLeft:'b',ShiftRight:'b',KeyP:'start'};
 const BTN=['up','down','left','right','a','b','start'];
 const IN={kb:{},latch:{},touch:{},pad:{},dbg:null,held:{},prev:{},pressed:{},tap:null,spd:null,padL:false,padR:false};
-addEventListener('keydown',e=>{audioUnlock();const k=KEYS[e.code];
+addEventListener('keydown',e=>{audioUnlock();if(e.target&&e.target.id==='nameIn')return;
+  if(APP.scene==='entry'&&!e.metaKey&&!e.ctrlKey&&entryKey(e)){e.preventDefault();return;}
+  if(e.code==='KeyH'&&!e.repeat&&APP.scene!=='entry'&&APP.scene!=='play'){APP.scores=!APP.scores;SFX.blip();updateButtons();return;}
+  const k=KEYS[e.code];
   if(k){if(!e.repeat)IN.latch[k]=true;IN.kb[k]=true;e.preventDefault();} else if(e.code==='KeyM'){setMute(!AU.muted);}else if(e.code==='KeyV'&&!e.repeat){setVoice(!VOICE.on);}
   else if(/^(Digit|Numpad)[123]$/.test(e.code)){if(!e.repeat)IN.spd=+e.code.slice(-1)-1;e.preventDefault();}
   else if(e.code==='KeyF'&&!e.repeat){e.preventDefault();toggleFull();}
@@ -285,11 +293,23 @@ function drawFx(){for(const p of PART){ctx.fillStyle=PAL[p.c];ctx.fillRect(p.x|0
   for(const f of FLOAT){if(f.l<12&&(f.l&2))continue;const x=clamp(Math.round(f.x-tw(f.s)/2),1,W-tw(f.s)-1);text(f.s,x,Math.round(f.y),f.c,1,0);}}
 
 /* ---------------- high scores (localStorage, guarded) ---------------- */
-const HIMEM={};
-function loadHi(id){let l=null;try{const v=JSON.parse(localStorage.getItem('mcc_hi_'+id)||'null');if(Array.isArray(v))l=v.filter(n=>typeof n==='number'&&isFinite(n));}catch(e){}
-  if(!l)l=HIMEM[id]||[];return l.slice(0,5);}
-function saveHi(id,score){const l=loadHi(id);l.push(Math.floor(score));l.sort((a,b)=>b-a);const top=l.slice(0,5);HIMEM[id]=top;
-  try{localStorage.setItem('mcc_hi_'+id,JSON.stringify(top));}catch(e){}return top;}
+/* tables: mcc_hs2_<id> = [{n:name,s:score,l:level reached,t:time}] best first; ties keep the earlier entry on top.
+   Old number-only lists (mcc_hi_<id>) migrate once with the name '---'. */
+const HIMEM={},HS_CHARS='ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789 .-!';
+const HS_BAD=['FUK','FUC','FCK','FUQ','SHT','SHIT','ASS','CUM','DIK','DIC','COK','COC','KKK','FAG','NIG','NGR','TIT','CNT','KYS','SEX','PNS','WTF'];
+function loadTable(id){let t=null;
+  try{const v=JSON.parse(localStorage.getItem('mcc_hs2_'+id)||'null');if(Array.isArray(v))t=v.filter(e=>e&&typeof e.s==='number'&&isFinite(e.s)).map(e=>({n:String(e.n||'---').slice(0,8),s:e.s,l:e.l|0,t:e.t||0}));}catch(e){}
+  if(!t){try{const o=JSON.parse(localStorage.getItem('mcc_hi_'+id)||'null');if(Array.isArray(o)){t=o.filter(n=>typeof n==='number'&&isFinite(n)).map((s,i)=>({n:'---',s:Math.floor(s),l:0,t:i}));
+      t.sort((a,b)=>b.s-a.s);localStorage.setItem('mcc_hs2_'+id,JSON.stringify(t.slice(0,5)));}}catch(e){}}
+  if(!t)t=HIMEM[id]||[];return t.slice(0,5);}
+function saveTable(id,t){HIMEM[id]=t;try{localStorage.setItem('mcc_hs2_'+id,JSON.stringify(t));}catch(e){}}
+function loadHi(id){return loadTable(id).map(e=>e.s);}
+function hiRank(id,score){if(!(score>0))return -1;const t=loadTable(id);let r=0;while(r<t.length&&t[r].s>=score)r++;return r<5?r:-1;}
+function addHi(id,name,score,level){const t=loadTable(id);const e={n:name,s:Math.floor(score),l:level|0,t:Date.now()};let r=0;while(r<t.length&&t[r].s>=e.s)r++;
+  t.splice(r,0,e);const top=t.slice(0,5);saveTable(id,top);return r<5?r:-1;}
+function saveHi(id,score,level){return addHi(id,lastName(),score,level);}
+function lastName(){try{const v=localStorage.getItem('mcc_last_name');if(v)return v;}catch(e){}return 'AAA';}
+const hsBad=n=>{const c=n.replace(/[^A-Z]/g,'');return HS_BAD.some(w=>c.includes(w));};
 
 function hudBase(g){
   ctx.fillStyle=PAL[0];ctx.fillRect(0,0,W,10);ctx.fillStyle=PAL[15];ctx.fillRect(0,9,W,1);
@@ -1285,35 +1305,58 @@ class CorsairGame{
 
 /* ---------------- cartridge catalog ---------------- */
 const GAMES=[
- {id:'corsair',name:'CAPTAIN TUTTLE: COMET CORSAIR',lines:['CAPTAIN TUTTLE','COMET CORSAIR'],sub:'THE ADVENTURES OF CAPTAIN TUTTLE',portrait:'cc_tuttle',color:10,icon:'cc_ship',cls:CorsairGame,voice:true,music:CC_MUSIC,
+ {id:'corsair',name:'CAPTAIN TUTTLE: COMET CORSAIR',lines:['CAPTAIN TUTTLE','COMET CORSAIR'],lvl:'S',sub:'THE ADVENTURES OF CAPTAIN TUTTLE',portrait:'cc_tuttle',color:10,icon:'cc_ship',cls:CorsairGame,voice:true,music:CC_MUSIC,
   pitch:['RAID THE SKIES OVER A ROGUE PLANET.','FUEL DRAINS. EVERY 2ND SECTOR A FUEL RIFT','OPENS: THREAD IT SLOW, GRAB THE MOTES.'],
   keys:['ARROWS/WASD FLY   SPACE/Z FIRE (HOLD)','X/SHIFT SPARK BURST   1 2 3 SLOW/MED/FAST','P PAUSE  M SOUND  V VOICE  F FULL  ESC MENU'],
   help:['D-PAD FLY   A CANNON: FULL HEAT LOSES A SHIP','B  SPARK BURST: 5-WAY, BIG HEAT COST','1/2/3 SPEED: SLOW X0.75  MED  FAST X1.5']},
- {id:'paint',name:'PAINT PATROL',color:12,icon:'pp_bot',cls:PaintGame,
+ {id:'paint',lvl:'ST',name:'PAINT PATROL',color:12,icon:'pp_bot',cls:PaintGame,
   pitch:['ROLL EVERY TILE OF THE MAZE IN PAINT.','LOOP YOUR GLOWING RIBBON AROUND SMUDGERS','TO TRAP THEM. GREY BLOTTERS WIPE PAINT.'],
   keys:['ARROWS/WASD ROLL   SOLVENT CAN: DISSOLVE','X/SHIFT PAINT BOMB','P PAUSE  M SOUND  F FULL  ESC MENU'],
   help:['D-PAD ROLL   SOLVENT CAN: DISSOLVE SMUDGERS','B  PAINT BOMB: SPLASH + STUN (RECHARGES)','CLOSE A LOOP: TRAP SMUDGERS, FILL INSIDE']},
- {id:'peak',name:'PEBBLE PEAK',color:4,icon:'pk_hiker',cls:PeakGame,
+ {id:'peak',lvl:'P',name:'PEBBLE PEAK',color:4,icon:'pk_hiker',cls:PeakGame,
   pitch:['CLIMB THE LEDGES TO THE SUMMIT FLAG.','ROCKS TUMBLE DOWN FROM THE CAVE.','JUMP THEM OR SMASH THEM WITH A PICK.'],
   keys:['ARROWS/WASD WALK / CLIMB LADDERS','SPACE/Z JUMP   X/SHIFT SWING PICK','P PAUSE  M SOUND  F FULL  ESC MENU'],
   help:['D-PAD  WALK / CLIMB LADDERS','A  JUMP','B  SWING PICK (GEMS GIVE PICKS)']},
- {id:'prism',name:'PRISM PATROL',color:6,icon:'pr_d2',cls:PrismGame,
+ {id:'prism',lvl:'W',name:'PRISM PATROL',color:6,icon:'pr_d2',cls:PrismGame,
   pitch:['HOLD THE LINE AGAINST DIVING DRONES.','EACH DRONE DROPS A SPARK: CATCH IT TO','BUILD A CHAIN UP TO X8. MISS ONE, RESET.'],
   keys:['ARROWS/WASD MOVE   SPACE/Z FIRE','X/SHIFT PRISM SHIELD: BOUNCES SHOTS','P PAUSE  M SOUND  F FULL  ESC MENU'],
   help:['D-PAD  MOVE','A  FIRE','B  PRISM SHIELD: BOUNCES SHOTS BACK']}
 ];
 
 /* ---------------- app state machine ---------------- */
-const APP={scene:'menu',sel:0,gi:0,paused:false,t:0,st:0,overT:0,newHi:false,best:0,shake:0};
+const APP={scores:false,entry:null,scene:'menu',sel:0,gi:0,paused:false,t:0,st:0,overT:0,newHi:false,best:0,shake:0};
 let G=null;
-function toMenu(){if(G&&APP.scene==='play'&&G.score>0)saveHi(GAMES[APP.gi].id,G.score);
+function toMenu(){if(G&&APP.scene==='play'&&hiRank(GAMES[APP.gi].id,G.score)>=0)saveHi(GAMES[APP.gi].id,G.score,G.level);
+  if(APP.scene==='entry')entryConfirm(true);
   hush();APP.scene='menu';APP.paused=false;G=null;APP.st=0;PART.length=0;FLOAT.length=0;updateButtons();}
 function toTitle(i){const back=APP.scene==='over';APP.gi=i;APP.sel=i;APP.scene='title';APP.st=0;APP.paused=false;SFX.menu();updateButtons();
   if(GAMES[i].portrait&&!back)say('Welcome back, Captain Tuttle.');}
 function startGame(i){APP.gi=i;APP.sel=i;G=new GAMES[i].cls();G.id=GAMES[i].id;APP.best=loadHi(G.id)[0]||0;
   APP.scene='play';APP.paused=false;APP.st=0;PART.length=0;FLOAT.length=0;SFX.start();updateButtons();}
-function endGame(){const id=GAMES[APP.gi].id;const prev=loadHi(id)[0]||0;APP.newHi=G.score>prev&&G.score>0;saveHi(id,G.score);
-  APP.scene='over';APP.overT=0;if(APP.newHi){SFX.hiscore();if(GAMES[APP.gi].voice)say('New high score. Logged.');}else SFX.over();updateButtons();}
+function endGame(){const id=GAMES[APP.gi].id;const rank=hiRank(id,G.score);APP.newHi=rank===0;
+  if(rank>=0){const nm=lastName().slice(0,3).padEnd(3,' ').split('');APP.entry={id,score:G.score,level:G.level|0,rank,ch:nm,pos:0,typed:null,msg:'',msgT:0};
+    APP.scene='entry';APP.st=0;SFX.hiscore();if(GAMES[APP.gi].voice&&rank===0)say('New high score. Logged.');updateButtons();return;}
+  APP.scene='over';APP.overT=0;SFX.over();updateButtons();}
+function entryName(){const E=APP.entry;return (E.typed!=null?E.typed:E.ch.join('')).replace(/\s+$/,'')||'---';}
+function entryConfirm(quiet){const E=APP.entry;if(!E)return;const n=entryName();
+  if(hsBad(n)&&!quiet){E.msg='TRY ANOTHER NAME';E.msgT=90;SFX.warn();return;}
+  addHi(E.id,hsBad(n)?'---':n,E.score,E.level);try{localStorage.setItem('mcc_last_name',n.slice(0,8));}catch(e){}
+  APP.entry=null;nameInput(false);if(!quiet){APP.scene='over';APP.overT=0;SFX.level();updateButtons();}}
+function entryKey(e){const E=APP.entry;if(!E||APP.scene!=='entry')return false;const k=e.key;
+  if(k==='Enter'){entryConfirm();return true;}
+  if(k==='Backspace'){if(E.typed!=null){E.typed=E.typed.slice(0,-1);return true;}if((E.adv||E.ch[E.pos]===' ')&&E.pos>0)E.pos--;E.ch[E.pos]=' ';E.adv=false;SFX.move();return true;}
+  if(k&&k.length===1){const c=k.toUpperCase();if(HS_CHARS.includes(c)){if(E.typed!=null){if(E.typed.length<8)E.typed+=c;}else{E.ch[E.pos]=c;E.adv=E.pos<2;if(E.pos<2)E.pos++;}SFX.blip();return true;}}
+  return false;}
+function stepEntry(p,tap){const E=APP.entry;if(E.msgT>0)E.msgT--;const C=HS_CHARS,L=C.length;
+  if(E.typed!=null){if(p.a)entryConfirm();else if(p.b){E.typed=null;nameInput(false);}
+    else if(tap&&tap.x>=104&&tap.x<152&&tap.y>=138&&tap.y<154)entryConfirm();return;}
+  const cyc=d=>{E.ch[E.pos]=C[(C.indexOf(E.ch[E.pos])+d+L)%L];SFX.move();};
+  if(p.up)cyc(1);else if(p.down)cyc(-1);
+  if(p.left&&E.pos>0){E.pos--;SFX.blip();}if(p.right&&E.pos<2){E.pos++;SFX.blip();}
+  if(p.a){if(E.pos<2){E.pos++;SFX.blip();}else entryConfirm();}
+  if(p.b&&E.pos>0){E.pos--;SFX.blip();}
+  if(tap){for(let i=0;i<3;i++){const cx=100+i*28;if(tap.x>=cx-12&&tap.x<cx+12){if(tap.y>=66&&tap.y<88){E.pos=i;cyc(1);}else if(tap.y>=88&&tap.y<106){E.pos=i;SFX.blip();}else if(tap.y>=106&&tap.y<128){E.pos=i;cyc(-1);}}}
+    if(tap.x>=104&&tap.x<152&&tap.y>=138&&tap.y<154)entryConfirm();}}
 function togglePause(){if(APP.scene!=='play')return;APP.paused=!APP.paused;if(APP.paused)hush();SFX.blip();updateButtons();}
 function cartRect(i){return {x:3+i*63,y:58,w:60,h:76};}
 function step(){
@@ -1324,7 +1367,10 @@ function step(){
 function stepCore(){
   pollInput();const p=IN.pressed;APP.t++;APP.st++;const tap=IN.tap;IN.tap=null;const sq=IN.spd;IN.spd=null;
   if(APP.shake>0)APP.shake--;
+  if(APP.scores){if(p.a||p.b||p.start||tap){APP.scores=false;SFX.blip();updateButtons();}return;}
+  if(APP.scene==='entry'){stepEntry(p,tap);if(G)updFx();return;}
   if(APP.scene==='menu'){
+    if(p.b||(tap&&tap.x>=190&&tap.y<14)){APP.scores=true;SFX.blip();updateButtons();return;}
     if(p.left||p.up){APP.sel=(APP.sel+GAMES.length-1)%GAMES.length;SFX.move();}
     if(p.right||p.down){APP.sel=(APP.sel+1)%GAMES.length;SFX.move();}
     if(p.a||p.start)toTitle(APP.sel);
@@ -1373,7 +1419,8 @@ function drawMenu(){
   for(let i=0;i<GAMES.length;i++)drawCart(i,i===APP.sel);
   const g=GAMES[APP.sel];ctext(g.pitch[0],148,14);
   ctext('D-PAD CHOOSE    A OR TAP: INSERT',162,11);
-  if((APP.t>>5)&1)ctext('INSERT A CARTRIDGE',176,5,1);
+  ctx.fillStyle=PAL[9];ctx.fillRect(190,2,63,11);ctx.fillStyle=PAL[11];ctx.fillRect(190,2,63,1);text('HIGH SCORES',193,5,13);
+  if((APP.t>>5)&1)ctext(IS_TOUCH?'INSERT A CARTRIDGE   B: HIGH SCORES':'INSERT A CARTRIDGE   H: HIGH SCORES',176,5,1);
   else ctext(IS_TOUCH?'M: SOUND   V: VOICE   P: PAUSE':'F: FULL SCREEN   ESC: MENU + KEYS',176,15,1);
 }
 function drawTitle(){
@@ -1387,26 +1434,46 @@ function drawTitle(){
   ctx.fillStyle=PAL[1];ctx.fillRect(8,70,240,40);
   if(!IS_TOUCH&&g.keys){text('KEYS',14,74,g.color);g.keys.forEach((l,i)=>text(l,14,84+i*8,14));}
   else{text('CONTROLS',14,74,g.color);g.help.forEach((l,i)=>text(l,14,84+i*8,14));}
-  const hs=loadHi(g.id);text('TOP SCORES',14,116,5);
-  for(let i=0;i<5;i++){const v=hs[i];text((i+1)+'. '+(v!=null?pad(v,6):'------'),14+(i<3?0:110),126+(i%3)*8,i===0?13:14);}
+  const hs=loadTable(g.id);text('TOP SCORES',14,116,5);
+  for(let i=0;i<5;i++)text(hsRow(g,hs[i],i),14+(i<3?0:122),126+(i%3)*8,i===0?13:14);
   if((APP.t>>4)&1)ctext(IS_TOUCH?'PRESS A OR TAP TO START':'PRESS SPACE TO START',166,5,1,0);
   ctext(IS_TOUCH?'B: BACK TO CARTRIDGES':'X: BACK TO CARTRIDGES',180,15);
   if(g.voice){ctext('UP/DOWN: VOICE '+(VOICE.on?'ON':'OFF')+'   LEFT/RIGHT: PICK VOICE',150,VOICE.on?6:14);ctext(voiceLabel(),158,12);}
 }
+function hsRow(g,e,i){return (i+1)+'. '+(e?e.n.padEnd(3,' ').slice(0,8):'   ')+' '+(e?pad(e.s,6):'------')+(e&&e.l?' '+g.lvl+e.l:'');}
+function drawScores(){ctx.fillStyle='rgba(0,0,0,0.88)';ctx.fillRect(0,0,W,H);ctext('HIGH SCORES',4,5,2,0);
+  GAMES.forEach((g,k)=>{const x=6+(k%2)*126,y=24+((k/2)|0)*80;ctx.fillStyle=PAL[1];ctx.fillRect(x,y,120,74);ctx.fillStyle=PAL[g.color];ctx.fillRect(x,y,120,2);
+    text(g.lines?'CAPTAIN TUTTLE':g.name,x+4,y+5,g.color);const t=loadTable(g.id);
+    for(let i=0;i<5;i++)text(hsRow(g,t[i],i),x+4,y+16+i*11,i===0?13:14);});
+  if((APP.t>>4)&1)ctext(IS_TOUCH?'TAP OR B: BACK':'H, X OR SPACE: BACK',184,11);}
+function drawEntry(){const E=APP.entry,g=GAMES[APP.gi];ctx.fillStyle='rgba(0,0,0,0.78)';ctx.fillRect(0,0,W,H);
+  ctx.fillStyle=PAL[1];ctx.fillRect(24,20,208,160);ctx.fillStyle=PAL[5];ctx.fillRect(24,20,208,2);ctx.fillRect(24,178,208,2);
+  if((APP.t>>3)&1||E.rank>0)ctext(E.rank===0?'NEW HIGH SCORE!':'RANK '+(E.rank+1)+' OF 5',28,5,1,0);
+  ctext('SCORE '+pad(E.score,6)+'   '+g.lvl+E.level,40,13);ctext('ENTER YOUR NAME',52,11);
+  if(E.typed!=null){ctext((E.typed||'')+((APP.t>>3)&1?'_':' '),90,13,2,0);}
+  else for(let i=0;i<3;i++){const cx=100+i*28,on=i===E.pos;
+    ctx.fillStyle=PAL[on?9:0];ctx.fillRect(cx-11,86,22,22);ctx.fillStyle=PAL[on?5:15];ctx.fillRect(cx-11,107,22,2);
+    const c=E.ch[i];text(c===' '?'_':c,cx-4,90,on?13:14,3,on?0:null);
+    if(on){ctx.fillStyle=PAL[(APP.t>>3)&1?5:4];for(let k=0;k<4;k++){ctx.fillRect(cx-k,74+k,2*k+1,1);ctx.fillRect(cx-k,124-k,2*k+1,1);}}}
+  ctx.fillStyle=PAL[7];ctx.fillRect(104,138,48,16);ctx.fillStyle=PAL[6];ctx.fillRect(104,138,48,1);ctext('OK',143,13,1,0);
+  if(E.msgT>0)ctext(E.msg,158,3);
+  else ctext(IS_TOUCH?'TAP THE ARROWS · A NEXT · B BACK':'TYPE YOUR NAME · ENTER OK · BACKSPACE',162,15);
+  if(!IS_TOUCH)ctext('OR ARROWS + SPACE',168,15);}
 function drawPause(){const vc=GAMES[APP.gi].voice,bh=vc?80:56,by=vc?58:66;ctx.fillStyle='rgba(0,0,0,0.6)';ctx.fillRect(0,0,W,H);ctx.fillStyle=PAL[1];ctx.fillRect(36,by,184,bh);ctx.fillStyle=PAL[10];ctx.fillRect(36,by,184,2);ctx.fillRect(36,by+bh-2,184,2);
   ctext('PAUSED',by+8,13,3,9);ctext('A OR TAP: RESUME',by+32,11);ctext('B: QUIT TO CARTRIDGES',by+42,14);
   if(vc){ctext('UP: VOICE '+(VOICE.on?'ON':'OFF')+'   DOWN: NEXT VOICE',by+54,VOICE.on?6:14);ctext(voiceLabel(),by+64,12);}}
 function drawOver(){ctx.fillStyle='rgba(0,0,0,0.62)';ctx.fillRect(0,0,W,H);ctx.fillStyle=PAL[1];ctx.fillRect(28,56,200,80);ctx.fillStyle=PAL[3];ctx.fillRect(28,56,200,2);ctx.fillRect(28,134,200,2);
   ctext('GAME OVER',64,3,3,0);const gg=GAMES[APP.gi];if(gg.lines)ctext(gg.lines.join(': '),83,10);ctext('SCORE '+pad(G.score,6),92,13,1);
   if(gg.portrait)ctext('SIGNAL LOST, CAPTAIN.',112,12);
-  if(APP.newHi){if((APP.t>>3)&1)ctext('NEW HIGH SCORE!',104,5,1);}else ctext('BEST '+pad(loadHi(GAMES[APP.gi].id)[0]||0,6),104,14);
+  if(APP.newHi){if((APP.t>>3)&1)ctext('NEW HIGH SCORE!',104,5,1);}else{const b=loadTable(GAMES[APP.gi].id)[0];ctext('BEST '+(b?b.n+' ':'')+pad(b?b.s:0,6),104,14);}
   if(APP.overT>50&&(APP.t>>4)&1)ctext('PRESS A OR TAP',120,11);}
 function draw(){
   ctx.imageSmoothingEnabled=false;ctx.save();
   if(APP.shake>0)ctx.translate(rnd(3)-1,rnd(3)-1);
   if(APP.scene==='menu')drawMenu();
   else if(APP.scene==='title')drawTitle();
-  else if(G){G.draw();drawFx();G.drawHud();if(APP.scene==='play'&&APP.paused)drawPause();if(APP.scene==='over')drawOver();}
+  else if(G){G.draw();drawFx();G.drawHud();if(APP.scene==='play'&&APP.paused)drawPause();if(APP.scene==='over')drawOver();if(APP.scene==='entry'&&APP.entry)drawEntry();}
+  if(APP.scores)drawScores();
   ctx.restore();
   if(ctlDirty)drawControls();
 }
@@ -1448,6 +1515,7 @@ function updateButtons(){
   setLabel($('tMenu'),'CARTRIDGES',13,2);
   setLabel($('tSnd'),AU.muted?'SOUND OFF':'SOUND ON',AU.muted?14:6,2);
   setLabel($('tVoice'),VOICE.on?'VOICE ON':'VOICE OFF',VOICE.on?6:14,2);
+  if(typeof layout==='function'&&APP.scene!==LAY.scene){LAY.scene=APP.scene;setTimeout(layout,0);}
   setLabel($('tPause'),APP.scene==='play'&&APP.paused?'RESUME':'PAUSE',APP.scene==='play'?13:15,2);
   setLabel($('tScale'),'SCALE: '+SET.scale.toUpperCase(),11,2);
   setLabel($('tPads'),'PADS '+Math.round(SET.op*100)+'%',11,2);
@@ -1455,7 +1523,8 @@ function updateButtons(){
   setLabel($('tTheme'),'PAINT: '+PP_THEME.toUpperCase(),12,2);
   setLabel($('tVfx'),'VOICE FX: '+VOICE.fx.toUpperCase(),12,2);
   setLabel($('tVpick'),vRetro()?'VOICE: RETRO':'VOICE: SYSTEM',12,2);
-  setLabel($('tClose'),'CLOSE',13,2);setLabel($('tKeys'),'KEYS',5,2);
+  setLabel($('tClose'),'CLOSE',13,2);setLabel($('tKeys'),'KEYS',5,2);setLabel($('tScores'),'HIGH SCORES',5,2);
+  setLabel($('tType'),'TYPE IT',5,2);
   setLabel($('tFS'),isFS()?'EXIT F':'FULL F',5,2);
   spdUI();
 }
@@ -1520,6 +1589,8 @@ function layout(){
       place($('bA'),rx-bs,my-bs*0.95,bs,bs);place($('bB'),rx-bs*2.05,my-bs*0.05,bs,bs);}
   }
   const ov=land;['dpad','bA','bB'].forEach(id=>{const el=$(id);el.dataset.op=ov?SET.op:1;el.style.opacity=el.classList.contains('on')?Math.min(1,(ov?SET.op:1)+0.45):(ov?SET.op:1);});
+  {const tt=$('tType'),show=IS_TOUCH&&APP.scene==='entry';tt.style.display=show?'block':'none';
+    if(show){const r=tt.getBoundingClientRect();place(tt,cx+cw*158/256,cy+ch*146/192-(r.height||40)/2);}}
   place(cv,cx,cy,cw,ch);Object.assign(LAY,{land,cx,cy,cw,ch,W0,H0});
   const sc=$('scan');place(sc,cx,cy,cw,ch);const px=ch/192;
   sc.style.background=px>=2?`repeating-linear-gradient(to bottom,transparent 0,transparent ${px*0.5}px,#000 ${px*0.5}px,#000 ${px}px)`:'none';
@@ -1552,7 +1623,14 @@ onTap('tScale',()=>{SET.scale=SET.scale==='fill'?'crisp':'fill';saveSet();layout
 onTap('tPads',()=>{const L=[0.2,0.35,0.5,0.65];SET.op=L[(L.findIndex(v=>Math.abs(v-SET.op)<0.01)+1)%L.length];saveSet();layout();updateButtons();SFX.blip();});
 onTap('tFull',()=>{toggleFull();setTimeout(updateButtons,300);});
 onTap('tClose',()=>openPanel(false));
-onTap('tKeys',()=>{showKeys(true);SFX.blip();});onTap('tFS',()=>{toggleFull();});
+onTap('tKeys',()=>{showKeys(true);SFX.blip();});
+onTap('tScores',()=>{openPanel(false);if(APP.scene==='play'&&!APP.paused)togglePause();APP.scores=true;SFX.blip();});
+/* TYPE IT: open the device keyboard for up to 8 characters (focus must happen inside touchend/click on iOS) */
+function nameInput(on){const el=$('nameIn');if(on){const E=APP.entry;if(!E)return;if(E.typed==null)E.typed=E.ch.join('').trim();el.value=E.typed;el.style.zIndex=20;try{el.focus();el.setSelectionRange(el.value.length,el.value.length);}catch(e){}}
+  else{el.style.zIndex=-1;try{el.blur();}catch(e){}}}
+['touchend','click'].forEach(t=>$('tType').addEventListener(t,e=>{e.preventDefault();e.stopPropagation();nameInput(true);}));
+$('nameIn').addEventListener('input',()=>{const E=APP.entry,el=$('nameIn');if(!E)return;const v=el.value.toUpperCase().split('').filter(c=>HS_CHARS.includes(c)).join('').slice(0,8);if(el.value!==v)el.value=v;E.typed=v;});
+$('nameIn').addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();entryConfirm();}});onTap('tFS',()=>{toggleFull();});
 $('keysOv').addEventListener('pointerdown',e=>{e.preventDefault();showKeys(false);});
 onTap('tVfx',()=>{const L=['clean','crunch','extreme'];setVoiceFx(L[(L.indexOf(VOICE.fx)+1)%3]);updateButtons();say('Voice check. All systems green.',2);});
 onTap('tVpick',()=>{cycleVoice(1);updateButtons();});
@@ -1598,6 +1676,7 @@ if(DEBUG){
     ppTheme(v){setPPTheme(v);return PP_THEME;},
     vstatus(){return {clips:Object.keys(VCLIPS).length,decoded:Object.keys(VB.raw).length,errors:Object.keys(VB.err),pending:VB.pending,ctx:AU.ctx&&AU.ctx.state,pick:VOICE.pick,fx:VOICE.fx,on:VOICE.on,retro:vRetro()};},
     vclips:l=>vClips(l),
+    hs:id=>loadTable(id),hsAdd:(id,n,s,l)=>addHi(id,n,s,l),entry:()=>APP.entry&&{...APP.entry,name:entryName()},scoresOpen:()=>APP.scores,
     vsched(){return {sched:VB.sched.slice(),starts:VB.starts,trimmed:VB.trimmed,humRamps:HUM.ramps||0,prepped:Object.keys(VB.proc).length,fx:VOICE.fx};},
     vcur(){const c=VOICE.cur;return c&&{line:c.line,clips:c.clips||null,retro:!!c.retro,n:c.srcs?c.srcs.length:0,dur:c.hardEnd-c.start,done:c.done};},
     vproc(){const o={},was=VOICE.fx;for(const q of ['clean','crunch','extreme']){setVoiceFx(q,true);let n=0;for(const id in VCLIPS)if(vBuf(id))n++;o[q]=n;}setVoiceFx(was,true);return o;},
