@@ -166,11 +166,13 @@ defSprite('moon',["..dddd..",".ddddd..","ddd.....","dd......","dd......","ddd...
 /* ---------------- sound: square + noise chip ---------------- */
 const AU={ctx:null,master:null,muted:false,noise:null};
 try{AU.muted=localStorage.getItem('mcc_mute')==='1';}catch(e){}
-let SESSION_DONE=false,SILENT_EL=null;
+let SILENT_EL=null;const IOS_AUDIO=/iP(hone|od|ad)/.test(navigator.userAgent)||(navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1);
+/* Runs inside every tap (touchend / pointerup / click count as user activation on iOS; touch pointerdown does not),
+   so each step is retried until it sticks. */
 function audioUnlock(){
-  if(!SESSION_DONE){SESSION_DONE=true;
-    if(navigator.audioSession){try{navigator.audioSession.type='playback';}catch(e){}}   // iOS 17+: play through the ring/silent switch
-    else if(/iP(hone|od|ad)/.test(navigator.userAgent)||(navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1)){try{SILENT_EL=new Audio(VSILENT);SILENT_EL.loop=true;SILENT_EL.setAttribute('playsinline','');const pr=SILENT_EL.play();if(pr&&pr.catch)pr.catch(()=>{});}catch(e){}}}
+  if(navigator.audioSession){try{if(navigator.audioSession.type!=='playback')navigator.audioSession.type='playback';}catch(e){}}  // iOS 17+: ignore the ring/silent switch
+  if(IOS_AUDIO){try{if(!SILENT_EL){SILENT_EL=new Audio(VSILENT);SILENT_EL.loop=true;SILENT_EL.setAttribute('playsinline','');SILENT_EL.preload='auto';}
+      if(SILENT_EL.paused){const pr=SILENT_EL.play();if(pr&&pr.catch)pr.catch(()=>{});}}catch(e){}}    // older iOS: a playing media element moves audio to the media route
   try{voiceUnlock();}catch(e){}
   if(AU.ctx){if(AU.ctx.state!=='running'){try{AU.ctx.resume();}catch(e){}}vDecodeAll();return;}
   const AC=window.AudioContext||window.webkitAudioContext;if(!AC)return;
@@ -862,14 +864,17 @@ function voicePump(){const now=performance.now(),c=VOICE.cur;
   VOICE.q=VOICE.q.filter(x=>x.pri>=2||now-x.t<=VOICE.stale);
   if(!VOICE.q.length)return;
   let bi=0;for(let i=1;i<VOICE.q.length;i++)if(VOICE.q[i].pri>VOICE.q[bi].pri)bi=i;
-  const it=VOICE.q.splice(bi,1)[0];
+  const it=VOICE.q[bi];
+  // RETRO voice: wait (up to the 3 s stale limit) for the clips to finish decoding instead of falling back to a silent system voice
+  if(vRetro()&&vClips(it.line)){if(!AU.ctx)return;vDecodeAll();if(vClips(it.line).some(id=>!VB.raw[id]&&!VB.err[id]))return;}
+  VOICE.q.splice(bi,1);
   const est=500+it.line.length*70/VOICE.rate;
   const cur={line:it.line,pri:it.pri,start:now,est,hardEnd:now+150+est+1800,done:false,end:null};VOICE.cur=cur;
   VOICE.spoken.push(cur);if(VOICE.spoken.length>60)VOICE.spoken.shift();
   SFX.chirp();
   const ids=vRetro()?vClips(it.line):null,a=AU.ctx;
   if(ids&&a){vDecodeAll();const bufs=ids.map(vBuf);
-    if(bufs.every(b=>b)){try{let t=a.currentTime+0.14;const g=a.createGain();g.gain.value=1.1;g.connect(AU.master);cur.g=g;cur.srcs=[];cur.clips=ids;
+    if(bufs.every(b=>b)){try{let t=a.currentTime+0.14;const g=a.createGain();g.gain.value=2.2;g.connect(AU.master);cur.g=g;cur.srcs=[];cur.clips=ids;
         for(const b of bufs){const sN=a.createBufferSource();sN.buffer=b;sN.connect(g);sN.start(t);cur.srcs.push(sN);t+=b.duration+0.025;}
         cur.hardEnd=now+(t-a.currentTime)*1000+20;cur.retro=true;return;}catch(e){}}}
   setTimeout(()=>{if(cur.done||VOICE.cur!==cur)return;
@@ -1508,7 +1513,7 @@ $('panel').addEventListener('pointerdown',e=>{if(e.target===$('panel')){e.preven
 $('tip').addEventListener('pointerdown',e=>{e.preventDefault();$('tip').style.display='none';});
 ['fullscreenchange','webkitfullscreenchange'].forEach(t=>document.addEventListener(t,()=>{updateButtons();setTimeout(layout,60);}));
 if(IS_IOS&&!STANDALONE){let seen=false;try{seen=localStorage.getItem('mcc_tip_a2hs')==='1';localStorage.setItem('mcc_tip_a2hs','1');}catch(e){}if(!seen)setTimeout(showTip,1200);}
-['touchend','pointerdown','click'].forEach(t=>addEventListener(t,audioUnlock,{passive:true}));
+['touchend','pointerup','pointerdown','click','keydown'].forEach(t=>addEventListener(t,audioUnlock,{passive:true,capture:true}));
 document.addEventListener('touchstart',e=>{if(!IS_TOUCH){IS_TOUCH=true;layout();}e.preventDefault();},{passive:false});
 document.addEventListener('touchmove',e=>e.preventDefault(),{passive:false});
 document.addEventListener('gesturestart',e=>e.preventDefault());
