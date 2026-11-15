@@ -53,7 +53,8 @@ canvas{image-rendering:pixelated;image-rendering:crisp-edges;display:block}
     <div id="tPause" class="tb pb"></div><div id="tMenu" class="tb pb"></div>
     <div id="tSnd" class="tb pb"></div><div id="tVoice" class="tb pb"></div>
     <div id="tScale" class="tb pb"></div><div id="tPads" class="tb pb"></div>
-    <div id="tFull" class="tb pb"></div><div id="tClose" class="tb pb"></div>
+    <div id="tFull" class="tb pb"></div><div id="tTheme" class="tb pb"></div>
+    <div id="tClose" class="tb pb" style="grid-column:1/3"></div>
   </div></div>
   <div id="tip"></div>
   <div id="hint"></div>
@@ -121,11 +122,14 @@ function sprS(n,x,y,sc,flip){const s=SPR[n];ctx.drawImage(flip?s.f:s.c,Math.roun
 function sprT(n,cx,cy,fx,fy){const s=SPR[n];ctx.save();ctx.translate(Math.round(cx),Math.round(cy));ctx.scale(fx?-1:1,fy?-1:1);ctx.drawImage(s.c,-(s.w>>1),-(s.h>>1));ctx.restore();}
 
 // PAINT PATROL
-const BOT=["...eeee...","..edddde..",".ed0dd0de.",".edddddde.","..eeeeee..",".a555555a.","aa5aaaa5aa","aaaaaaaaaa",".f.f..f.f.","..f....f.."];
-defSprite('pp_bot',BOT);
-defSprite('pp_bot2',BOT.slice(0,8).concat(["f..f..f..f",".f......f."]));
-const SMUDGE=["...3333...","..333333..",".3dd33dd3.",".3d03d033.","3333333333","3332222333","3333333333","3.333333.3","3.3.33.3.3","..3....3.."];
-const SMUDGE2=outline(SMUDGE.slice(0,8).concat([".3.3..3.3.","3..3..3..3"]));const SMUDGE_O=outline(SMUDGE);
+/* painter: a little roller-brush character (roller head 'p' takes the stage paint colour), 2 walk frames */
+const ROLLER=["..eeeeeeee.",".edpppppppe",".eppppppppe","..eeeeeeee.","......f....","....dddd...","...d0dd0d..","...dddddd..","...daaaad..","....aaaa...","...f....f.."];
+const ROLLER2=ROLLER.slice(0,10).concat(["....f..f..."]);
+function ppBot(col){const k='pp_bot_'+col;if(!SPR[k]){const m={p:col.toString(16)};defSprite(k,outline(ROLLER),m);defSprite(k+'b',outline(ROLLER2),m);}return k;}
+defSprite('pp_bot',outline(ROLLER),{p:'3'});
+/* smudgers: drippy blobs, 2 frames */
+const SMUDGE=["...33333...",".333333333.","33dd333dd33","33d0333d033","33333333333","33322222333","33332223333","33333333333","3.33.3.33.3","3..3...3..3"];
+const SMUDGE2=outline(SMUDGE.slice(0,8).concat([".33.333.33.","..3..3..3.."]));const SMUDGE_O=outline(SMUDGE);
 const SMC=[['3','2'],['c','2'],['4','2'],['b','9'],['6','8']];
 SMC.forEach((m,i)=>{defSprite('pp_sm'+i,SMUDGE_O,{'3':m[0],'2':m[1]});defSprite('pp_sm'+i+'b',SMUDGE2,{'3':m[0],'2':m[1]});});
 defSprite('pp_er',SMUDGE_O,{'3':'e','2':'f'});defSprite('pp_erb',SMUDGE2,{'3':'e','2':'f'});
@@ -276,7 +280,12 @@ function hudBase(g){
    ========================================================== */
 const TS=12,MC=21,MR=15,MOX=2,MOY=11;
 const DX=[0,1,0,-1],DY=[-1,0,1,0];
-const PP_TH=[{w:9,h:10,s:1,p:12},{w:8,h:7,s:1,p:5},{w:2,h:3,s:0,p:6},{w:15,h:14,s:1,p:4},{w:7,h:6,s:8,p:11}];
+/* per-stage palette: w wall face, h/l 2-tone highlight, s shadow, p paint */
+const PP_TH=[{w:9,h:10,l:11,s:1,p:3},{w:7,h:6,l:13,s:8,p:12},{w:2,h:3,l:4,s:1,p:10},{w:15,h:14,l:13,s:0,p:4},{w:12,h:13,l:13,s:2,p:7}];
+const PP_DK={3:2,12:2,10:9,4:2,7:8,6:7,5:4,11:10},PP_LT={3:4,12:13,10:11,4:5,7:6,6:5,5:13,11:13};
+let PP_THEME='canvas';try{const v=localStorage.getItem('mcc_pp_theme');if(v==='dark'||v==='canvas')PP_THEME=v;}catch(e){}
+function setPPTheme(v){PP_THEME=v;try{localStorage.setItem('mcc_pp_theme',v);}catch(e){}if(G&&G.buildCache&&G.id==='paint')G.buildCache();}
+const ppHash=(x,y,k)=>((x*73856093)^(y*19349663)^(k*83492791))>>>0;
 function genMaze(stage=1){
   const g=[];for(let y=0;y<MR;y++)g.push(new Array(MC).fill(1));
   const inC=(x,y)=>x>0&&x<MC-1&&y>0&&y<MR-1;
@@ -304,12 +313,13 @@ Object.assign(SFX,{
   ppDrop:()=>tone(520,0.06,{to:300,vol:0.05}),
   ppPail:()=>jingle([[76,1],[79,1],[83,1],[88,1],[86,1],[91,3]],{beat:0.05,vol:0.07}),
   ppRecharge:()=>tone(900,0.05,{to:1400,vol:0.04}),
+  munch:(alt,soft)=>{const f=alt?310:235;noise(0.05,{f:soft?1700:3400,fto:450,vol:soft?0.06:0.13});tone(f,0.075,{to:f*0.5,vol:soft?0.022:0.045,type:soft?'triangle':'square',at:0.012});},
 });
 const PP_ROLE_SPR={chase:'pp_sm0',cutter:'pp_sm1',patrol:'pp_sm2',warden:'pp_sm3'};
 const PP_RIB=132;
 class PaintGame{
   constructor(){this.score=0;this.lives=3;this.over=false;this.stage=0;this.level=0;this.nextLife=10000;this.t=0;
-    this.loops=0;this.traps=0;this.pailsGot=0;this.bombsUsed=0;this.newStage();}
+    this.loops=0;this.traps=0;this.pailsGot=0;this.bombsUsed=0;this.munches=0;this.munchAlt=0;this.newStage();}
   newStage(){
     this.stage++;this.level=this.stage;this.grid=genMaze(this.stage);this.paint=[];this.total=0;this.done=0;
     for(let y=0;y<MR;y++){this.paint.push(new Array(MC).fill(0));for(let x=0;x<MC;x++)if(this.grid[y][x]===0)this.total++;}
@@ -333,18 +343,26 @@ class PaintGame{
   buildCache(){
     const c=document.createElement('canvas');c.width=W;c.height=H;const x=c.getContext('2d');const th=PP_TH[(this.stage-1)%PP_TH.length];
     const wall=(tx,ty)=>tx<0||ty<0||tx>=MC||ty>=MR||this.grid[ty][tx]===1;
-    x.fillStyle=PAL[0];x.fillRect(0,0,W,H);
+    const light=PP_THEME==='canvas',F=(c,a,b,w,h)=>{x.fillStyle=PAL[c];x.fillRect(a,b,w,h);};
+    F(light?14:0,0,0,W,H);
     for(let ty=0;ty<MR;ty++)for(let tx=0;tx<MC;tx++){const px=MOX+tx*TS,py=MOY+ty*TS;
-      if(wall(tx,ty)){x.fillStyle=PAL[th.w];x.fillRect(px,py,TS,TS);
-        x.fillStyle=PAL[th.h];if(!wall(tx,ty-1))x.fillRect(px,py,TS,2);if(!wall(tx-1,ty))x.fillRect(px,py,1,TS);
-        x.fillStyle=PAL[th.s];if(!wall(tx,ty+1))x.fillRect(px,py+TS-2,TS,2);if(!wall(tx+1,ty))x.fillRect(px+TS-1,py,1,TS);
-        if((tx*7+ty*3)%5===0){x.fillStyle=PAL[th.s];x.fillRect(px+4,py+5,2,2);}}
-      else{x.fillStyle=PAL[1];x.fillRect(px,py,TS,TS);x.fillStyle=PAL[0];x.fillRect(px,py+TS-1,TS,1);x.fillRect(px+TS-1,py,1,TS);}}
+      if(wall(tx,ty)){F(th.w,px,py,TS,TS);
+        const up=!wall(tx,ty-1),lf=!wall(tx-1,ty),dn=!wall(tx,ty+1),rt=!wall(tx+1,ty);
+        if(up){F(th.l,px,py,TS,1);F(th.h,px,py+1,TS,2);}
+        if(lf){F(th.l,px,py,1,TS);F(th.h,px+1,py,2,TS);}
+        if(dn){F(0,px,py+TS-1,TS,1);F(th.s,px,py+TS-3,TS,2);}
+        if(rt){F(0,px+TS-1,py,1,TS);F(th.s,px+TS-3,py,2,TS);}
+        if(up&&lf)F(13,px,py,2,2);
+        if(!up&&!dn&&!lf&&!rt&&ppHash(tx,ty,1)%4===0){F(th.h,px+5,py+5,2,2);F(th.s,px+6,py+6,1,1);}}
+      else{F(light?13:1,px,py,TS,TS);
+        if(light){const hh=ppHash(tx,ty,2);F(14,px+(hh%10)+1,py+((hh>>4)%10)+1,1,1);if(hh&32)F(14,px+((hh>>8)%10)+1,py+((hh>>12)%10)+1,1,1);}
+        else{F(0,px,py+TS-1,TS,1);F(0,px+TS-1,py,1,TS);}}}
     this.cache=c;this.th=th;
   }
   open(x,y){return !(x<0||y<0||x>=MC||y>=MR||this.grid[y][x]===1);}
   exits(x,y){let n=0;for(let d=0;d<4;d++)if(this.open(x+DX[d],y+DY[d]))n++;return n;}
-  paintTile(x,y,quiet){if(this.open(x,y)&&!this.paint[y][x]){this.paint[y][x]=1;this.done++;if(!quiet){this.addScore(10);if(this.t%2===0)SFX.paint();}}}
+  paintTile(x,y,quiet){if(this.open(x,y)&&!this.paint[y][x]){this.paint[y][x]=1;this.done++;
+      if(!quiet){this.addScore(10);const c=this.th.p;burst(MOX+x*TS+6,MOY+y*TS+6,[c,PP_DK[c]||c,c],5,0.9);}return true;}return false;}
   addScore(n){this.score+=n;if(this.score>=this.nextLife){this.lives++;this.nextLife+=15000;SFX.oneup();floater(this.ppx(this.p),this.ppy(this.p)-8,'1UP',6);}}
   ppx(e){return MOX+e.tx*TS+(e.dir>=0?DX[e.dir]*e.prog:0)+TS/2;}
   ppy(e){return MOY+e.ty*TS+(e.dir>=0?DY[e.dir]*e.prog:0)+TS/2;}
@@ -353,8 +371,9 @@ class PaintGame{
     for(const d of b)if(d!==p.dir&&this.open(p.tx+DX[d],p.ty+DY[d]))return d;
     if(p.dir>=0&&this.open(p.tx+DX[p.dir],p.ty+DY[p.dir]))return p.dir;
     return -1;}
-  arriveP(){const p=this.p;this.paintTile(p.tx,p.ty);
-    if(this.wide>0)for(let d=0;d<4;d++)this.paintTile(p.tx+DX[d],p.ty+DY[d]);
+  arriveP(){const p=this.p;let n=this.paintTile(p.tx,p.ty)?1:0;
+    if(this.wide>0)for(let d=0;d<4;d++)if(this.paintTile(p.tx+DX[d],p.ty+DY[d]))n++;
+    if(n){this.munchAlt^=1;this.munches++;SFX.munch(this.munchAlt,this.wide>0);}
     // ribbon: rewind when retracing, close a loop when crossing an older part of it
     const R=this.rib,L=R.length,now=this.t;
     if(L&&R[L-1].x===p.tx&&R[L-1].y===p.ty)R[L-1].t=now;
@@ -467,18 +486,31 @@ class PaintGame{
     for(const e of this.ens){if(e.wait>0||e.trap>0||e.stun>0)continue;const ex=this.ppx(e),ey=this.ppy(e);
       if(Math.abs(ex-px)<8&&Math.abs(ey-py)<8&&p.inv===0){this.dead=100;this.lives--;SFX.die();burst(px,py,[10,5,13],26,2.5);APP.shake=8;return;}}
   }
+  /* painted tiles as brush strokes: ragged exposed edges, bristle streaks along the stroke, drips off the lower edge */
+  drawPaint(){const P=this.paint,c=this.th.p,dk=PP_DK[c]||0,lt=PP_LT[c]||13,F=(k,a,b,w,h)=>{ctx.fillStyle=PAL[k];ctx.fillRect(a,b,w,h);};
+    const on=(x,y)=>x>=0&&y>=0&&x<MC&&y<MR&&P[y][x]&&!this.grid[y][x];
+    for(let y=0;y<MR;y++)for(let x=0;x<MC;x++){if(!on(x,y))continue;const px=MOX+x*TS,py=MOY+y*TS,h=ppHash(x,y,7);
+      const L=on(x-1,y),Rr=on(x+1,y),U=on(x,y-1),D=on(x,y+1);
+      const x0=px+(L?0:2),x1=px+TS-(Rr?0:2),y0=py+(U?0:2),y1=py+TS-(D?0:2);F(c,x0,y0,x1-x0,y1-y0);
+      for(let k=0;k<6;k++){const b=(h>>k)&1,b2=(h>>(k+6))&1;
+        if(!U&&b)F(c,px+2*k,y0-1,2,1);if(!D&&b2)F(c,px+2*k,y1,2,1);
+        if(!L&&(h>>(k+12))&1)F(c,x0-1,py+2*k,1,2);if(!Rr&&(h>>(k+18))&1)F(c,x1,py+2*k,1,2);}
+      const horiz=(L||Rr)&&!(U||D)?true:(U||D)&&!(L||Rr)?false:!!(h&1);
+      if(horiz){F(dk,x0,py+3+(h%3),x1-x0,1);F(dk,x0,py+8-((h>>3)%2),x1-x0,1);F(lt,x0,py+5+((h>>5)%2),Math.max(2,(x1-x0)-((h>>6)%5)),1);}
+      else{F(dk,px+3+(h%3),y0,1,y1-y0);F(dk,px+8-((h>>3)%2),y0,1,y1-y0);F(lt,px+5+((h>>5)%2),y0,1,Math.max(2,(y1-y0)-((h>>6)%5)));}
+      if(!D&&h%3===0){const dx=px+3+((h>>9)%6),dl=2+((h>>12)%3);F(c,dx,y1,1,dl);F(dk,dx,y1+dl,1,1);}
+      if(!D&&h%7===1){const dx=px+2+((h>>14)%8);F(c,dx,y1,2,1);F(c,dx,y1+1,1,1);}}}
   stageClear(){if(this.clearT)return;this.clearT=150;const b=1000*this.stage;this.addScore(b);floater(W/2,100,'STAGE CLEAR +'+b,5);SFX.level();}
   draw(){
     ctx.drawImage(this.cache,0,0);const th=this.th,t=this.t;
-    for(let y=0;y<MR;y++)for(let x=0;x<MC;x++){if(this.grid[y][x]||!this.paint[y][x])continue;const px=MOX+x*TS,py=MOY+y*TS;
-      ctx.fillStyle=PAL[th.p];ctx.fillRect(px+1,py+1,10,10);ctx.fillStyle=PAL[13];ctx.fillRect(px+2,py+2,3,1);}
-    if(this.clearT>0&&(this.clearT>>3)&1){ctx.fillStyle=PAL[13];for(let y=0;y<MR;y++)for(let x=0;x<MC;x++)if(!this.grid[y][x])ctx.fillRect(MOX+x*TS+3,MOY+y*TS+3,6,6);}
+    this.drawPaint();
+    if(this.clearT>0&&(this.clearT>>3)&1){ctx.fillStyle=PAL[PP_THEME==='canvas'?th.p:13];for(let y=0;y<MR;y++)for(let x=0;x<MC;x++)if(!this.grid[y][x])ctx.fillRect(MOX+x*TS+3,MOY+y*TS+3,6,6);}
     if(this.loopFx){ctx.fillStyle=PAL[(this.loopFx.t>>1)&1?13:5];for(const [x,y] of this.loopFx.tiles){ctx.fillRect(MOX+x*TS,MOY+y*TS,TS,1);ctx.fillRect(MOX+x*TS,MOY+y*TS+TS-1,TS,1);ctx.fillRect(MOX+x*TS,MOY+y*TS,1,TS);ctx.fillRect(MOX+x*TS+TS-1,MOY+y*TS,1,TS);}}
     // glowing ribbon trail
-    const p=this.p,R=this.rib,RC=[11,12,10,13];
+    const p=this.p,R=this.rib,RC=PP_THEME==='canvas'?[9,12,10,2]:[11,12,10,13];
     if(!this.dead){const pts=R.map(r=>[MOX+r.x*TS+6,MOY+r.y*TS+6,r.t]);pts.push([this.ppx(p),this.ppy(p),t]);
       for(let i=0;i<pts.length-1;i++){const a=pts[i],b=pts[i+1];const age=t-a[2];if(age>PP_RIB-30&&(t>>2)&1)continue;
-        ctx.fillStyle=PAL[age>PP_RIB*0.82?9:RC[((t>>2)+i)%4]];
+        ctx.fillStyle=PAL[age>PP_RIB*0.82?(PP_THEME==='canvas'?14:9):RC[((t>>2)+i)%4]];
         const x0=Math.min(a[0],b[0])|0,y0=Math.min(a[1],b[1])|0;ctx.fillRect(x0-1,y0-1,(Math.abs(a[0]-b[0])|0)+2,(Math.abs(a[1]-b[1])|0)+2);}}
     for(const b of this.bombs){const bx=MOX+b.x*TS+2,by=MOY+b.y*TS+2;spr('pp_bomb',bx,by-(b.t<15&&(b.t&2)?1:0));
       if((t>>1)&1){ctx.fillStyle=PAL[5];ctx.fillRect(bx+5,by-1,1,1);}}
@@ -486,11 +518,11 @@ class PaintGame{
     for(const e of this.ens){if(e.wait>0&&(e.wait>>3)&1)continue;const fr=(e.anim>>3)&1;const ex=this.ppx(e),ey=this.ppy(e);
       let n;if(e.stun>0||e.trap>0)n=(e.stun>0&&e.stun<60&&(e.stun>>3)&1)?'pp_frz2':'pp_frz';
       else n=(e.role==='erase'?'pp_er':PP_ROLE_SPR[e.role])+(fr?'b':'');
-      spr(n,ex-6,ey-6,false);
+      sprC(n,ex,ey,false);
       if(e.trap>0){for(let k=0;k<16;k++){const a=k/16*6.283+t*0.05;ctx.fillStyle=PAL[RC[(k+(t>>2))%4]];ctx.fillRect(Math.round(ex+Math.cos(a)*9),Math.round(ey+Math.sin(a)*9),1,1);}}
       else if(e.stun>0&&(t>>3)&1){ctx.fillStyle=PAL[5];ctx.fillRect(ex-4,ey-9,1,1);ctx.fillRect(ex+3,ey-10,1,1);}
       else if(e.role==='patrol'&&e.spot>0&&(t>>2)&1){ctx.fillStyle=PAL[3];ctx.fillRect(ex,ey-10,1,3);}}
-    if(!this.dead&&!(p.inv>0&&(p.inv>>2)&1)){spr((p.anim>>3)&1?'pp_bot2':'pp_bot',this.ppx(p)-5,this.ppy(p)-5,p.face);
+    if(!this.dead&&!(p.inv>0&&(p.inv>>2)&1)){const bk=ppBot(th.p);sprC((p.anim>>3)&1?bk+'b':bk,this.ppx(p),this.ppy(p)-1,p.face);
       if(this.wide>0&&(this.wide>60||(t>>2)&1)){ctx.fillStyle=PAL[RC[(t>>2)%4]];ctx.fillRect(this.ppx(p)-7,this.ppy(p)+5,14,1);}}
     if(this.banner>0&&(this.banner>>3)&1){ctx.fillStyle=PAL[0];ctx.fillRect(84,92,88,13);ctext('STAGE '+this.stage,95,5,1);}
   }
@@ -503,7 +535,7 @@ class PaintGame{
     if(this.wide>0){ctx.fillStyle=PAL[11];ctx.fillRect(128,7,Math.round(90*this.wide/360),1);}}
   dbgState(){return {done:this.done,total:this.total,stage:this.stage,p:{tx:this.p.tx,ty:this.p.ty},rib:this.rib.length,loops:this.loops,traps:this.traps,
     bombN:this.bombN,bombsUsed:this.bombsUsed,pail:!!this.pail,pailsGot:this.pailsGot,wide:this.wide,roles:this.ens.map(e=>e.role),
-    stunned:this.ens.filter(e=>e.stun>0).length,trapped:this.ens.filter(e=>e.trap>0).length};}
+    stunned:this.ens.filter(e=>e.stun>0).length,trapped:this.ens.filter(e=>e.trap>0).length,munches:this.munches,theme:PP_THEME,paint:this.th.p};}
 }
 
 /* ==========================================================
@@ -1309,6 +1341,7 @@ function updateButtons(){
   setLabel($('tScale'),'SCALE: '+SET.scale.toUpperCase(),11,2);
   setLabel($('tPads'),'PADS '+Math.round(SET.op*100)+'%',11,2);
   setLabel($('tFull'),FS_OK&&(document.fullscreenElement||document.webkitFullscreenElement)?'EXIT FULL':'FULL SCREEN',5,2);
+  setLabel($('tTheme'),'PAINT: '+PP_THEME.toUpperCase(),12,2);
   setLabel($('tClose'),'CLOSE',13,2);
   spdUI();
 }
@@ -1391,6 +1424,7 @@ onTap('tScale',()=>{SET.scale=SET.scale==='fill'?'crisp':'fill';saveSet();layout
 onTap('tPads',()=>{const L=[0.2,0.35,0.5,0.65];SET.op=L[(L.findIndex(v=>Math.abs(v-SET.op)<0.01)+1)%L.length];saveSet();layout();updateButtons();SFX.blip();});
 onTap('tFull',()=>{toggleFull();setTimeout(updateButtons,300);});
 onTap('tClose',()=>openPanel(false));
+onTap('tTheme',()=>{setPPTheme(PP_THEME==='canvas'?'dark':'canvas');updateButtons();SFX.blip();});
 $('panel').addEventListener('pointerdown',e=>{if(e.target===$('panel')){e.preventDefault();openPanel(false);}});
 $('tip').addEventListener('pointerdown',e=>{e.preventDefault();$('tip').style.display='none';});
 ['fullscreenchange','webkitfullscreenchange'].forEach(t=>document.addEventListener(t,()=>{updateButtons();setTimeout(layout,60);}));
@@ -1429,6 +1463,7 @@ if(DEBUG){
         g instanceof PeakGame?{pl:{x:g.pl.x,y:g.pl.y,f:g.pl.f,st:g.pl.st},rocks:g.rocks.length,bonus:g.bonus,picks:g.picks}:{wave:g.wave,drones:g.drones.length,mult:g.mult,ship:g.ship}):null};},
     game(){return G;},
     voice(){return {on:VOICE.on,log:VOICE.log.slice()};},
+    ppTheme(v){setPPTheme(v);return PP_THEME;},
     speed(m){IN.spd=m;},
     pickVoice:(vs,saved)=>{const v=ccPickVoice(vs,saved);return v?v.name:null;},
     vq(){return {q:VOICE.q.map(x=>x.line),cur:VOICE.cur&&{line:VOICE.cur.line,done:VOICE.cur.done},spoken:VOICE.spoken.map(x=>({line:x.line,pri:x.pri,start:x.start,end:x.end,cut:!!x.cut}))};},
