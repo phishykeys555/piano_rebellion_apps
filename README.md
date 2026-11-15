@@ -31,3 +31,10 @@ Every app shows its version at the bottom of the page: `Version YYYY-MM-DD.N` (d
 | Round music (`shared/hype.js`) | 2026-11-12.1 |
 | Share helper (`shared/share.js`: share sheet, clipboard, copy box; is.gd short links + chmusicacademy.com) | 2026-11-13.2 |
 | Riff Simon Says | 2026-11-13.5 |
+| Access gate (top of `shared/brand.js`) | 2026-11-15.1 |
+
+## Access gate (studio code)
+
+Every app that loads `shared/brand.js` asks for the studio code once per device (stored in `localStorage` as the code's hash). Guitar Tuner and Modal Metronome stay open until the beta reaches Fretboard Revolution. It is a soft gate: the repo is public, so it stops link-sharing, not a determined techie. Only the SHA-256 of the code is in this repo; the code itself lives in the studio's Notion page for Help Desk replies, never here.
+
+Rotate each quarter: pick a new code, put `sha256(code.trim().toLowerCase())` in `GATE.hash`, bump `GATE.q`, publish to `gh-pages`, and update the Notion page. "Forgot the code?" goes to the Jotform request form (Help Desk replies with the current code).
