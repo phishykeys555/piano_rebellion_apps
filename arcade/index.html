@@ -804,8 +804,8 @@ const VOICE={on:true,log:[],q:[],cur:null,spoken:[],pick:'RETRO',fx:'crunch',pit
 try{VOICE.on=localStorage.getItem('mcc_voice')!=='0';VOICE.pick=localStorage.getItem('mcc_voice_pick')||'RETRO';
   const fx=localStorage.getItem('mcc_voice_fx');if(fx==='clean'||fx==='crunch'||fx==='extreme')VOICE.fx=fx;}catch(e){}
 /* runtime crunch (mirrors the offline intelligibility check): band-pass, square buzz, sample-and-hold, bit depth, hiss */
-const VQ={clean:{hp:280,lp:3400,rate:0,bits:0,buzz:0,hiss:0},crunch:{hp:300,lp:3000,rate:8000,bits:5,buzz:0.22,hiss:0.010},
-  extreme:{hp:330,lp:2800,rate:5500,bits:4,buzz:0.35,hiss:0.018}};
+const VQ={clean:{hp:280,lp:3400,rate:0,bits:0,buzz:0,hiss:0},crunch:{hp:280,lp:3300,rate:11025,bits:7,buzz:0.12,hiss:0.004},
+  extreme:{hp:300,lp:3000,rate:8000,bits:5,buzz:0.22,hiss:0.010}};
 const VB={raw:{},proc:{},err:{},started:false,pending:0};
 function vB64(b64){const bin=atob(b64),u=new Uint8Array(bin.length);for(let i=0;i<bin.length;i++)u[i]=bin.charCodeAt(i);return u.buffer;}
 function vDecodeAll(){const a=AU.ctx;if(!a||VB.started)return;VB.started=true;
@@ -874,7 +874,8 @@ function voicePump(){const now=performance.now(),c=VOICE.cur;
   SFX.chirp();
   const ids=vRetro()?vClips(it.line):null,a=AU.ctx;
   if(ids&&a){vDecodeAll();const bufs=ids.map(vBuf);
-    if(bufs.every(b=>b)){try{let t=a.currentTime+0.14;const g=a.createGain();g.gain.value=2.2;g.connect(AU.master);cur.g=g;cur.srcs=[];cur.clips=ids;
+    if(bufs.every(b=>b)){try{let t=a.currentTime+0.14;const g=a.createGain();g.gain.value=3.3;const cp=a.createDynamicsCompressor();
+        cp.threshold.value=-20;cp.knee.value=12;cp.ratio.value=3;cp.attack.value=0.003;cp.release.value=0.15;const mk=a.createGain();mk.gain.value=2.1;g.connect(cp);cp.connect(mk);mk.connect(AU.master);cur.g=g;cur.srcs=[];cur.clips=ids;
         for(const b of bufs){const sN=a.createBufferSource();sN.buffer=b;sN.connect(g);sN.start(t);cur.srcs.push(sN);t+=b.duration+0.025;}
         cur.hardEnd=now+(t-a.currentTime)*1000+20;cur.retro=true;return;}catch(e){}}}
   setTimeout(()=>{if(cur.done||VOICE.cur!==cur)return;
@@ -897,8 +898,8 @@ function humSet(v,f){const a=AU.ctx;if(!a)return;
 const CC_MUSIC={step:8,lead:[69,0,72,76,74,0,72,0,71,0,67,71,74,0,72,71,69,0,72,76,79,0,81,79,77,76,74,72,71,0,69,0],
   bass:[45,57,45,57,43,55,43,55,41,53,41,53,40,52,44,52]};
 function musicTick(m){const st=APP.st-30;if(st<0||st%m.step)return;const i=(st/m.step)%m.lead.length;const n=m.lead[i];
-  if(n)tone(NOTE(n),m.step/60*0.8,{vol:0.05});
-  if(i%2===0)tone(NOTE(m.bass[(i/2)%m.bass.length]),m.step/60*1.7,{type:'triangle',vol:0.11});
+  const dk=voiceBusy()?0.35:1;if(n)tone(NOTE(n),m.step/60*0.8,{vol:0.05*dk});
+  if(i%2===0)tone(NOTE(m.bass[(i/2)%m.bass.length]),m.step/60*1.7,{type:'triangle',vol:0.11*dk});
   if(i%4===2)noise(0.03,{f:8000,vol:0.05});}
 
 Object.assign(SFX,{
@@ -1002,7 +1003,7 @@ class CorsairGame{
     if(r.warn>0){r.warn--;if(r.warn===120||r.warn===60)SFX.rift();
       if(r.warn===0){r.startAt=this.t;for(const k of this.rocks)burst(k.x,k.y,[12,11],6,1.2);this.rocks=[];this.ebul=[];}return;}
     r.d+=this.sp;
-    if(this.t%15===0){const nn=CC_RIFT_MUSIC[(this.t/15|0)%CC_RIFT_MUSIC.length];tone(NOTE(nn),0.3,{type:'triangle',vol:0.035});if(this.t%60===0)tone(NOTE(nn-24),0.9,{type:'triangle',vol:0.05});}
+    if(this.t%15===0){const nn=CC_RIFT_MUSIC[(this.t/15|0)%CC_RIFT_MUSIC.length];const dk=voiceBusy()?0.35:1;tone(NOTE(nn),0.3,{type:'triangle',vol:0.035*dk});if(this.t%60===0)tone(NOTE(nn-24),0.9,{type:'triangle',vol:0.05*dk});}
     const amp=[0.15,0.3,0.45][this.mode],bs=[0.05,0.07,0.1][this.mode];
     for(const m of r.M){if(m.got)continue;const x=this.riftX(m.i);if(x<-6||x>262)continue;const col=r.C[m.i];
       m.cy=m.y+Math.sin(this.t*bs+m.ph)*col.g*amp;
@@ -1290,7 +1291,7 @@ function togglePause(){if(APP.scene!=='play')return;APP.paused=!APP.paused;if(AP
 function cartRect(i){return {x:3+i*63,y:58,w:60,h:76};}
 function step(){
   stepCore();
-  let hv=0,hf=40;if(APP.scene==='play'&&!APP.paused&&G&&G.hum)[hv,hf]=G.hum();if(voiceBusy())hv*=0.35;humSet(hv,hf);
+  let hv=0,hf=40;if(APP.scene==='play'&&!APP.paused&&G&&G.hum)[hv,hf]=G.hum();if(voiceBusy())hv*=0.15;humSet(hv,hf);
   voicePump();
 }
 function stepCore(){
