@@ -281,7 +281,7 @@ function hudBase(g){
 const TS=12,MC=21,MR=15,MOX=2,MOY=11;
 const DX=[0,1,0,-1],DY=[-1,0,1,0];
 /* per-stage palette: w wall face, h/l 2-tone highlight, s shadow, p paint */
-const PP_TH=[{w:9,h:10,l:11,s:1,p:3},{w:7,h:6,l:13,s:8,p:12},{w:2,h:3,l:4,s:1,p:10},{w:15,h:14,l:13,s:0,p:4},{w:12,h:13,l:13,s:2,p:7}];
+const PP_TH=[{w:2,h:3,l:4,s:1,p:10},{w:7,h:6,l:13,s:8,p:12},{w:15,h:14,l:13,s:0,p:4},{w:12,h:13,l:13,s:2,p:7},{w:9,h:10,l:11,s:1,p:3}];
 const PP_DK={3:2,12:2,10:9,4:2,7:8,6:7,5:4,11:10},PP_LT={3:4,12:13,10:11,4:5,7:6,6:5,5:13,11:13};
 let PP_THEME='canvas';try{const v=localStorage.getItem('mcc_pp_theme');if(v==='dark'||v==='canvas')PP_THEME=v;}catch(e){}
 function setPPTheme(v){PP_THEME=v;try{localStorage.setItem('mcc_pp_theme',v);}catch(e){}if(G&&G.buildCache&&G.id==='paint')G.buildCache();}
