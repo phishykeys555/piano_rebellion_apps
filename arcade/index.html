@@ -484,7 +484,7 @@ class PaintGame{
     else if(k.type==='speed'){this.boost=this.solvDur();floater(px,py-10,'GIFT: SPEED!',6);tone(300,0.25,{to:1800,vol:0.05,type:'sawtooth'});tone(900,0.15,{to:2400,vol:0.03,at:0.1});}
     else if(k.type==='bomb'){this.bombN=Math.min(3,this.bombN+1);floater(px,py-10,'GIFT: PAINT BOMB!',4);noise(0.15,{f:2500,fto:600,vol:0.15});tone(500,0.12,{to:900,vol:0.05,at:0.05});}
     else{const b=500*this.stage;this.addScore(b);floater(px,py-10,'GIFT: BONUS +'+b,5);jingle([[79,1],[84,1],[88,1],[91,2]],{beat:0.05,vol:0.07});}}
-  solvDur(){return Math.max(240,360-(this.stage-1)*25);}  // 6 s at stage 1, down to 4 s
+  solvDur(){return Math.max(480,600-(this.stage-1)*25);}  // SOLVENT and SPEED gifts: 10 s at stage 1, easing to an 8 s floor
   dissolve(e){const [x,y]=this.tileOf(e),cx=this.ppx(e),cy=this.ppy(e);let n=0;
     for(let dy=-1;dy<=1;dy++)for(let dx=-1;dx<=1;dx++)if(this.paintTile(x+dx,y+dy,true)){this.addScore(10);n++;}
     this.addScore(300);this.dissolves++;this.stageDiss++;floater(cx,cy-8,'300',11);burst(cx,cy,[this.th.p,13,11],22,1.8);SFX.dissolve();
@@ -600,14 +600,14 @@ class PaintGame{
     for(const e of this.ens){if(e.wait>0&&(e.wait>>3)&1)continue;const fr=(e.anim>>3)&1;let ex=this.ppx(e),ey=this.ppy(e);
       let n;if(e.stun>0||e.trap>0)n=(e.stun>0&&e.stun<60&&(e.stun>>3)&1)?'pp_frz2':'pp_frz';
       else n=(e.role==='erase'?'pp_er':PP_ROLE_SPR[e.role])+(fr?'b':'');
-      if(this.solv>0&&e.wait<=0&&e.trap<=0){const warn=this.solv<90&&(t>>2)&1;if(!warn)n='pp_pale'+(fr?'b':'');ex+=Math.round(Math.sin(t*0.35+e.kind*1.7)*1.5);}
+      if(this.solv>0&&e.wait<=0&&e.trap<=0){const warn=this.solv<120&&(t>>2)&1;if(!warn)n='pp_pale'+(fr?'b':'');ex+=Math.round(Math.sin(t*0.35+e.kind*1.7)*1.5);}
       sprC(n,ex,ey,false);
       if(e.trap>0){for(let k=0;k<16;k++){const a=k/16*6.283+t*0.05;ctx.fillStyle=PAL[RC[(k+(t>>2))%4]];ctx.fillRect(Math.round(ex+Math.cos(a)*9),Math.round(ey+Math.sin(a)*9),1,1);}}
       else if(e.stun>0&&(t>>3)&1){ctx.fillStyle=PAL[5];ctx.fillRect(ex-4,ey-9,1,1);ctx.fillRect(ex+3,ey-10,1,1);}
       else if(e.role==='patrol'&&e.spot>0&&(t>>2)&1){ctx.fillStyle=PAL[3];ctx.fillRect(ex,ey-10,1,3);}}
     if(!this.dead&&!(p.inv>0&&(p.inv>>2)&1)){const bk=ppBot(th.p);sprC((p.anim>>3)&1?bk+'b':bk,this.ppx(p),this.ppy(p)-1,p.face);
       if(this.boost>0&&!(this.solv>0)&&(t>>1)&1){ctx.fillStyle=PAL[6];ctx.fillRect(this.ppx(p)-(p.face?-6:8),this.ppy(p)-2,2,4);}
-      if(this.solv>0&&(this.solv>90||(t>>2)&1)){ctx.fillStyle=PAL[(t>>1)&1?11:13];ctx.fillRect(this.ppx(p)-5,this.ppy(p)-8,10,1);}
+      if(this.solv>0&&(this.solv>120||(t>>2)&1)){ctx.fillStyle=PAL[(t>>1)&1?11:13];ctx.fillRect(this.ppx(p)-5,this.ppy(p)-8,10,1);}
       if(this.wide>0&&(this.wide>60||(t>>2)&1)){ctx.fillStyle=PAL[RC[(t>>2)%4]];ctx.fillRect(this.ppx(p)-7,this.ppy(p)+5,14,1);}}
     if(this.banner>0&&(this.banner>>3)&1){ctx.fillStyle=PAL[0];ctx.fillRect(84,92,88,13);ctext('STAGE '+this.stage,95,5,1);}
   }
