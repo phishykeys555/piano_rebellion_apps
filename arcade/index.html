@@ -33,6 +33,10 @@ canvas{image-rendering:pixelated;image-rendering:crisp-edges;display:block}
 #panel{position:fixed;inset:0;display:none;align-items:center;justify-content:center;background:rgba(0,0,0,.55);z-index:10;touch-action:none}
 #panel .box{background:var(--panel);border:2px solid #4a7cf0;border-radius:8px;padding:12px;display:grid;grid-template-columns:1fr 1fr;gap:8px;max-width:92vw}
 #panel .pb{position:static;display:flex;align-items:center;justify-content:center;min-height:40px;min-width:120px}
+#tFS{display:none;z-index:6}
+#keysOv{position:fixed;inset:0;display:none;align-items:center;justify-content:center;background:rgba(0,0,0,.6);z-index:11}
+#keysOv .box{background:var(--panel);border:2px solid #f7d64a;border-radius:8px;padding:14px 16px;display:flex;flex-direction:column;gap:7px;line-height:0;max-height:92vh;overflow:auto}
+body.fsidle{cursor:none}
 #tip{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(14px + env(safe-area-inset-bottom));display:none;background:var(--panel);border:2px solid #f7d64a;border-radius:6px;padding:9px 10px;line-height:0;z-index:12}
 .ctl{transition:opacity .08s}
 #hint{position:absolute;line-height:0;pointer-events:none;display:none}
@@ -48,6 +52,8 @@ canvas{image-rendering:pixelated;image-rendering:crisp-edges;display:block}
   <div id="bB" class="ctl round"></div>
   <div id="bA" class="ctl round"></div>
   <div id="tMore" class="tb" aria-label="menu"><i></i><i></i><i></i></div>
+  <div id="tFS" class="tb"></div>
+  <div id="keysOv"><div class="box"></div></div>
   <div id="tSpd"><div class="seg" data-m="0"><i></i></div><div class="seg" data-m="1"><i></i></div><div class="seg" data-m="2"><i></i></div></div>
   <div id="panel"><div class="box">
     <div id="tPause" class="tb pb"></div><div id="tMenu" class="tb pb"></div>
@@ -55,7 +61,7 @@ canvas{image-rendering:pixelated;image-rendering:crisp-edges;display:block}
     <div id="tScale" class="tb pb"></div><div id="tPads" class="tb pb"></div>
     <div id="tFull" class="tb pb"></div><div id="tTheme" class="tb pb"></div>
     <div id="tVfx" class="tb pb"></div><div id="tVpick" class="tb pb"></div>
-    <div id="tClose" class="tb pb" style="grid-column:1/3"></div>
+    <div id="tKeys" class="tb pb"></div><div id="tClose" class="tb pb"></div>
   </div></div>
   <div id="tip"></div>
   <div id="hint"></div>
@@ -241,12 +247,14 @@ function setMute(m){AU.muted=m;try{localStorage.setItem('mcc_mute',m?'1':'0');}c
 
 /* ---------------- input: keyboard, touch, gamepad ---------------- */
 const KEYS={ArrowUp:'up',KeyW:'up',ArrowDown:'down',KeyS:'down',ArrowLeft:'left',KeyA:'left',ArrowRight:'right',KeyD:'right',
-  Space:'a',KeyZ:'a',Enter:'a',KeyJ:'a',KeyX:'b',KeyK:'b',ShiftLeft:'b',KeyP:'start',Escape:'start'};
+  Space:'a',KeyZ:'a',Enter:'a',KeyJ:'a',KeyX:'b',KeyK:'b',ShiftLeft:'b',ShiftRight:'b',KeyP:'start'};
 const BTN=['up','down','left','right','a','b','start'];
 const IN={kb:{},latch:{},touch:{},pad:{},dbg:null,held:{},prev:{},pressed:{},tap:null,spd:null,padL:false,padR:false};
 addEventListener('keydown',e=>{audioUnlock();const k=KEYS[e.code];
   if(k){if(!e.repeat)IN.latch[k]=true;IN.kb[k]=true;e.preventDefault();} else if(e.code==='KeyM'){setMute(!AU.muted);}else if(e.code==='KeyV'&&!e.repeat){setVoice(!VOICE.on);}
-  else if(/^(Digit|Numpad)[123]$/.test(e.code)){if(!e.repeat)IN.spd=+e.code.slice(-1)-1;e.preventDefault();}},{passive:false});
+  else if(/^(Digit|Numpad)[123]$/.test(e.code)){if(!e.repeat)IN.spd=+e.code.slice(-1)-1;e.preventDefault();}
+  else if(e.code==='KeyF'&&!e.repeat){e.preventDefault();toggleFull();}
+  else if(e.code==='Escape'&&!e.repeat){e.preventDefault();if(keysOpen)showKeys(false);else openPanel(!panelOpen);}},{passive:false});
 addEventListener('keyup',e=>{const k=KEYS[e.code];if(k){IN.kb[k]=false;e.preventDefault();}});
 addEventListener('blur',()=>{IN.kb={};});
 function pollPad(){const P=IN.pad;for(const k of BTN)P[k]=false;let sl=false,sr=false;
@@ -800,7 +808,7 @@ const VSILENT='data:audio/mpeg;base64,SUQzBAAAAAAAI1RTU0UAAAAPAAADTGF2ZjYwLjE2Lj
 /* ship computer voice. Default 'RETRO': the baked clips above, played through WebAudio (works with the iPhone ring switch off,
    in Home Screen mode and without system voices). Optional: any speechSynthesis voice from the picker.
    say(line,pri): pri 2 interrupts (fuel critical, ship lost, game over), pri 1 normal. Lines older than 3 s are dropped. */
-const VOICE={on:true,log:[],q:[],cur:null,spoken:[],pick:'RETRO',fx:'crunch',pitch:1.4,rate:0.82,gap:220,stale:3000,mock:null,unlocked:false};
+const VOICE={on:true,log:[],q:[],cur:null,spoken:[],pick:'RETRO',fx:'clean',pitch:1.4,rate:0.82,gap:220,stale:3000,mock:null,unlocked:false};
 try{VOICE.on=localStorage.getItem('mcc_voice')!=='0';VOICE.pick=localStorage.getItem('mcc_voice_pick')||'RETRO';
   const fx=localStorage.getItem('mcc_voice_fx');if(fx==='clean'||fx==='crunch'||fx==='extreme')VOICE.fx=fx;}catch(e){}
 /* runtime crunch (mirrors the offline intelligibility check): band-pass, square buzz, sample-and-hold, bit depth, hiss */
@@ -827,7 +835,7 @@ const VNAME={Glimmerwasps:'e_wasp',Razorkites:'e_kite',Splitpods:'e_pod',Bulwark
 function vClips(line){if(VTEXT[line])return [VTEXT[line]];
   const m=/^Wave (\d+)\. (.+) inbound\.$/.exec(line);if(!m)return null;const n=+m[1],ids=['wave'];if(VCLIPS['n'+n])ids.push('n'+n);
   m[2].split(' and ').forEach((nm,i)=>{if(i)ids.push('and');if(VNAME[nm])ids.push(VNAME[nm]);});ids.push('inbound');return ids;}
-function setVoiceFx(fx){VOICE.fx=fx;try{localStorage.setItem('mcc_voice_fx',fx);}catch(e){}}
+function setVoiceFx(fx,keep){VOICE.fx=fx;if(!keep)try{localStorage.setItem('mcc_voice_fx',fx);}catch(e){}}  // only an explicit choice is saved; the default is CLEAN
 const VF_PREF=['samantha','victoria','karen','moira','tessa','fiona','zira','susan','allison','google us english','serena','ava','kate','joanna','salli','kimberly','nicky','veena'].map(n=>new RegExp('\\b'+n+'\\b'));
 function vRank(v){const n=String(v.name||'').toLowerCase();if(/\bmale\b/.test(n))return -1;
   const i=VF_PREF.findIndex(r=>r.test(n));if(i>=0)return 100-i+(/^en[-_]us/i.test(v.lang||'')?0.5:0);return n.includes('female')?50:0;}
@@ -1264,15 +1272,19 @@ class CorsairGame{
 const GAMES=[
  {id:'corsair',name:'CAPTAIN TUTTLE: COMET CORSAIR',lines:['CAPTAIN TUTTLE','COMET CORSAIR'],sub:'THE ADVENTURES OF CAPTAIN TUTTLE',portrait:'cc_tuttle',color:10,icon:'cc_ship',cls:CorsairGame,voice:true,music:CC_MUSIC,
   pitch:['RAID THE SKIES OVER A ROGUE PLANET.','FUEL DRAINS. EVERY 2ND SECTOR A FUEL RIFT','OPENS: THREAD IT SLOW, GRAB THE MOTES.'],
+  keys:['ARROWS/WASD FLY   SPACE/Z FIRE (HOLD)','X/SHIFT SPARK BURST   1 2 3 SLOW/MED/FAST','P PAUSE  M SOUND  V VOICE  F FULL  ESC MENU'],
   help:['D-PAD FLY   A CANNON: FULL HEAT LOSES A SHIP','B  SPARK BURST: 5-WAY, BIG HEAT COST','1/2/3 SPEED: SLOW X0.75  MED  FAST X1.5']},
  {id:'paint',name:'PAINT PATROL',color:12,icon:'pp_bot',cls:PaintGame,
   pitch:['ROLL EVERY TILE OF THE MAZE IN PAINT.','LOOP YOUR GLOWING RIBBON AROUND SMUDGERS','TO TRAP THEM. GREY BLOTTERS WIPE PAINT.'],
+  keys:['ARROWS/WASD ROLL   SOLVENT CAN: DISSOLVE','X/SHIFT PAINT BOMB','P PAUSE  M SOUND  F FULL  ESC MENU'],
   help:['D-PAD ROLL   SOLVENT CAN: DISSOLVE SMUDGERS','B  PAINT BOMB: SPLASH + STUN (RECHARGES)','CLOSE A LOOP: TRAP SMUDGERS, FILL INSIDE']},
  {id:'peak',name:'PEBBLE PEAK',color:4,icon:'pk_hiker',cls:PeakGame,
   pitch:['CLIMB THE LEDGES TO THE SUMMIT FLAG.','ROCKS TUMBLE DOWN FROM THE CAVE.','JUMP THEM OR SMASH THEM WITH A PICK.'],
+  keys:['ARROWS/WASD WALK / CLIMB LADDERS','SPACE/Z JUMP   X/SHIFT SWING PICK','P PAUSE  M SOUND  F FULL  ESC MENU'],
   help:['D-PAD  WALK / CLIMB LADDERS','A  JUMP','B  SWING PICK (GEMS GIVE PICKS)']},
  {id:'prism',name:'PRISM PATROL',color:6,icon:'pr_d2',cls:PrismGame,
   pitch:['HOLD THE LINE AGAINST DIVING DRONES.','EACH DRONE DROPS A SPARK: CATCH IT TO','BUILD A CHAIN UP TO X8. MISS ONE, RESET.'],
+  keys:['ARROWS/WASD MOVE   SPACE/Z FIRE','X/SHIFT PRISM SHIELD: BOUNCES SHOTS','P PAUSE  M SOUND  F FULL  ESC MENU'],
   help:['D-PAD  MOVE','A  FIRE','B  PRISM SHIELD: BOUNCES SHOTS BACK']}
 ];
 
@@ -1347,7 +1359,7 @@ function drawMenu(){
   const g=GAMES[APP.sel];ctext(g.pitch[0],148,14);
   ctext('D-PAD CHOOSE    A OR TAP: INSERT',162,11);
   if((APP.t>>5)&1)ctext('INSERT A CARTRIDGE',176,5,1);
-  else ctext('M: SOUND   V: VOICE   P: PAUSE',176,15,1);
+  else ctext(IS_TOUCH?'M: SOUND   V: VOICE   P: PAUSE':'F: FULL SCREEN   ESC: MENU + KEYS',176,15,1);
 }
 function drawTitle(){
   const g=GAMES[APP.gi];
@@ -1358,7 +1370,8 @@ function drawTitle(){
   else{const s=SPR[g.icon];sprS(g.icon,10,36,3);
   g.pitch.forEach((l,i)=>text(l,10+s.w*3+8>W/3?10:10+s.w*3+8,38+i*9,13));}
   ctx.fillStyle=PAL[1];ctx.fillRect(8,70,240,40);
-  text('CONTROLS',14,74,g.color);g.help.forEach((l,i)=>text(l,14,84+i*8,14));
+  if(!IS_TOUCH&&g.keys){text('KEYS',14,74,g.color);g.keys.forEach((l,i)=>text(l,14,84+i*8,14));}
+  else{text('CONTROLS',14,74,g.color);g.help.forEach((l,i)=>text(l,14,84+i*8,14));}
   const hs=loadHi(g.id);text('TOP SCORES',14,116,5);
   for(let i=0;i<5;i++){const v=hs[i];text((i+1)+'. '+(v!=null?pad(v,6):'------'),14+(i<3?0:110),126+(i%3)*8,i===0?13:14);}
   if((APP.t>>4)&1)ctext('PRESS A OR TAP TO START',166,5,1,0);
@@ -1384,7 +1397,9 @@ function draw(){
 }
 
 /* ---------------- on-screen controls + layout ---------------- */
-let IS_TOUCH=('ontouchstart' in window)||(navigator.maxTouchPoints>0)||(window.matchMedia&&matchMedia('(pointer:coarse)').matches);
+/* touch pads only on touch-first devices; a laptop (fine pointer) hides them until the first real touch */
+const MQ=q=>!!(window.matchMedia&&matchMedia(q).matches);
+let IS_TOUCH=MQ('(pointer:coarse)')||(!MQ('(pointer:fine)')&&(('ontouchstart' in window)||navigator.maxTouchPoints>0));
 function makeLabel(str,fg){const c=document.createElement('canvas');c.width=tw(str)+2;c.height=7;text(str,1,1,fg,1,null,c.getContext('2d'));return c;}
 function setLabel(el,str,fg,scale){el.innerHTML='';const c=makeLabel(str,fg);c.style.width=(c.width*scale)+'px';c.style.height=(c.height*scale)+'px';el.appendChild(c);}
 const dpC=document.createElement('canvas');dpC.width=48;dpC.height=48;$('dpad').appendChild(dpC);
@@ -1425,9 +1440,21 @@ function updateButtons(){
   setLabel($('tTheme'),'PAINT: '+PP_THEME.toUpperCase(),12,2);
   setLabel($('tVfx'),'VOICE FX: '+VOICE.fx.toUpperCase(),12,2);
   setLabel($('tVpick'),vRetro()?'VOICE: RETRO':'VOICE: SYSTEM',12,2);
-  setLabel($('tClose'),'CLOSE',13,2);
+  setLabel($('tClose'),'CLOSE',13,2);setLabel($('tKeys'),'KEYS',5,2);
+  setLabel($('tFS'),isFS()?'EXIT FULL  F':'FULL SCREEN  F',5,2);
   spdUI();
 }
+const KEY_LIST=[['KEY COMMANDS',5],['MOVE ......... ARROWS OR W A S D',13],['A BUTTON ..... SPACE OR Z  (ENTER, J)',13],['B BUTTON ..... X OR SHIFT  (K)',13],
+  ['PAUSE ........ P',13],['SOUND ON/OFF . M',13],['FULL SCREEN .. F   (ESC LEAVES)',13],['MENU ......... ESC',13],
+  ['CAPTAIN TUTTLE: 1 / 2 / 3 SPEED, V VOICE ON/OFF',11],['CARTRIDGES: ARROWS CHOOSE, SPACE INSERT',14],['TITLE: SPACE START, X BACK',14]];
+let keysOpen=false;
+function showKeys(on){keysOpen=on;const ov=$('keysOv'),bx=ov.querySelector('.box');
+  if(on&&!bx.childNodes.length)KEY_LIST.forEach(([l,c])=>{const d=document.createElement('div');setLabel(d,l,c,2);bx.appendChild(d);});
+  ov.style.display=on?'flex':'none';if(on&&panelOpen){panelOpen=false;$('panel').style.display='none';}
+  if(on&&APP.scene==='play'&&!APP.paused){APP.paused=true;panelPaused=true;}else if(!on&&panelPaused&&!panelOpen){panelPaused=false;if(APP.scene==='play')APP.paused=false;}updateButtons();}
+const isFS=()=>!!(document.fullscreenElement||document.webkitFullscreenElement);
+let idleT=null;function wake(){document.body.classList.remove('fsidle');clearTimeout(idleT);if(isFS())idleT=setTimeout(()=>{if(isFS())document.body.classList.add('fsidle');},2000);}
+addEventListener('mousemove',wake,{passive:true});
 function openPanel(on){panelOpen=on;$('panel').style.display=on?'flex':'none';
   if(on){if(APP.scene==='play'&&!APP.paused){APP.paused=true;panelPaused=true;hush();}}
   else if(panelPaused){panelPaused=false;if(APP.scene==='play')APP.paused=false;}
@@ -1453,7 +1480,8 @@ function layout(){
   const Wv=window.innerWidth,Hv=window.innerHeight,dpr=window.devicePixelRatio||1;
   const W0=Wv-sl-sr,H0=Hv-st-sb,land=Wv>=Hv;
   ['dpad','bA','bB'].forEach(id=>$(id).style.display=IS_TOUCH?'block':'none');$('hint').style.display='none';
-  const fit=(aw,ah)=>{if(SET.scale!=='crisp'){const k=Math.min(aw/256,ah/192);return [256*k,192*k];}
+  const fs=isFS();$('tFS').style.display=(!IS_TOUCH&&FS_OK)?'block':'none';
+  const fit=(aw,ah)=>{if(fs||SET.scale!=='crisp'){const k=Math.min(aw/256,ah/192);return [256*k,192*k];}
     const k=Math.max(1,Math.floor(Math.min(aw*dpr/256,ah*dpr/192)));return [256*k/dpr,192*k/dpr];};
   const more=$('tMore'),mw=42,spW=spdVis?(spdEl.getBoundingClientRect().width||110):0,spH=38;
   let cw,ch,cx,cy;
@@ -1461,13 +1489,14 @@ function layout(){
     [cw,ch]=fit(W0,H0);cx=sl+(W0-cw)/2;cy=st+(H0-ch)/2;
     const mL=cx-sl,mR=sl+W0-(cx+cw),hudB=cy+ch*19/192;
     place(more,mL>=mw+12?sl+(mL-mw)/2:cx+4,mL>=mw+12?st+8:hudB+4);
+    if(!IS_TOUCH&&FS_OK){const fw=$('tFS').getBoundingClientRect().width||130;place($('tFS'),mL>=fw+12?sl+(mL-fw)/2:cx+4,mL>=fw+12?st+58:hudB+50);}
     if(spdVis)place(spdEl,mR>=spW+12?cx+cw+(mR-spW)/2:cx+cw-spW-4,mR>=spW+12?st+8:hudB+4);
     if(IS_TOUCH){const dsz=Math.max(110,Math.min(180,H0*0.44)),bs=Math.max(56,Math.min(84,H0*0.21)),pad=12;
       const dx=mL>=dsz+2*pad?sl+(mL-dsz)/2:sl+pad;place($('dpad'),dx,st+H0-dsz-pad,dsz,dsz);
       const rx=mR>=bs*2.05+2*pad?cx+cw+(mR-bs*2.05)/2+bs*2.05:sl+W0-pad;
       place($('bA'),rx-bs,st+H0-bs*1.9-pad,bs,bs);place($('bB'),rx-bs*2.05,st+H0-bs-pad,bs,bs);}
   }else{
-    const top=50;place(more,sl+8,st+6);if(spdVis)place(spdEl,sl+W0-8-spW,st+6);
+    const top=50;place(more,sl+8,st+6);if(!IS_TOUCH&&FS_OK)place($('tFS'),sl+60,st+6);if(spdVis)place(spdEl,sl+W0-8-spW,st+6);
     [cw,ch]=fit(W0,IS_TOUCH?H0*0.56:H0-top-8);cx=sl+(W0-cw)/2;cy=st+top;
     if(IS_TOUCH){const areaT=cy+ch+12,areaH=Math.min(st+H0-areaT-10,280);
       const dsz=Math.max(110,Math.min(W0*0.48,areaH*0.92,210));place($('dpad'),sl+Math.max(10,W0*0.04),areaT+(areaH-dsz)/2,dsz,dsz);
@@ -1507,12 +1536,14 @@ onTap('tScale',()=>{SET.scale=SET.scale==='fill'?'crisp':'fill';saveSet();layout
 onTap('tPads',()=>{const L=[0.2,0.35,0.5,0.65];SET.op=L[(L.findIndex(v=>Math.abs(v-SET.op)<0.01)+1)%L.length];saveSet();layout();updateButtons();SFX.blip();});
 onTap('tFull',()=>{toggleFull();setTimeout(updateButtons,300);});
 onTap('tClose',()=>openPanel(false));
+onTap('tKeys',()=>{showKeys(true);SFX.blip();});onTap('tFS',()=>{toggleFull();});
+$('keysOv').addEventListener('pointerdown',e=>{e.preventDefault();showKeys(false);});
 onTap('tVfx',()=>{const L=['clean','crunch','extreme'];setVoiceFx(L[(L.indexOf(VOICE.fx)+1)%3]);updateButtons();say('Voice check. All systems green.',2);});
 onTap('tVpick',()=>{cycleVoice(1);updateButtons();});
 onTap('tTheme',()=>{setPPTheme(PP_THEME==='canvas'?'dark':'canvas');updateButtons();SFX.blip();});
 $('panel').addEventListener('pointerdown',e=>{if(e.target===$('panel')){e.preventDefault();openPanel(false);}});
 $('tip').addEventListener('pointerdown',e=>{e.preventDefault();$('tip').style.display='none';});
-['fullscreenchange','webkitfullscreenchange'].forEach(t=>document.addEventListener(t,()=>{updateButtons();setTimeout(layout,60);}));
+['fullscreenchange','webkitfullscreenchange'].forEach(t=>document.addEventListener(t,()=>{updateButtons();wake();layout();setTimeout(layout,60);}));
 if(IS_IOS&&!STANDALONE){let seen=false;try{seen=localStorage.getItem('mcc_tip_a2hs')==='1';localStorage.setItem('mcc_tip_a2hs','1');}catch(e){}if(!seen)setTimeout(showTip,1200);}
 ['touchend','pointerup','pointerdown','click','keydown'].forEach(t=>addEventListener(t,audioUnlock,{passive:true,capture:true}));
 document.addEventListener('touchstart',e=>{if(!IS_TOUCH){IS_TOUCH=true;layout();}e.preventDefault();},{passive:false});
@@ -1552,7 +1583,7 @@ if(DEBUG){
     vstatus(){return {clips:Object.keys(VCLIPS).length,decoded:Object.keys(VB.raw).length,errors:Object.keys(VB.err),pending:VB.pending,ctx:AU.ctx&&AU.ctx.state,pick:VOICE.pick,fx:VOICE.fx,on:VOICE.on,retro:vRetro()};},
     vclips:l=>vClips(l),
     vcur(){const c=VOICE.cur;return c&&{line:c.line,clips:c.clips||null,retro:!!c.retro,n:c.srcs?c.srcs.length:0,dur:c.hardEnd-c.start,done:c.done};},
-    vproc(){const o={};for(const q of ['clean','crunch','extreme']){setVoiceFx(q);let n=0;for(const id in VCLIPS)if(vBuf(id))n++;o[q]=n;}setVoiceFx('crunch');return o;},
+    vproc(){const o={},was=VOICE.fx;for(const q of ['clean','crunch','extreme']){setVoiceFx(q,true);let n=0;for(const id in VCLIPS)if(vBuf(id))n++;o[q]=n;}setVoiceFx(was,true);return o;},
     speed(m){IN.spd=m;},
     pickVoice:(vs,saved)=>{const v=ccPickVoice(vs,saved);return v?v.name:null;},
     vq(){return {q:VOICE.q.map(x=>x.line),cur:VOICE.cur&&{line:VOICE.cur.line,done:VOICE.cur.done},spoken:VOICE.spoken.map(x=>({line:x.line,pri:x.pri,start:x.start,end:x.end,cut:!!x.cut}))};},
