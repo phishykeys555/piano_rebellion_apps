@@ -158,6 +158,7 @@ defSprite('moon',["..dddd..",".ddddd..","ddd.....","dd......","dd......","ddd...
 const AU={ctx:null,master:null,muted:false,noise:null};
 try{AU.muted=localStorage.getItem('mcc_mute')==='1';}catch(e){}
 function audioUnlock(){
+  try{voiceUnlock();}catch(e){}
   if(AU.ctx){if(AU.ctx.state!=='running'){try{AU.ctx.resume();}catch(e){}}return;}
   const AC=window.AudioContext||window.webkitAudioContext;if(!AC)return;
   try{
@@ -874,19 +875,56 @@ function ccRock(r,seed){let s=seed;const R=()=>{s=(s*16807)%2147483647;return s/
     else row+=(dx+dy<-r*0.6?'d':dx+dy>r*0.5?'f':'e');}rows.push(row);}return rows;}
 [7,4,2].forEach((r,i)=>{defSprite('cc_rk'+i+'a',ccRock(r,101+i*7));defSprite('cc_rk'+i+'b',ccRock(r,557+i*13));});
 
-/* robot voice (speechSynthesis), shared setting */
-const VOICE={on:true,log:[]};
-try{VOICE.on=localStorage.getItem('mcc_voice')!=='0';}catch(e){}
-let VPICK=null;
-function pickVoice(){if(VPICK!==null)return VPICK||null;
-  try{const vs=speechSynthesis.getVoices();if(!vs.length)return null;
-    VPICK=vs.find(v=>/^en/i.test(v.lang)&&/fred|male|david|daniel|alex/i.test(v.name))||vs.find(v=>/^en/i.test(v.lang))||false;}catch(e){VPICK=false;}
-  return VPICK||null;}
-function say(line){VOICE.log.push(line);if(VOICE.log.length>40)VOICE.log.shift();
-  if(!VOICE.on||AU.muted)return;
-  try{const ss=window.speechSynthesis;if(!ss||typeof SpeechSynthesisUtterance==='undefined')return;ss.cancel();
-    const u=new SpeechSynthesisUtterance(line);u.pitch=0.2;u.rate=0.85;u.volume=0.9;const v=pickVoice();if(v)u.voice=v;ss.speak(u);}catch(e){}}
-function hush(){try{if(window.speechSynthesis)speechSynthesis.cancel();}catch(e){}}
+/* ship computer voice (speechSynthesis): female voice, chip-style delivery, one line at a time.
+   say(line,pri): pri 2 interrupts (fuel critical, ship lost), pri 1 normal, pri 0 chatter. Lines older than 3 s are dropped. */
+const VOICE={on:true,log:[],q:[],cur:null,spoken:[],name:'',pitch:1.4,rate:0.82,gap:220,stale:3000,mock:null,unlocked:false};
+try{VOICE.on=localStorage.getItem('mcc_voice')!=='0';VOICE.name=localStorage.getItem('mcc_voice_name')||'';}catch(e){}
+const VF_PREF=['samantha','victoria','karen','moira','tessa','fiona','zira','susan','allison','google us english','serena','ava','kate','joanna','salli','kimberly','nicky','veena'].map(n=>new RegExp('\\b'+n+'\\b'));
+function vRank(v){const n=String(v.name||'').toLowerCase();if(/\bmale\b/.test(n))return -1;
+  const i=VF_PREF.findIndex(r=>r.test(n));if(i>=0)return 100-i+(/^en[-_]us/i.test(v.lang||'')?0.5:0);return n.includes('female')?50:0;}
+function ccPickVoice(vs,saved){if(!vs||!vs.length)return null;
+  if(saved){const m=vs.find(v=>v.name===saved);if(m)return m;}
+  let best=null,bs=0;for(const v of vs){const r=vRank(v)-(/^en/i.test(v.lang||'')?0:200);if(r>bs){bs=r;best=v;}}
+  return best||vs.find(v=>v.default)||null;}
+const vSS=()=>VOICE.mock||window.speechSynthesis||null;
+function vAll(){try{const ss=vSS();return ss?ss.getVoices()||[]:[];}catch(e){return [];}}
+function vChoices(){const all=vAll(),en=all.filter(v=>/^en/i.test(v.lang||''));const l=(en.length?en:all).slice();
+  l.sort((a,b)=>vRank(b)-vRank(a)||String(a.name).localeCompare(String(b.name)));return l;}
+function pickVoice(){return ccPickVoice(vAll(),VOICE.name);}
+function voiceLabel(){const v=pickVoice();const n=v?v.name:'DEFAULT';return (VOICE.name?'':'AUTO: ')+String(n).toUpperCase().replace(/[^A-Z0-9 .,:()\-+'/]/g,'').slice(0,34);}
+function cycleVoice(dir=1){const l=vChoices();const names=[''].concat(l.map(v=>v.name));let i=names.indexOf(VOICE.name);if(i<0)i=0;
+  VOICE.name=names[(i+dir+names.length)%names.length];try{localStorage.setItem('mcc_voice_name',VOICE.name);}catch(e){}
+  SFX.blip();say('Voice check. All systems green.',2);}
+try{const ss=window.speechSynthesis;if(ss){ss.getVoices();const f=()=>{ctlDirty=true;};if(ss.addEventListener)ss.addEventListener('voiceschanged',f);else ss.onvoiceschanged=f;}}catch(e){}
+function voiceUnlock(){if(VOICE.unlocked)return;VOICE.unlocked=true;
+  try{const ss=vSS(),U=window.SpeechSynthesisUtterance;if(ss&&U){const u=new U(' ');u.volume=0;ss.speak(u);}}catch(e){}}
+function say(line,pri=1){VOICE.log.push(line);if(VOICE.log.length>40)VOICE.log.shift();
+  if(!VOICE.on||AU.muted)return;const now=performance.now();
+  if(pri>=2){vStop(now);VOICE.q=VOICE.q.filter(x=>x.pri>=2);}
+  else if(VOICE.q.some(x=>x.line===line)||(VOICE.cur&&!VOICE.cur.done&&VOICE.cur.line===line))return;
+  VOICE.q.push({line,pri,t:now});
+  if(VOICE.q.length>4){const i=VOICE.q.findIndex(x=>x.pri<2);if(i>=0)VOICE.q.splice(i,1);}
+  voicePump();}
+function vStop(now){const c=VOICE.cur;if(c&&!c.done){c.done=true;c.end=now;c.cut=true;}
+  try{const ss=vSS();if(ss)ss.cancel();}catch(e){}}
+function voicePump(){const now=performance.now(),c=VOICE.cur;
+  if(c&&!c.done){if(now<c.hardEnd)return;c.done=true;c.end=now;}
+  if(c&&c.done&&now<c.end+VOICE.gap)return;
+  VOICE.q=VOICE.q.filter(x=>x.pri>=2||now-x.t<=VOICE.stale);
+  if(!VOICE.q.length)return;
+  let bi=0;for(let i=1;i<VOICE.q.length;i++)if(VOICE.q[i].pri>VOICE.q[bi].pri)bi=i;
+  const it=VOICE.q.splice(bi,1)[0];
+  const est=500+it.line.length*70/VOICE.rate;
+  const cur={line:it.line,pri:it.pri,start:now,est,hardEnd:now+150+est+1800,done:false,end:null};VOICE.cur=cur;
+  VOICE.spoken.push(cur);if(VOICE.spoken.length>60)VOICE.spoken.shift();
+  SFX.chirp();
+  setTimeout(()=>{if(cur.done||VOICE.cur!==cur)return;
+    try{const ss=vSS(),U=VOICE.mock?VOICE.mock.U:window.SpeechSynthesisUtterance;if(!ss||!U){cur.hardEnd=performance.now()+est;return;}
+      const u=new U(it.line);u.pitch=VOICE.pitch;u.rate=VOICE.rate;u.volume=0.95;const v=pickVoice();if(v){u.voice=v;if(v.lang)u.lang=v.lang;}
+      const fin=()=>{if(!cur.done){cur.done=true;cur.end=performance.now();}setTimeout(voicePump,VOICE.gap+5);};
+      u.onend=fin;u.onerror=fin;ss.speak(u);}catch(e){}},140);}
+const voiceBusy=()=>!!(VOICE.cur&&!VOICE.cur.done);
+function hush(){VOICE.q=[];vStop(performance.now());}
 function setVoice(on){VOICE.on=on;try{localStorage.setItem('mcc_voice',on?'1':'0');}catch(e){}if(!on)hush();updateButtons();SFX.blip();}
 
 /* continuous thruster hum */
@@ -918,6 +956,7 @@ Object.assign(SFX,{
   wave:()=>jingle([[57,1],[64,1],[69,1],[72,1],[0,1],[69,1],[76,3]],{beat:0.065,bass:true}),
   belt:()=>{for(let i=0;i<4;i++)tone(i%2?392:523,0.09,{at:i*0.11,vol:0.05});},
   tanker:()=>jingle([[64,1],[0,1],[64,1],[67,1],[72,3]],{beat:0.07,bass:true}),
+  chirp:()=>{const f=[1850,2600,1300,2200];for(let i=0;i<4;i++)tone(f[i],0.022,{at:i*0.026,vol:0.035});noise(0.035,{f:9000,fto:3000,vol:0.05,at:0.1});},
   gear:m=>{const f=[[523,392],[523,523],[523,784]][m];tone(f[0],0.05,{vol:0.05,type:'triangle'});tone(f[1],0.07,{vol:0.05,type:'triangle',at:0.06});},
   nodock:()=>{tone(200,0.07,{vol:0.05});tone(150,0.1,{vol:0.05,at:0.08});},
 });
@@ -925,7 +964,7 @@ Object.assign(SFX,{
 const CC_TH=[{far:1,near:9,lit:11,bl:3},{far:2,near:8,lit:6,bl:5},{far:1,near:12,lit:5,bl:6},{far:8,near:7,lit:13,bl:3},{far:1,near:2,lit:4,bl:5},{far:9,near:15,lit:5,bl:11}];
 const CC_TYPES=['wasp','kite','pod','bulwark','seed'];
 const CC_NAMES={wasp:'GLIMMERWASPS',kite:'RAZORKITES',pod:'SPLITPODS',bulwark:'BULWARKS',seed:'THORNSEEDS'};
-const CC_SAY={wasp:'Glimmer wasps',kite:'Razor kites',pod:'Split pods',bulwark:'Bulwark carriers',seed:'Thorn seeds'};
+const CC_SAY={wasp:'Glimmerwasps',kite:'Razorkites',pod:'Splitpods',bulwark:'Bulwarks',seed:'Thornseeds'};
 const CC_PTS={wasp:100,kite:150,pod:200,podlet:50,bulwark:600,seed:120};
 const CC_BOX={wasp:[5,4],kite:[5,4],pod:[5,5],podlet:[3,3],bulwark:[10,6],seed:[4,4]};
 const CC_TOP=24,CC_BOT=146,CC_LOCK=150;
@@ -969,21 +1008,21 @@ class CorsairGame{
     spdUI();return true;}
   alert(s,c=5,urgent=false){const m={s,c,x:258};
     if(urgent||!this.tk)this.tk=m;else{this.tick.push(m);if(this.tick.length>3)this.tick.shift();}}
-  addScore(n){const v=Math.round(n*this.gear.m);this.score+=v;while(this.score>=this.nextLife){this.nextLife+=CC_LIFE_EVERY;if(this.lives<CC_LIFE_MAX){this.lives++;SFX.oneup();floater(this.ship.x,this.ship.y-12,'1UP',6);}}return v;}
+  addScore(n){const v=Math.round(n*this.gear.m);this.score+=v;while(this.score>=this.nextLife){this.nextLife+=CC_LIFE_EVERY;if(this.lives<CC_LIFE_MAX){this.lives++;SFX.oneup();floater(this.ship.x,this.ship.y-12,'1UP',6);say('Extra ship on deck.');}}return v;}
   nextWave(){
     this.wave++;this.level=this.wave;this.phase='wave';const w=this.wave;
     this.kinds=[CC_TYPES[(w-1)%5]];if(w>=6)this.kinds.push(CC_TYPES[(w+1)%5]);
     this.groups=5+Math.min(6,Math.floor(w/2));this.spawnT=100;this.gi=0;
     this.th=CC_TH[(w-1)%CC_TH.length];this.buildSky();
     this.alert('WAVE '+w+' · '+this.kinds.map(k=>CC_NAMES[k]).join(' + ')+' INBOUND',5);
-    this.banner=150;SFX.wave();say('Wave '+w+'. '+this.kinds.map(k=>CC_SAY[k]).join(' and ')+' incoming.');
+    this.banner=150;SFX.wave();say('Wave '+w+'. '+this.kinds.map(k=>CC_SAY[k]).join(' and ')+' inbound.');
   }
   startBelt(){const B=ccBelt(this.wave);this.phase='belt';this.belt=B;this.beltT=B.len;this.rockT=0;this.beltTail=0;this.beltsSeen++;
     this.beltWarn=CC_BELT_WARN;this.beltRocks=0;this.beltWarnAt=this.t;this.beltStartAt=null;
-    this.alert('ASTEROID BELT AHEAD · SHOOT OR DODGE',4,true);say('Asteroid belt ahead.');SFX.belt();}
+    this.alert('ASTEROID BELT AHEAD · SHOOT OR DODGE',4,true);say('Wave clear. Asteroid belt ahead.');SFX.belt();}
   startTanker(){this.phase='tanker';this.tankersSeen++;this.spawnT=170;
     this.tanker={x:300,y:44,st:'in',t:0,hover:0,done:false,doneT:0,got:0,was:false};
-    this.alert('TANKER INBOUND · DOCK UNDER THE BOOM',6);say('Fuel tanker approaching. Dock beneath the boom.');SFX.tanker();}
+    this.alert('TANKER INBOUND · DOCK UNDER THE BOOM',6);say('Tanker on approach. Time to refuel.');SFX.tanker();}
   spawnGroup(){
     const k=this.kinds[this.gi++%this.kinds.length],w=this.wave,E=this.ens;
     if(k==='wasp'){const n=4+Math.min(3,Math.floor(w/3)),y=rr(36,128),amp=rr(12,28);
@@ -1002,8 +1041,8 @@ class CorsairGame{
   efire(x,y,spd,off=0){if(this.ebul.length>=44)return;const s=this.ship;const a=Math.atan2(s.y-y,s.x-x)+off;spd*=this.gear.eb;
     this.ebul.push({x,y,vx:Math.cos(a)*spd,vy:Math.sin(a)*spd});}
   kill(){const s=this.ship;if(s.dead)return;s.dead=100;this.lives--;burst(s.x,s.y,[5,4,3,13,11],36,3);SFX.bigboom();APP.shake=14;this.lock=0;
-    if(this.lives>0)say('Ship lost.');}
-  respawn(){const s=this.ship;s.x=44;s.y=86;s.inv=CC_RESPAWN_INV;this.fuel=Math.max(this.fuel,55);this.heat=0;this.lock=0;this.ebul=[];this.lowWarned=false;}
+    if(this.lives>0)say('Ship lost.',2);}
+  respawn(){const s=this.ship;s.x=44;s.y=86;s.inv=CC_RESPAWN_INV;this.fuel=Math.max(this.fuel,55);this.critWarned=false;this.heat=0;this.lock=0;this.ebul=[];this.lowWarned=false;}
   update(inp){
     const h=inp.held,pr=inp.pressed,s=this.ship;this.t++;
     const sp=(1.0+Math.min(0.8,this.wave*0.05)+(s.dead?0:(s.x-44)*0.012))*this.ws;this.scrollX+=sp;this.sp=sp;if(this.gearT>0)this.gearT--;
@@ -1011,7 +1050,7 @@ class CorsairGame{
     if(this.tk){this.tk.x-=1.7;if(this.tk.x<-tw(this.tk.s)-4)this.tk=this.tick.shift()||null;}
     if(this.banner>0)this.banner--;
     this.docked=false;this.moving=false;
-    if(s.dead){if(--s.dead===0){if(this.lives<=0){this.over=true;say('Game over. The corsair is down.');return;}this.respawn();}}
+    if(s.dead){if(--s.dead===0){if(this.lives<=0){this.over=true;say('Game over. Signal lost.',2);return;}this.respawn();}}
     else this.updShip(h,pr);
     this.updPhase();this.updShots();this.updEnemies();this.updRocks();this.updTanker();this.updOrbs();
   }
@@ -1026,12 +1065,13 @@ class CorsairGame{
     else{this.heat=Math.max(0,this.heat-0.42);
       if(h.a&&this.cool===0){this.bul.push({x:s.x+8,y:s.y,vx:5.5,vy:0,hot:this.heat>65});this.cool=6;this.heat+=5.2;SFX.bolt();}
       if(pr.b&&this.bcool===0){for(let i=-2;i<=2;i++)this.bul.push({x:s.x+8,y:s.y,vx:5,vy:i*0.7,hot:true});this.bcool=26;this.heat+=24;SFX.spread();}
-      if(this.heat>=100){this.heat=100;this.lock=CC_LOCK;this.overheats++;this.alert('CANNON OVERHEAT · VENTING',3,true);say('Cannon overheat. Venting.');SFX.overheat();}
+      if(this.heat>=100){this.heat=100;this.lock=CC_LOCK;this.overheats++;this.alert('CANNON OVERHEAT · VENTING',3,true);say('Cannon hot. Venting.');SFX.overheat();}
       else if(this.heat>78&&this.t%14===0)SFX.warn();}
     this.fuel-=0.027*(1+0.04*(w-1))*(this.moving?1.12:1)*this.gear.f;
-    if(this.fuel<25){if(!this.lowWarned){this.lowWarned=true;this.alert('LOW FUEL · FIND THE TANKER',3,true);say('Fuel low. Find the tanker.');}
+    if(this.fuel<25){if(!this.lowWarned){this.lowWarned=true;this.alert('LOW FUEL · FIND THE TANKER',3,true);say('Fuel low.');}
+      if(this.fuel<10&&!this.critWarned){this.critWarned=true;this.alert('FUEL CRITICAL',3,true);say('Fuel critical. Find the tanker now.',2);}
       if(this.t%45===0)SFX.warn();}
-    else if(this.fuel>40)this.lowWarned=false;
+    else if(this.fuel>40){this.lowWarned=false;this.critWarned=false;}
     if(this.fuel<=0){this.fuel=0;floater(s.x,s.y-10,'FLAMED OUT',3);this.kill();}
   }
   updPhase(){const w=this.wave;
@@ -1140,7 +1180,7 @@ class CorsairGame{
       this.fuel=Math.min(100,this.fuel+0.32);tk.got+=0.32;if(this.t%4===0)this.addScore(5);
       if(this.t%10===0)tone(300+this.fuel*6,0.05,{vol:0.03});
       if(this.fuel>=100){tk.done=true;this.refuels++;const b=this.addScore(1000);floater(s.x,s.y-12,'TANK FULL +'+b,6);
-        this.alert('REFUEL COMPLETE · BOOM RETRACTING',6,true);say('Refuel complete.');SFX.full();}}
+        this.alert('REFUEL COMPLETE · BOOM RETRACTING',6,true);say('Tanks full. Boom clear.');SFX.full();}}
     else tk.was=false;
   }
   hum(){const s=this.ship;if(s.dead)return [0,40];return [0.03,38+this.mode*8+(this.moving?10:0)+(this.docked?8:0)];}
@@ -1284,12 +1324,13 @@ function toTitle(i){APP.gi=i;APP.sel=i;APP.scene='title';APP.st=0;APP.paused=fal
 function startGame(i){APP.gi=i;APP.sel=i;G=new GAMES[i].cls();G.id=GAMES[i].id;APP.best=loadHi(G.id)[0]||0;
   APP.scene='play';APP.paused=false;APP.st=0;PART.length=0;FLOAT.length=0;SFX.start();updateButtons();}
 function endGame(){const id=GAMES[APP.gi].id;const prev=loadHi(id)[0]||0;APP.newHi=G.score>prev&&G.score>0;saveHi(id,G.score);
-  APP.scene='over';APP.overT=0;if(APP.newHi)SFX.hiscore();else SFX.over();updateButtons();}
+  APP.scene='over';APP.overT=0;if(APP.newHi){SFX.hiscore();if(GAMES[APP.gi].voice)say('New high score. Logged.');}else SFX.over();updateButtons();}
 function togglePause(){if(APP.scene!=='play')return;APP.paused=!APP.paused;if(APP.paused)hush();SFX.blip();updateButtons();}
 function cartRect(i){return {x:2+i*51,y:58,w:48,h:76};}
 function step(){
   stepCore();
-  let hv=0,hf=40;if(APP.scene==='play'&&!APP.paused&&G&&G.hum)[hv,hf]=G.hum();humSet(hv,hf);
+  let hv=0,hf=40;if(APP.scene==='play'&&!APP.paused&&G&&G.hum)[hv,hf]=G.hum();if(voiceBusy())hv*=0.35;humSet(hv,hf);
+  voicePump();
 }
 function stepCore(){
   pollInput();const p=IN.pressed;APP.t++;APP.st++;const tap=IN.tap;IN.tap=null;const sq=IN.spd;IN.spd=null;
@@ -1302,10 +1343,11 @@ function stepCore(){
   }else if(APP.scene==='title'){
     if(APP.st>8&&(p.a||p.start||tap))startGame(APP.gi);else if(p.b)toMenu();
     else if(GAMES[APP.gi].voice&&(p.up||p.down))setVoice(!VOICE.on);
+    else if(GAMES[APP.gi].voice&&(p.left||p.right))cycleVoice(p.left?-1:1);
     if(APP.scene==='title'&&GAMES[APP.gi].music)musicTick(GAMES[APP.gi].music);
   }else if(APP.scene==='play'){
     if(p.start){togglePause();return;}
-    if(APP.paused){if(p.a||tap){APP.paused=false;updateButtons();}else if(p.b)toMenu();else if(p.up&&GAMES[APP.gi].voice)setVoice(!VOICE.on);return;}
+    if(APP.paused){if(p.a||tap){APP.paused=false;updateButtons();}else if(p.b)toMenu();else if(p.up&&GAMES[APP.gi].voice)setVoice(!VOICE.on);else if(p.down&&GAMES[APP.gi].voice)cycleVoice(1);return;}
     if(sq!=null&&G.setMode)G.setMode(sq);
     G.update(IN);updFx();
     if(G.over)endGame();
@@ -1357,11 +1399,11 @@ function drawTitle(){
   for(let i=0;i<5;i++){const v=hs[i];text((i+1)+'. '+(v!=null?pad(v,6):'------'),14+(i<3?0:110),126+(i%3)*8,i===0?13:14);}
   if((APP.t>>4)&1)ctext('PRESS A OR TAP TO START',166,5,1,0);
   ctext('B: BACK TO CARTRIDGES',180,15);
-  if(g.voice)ctext('UP/DOWN OR V: ROBOT VOICE '+(VOICE.on?'ON':'OFF'),153,VOICE.on?6:14);
+  if(g.voice){ctext('UP/DOWN: VOICE '+(VOICE.on?'ON':'OFF')+'   LEFT/RIGHT: PICK VOICE',150,VOICE.on?6:14);ctext(voiceLabel(),158,12);}
 }
-function drawPause(){ctx.fillStyle='rgba(0,0,0,0.6)';ctx.fillRect(0,0,W,H);ctx.fillStyle=PAL[1];ctx.fillRect(48,66,160,56);ctx.fillStyle=PAL[10];ctx.fillRect(48,66,160,2);ctx.fillRect(48,120,160,2);
-  ctext('PAUSED',74,13,3,9);ctext('A OR TAP: RESUME',98,11);ctext('B: QUIT TO CARTRIDGES',108,14);
-  if(GAMES[APP.gi].voice)ctext('UP: VOICE '+(VOICE.on?'ON':'OFF'),114,VOICE.on?6:14);}
+function drawPause(){const vc=GAMES[APP.gi].voice,bh=vc?80:56,by=vc?58:66;ctx.fillStyle='rgba(0,0,0,0.6)';ctx.fillRect(0,0,W,H);ctx.fillStyle=PAL[1];ctx.fillRect(36,by,184,bh);ctx.fillStyle=PAL[10];ctx.fillRect(36,by,184,2);ctx.fillRect(36,by+bh-2,184,2);
+  ctext('PAUSED',by+8,13,3,9);ctext('A OR TAP: RESUME',by+32,11);ctext('B: QUIT TO CARTRIDGES',by+42,14);
+  if(vc){ctext('UP: VOICE '+(VOICE.on?'ON':'OFF')+'   DOWN: NEXT VOICE',by+54,VOICE.on?6:14);ctext(voiceLabel(),by+64,12);}}
 function drawOver(){ctx.fillStyle='rgba(0,0,0,0.62)';ctx.fillRect(0,0,W,H);ctx.fillStyle=PAL[1];ctx.fillRect(28,56,200,80);ctx.fillStyle=PAL[3];ctx.fillRect(28,56,200,2);ctx.fillRect(28,134,200,2);
   ctext('GAME OVER',64,3,3,0);ctext('SCORE '+pad(G.score,6),92,13,1);
   if(APP.newHi){if((APP.t>>3)&1)ctext('NEW HIGH SCORE!',104,5,1);}else ctext('BEST '+pad(loadHi(GAMES[APP.gi].id)[0]||0,6),104,14);
@@ -1521,6 +1563,13 @@ if(DEBUG){
     game(){return G;},
     voice(){return {on:VOICE.on,log:VOICE.log.slice()};},
     speed(m){IN.spd=m;},
+    pickVoice:(vs,saved)=>{const v=ccPickVoice(vs,saved);return v?v.name:null;},
+    vq(){return {q:VOICE.q.map(x=>x.line),cur:VOICE.cur&&{line:VOICE.cur.line,done:VOICE.cur.done},spoken:VOICE.spoken.map(x=>({line:x.line,pri:x.pri,start:x.start,end:x.end,cut:!!x.cut}))};},
+    mockSpeech(voices,ms=40){const M={spoken:[],cur:null,getVoices:()=>voices,
+        speak(u){M.spoken.push({text:u.text,voice:u.voice&&u.voice.name,pitch:u.pitch,rate:u.rate,t:performance.now()});M.cur=u;const d=ms*u.text.length;M.tm=setTimeout(()=>{if(M.cur===u){M.cur=null;u.onend&&u.onend();}},d);},
+        cancel(){if(M.cur){const u=M.cur;M.cur=null;clearTimeout(M.tm);u.onerror&&u.onerror();}},U:function(t){this.text=t;}};
+      VOICE.mock=M;VOICE.spoken.length=0;VOICE.q=[];VOICE.cur=null;return true;},
+    mockLog(){return VOICE.mock?VOICE.mock.spoken:null;},
   };
 }
 </script>
