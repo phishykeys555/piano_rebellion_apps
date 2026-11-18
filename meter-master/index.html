@@ -234,7 +234,7 @@ input[type=range]{accent-color:var(--c-act)}
         <details id="dbgBox" style="margin-top:8px"><summary>Show details</summary><div class="dbg" id="dbg">No mic events yet.</div></details>
       </div>
     </details>
-    <p class="appver" id="appVer">Meter Master · Version 2026-11-13.4</p>
+    <p class="appver" id="appVer">Meter Master · Version 2026-11-18.1</p>
   </section>
 
   <section class="play">
@@ -495,14 +495,14 @@ document.addEventListener("keydown",e=>{ if(e.code!=="Space") return; const tg=e
   e.preventDefault(); if(e.repeat) return; hit(evToCtxSafe(e.timeStamp),"tap") });
 function evToCtxSafe(ts){ if(!audio) return null; return evToCtx(ts||performance.now()) }
 // MIDI: the studio's one picker and status (Connected: <device>), the same block in every app
-/* ---- CHMA MIDI input v1.1 (2026-11-13). The same block in every app that listens to a keyboard (copied in, never imported).
+/* ---- CHMA MIDI input v1.2 (2026-11-18). The same block in every app that listens to a keyboard (copied in, never imported).
    Web MIDI: Chrome and Edge on a computer (Safari, iPhone and iPad have none). One device picker when more than one input is plugged in,
    hot-plug (onstatechange), note-on with velocity > 0 only, the choice of device saved. onNote(note, velocity, timeStamp, deviceName):
    timeStamp is the event's performance.now() time; ctxTime() maps it to an AudioContext clock where timing matters. ---- */
 function chmaMidi(o){
   const sk="chma-midi-dev-"+(o.app||"app"), ls={get(){ try{ return localStorage.getItem(sk)||"" }catch(e){ return "" } },set(v){ try{ localStorage.setItem(sk,v) }catch(e){} }};
   if(!document.getElementById("chma-midi-css")){ const s=document.createElement("style"); s.id="chma-midi-css";
-    s.textContent=".chma-midi{display:flex;flex-wrap:wrap;align-items:center;gap:6px 12px;font-size:14px;line-height:1.4;margin-top:8px}.chma-midi[hidden]{display:none}.chma-midi .cm-st{flex:1 1 220px}.chma-midi .cm-ok{color:#33d17a;margin-right:4px}.chma-midi .cm-pk{display:flex;align-items:center;gap:6px;margin:0}.chma-midi .cm-pk[hidden]{display:none}.chma-midi .cm-pk span{white-space:nowrap}.chma-midi select{font:inherit;min-height:36px;max-width:240px}.chma-midi a{color:inherit;text-decoration:underline}";
+    s.textContent=".chma-midi{display:flex;flex-wrap:wrap;align-items:center;gap:6px 12px;font-size:14px;line-height:1.4;margin-top:8px}.chma-midi[hidden]{display:none}.chma-midi .cm-st{flex:1 1 220px}.chma-midi .cm-ok{color:#33d17a;margin-right:4px}.chma-midi .cm-led{display:inline-block;width:14px;height:14px;border-radius:50%;background:#3a3f4b;border:1px solid #6b7280;vertical-align:-2px;margin-right:6px;transition:background .35s,box-shadow .35s}.chma-midi .cm-led.on{background:#33d17a;border-color:#33d17a;box-shadow:0 0 10px #33d17a;transition:none}.chma-midi .cm-key{opacity:.85;white-space:nowrap}.chma-midi .cm-pk{display:flex;align-items:center;gap:6px;margin:0}.chma-midi .cm-pk[hidden]{display:none}.chma-midi .cm-pk span{white-space:nowrap}.chma-midi select{font:inherit;min-height:36px;max-width:240px}.chma-midi a{color:inherit;text-decoration:underline}";
     document.head.appendChild(s) }
   const M={acc:null,dev:ls.get(),state:"off",p:null}, h=o.host;
   h.classList.add("chma-midi"); h.innerHTML='<span class="cm-st" role="status" aria-live="polite"></span><label class="cm-pk" hidden><span>MIDI device</span><select></select></label>';
@@ -518,15 +518,18 @@ function chmaMidi(o){
     // the event's time, unless the driver gave none (0) or one from another clock: then the moment it arrived
     const now=performance.now(), ts=ev.timeStamp>0&&Math.abs(ev.timeStamp-now)<1000?ev.timeStamp:now;
     // one key = one note: the same note again within 30 ms (a keyboard on two ports, a double trigger) is dropped
-    if(M.last&&M.last.n===d[1]&&Math.abs(ts-M.last.ts)<30) return; M.last={n:d[1],ts};
+    if(M.last&&M.last.n===d[1]&&Math.abs(ts-M.last.ts)<30) return; M.last={n:d[1],ts}; flash(d[1],nm(i));
     try{ o.onNote(d[1],d[2],ts,nm(i)) }catch(e){ console.warn(e) } }
+  // the MIDI light (v1.2, 2026-11-18): flashes green on every key from the chosen device and names the key, so a wrong device is obvious
+  const KN=["C","C#","D","Eb","E","F","F#","G","Ab","A","Bb","B"];
+  function flash(n,dn){ const l=h.querySelector(".cm-led"), k=h.querySelector(".cm-key"); if(l){ l.classList.add("on"); clearTimeout(M.lt); M.lt=setTimeout(()=>l.classList.remove("on"),220) } if(k) k.textContent="Heard "+KN[n%12]+(Math.floor(n/12)-1)+" from "+dn }
   function bind(){ ins().forEach(i=>{ i.onmidimessage=msg }); show() }
   function show(){ let t="";
     if(M.state==="none") t="MIDI works in Chrome or Edge on a computer.";
     else if(M.state==="framed") t="MIDI can't turn on inside this page."+full();
     else if(M.state==="blocked") t="MIDI was blocked. Allow MIDI for this page (the icon in the address bar), then pick MIDI again.";
     else if(M.state==="asking") t="Connecting to MIDI…";
-    else if(M.state==="on"){ const a=ins(), p=picked(); t=a.length?`<span class="cm-ok" aria-hidden="true">●</span>Connected: <b>${esc(p.map(nm).join(", "))}</b>`:"No MIDI keyboard found. Plug it in by USB and switch it on: it connects by itself." }
+    else if(M.state==="on"){ const a=ins(), p=picked(); t=a.length?`<span class="cm-led" aria-hidden="true" title="Flashes when a key arrives"></span>Connected: <b>${esc(p.map(nm).join(", "))}</b> <span class="cm-key">Press a key: the light flashes.</span>`:"No MIDI keyboard found. Plug it in by USB and switch it on: it connects by itself." }
     else t="Pick MIDI to connect your keyboard (Chrome or Edge on a computer).";
     st.innerHTML=t; const a=M.state==="on"?ins():[]; pk.hidden=a.length<2;
     if(a.length>1){ const v=M.dev&&a.some(i=>i.id===M.dev)?M.dev:""; sel.innerHTML='<option value="">All MIDI inputs</option>'+a.map(i=>`<option value="${esc(i.id)}">${esc(nm(i))}</option>`).join(""); sel.value=v }
@@ -543,7 +546,7 @@ function chmaMidi(o){
   // performance.now() time -> AudioContext time (the moment that sound is heard at the speaker, when the browser can say)
   M.ctxTime=(ts,ac)=>{ if(!ac) return null; try{ const t=ac.getOutputTimestamp&&ac.getOutputTimestamp(); if(t&&t.performanceTime>0&&t.contextTime>0) return t.contextTime+(ts-t.performanceTime)/1000 }catch(e){} return ac.currentTime-(performance.now()-ts)/1000-((ac.outputLatency||0)+(ac.baseLatency||0)) };
   M.show=show; show(); return M }
-/* ---- end CHMA MIDI input v1.1 ---- */
+/* ---- end CHMA MIDI input v1.2 ---- */
 let midiLast=-1e9;
 const MIDI=chmaMidi({app:"meter-master",host:$("midiBox"),onNote:(n,v,ts)=>{ if(inMode!=="midi") return; const now=performance.now(); if(!(ts>0)||Math.abs(ts-now)>1000) ts=now;
   if(ts-midiLast<40) return; midiLast=ts; hit(evToCtxSafe(ts),"midi") }});
