@@ -31,7 +31,7 @@ Every app shows its version at the bottom of the page: `Version YYYY-MM-DD.N` (d
 | Round music (`shared/hype.js`) | 2026-11-12.1 |
 | Share helper (`shared/share.js`: share sheet, clipboard, copy box; is.gd short links + chmusicacademy.com) | 2026-11-13.2 |
 | Riff Simon Says | 2026-11-13.5 |
-| Access gate (top of `shared/brand.js`) | 2026-11-15.1 |
+| Access gate (top of `shared/brand.js`) | 2026-11-18.1 |
 
 ## Access gate (studio code)
 
