@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Simple Metronome · Clarendon Hills Music Academy</title>
+<meta name="description" content="A plain, easy metronome: pick a speed, press Start.">
+<meta property="og:type" content="website"><meta property="og:site_name" content="Clarendon Hills Music Academy"><meta property="og:title" content="Simple Metronome · Clarendon Hills Music Academy"><meta property="og:description" content="A plain, easy metronome: pick a speed, press Start.">
+<link rel="stylesheet" href="../shared/chma.css"><script src="../shared/brand.js"></script>
+<style>
+/* Simple Metronome v1.0.0 (2026-11-18): the one-screen metronome for song pages. Speed, Start, beats per bar, tap. Nothing else. */
+:root{--bg:#fff;--fg:#37352f;--mut:#787774;--bd:#e3e2e0;--btn:#f7f6f3;--on:#2383e2;--acc:#e03e3e;--dot:#e3e2e0}
+@media (prefers-color-scheme:dark){:root{--bg:#191919;--fg:#e6e6e5;--mut:#9b9b9b;--bd:#3a3a3a;--btn:#2a2a2a;--dot:#3a3a3a}}
+*{box-sizing:border-box}
+body{margin:0;font-family:-apple-system,Segoe UI,Helvetica,Arial,sans-serif;background:var(--bg);color:var(--fg);-webkit-tap-highlight-color:transparent}
+.wrap{max-width:460px;margin:0 auto;padding:16px;display:flex;flex-direction:column;align-items:center;gap:14px}
+.dots{display:flex;gap:12px;justify-content:center;min-height:30px}
+.dot{width:26px;height:26px;border-radius:50%;background:var(--dot);transition:background .12s,transform .12s}
+.dot.one{outline:2px solid var(--acc);outline-offset:2px}
+.dot.on{background:var(--on);transform:scale(1.15)}.dot.one.on{background:var(--acc)}
+.tempo{display:flex;align-items:center;gap:14px}
+.num{text-align:center;min-width:130px}
+.num b{display:block;font-size:64px;line-height:1;font-variant-numeric:tabular-nums}
+.num span{font-size:14px;color:var(--mut);letter-spacing:.08em}
+button{font:inherit;color:var(--fg);background:var(--btn);border:1px solid var(--bd);border-radius:12px;cursor:pointer;touch-action:manipulation;user-select:none;-webkit-user-select:none}
+.pm{width:64px;height:64px;font-size:34px;font-weight:600;border-radius:50%}
+input[type=range]{width:100%;accent-color:var(--on);height:32px}
+.go{width:100%;height:64px;font-size:24px;font-weight:700;background:var(--on);border-color:var(--on);color:#fff;border-radius:14px}
+.go.stop{background:var(--acc);border-color:var(--acc)}
+.row{display:flex;gap:8px;width:100%;align-items:center;justify-content:center;flex-wrap:wrap}
+.lbl{font-size:14px;color:var(--mut);margin-right:4px}
+.seg button{min-width:52px;height:44px;font-size:17px;font-weight:600}
+.seg button[aria-pressed=true]{background:var(--on);border-color:var(--on);color:#fff}
+.tap{height:44px;padding:0 22px;font-size:16px;font-weight:600}
+.vol{display:flex;align-items:center;gap:8px;width:100%}.vol input{flex:1}
+.hint{font-size:13px;color:var(--mut);text-align:center;margin:0}
+@media (hover:none){.hint{display:none}}
+.appver{font-size:11px;opacity:.6;margin:4px 0 0;font-family:ui-monospace,Menlo,monospace}
+</style></head>
+<body><main class="wrap">
+  <div class="dots" id="dots" aria-hidden="true"></div>
+  <div class="tempo">
+    <button class="pm" id="minus" aria-label="Slower">−</button>
+    <div class="num"><b id="bpm">70</b><span>BEATS PER MINUTE</span></div>
+    <button class="pm" id="plus" aria-label="Faster">+</button>
+  </div>
+  <input type="range" id="slider" min="30" max="240" step="1" value="70" aria-label="Speed">
+  <button class="go" id="go">Start</button>
+  <div class="row"><span class="lbl">Beats per bar</span><span class="seg row" id="beats" role="group" aria-label="Beats per bar" style="width:auto"></span></div>
+  <div class="row"><button class="tap" id="tap">Tap tempo</button></div>
+  <div class="vol"><span class="lbl" aria-hidden="true">🔈</span><input type="range" id="vol" min="0" max="100" value="80" aria-label="Volume"><span class="lbl" aria-hidden="true">🔊</span></div>
+  <p class="hint">Space bar starts and stops. Up and down arrows change the speed.</p>
+  <p class="appver">Simple Metronome · Version 2026-11-18.1</p>
+</main>
+<script>
+(function(){
+const $=id=>document.getElementById(id), KEY='chma-simple-metronome';
+const QS=new URLSearchParams(location.search);
+let saved={}; try{saved=JSON.parse(localStorage.getItem(KEY)||'{}')||{}}catch(e){}
+const clampB=v=>Math.max(30,Math.min(240,Math.round(v)||70));
+// a song page's link sets the speed (?bpm=); otherwise the last speed used on this device
+let bpm=clampB(QS.get('bpm')||saved.bpm||70);
+let beats=[2,3,4,6].includes(+QS.get('beats'))?+QS.get('beats'):/waltz|3-4|34/i.test(QS.get('pre')||'')?3:[2,3,4,6].includes(saved.beats)?saved.beats:4;
+let vol=saved.vol!=null?saved.vol:80;
+const save=()=>{try{localStorage.setItem(KEY,JSON.stringify({bpm,beats,vol}))}catch(e){}};
+try{if(navigator.audioSession)navigator.audioSession.type='playback'}catch(e){} // iPhone: sound even with the ringer switch on silent
+let ac=null,master=null,timer=null,next=0,beat=0,running=false;const lights=[];
+function audio(){if(!ac){const AC=window.AudioContext||window.webkitAudioContext;ac=new AC();master=ac.createGain();master.connect(ac.destination)}master.gain.value=Math.pow(vol/100,1.5);if(ac.state!=='running')ac.resume();return ac}
+function click(t,first){const o=ac.createOscillator(),g=ac.createGain();o.type='square';o.frequency.value=first?1760:1175;
+  g.gain.setValueAtTime(0.0001,t);g.gain.exponentialRampToValueAtTime(first?0.5:0.32,t+0.001);g.gain.exponentialRampToValueAtTime(0.0001,t+0.05);
+  o.connect(g);g.connect(master);o.start(t);o.stop(t+0.06)}
+function tick(){while(next<ac.currentTime+0.12){const b=beat;click(next,b===0);lights.push({t:next,b});next+=60/bpm;beat=(beat+1)%beats}}
+function draw(){if(!running)return;const now=ac.currentTime;let cur=null;while(lights.length&&lights[0].t<=now)cur=lights.shift();
+  if(cur){const d=$('dots').children;for(let i=0;i<d.length;i++)d[i].classList.toggle('on',i===cur.b)}requestAnimationFrame(draw)}
+function start(){audio();running=true;beat=0;lights.length=0;next=ac.currentTime+0.06;tick();timer=setInterval(tick,25);requestAnimationFrame(draw);$('go').textContent='Stop';$('go').classList.add('stop')}
+function stop(){running=false;clearInterval(timer);timer=null;[...$('dots').children].forEach(d=>d.classList.remove('on'));$('go').textContent='Start';$('go').classList.remove('stop')}
+function toggle(){running?stop():start()}
+function setBpm(v){bpm=clampB(v);$('bpm').textContent=bpm;$('slider').value=bpm;save()}
+function setBeats(n){beats=n;beat=0;$('dots').innerHTML='';for(let i=0;i<n;i++){const d=document.createElement('div');d.className='dot'+(i===0?' one':'');$('dots').appendChild(d)}
+  [...$('beats').children].forEach(b=>b.setAttribute('aria-pressed',String(+b.dataset.n===n)));save()}
+[2,3,4,6].forEach(n=>{const b=document.createElement('button');b.textContent=n;b.dataset.n=n;b.onclick=()=>setBeats(n);$('beats').appendChild(b)});
+// hold − or + to keep changing
+function hold(el,d){let t=null,r=null;const end=()=>{clearTimeout(t);clearInterval(r)};
+  el.addEventListener('pointerdown',e=>{e.preventDefault();setBpm(bpm+d);t=setTimeout(()=>{r=setInterval(()=>setBpm(bpm+d),70)},400)});
+  ['pointerup','pointerleave','pointercancel'].forEach(k=>el.addEventListener(k,end))}
+hold($('minus'),-1);hold($('plus'),1);
+$('slider').addEventListener('input',e=>setBpm(+e.target.value));
+$('vol').value=vol;$('vol').addEventListener('input',e=>{vol=+e.target.value;if(master)master.gain.value=Math.pow(vol/100,1.5);save()});
+$('go').addEventListener('click',toggle);
+// tap tempo: the average of the last few taps (a pause over 2 seconds starts over)
+let taps=[];$('tap').addEventListener('pointerdown',e=>{e.preventDefault();const t=performance.now();if(taps.length&&t-taps[taps.length-1]>2000)taps=[];taps.push(t);taps=taps.slice(-6);
+  if(taps.length>1){const g=(taps[taps.length-1]-taps[0])/(taps.length-1);setBpm(60000/g)}});
+document.addEventListener('keydown',e=>{if(e.target.tagName==='INPUT'&&e.target.type!=='range')return;
+  if(e.code==='Space'){e.preventDefault();toggle()}else if(e.key==='ArrowUp'){e.preventDefault();setBpm(bpm+1)}else if(e.key==='ArrowDown'){e.preventDefault();setBpm(bpm-1)}});
+document.addEventListener('visibilitychange',()=>{if(!document.hidden&&running&&ac&&ac.state!=='running')ac.resume()});
+setBpm(bpm);setBeats(beats);
+window.__sm={state:()=>({bpm,beats,running,vol})};
+})();
+</script></body></html>
