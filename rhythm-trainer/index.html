@@ -55,6 +55,7 @@ svg{display:block;width:100%;height:auto}
 .seg button{padding:9px 6px;font-weight:700;font-size:14px}
 .seg button[aria-pressed="true"]{background:var(--ink);color:var(--panel);border-color:var(--ink)}
 .micp{display:grid;grid-template-columns:auto 1fr;gap:8px 10px;align-items:center;font-size:12px;color:var(--muted)}
+.mled{display:inline-block;width:14px;height:14px;border-radius:50%;background:#3a3f4b;border:1px solid #6b7280;vertical-align:-2px;margin-right:8px;transition:background .35s,box-shadow .35s}.mled.on{background:#33d17a;border-color:#33d17a;box-shadow:0 0 10px #33d17a;transition:none}
 .micp select{font:inherit;font-size:13px;padding:6px 8px;border-radius:8px;border:1px solid var(--border);background:var(--panel);color:var(--ink);min-width:0;width:100%}
 .micp input[type=range]{width:100%;accent-color:var(--accent)}
 .meter{position:relative;height:8px;border-radius:4px;background:var(--border);overflow:visible}
@@ -242,6 +243,7 @@ details.how p{margin-top:6px}
     <div class="msg" id="msg" role="status" aria-live="polite"><div class="v">Press Start</div><div class="c">You'll hear one bar of clicks first. Start tapping on beat 1 of the next bar.</div></div>
     <div class="seg" id="inSeg" role="group" aria-label="How you answer"><button data-in="tap"><span aria-hidden="true">👆</span> Tap</button><button data-in="clap"><span aria-hidden="true">👏</span> Clap or snap</button><button data-in="note"><span aria-hidden="true">🎹</span> One note</button><button data-in="midi"><span aria-hidden="true">🎛️</span> MIDI</button></div>
     <div id="midiBox" hidden><div class="micp"><label for="midiSel">MIDI keyboard</label><select id="midiSel"><option value="all">All connected devices</option></select></div>
+      <p class="tip" style="margin-top:6px"><span class="mled" id="midiLed" aria-hidden="true"></span><span id="midiKey">MIDI light: press a key and it flashes green when the device above is heard.</span></p>
       <p class="tip" id="midiStat" role="status" aria-live="polite" style="margin-top:6px">Plug in a MIDI keyboard and play any key with each note. Key down = the note starts, key up = you let go (long notes are graded on both).</p></div>
     <div id="micBox" hidden>
       <div class="row" style="justify-content:center;margin-bottom:8px"><button class="primary" id="micBtn">Turn on the microphone</button></div>
@@ -1039,12 +1041,23 @@ class NoteFlux{
     for(let L=2;L<=N;L<<=1){ const h=L>>1, st=N/L; for(let i=0;i<N;i+=L) for(let k=0;k<h;k++){ const c=this.cs[k*st], s=this.sn[k*st], p=i+k, q=p+h, tr=re[q]*c-im[q]*s, ti=re[q]*s+im[q]*c; re[q]=re[p]-tr; im[q]=im[p]-ti; re[p]+=tr; im[p]+=ti } } }
    push(x,t0){ const N=this.N; for(let i=0;i<x.length;i++){ this.x[this.xi]=x[i]; this.xi=(this.xi+1)%N; this.px[this.pi]=x[i]; this.pi=(this.pi+1)%this.PN; if(++this.cnt>=this.H){ this.cnt=0; this.now=t0+(i+1)/this.sr; this.frame(this.now); this.due() } } }
    // pitch check, 45 ms after the onset (the window then holds the new sound): is this your note? (not needed for a strike on your ringing note)
-   due(){ if(this.hold&&this.now>this.hold.t+this.sat+0.06) this.flush(); while(this.pend.length&&this.now>=this.pend[0].t+this.pdel){ const p=this.pend.shift(); const pc=this.pitchOK(); p.pf=pc.f; p.pr=pc.r; p.pc=pc.c; if(!pc.ok&&!p.inW){ p.why="pitch"; if(this.log) this.post({rej:1,...p}); continue } this.emit(p) } }
+   due(){ if(this.hold&&this.now>this.hold.t+this.sat+0.06) this.flush(); while(this.pend.length&&this.now>=this.pend[0].t+this.pdel){ const p=this.pend.shift(); const pc=this.pitchOK(); p.pf=pc.f; p.pr=pc.r; p.pc=pc.c; const rz=this.riseOK(p); p.hr=rz.h; p.P0=null; if(!pc.ok&&!p.inW){ p.why="pitch"; if(this.log) this.post({rej:1,...p}); continue } if(!rz.ok){ p.why="clap"; if(this.log) this.post({rej:1,...p}); continue } this.emit(p) } }
    comb(P,f0){ const PN=this.PN, bw=this.sr/PN; let s=0, nb=0; for(let h=1;h*f0<4500;h++){ const f=h*f0*Math.sqrt(1+0.0003*h*h), k=Math.round(f/bw), w=Math.max(1,Math.round(0.012*h*f0/bw)); let m=0; for(let j=k-w;j<=k+w;j++) if(j>0&&j<PN/2&&P[j]>m) m=P[j]; s+=m; nb+=2*w+1 } return {s,nb} }
-   pitchOK(){ const PN=this.PN, re=this.pre, im=this.pim, rv=this.prev2; for(let i=0;i<PN;i++){ re[i]=this.px[(this.pi+i)%PN]*this.phw[i]; im[i]=0 }
+   // power spectrum of the last 43 ms (the pitch window) into P
+   pspec(P){ const PN=this.PN, re=this.pre, im=this.pim, rv=this.prev2; for(let i=0;i<PN;i++){ re[i]=this.px[(this.pi+i)%PN]*this.phw[i]; im[i]=0 }
     for(let i=0;i<PN;i++){ const j=rv[i]; if(j>i){ let t=re[i]; re[i]=re[j]; re[j]=t } }
     for(let L=2;L<=PN;L<<=1){ const h=L>>1, a=-2*Math.PI/L; for(let i=0;i<PN;i+=L) for(let k=0;k<h;k++){ const c=Math.cos(a*k), s=Math.sin(a*k), p=i+k, q=p+h, tr=re[q]*c-im[q]*s, ti=re[q]*s+im[q]*c; re[q]=re[p]-tr; im[q]=im[p]-ti; re[p]+=tr; im[p]+=ti } }
-    const bw=this.sr/PN, P=this.pP||(this.pP=new Float64Array(PN/2)); const f0=440*Math.pow(2,(this.midi-69)/12); const k0=Math.max(1,Math.floor(f0*0.8/bw)), k1=Math.floor(4500/bw); let T=0; for(let k=1;k<PN/2;k++) P[k]=re[k]*re[k]+im[k]*im[k];
+    for(let k=1;k<PN/2;k++) P[k]=re[k]*re[k]+im[k]*im[k]; return P }
+   // a clap or snap is not your note (2026-11-18): the NEW sound of a hit (its spectrum after the onset minus before) must sit on your
+   // note's harmonics. A strike (fresh or on top of your ringing note) adds its sound there; a clap adds noise across the whole range.
+   riseOK(p){ const PN=this.PN, bw=this.sr/PN, P=this.pP, B=p.P0; if(!B) return {ok:true,h:0}; const f0=440*Math.pow(2,(this.midi-69)/12);
+    const k0=Math.max(1,Math.floor(f0*0.8/bw)), k1=Math.floor(4500/bw); const R=this.pR||(this.pR=new Float64Array(PN/2)); let T=0;
+    for(let k=1;k<PN/2;k++) R[k]=Math.max(0,Math.sqrt(P[k])-Math.sqrt(B[k])); /* magnitudes: a clap on top of a loud ringing harmonic barely moves it */
+    for(const [a,b] of this.ranges(0.01)) for(let j=Math.floor(a/bw)-1;j<=Math.ceil(b/bw)+1;j++) if(j>0&&j<PN/2) R[j]=0;
+    for(let k=k0;k<=k1;k++) T+=R[k]; const me=this.comb(R,f0), h=me.s/(T+1e-20)/(me.nb/(k1-k0+1));
+    // below E3 a piano's partials crowd so close together that a clap looks harmonic too: the check eases off there and stops below D3
+    const hm=this.midi>=55?this.hMin:this.midi>=50?this.hMin*0.8:0; return {ok:h>=hm,h} }
+   pitchOK(){ const PN=this.PN; const bw=this.sr/PN, P=this.pspec(this.pP||(this.pP=new Float64Array(PN/2))); const f0=440*Math.pow(2,(this.midi-69)/12); const k0=Math.max(1,Math.floor(f0*0.8/bw)), k1=Math.floor(4500/bw); let T=0;
     // the app's click partials (and the sweep's range) are blanked out: a click heard with your note is not your note's pitch
     for(const [a,b] of this.ranges(0.01)) for(let j=Math.floor(a/bw)-1;j<=Math.ceil(b/bw)+1;j++) if(j>0&&j<PN/2) P[j]=0;
     for(let k=k0;k<=k1;k++) T+=P[k];
@@ -1089,7 +1102,7 @@ class NoteFlux{
     // onset time: walk back while the new energy is still above 20% of the peak
     let j=2; while(j<12&&this.D[at(j+1)]>0.2*this.D[c]&&this.T[at(j+1)]>this.T[c]-0.03) j++;
     const ton=this.T[at(j)]-this.off; if(ton-this.last<this.refr) return; this.last=ton;
-    this.pend.push({on:1,t:ton,F:this.Fr[c],D0:this.D0[c],E:this.Ev[c],inW,wid,ck:!!ck}) }
+    this.pend.push({on:1,t:ton,F:this.Fr[c],D0:this.D0[c],E:this.Ev[c],inW,wid,ck:!!ck,P0:Float64Array.from(this.pspec(this.pB||(this.pB=new Float64Array(this.PN/2))))}) }
    // one strike, one hit: two onsets closer than 110 ms that are not for two different written notes are one note (a sample's
    // second bump, a damper thud just before the key): the stronger one wins, decided 120 ms after the first
    emit(p){ const h=this.hold; if(h&&Math.abs(p.t-h.t)<this.sat&&!(p.wid>=0&&h.wid>=0&&p.wid!==h.wid)&&Math.min(p.E,h.E)<this.satR*Math.max(p.E,h.E)){ /* two strikes of similar strength are two hits: a flam or banging is graded as extras */ if(p.E>h.E){ p.over=h.t; this.hold=p } else if(this.log) this.post({rej:1,...p,why:"double"}); return }
@@ -1097,7 +1110,7 @@ class NoteFlux{
    flush(){ if(this.hold){ this.post(this.hold); this.hold=null } }
   }
   class NoteFluxP extends AudioWorkletProcessor{constructor(){super();const d=this.d=new NoteFlux(sampleRate,m=>this.port.postMessage(m));
-    Object.assign(d,{allBins:1,fr0:0.41,useF:1,thIn:0.08,thOut:0.3,wins:[],fmax:0,l0:5,l1:16,pdel:0.045,pMin:1.5,pCap:0.3,pRel:0.8,eOut:0.3,ckR:1.6,nzKin:1.5,sat:0.11,satR:0.35,off:0.008,kap:1,nfl:0.00003,gAbs:0.000005,nzK:3,refr:0.03,log:2});
+    Object.assign(d,{allBins:1,fr0:0.41,useF:1,thIn:0.08,thOut:0.3,wins:[],fmax:0,l0:5,l1:16,pdel:0.045,pMin:1.5,pCap:0.3,pRel:0.8,hMin:0.9,eOut:0.3,ckR:1.6,nzKin:1.5,sat:0.11,satR:0.35,off:0.008,kap:1,nfl:0.00003,gAbs:0.000005,nzK:3,refr:0.03,log:2});
     this.port.onmessage=e=>d.set(e.data)}
    process(ins){const x=ins[0]&&ins[0][0];if(x){this.d.push(x,currentFrame/sampleRate)}else{this.d.now=currentFrame/sampleRate;this.d.due()}return true}}
   registerProcessor('rt-flux',NoteFluxP);`;
@@ -1284,8 +1297,11 @@ class NoteFlux{
   function midiT(ts){ const a=audio; if(!a) return 0; try{ const o=a.getOutputTimestamp&&a.getOutputTimestamp(); if(o&&o.performanceTime>0) return o.contextTime+(ts-o.performanceTime)/1000 }catch(e){}
     return a.currentTime-(performance.now()-ts)/1000-((a.outputLatency||0)+(a.baseLatency||0)) }
   const midiLast={};
+  const KN=["C","C#","D","Eb","E","F","F#","G","Ab","A","Bb","B"];
+  function midiFlash(n,i){ const l=$("midiLed"); l.classList.add("on"); clearTimeout(midiFlash.t); midiFlash.t=setTimeout(()=>l.classList.remove("on"),220); $("midiKey").textContent="Heard "+KN[n%12]+(Math.floor(n/12)-1)+(i&&i.name?" from "+String(i.name).trim():"") }
   function midiMsg(e){ if(inMode!=="midi"||!e.data||e.data.length<2) return; const st=e.data[0]&0xF0, n=e.data[1], v=e.data.length>2?e.data[2]:0, id="midi"+n, now=performance.now(), ts0=e.timeStamp, ts=(ts0>0&&Math.abs(ts0-now)<1000)?ts0:now, t=midiT(ts);   /* 0 or other-clock timestamps (some drivers) fall back to arrival time */
     { const on=st===0x90&&v>0, k=(on?"on":"off")+n, last=midiLast[k]; midiLast[k]=ts; if(last!=null&&ts-last<30) return }   /* dual-port keyboards (MPK mkII etc.) and "All devices" deliver each key twice: one key = one hit */
+    if(st===0x90&&v>0) midiFlash(n,e.currentTarget||e.target);   /* 2026-11-18: the MIDI light, so a wrong device is obvious */
     if(st===0x90&&v>0){ if(!audio) return; pressAt(t,id,"midi"); $("pad").classList.add("hit"); setTimeout(()=>$("pad").classList.remove("hit"),90) } else if(st===0x80||(st===0x90&&v===0)) releaseAt(t,id) }
   function midiList(){ if(!midiAcc) return; const ins=[...midiAcc.inputs.values()], sel=$("midiSel"), cur=sel.value||store.get("midiDev","all");
     sel.innerHTML='<option value="all">All connected devices</option>'+ins.map(i=>`<option value="${String(i.id).replace(/"/g,"")}">${String(i.name||"MIDI device").replace(/[<>&]/g,"")}</option>`).join(""); sel.value=ins.some(i=>i.id===cur)?cur:"all";
@@ -1312,6 +1328,6 @@ class NoteFlux{
   if(document.fonts) document.fonts.ready.then(()=>{ if(!run) drawBar(curRes) });
 })();
 </script>
-<p class="appver" style="text-align:center;font-size:11px;opacity:.6;margin:18px 0 10px;font-family:ui-monospace,Menlo,monospace">Rhythm Trainer · Version 2026-11-13.4</p>
+<p class="appver" style="text-align:center;font-size:11px;opacity:.6;margin:18px 0 10px;font-family:ui-monospace,Menlo,monospace">Rhythm Trainer · Version 2026-11-18.1</p>
 </body>
 </html>
