@@ -395,7 +395,7 @@ details.how p{margin:0;padding:0 16px 12px;line-height:1.45;color:var(--muted)}
       </fieldset>
     </div>
   </details>
-  <p class="tip appverp" id="appVer"><span class="appver">Note Sprint · Version 2026-11-18.2</span></p>
+  <p class="tip appverp" id="appVer"><span class="appver">Note Sprint · Version 2026-11-18.3</span></p>
   </div>
   <div class="play">
 
@@ -744,7 +744,7 @@ details.how p{margin:0;padding:0 16px 12px;line-height:1.45;color:var(--muted)}
   // ---------- sound: a short plucked piano-like tone ----------
   function AC(){ if(!audio){ try{ if(navigator.audioSession&&!mic) navigator.audioSession.type="playback" }catch(e){} audio=new (window.AudioContext||window.webkitAudioContext)() }
     if(audio.state!=="running") audio.resume().catch(()=>{}); return audio }
-  function play(midis){ const S=readSettings(); if(!S.sound||S.mode==="mic")return; try{
+  function play(midis){ const S=readSettings(); if(!S.sound||S.mode==="mic"||S.mode==="midi")return; /* 2026-11-18: the keyboard already sounds the note in MIDI mode */ try{
     AC(); const t0=audio.currentTime;
     midis.forEach(m=>{const f=440*Math.pow(2,(m-69)/12), out=audio.createGain(); out.connect(audio.destination);
       out.gain.setValueAtTime(0.0001,t0); out.gain.exponentialRampToValueAtTime(0.22,t0+0.008); out.gain.exponentialRampToValueAtTime(0.06,t0+0.35); out.gain.exponentialRampToValueAtTime(0.0001,t0+1.6);
