@@ -1112,7 +1112,7 @@ ccBelt=function(w){const B=ccBeltBase(w),k=w<=1?1.08:w===2?1.13:1.18;
 const CC_GEAR=[{n:'SLOW',w:0.6,s:0.75,f:0.75,m:0.75,x:'X0.75',bg:9,fg:11,eb:0.85,spawn:0.85,rock:1.6},
                {n:'MED', w:1.0,s:1.0, f:1.0, m:1.0, x:'X1',   bg:7,fg:13,eb:1.0, spawn:1.0,rock:1.0},
                {n:'FAST',w:1.5,s:1.4, f:1.5, m:1.5, x:'X1.5', bg:2,fg:5, eb:1.0, spawn:1.0,rock:0.8}];
-const CC_BURN=0.02; // base fuel burn per frame (tuned so a careful MED run reaches each rift with fuel left)
+const CC_BURN=0.02,CC_FLAMEOUT_FUEL=30 /* only the fuel rift refuels; a respawn keeps its fuel, except after a flame-out (30, so it can't chain) */; // base fuel burn per frame (tuned so a careful MED run reaches each rift with fuel left)
 const CC_HX=2.3;  // cap on enemy approach factor (wave difficulty x speed mode) so FAST stays fair
 class CorsairGame{
   constructor(){
@@ -1155,11 +1155,11 @@ class CorsairGame{
       const open=edge<P.taper?Math.pow(1-edge/P.taper,2):0;
       C.push({c,g:P.half+(mid?Math.sin(i*0.23)*2:0)+open*80,j:rnd(4)});
       if(mid&&i%CC_MOTE_GAP===0)M.push({i,y:c,ph:rr(0,6.28),got:false});}
-    // forks: the rift splits in two. The narrow (gold-rimmed) path pays gold motes: double fuel, +1 rocket, bonus points.
+    // forks: the rift splits in two (2026-11-18: both paths wider: the split adds a full half-gap, the gold path takes 40% of the room). The narrow (gold-rimmed) path pays gold motes: double fuel, +1 rocket, bonus points.
     const forks=[],nF=this.wave>=4?2:1,FL=78,RP=12,lo0=P.taper+24,span=(n-P.taper-24-FL)-lo0;
     for(let f=0;f<nF;f++){const a=Math.round(lo0+span*(nF===1?0.45:(f?0.78:0.18))),b=a+FL,hardUp=Math.random()<0.5;forks.push({a,b,hardUp,said:false});
-      for(let i=a;i<=b;i++){const col=C[i],sr=Math.min(1,Math.min(i-a,b-i)/RP),wh=6*sr,G=P.half+(P.half*0.75+wh)*sr;
-        col.c=clamp(col.c,CC_TOP+G+2,CC_BOT-G-2);col.g=G;const free=2*G-2*wh,hw=free*0.36;
+      for(let i=a;i<=b;i++){const col=C[i],sr=Math.min(1,Math.min(i-a,b-i)/RP),wh=6*sr,G=Math.min((CC_BOT-CC_TOP)/2-3,P.half+(P.half+wh)*sr);
+        col.c=clamp(col.c,CC_TOP+G+2,CC_BOT-G-2);col.g=G;const free=2*G-2*wh,hw=free*0.4;
         if(hardUp){col.u=[col.c-G,col.c-G+hw];col.l=[col.u[1]+2*wh,col.c+G];col.hard=0;}else{col.l=[col.c+G-hw,col.c+G];col.u=[col.c-G,col.l[0]-2*wh];col.hard=1;}}
       for(let k=M.length-1;k>=0;k--)if(M[k].i>=a-4&&M[k].i<=b+4)M.splice(k,1);
       for(let i=a+RP+4;i<=b-RP-4;i+=CC_MOTE_GAP){const col=C[i];for(const k of [0,1]){const gp=k?col.l:col.u,hard=col.hard===k;
@@ -1203,7 +1203,7 @@ class CorsairGame{
     else if(--W2.hold<=0){W2.nextPal=(W2.pal+1)%WPAL.length;W2.morph=0;W2.palLog.push({at:W2.t,ev:'morph',len:WPAL_MORPH});}
     if(W2.warn>0){W2.warn--;if(W2.warn===0)W2.warnEnd=W2.t;return;}
     // fuel still burns
-    this.fuel-=CC_BURN*(1+0.03*(this.wave-1))*g.f;if(this.fuel<=0&&!s.dead){this.fuel=0;this.kill();}
+    this.fuel-=CC_BURN*(1+0.03*(this.wave-1))*g.f;if(this.fuel<=0&&!s.dead){this.fuel=0;this.flamed=true;this.kill();}
     if(s.inv>0)s.inv--;if(W2.cool>0)W2.cool--;if(W2.novaFx>0)W2.novaFx--;
     if(W2.snap>0)W2.snap--;if(W2.flash>0)W2.flash--;
     if(!s.dead){const dx=(h.right?1:0)-(h.left?1:0),pl=pr.left||pr.right;
@@ -1231,8 +1231,8 @@ class CorsairGame{
             if(W2.shards===CC_SHARDS&&!W2.nova)this.alert('NOVA READY · PRESS B',5,true);}}
         else if(mine&&!s.dead&&s.inv===0){W2.hits++;this.kill();}}}
     if(W2.t>=W2.dur||(W2.toSpawn<=0&&!W2.obs.some(o=>o.k!=='shard'))){this.endWorm();}}
-  endWorm(){const W2=this.worm,b=this.addScore(2000*W2.v+100*W2.shards+50*W2.cleared);this.fuel=Math.min(100,this.fuel+25);
-    floater(128,64,'WORMHOLE CLEAR +'+b,5);floater(128,76,'+25 FUEL',6);this.alert('WORMHOLE CLEAR · BONUS +'+b+' · +25 FUEL',5,true);say('Wormhole clear. Bonus awarded.');SFX.full();
+  endWorm(){const W2=this.worm,b=this.addScore(2000*W2.v+100*W2.shards+50*W2.cleared);
+    floater(128,64,'WORMHOLE CLEAR +'+b,5);this.alert('WORMHOLE CLEAR · BONUS +'+b,5,true);say('Wormhole clear. Bonus awarded.');SFX.full();
     ctlDirty=true;this.lastWorm={v:W2.v,shape:W2.shape,cleared:W2.cleared,hits:W2.hits,shards:W2.shards,nova:W2.nova,t:W2.t,bonus:b};this.worm=null;
     const s=this.ship;s.x=44;s.y=86;s.inv=90;this.nextWave();}
   drawWorm(){const W2=this.worm,t=this.t,G0=W2.G,N=G0.N,K=G0.open?N+1:N;ctx.fillStyle=PAL[0];ctx.fillRect(0,0,W,H);
@@ -1328,8 +1328,8 @@ class CorsairGame{
     this.ebul.push({x,y,vx:Math.cos(a)*spd,vy:Math.sin(a)*spd});}
   kill(){const s=this.ship;if(s.dead)return;s.dead=100;this.lives--;burst(s.x,s.y,[5,4,3,13,11],36,3);SFX.bigboom();APP.shake=14;
     if(this.lives>0)say('Ship lost.',2);}
-  respawn(){const s=this.ship;if(this.worm){s.inv=CC_RESPAWN_INV;this.fuel=Math.max(this.fuel,55);this.worm.obs=this.worm.obs.filter(o=>o.z<0.55);return;}
-    s.x=44;s.y=86;s.inv=CC_RESPAWN_INV;this.fuel=Math.max(this.fuel,55);this.critWarned=false;this.heat=0;this.hotWarned=false;this.ebul=[];this.lowWarned=false;this.rockets=Math.max(this.rockets,CC_RKT_START);this.rkt=[];
+  respawn(){const s=this.ship;if(this.worm){s.inv=CC_RESPAWN_INV;if(this.fuel<CC_FLAMEOUT_FUEL)this.fuel=Math.max(this.fuel,this.flamed?CC_FLAMEOUT_FUEL:0);this.flamed=false;this.worm.obs=this.worm.obs.filter(o=>o.z<0.55);return;}
+    s.x=44;s.y=86;s.inv=CC_RESPAWN_INV;if(this.fuel<CC_FLAMEOUT_FUEL)this.fuel=Math.max(this.fuel,this.flamed?CC_FLAMEOUT_FUEL:0);this.flamed=false;this.critWarned=false;this.heat=0;this.hotWarned=false;this.ebul=[];this.lowWarned=false;this.rockets=Math.max(this.rockets,CC_RKT_START);this.rkt=[];
     const r=this.rift;if(r&&r.warn===0){r.d+=48;const col=this.riftCol(s.x);if(col)s.y=clamp(col.c,CC_TOP,CC_BOT);}}
   update(inp){
     const h=inp.held,pr=inp.pressed,s=this.ship;this.t++;
@@ -1363,7 +1363,7 @@ class CorsairGame{
       if(this.fuel<10&&!this.critWarned){this.critWarned=true;this.alert('FUEL CRITICAL',3,true);say('Fuel critical. Ease the throttle.',2);}
       if(this.t%45===0)SFX.warn();}
     else if(this.fuel>40){this.lowWarned=false;this.critWarned=false;}
-    if(this.fuel<=0){this.fuel=0;floater(s.x,s.y-10,'FLAMED OUT',3);this.kill();}
+    if(this.fuel<=0){this.fuel=0;this.flamed=true;floater(s.x,s.y-10,'FLAMED OUT',3);this.kill();}
   }
   updPhase(){const w=this.wave;
     if(this.phase==='wave'){

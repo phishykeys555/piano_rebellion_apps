@@ -41,8 +41,10 @@ export function device() {
   // one worker holds one copy of the model and peaks at about 2.5 GB while it runs (4 parts; measured), the 6-part model less; one core is left for the audio
   let workers = mobile ? 1 : Math.max(1, Math.min(4, cores - 2, mem ? Math.floor(mem / 3) : 2));
   const weak = mobile || (mem && mem < 4) || cores < 4;
+  // iPhone and iPad (2026-11-18): Safari stops the page long before the splitter's memory peak, so a split there always fails
+  const ios = /iPhone|iPad|iPod/i.test(ua) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
   const secPerSeg = mobile ? 45 : cores >= 8 ? 12 : 20; // per worker, one 7.8 s piece of the 4-part model (measured: 22-26 s on a busy 2.1 GHz server core)
-  return { cores, mem, mobile, workers, weak, secPerSeg, coi: !!self.crossOriginIsolated, ok: typeof Worker === 'function' && typeof WebAssembly === 'object' };
+  return { cores, mem, mobile, ios, workers, weak, secPerSeg, coi: !!self.crossOriginIsolated, ok: typeof Worker === 'function' && typeof WebAssembly === 'object' };
 }
 export const segments = sec => Math.max(1, Math.ceil(sec * SR / STRIDE));
 // cost: time per piece relative to the 4-part model (measured in Chromium: 6 parts 194 s vs 4 parts 239 s for a 3-min song, 2 workers)
@@ -231,9 +233,10 @@ export function attachUI(h) {
     t += cached ? 'This splitter is already on this device. ' : 'First time only: downloads ' + dl + ' MB, kept for next time. ';
     t += 'Then ' + mins(est) + ' on this device. The song keeps playing while it works.';
     if (!d.ok) t = 'This browser can’t split songs. Use Chrome, Edge, Firefox or Safari on a laptop or desktop.';
+    else if (d.ios) t = 'iPhone and iPad can’t split songs: splitting needs more memory than Safari gives a web page. Split this song on a laptop or desktop (Chrome, Edge, Firefox or Safari), or ask your instructor to add it to the song list with its parts ready to play.';
     else if (d.weak) t = 'Splitting works best on a laptop or desktop: this ' + (d.mobile ? 'phone or tablet' : 'device') + ' would take ' + mins(est * (d.mobile ? 1 : 1.5)) + ' and may run out of memory. ' + (cached ? '' : 'It downloads ' + dl + ' MB first. ') + 'You can still try.';
     if (h.inFrame && d.ok) t += ' Inside Notion, splitting can run slowly or stop: full screen works best.';
-    info.textContent = t; go.hidden = !d.ok; go.textContent = d.weak ? 'Split anyway' : 'Start splitting';
+    info.textContent = t; go.hidden = !d.ok || d.ios; go.textContent = d.weak ? 'Split anyway' : 'Start splitting';
   }
   async function open() {
     if (job) return; msg = ''; run.hidden = true;
