@@ -37,9 +37,31 @@ input[type=range]{width:100%;accent-color:var(--on);height:32px}
 .vol{display:flex;align-items:center;gap:8px;width:100%}.vol input{flex:1}
 .hint{font-size:13px;color:var(--mut);text-align:center;margin:0}
 @media (hover:none){.hint{display:none}}
+.L,.R{display:contents}
+/* Fits a Notion embed (2026-11-18): when the window is short and wide (an embed box), everything sits in two columns with no scrolling */
+@media (min-width:600px) and (max-height:480px){
+ .wrap{max-width:1000px;padding:8px 12px;flex-direction:row;align-items:center;justify-content:center;gap:24px}
+ .L,.R{display:flex;flex-direction:column;align-items:center;gap:8px}
+ .L{flex:0 0 280px}.R{flex:1 1 auto;align-items:stretch;gap:6px;max-width:640px}
+ .dots{min-height:16px;gap:8px}.dot{width:16px;height:16px}
+ .tempo{gap:10px}.num{min-width:96px}.num b{font-size:42px}.num span{font-size:10px}
+ .pm{width:44px;height:44px;font-size:24px}
+ input[type=range]{height:24px}
+ .go{height:44px;font-size:18px;border-radius:12px}
+ .opt{flex-direction:row;align-items:center;gap:8px}
+ .opt .lbl{flex:0 0 74px;text-align:right;font-size:12px;margin:0}
+ .seg{justify-content:flex-start;gap:4px}
+ .seg button{min-width:38px;height:30px;padding:0 8px;font-size:13px;border-radius:8px}
+ .hint8{margin:0 0 0 82px;font-size:11px}
+ .R>.row{justify-content:flex-start;padding-left:82px;width:auto}
+ .tap{height:30px;font-size:13px;padding:0 14px;border-radius:8px}
+ .vol{padding-left:82px;width:auto}
+ .hint,.appver{display:none}
+}
 .appver{font-size:11px;opacity:.6;margin:4px 0 0;font-family:ui-monospace,Menlo,monospace}
 </style></head>
 <body><main class="wrap">
+  <div class="L">
   <div class="dots" id="dots" aria-hidden="true"></div>
   <div class="tempo">
     <button class="pm" id="minus" aria-label="Slower">−</button>
@@ -48,6 +70,8 @@ input[type=range]{width:100%;accent-color:var(--on);height:32px}
   </div>
   <input type="range" id="slider" min="30" max="240" step="1" value="70" aria-label="Speed">
   <button class="go" id="go">Start</button>
+  </div>
+  <div class="R">
   <div class="opt"><span class="lbl">Time signature</span><span class="seg" id="ts" role="group" aria-label="Time signature"></span></div>
   <div class="opt" id="subRow"><span class="lbl">Subdivision</span><span class="seg" id="sub" role="group" aria-label="Subdivision"></span></div>
   <p class="hint8" id="hint8" hidden>Each click is an eighth note.</p>
@@ -55,7 +79,8 @@ input[type=range]{width:100%;accent-color:var(--on);height:32px}
   <div class="row"><button class="tap" id="tap">Tap tempo</button></div>
   <div class="vol"><span class="lbl" aria-hidden="true">🔈</span><input type="range" id="vol" min="0" max="100" value="80" aria-label="Volume"><span class="lbl" aria-hidden="true">🔊</span></div>
   <p class="hint">Space bar starts and stops. Up and down arrows change the speed.</p>
-  <p class="appver">Simple Metronome · Version 2026-11-18.4</p>
+  <p class="appver">Simple Metronome · Version 2026-11-18.5</p>
+  </div>
 </main>
 <script>
 (function(){
