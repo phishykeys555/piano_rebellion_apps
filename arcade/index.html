@@ -990,7 +990,7 @@ const CC_SAY={wasp:'Glimmerwasps',kite:'Razorkites',pod:'Splitpods',bulwark:'Bul
 const CC_PTS={wasp:100,kite:150,pod:200,podlet:50,bulwark:600,seed:120};
 const CC_BOX={wasp:[5,4],kite:[5,4],pod:[5,5],podlet:[3,3],bulwark:[10,6],seed:[4,4]};
 const CC_TOP=24,CC_BOT=146;
-const CC_SHIELD_HITS=30; // shots a bulwark shield soaks before it breaks for good
+const CC_SHIELD_HITS=45; // shots a bulwark shield soaks before it breaks for good
 const CC_HOT=85,CC_HOT_GRACE=20; // 'Cannon hot' callout at 85% heat; full heat destroys the ship, never sooner than 20 frames after that warning
 /* FUEL RIFT: the only refuel. Opens after every 2nd sector. Gap narrows with the sector (half-gap 31 px at sector 1, 21 at 8, 16 at 12+). */
 const CC_RIFT_WARN=180,CC_RIFT_EVERY=2,CC_MOTE_GAP=12;
@@ -1158,9 +1158,9 @@ class CorsairGame{
     this.alert('FUEL RIFT OPENING · THREAD IT SLOW',12,true);say('Fuel rift opening. Thread it slow.');SFX.rift();}
   startWorm(){const v=(this.wormVisits=(this.wormVisits||0)+1),shape=CC_WORM_SHAPES[(v-1)%CC_WORM_SHAPES.length],G0=wormRim(shape);
     this.phase='worm';this.ens=[];this.ebul=[];this.rocks=[];this.bul=[];
-    this.worm={v,shape,G:G0,lane:G0.open?(G0.N>>1):0,warn:150,t:0,dur:2400,obs:[],shots:[],shards:0,nova:false,novaFx:0,spawnT:20,toSpawn:52+12*v,
+    this.worm={v,shape,G:G0,lane:G0.open?(G0.N>>1):0,warn:v===1?300:180,warnEnd:0,t:0,dur:2400,obs:[],shots:[],shards:0,nova:false,novaFx:0,spawnT:20,toSpawn:52+12*v,
       cleared:0,hits:0,mv:0,cool:0,swipe:0,ringPh:0,snap:0,flash:0,pal:0,nextPal:1,morph:-1,hold:240,palLog:[{at:0,ev:'hold',len:240}]};
-    this.alert('WORMHOLE DETECTED · BRACE FOR TRANSIT',12,true);say('Wormhole detected.');SFX.rift();}
+    ctlDirty=true;this.alert('WORMHOLE DETECTED · BRACE FOR TRANSIT',12,true);say('Wormhole detected.');SFX.rift();}
   wormLane(i){const W2=this.worm.G;return W2.open?clamp(i,0,W2.N-1):((i%W2.N)+W2.N)%W2.N;}
   wormPt(lane,z){const G0=this.worm.G,N=G0.N,P=G0.P,a=P[lane],b=P[G0.open?lane+1:(lane+1)%N],mx=(a[0]+b[0])/2,my=(a[1]+b[1])/2,sc=0.1+0.9*z*z;
     return [G0.cx+(mx-G0.cx)*sc,G0.cy+(my-G0.cy)*sc,sc];}
@@ -1189,7 +1189,7 @@ class CorsairGame{
     // palette clock: hold, then morph (logged for the test)
     if(W2.morph>=0){if(++W2.morph>=WPAL_MORPH){W2.pal=W2.nextPal;W2.morph=-1;W2.hold=WPAL_HOLD[0]+rnd(WPAL_HOLD[1]-WPAL_HOLD[0]+1);W2.palLog.push({at:W2.t,ev:'hold',len:W2.hold});}}
     else if(--W2.hold<=0){W2.nextPal=(W2.pal+1)%WPAL.length;W2.morph=0;W2.palLog.push({at:W2.t,ev:'morph',len:WPAL_MORPH});}
-    if(W2.warn>0){W2.warn--;return;}
+    if(W2.warn>0){W2.warn--;if(W2.warn===0)W2.warnEnd=W2.t;return;}
     // fuel still burns
     this.fuel-=CC_BURN*(1+0.03*(this.wave-1))*g.f;if(this.fuel<=0&&!s.dead){this.fuel=0;this.kill();}
     if(s.inv>0)s.inv--;if(W2.cool>0)W2.cool--;if(W2.novaFx>0)W2.novaFx--;
@@ -1221,7 +1221,7 @@ class CorsairGame{
     if(W2.t>=W2.dur||(W2.toSpawn<=0&&!W2.obs.some(o=>o.k!=='shard'))){this.endWorm();}}
   endWorm(){const W2=this.worm,b=this.addScore(2000*W2.v+100*W2.shards+50*W2.cleared);this.fuel=Math.min(100,this.fuel+25);
     floater(128,64,'WORMHOLE CLEAR +'+b,5);floater(128,76,'+25 FUEL',6);this.alert('WORMHOLE CLEAR · BONUS +'+b+' · +25 FUEL',5,true);say('Wormhole clear. Bonus awarded.');SFX.full();
-    this.lastWorm={v:W2.v,shape:W2.shape,cleared:W2.cleared,hits:W2.hits,shards:W2.shards,nova:W2.nova,t:W2.t,bonus:b};this.worm=null;
+    ctlDirty=true;this.lastWorm={v:W2.v,shape:W2.shape,cleared:W2.cleared,hits:W2.hits,shards:W2.shards,nova:W2.nova,t:W2.t,bonus:b};this.worm=null;
     const s=this.ship;s.x=44;s.y=86;s.inv=90;this.nextWave();}
   drawWorm(){const W2=this.worm,t=this.t,G0=W2.G,N=G0.N,K=G0.open?N+1:N;ctx.fillStyle=PAL[0];ctx.fillRect(0,0,W,H);
     const line=(x0,y0,x1,y1,c)=>{ctx.fillStyle=PAL[c];const n=Math.max(Math.abs(x1-x0),Math.abs(y1-y0))|0;for(let i=0;i<=n;i+=1){const u=n?i/n:0;ctx.fillRect(Math.round(x0+(x1-x0)*u),Math.round(y0+(y1-y0)*u),1,1);}};
@@ -1259,13 +1259,22 @@ class CorsairGame{
       else{const r=S*0.8,pts=[];for(let i=0;i<8;i++){const ang=i*0.785,rr3=i%2?r*0.35:r;pts.push([x+Math.cos(ang)*rr3,y+Math.sin(ang)*rr3]);}poly(pts,5);ctx.fillStyle=PAL[13];ctx.fillRect(Math.round(x)-1,Math.round(y)-1,2,2);}}
     for(const b of W2.shots){const [x,y]=this.wormPt(b.lane,b.z);ctx.fillStyle=PAL[13];ctx.fillRect(Math.round(x)-1,Math.round(y)-1,2,2);ctx.fillStyle=PAL[11];const [x2,y2]=this.wormPt(b.lane,Math.min(1,b.z+0.05));ctx.fillRect(Math.round(x2),Math.round(y2),1,1);}
     const s=this.ship;
-    if(!s.dead&&!(s.inv>0&&(s.inv>>2)&1)){const a=this.wormEdge(W2.lane,1),b=this.wormEdge(W2.lane+1,1),[mx,my]=this.wormPt(W2.lane,1),[ix,iy]=this.wormPt(W2.lane,0.9);
-      line(a[0],a[1],ix,iy,5);line(b[0],b[1],ix,iy,5);line(a[0],a[1],mx,my,13);line(b[0],b[1],mx,my,13);ctx.fillStyle=PAL[10];ctx.fillRect(Math.round(mx)-1,Math.round(my)-1,3,3);}
+    if(!s.dead&&!(s.inv>0&&(s.inv>>2)&1)){const [mx,my]=this.wormPt(W2.lane,1),[ix,iy]=this.wormPt(W2.lane,0.9);
+      let ux=ix-mx,uy=iy-my;const ul=Math.hypot(ux,uy)||1;ux/=ul;uy/=ul;const vx=-uy,vy=ux,P=(f,g)=>[mx+ux*f+vx*g,my+uy*f+vy*g];
+      const body=[P(14,0),P(2,7),P(-3,10),P(-4,4),P(-2,0),P(-4,-4),P(-3,-10),P(2,-7)];
+      ctx.beginPath();ctx.moveTo(body[0][0],body[0][1]);for(const q of body.slice(1))ctx.lineTo(q[0],q[1]);ctx.closePath();
+      ctx.strokeStyle=PAL[0];ctx.lineWidth=3;ctx.stroke();ctx.fillStyle=PAL[13];ctx.fill();
+      ctx.fillStyle=PAL[10];ctx.beginPath();const c0=P(9,0),c1=P(4,2.5),c2=P(4,-2.5);ctx.moveTo(c0[0],c0[1]);ctx.lineTo(c1[0],c1[1]);ctx.lineTo(c2[0],c2[1]);ctx.closePath();ctx.fill();
+      for(const g2 of [6,-6]){const w=P(-1,g2);ctx.fillStyle=PAL[11];ctx.fillRect(Math.round(w[0])-1,Math.round(w[1])-1,2,2);}
+      const fl=P(-6-((t>>1)&1)*2,0);ctx.fillStyle=PAL[(t>>1)&1?5:4];ctx.fillRect(Math.round(fl[0])-1,Math.round(fl[1])-1,3,3);}
     {const ready=W2.shards>=CC_SHARDS&&!W2.nova,pu=ready?((t>>2)&1):0;for(let i=0;i<CC_SHARDS;i++){ctx.fillStyle=PAL[i<W2.shards?(ready?(pu?13:5):5):1];ctx.fillRect(34+i*7-pu,184-pu,5+2*pu,4+2*pu);}}text(W2.shards>=CC_SHARDS&&!W2.nova?'NOVA B':'SHARD',4,183,W2.shards>=CC_SHARDS&&!W2.nova&&(t>>3)&1?5:14);
     ctx.fillStyle=PAL[1];ctx.fillRect(202,185,50,3);ctx.fillStyle=PAL[11];ctx.fillRect(202,185,Math.round(50*(1-W2.t/W2.dur)),3);
     if(W2.flash>0){ctx.fillStyle=PAL[13];ctx.globalAlpha=0.12*W2.flash;ctx.fillRect(0,18,W,H-18);ctx.globalAlpha=1;}
     if(W2.novaFx>0){ctx.fillStyle=PAL[W2.novaFx&2?13:5];ctx.globalAlpha=W2.novaFx/50;ctx.fillRect(0,18,W,H-18);ctx.globalAlpha=1;}
-    if(W2.warn>0&&(t>>3)&1){ctext('WORMHOLE',70,12,2,0);ctext(W2.shape.toUpperCase()+' TRANSIT · DODGE OR SHOOT',90,11,1,0);}}
+    if(W2.warn>0){if((t>>3)&1)ctext('WORMHOLE',62,12,2,0);
+      ctx.fillStyle=PAL[0];ctx.globalAlpha=0.78;ctx.fillRect(28,82,200,52);ctx.globalAlpha=1;ctext('YOUR SHIP RIDES THE EDGE OF THE TUBE',86,13,1,0);ctext('LEFT / RIGHT = STEER AROUND THE RING',98,5,1,0);
+      ctext('A = SHOOT BLOCKS   DODGE RED GATES',110,11,1,0);ctext('CATCH STARS · 7 = NOVA BLAST (B)',122,5,1,0);}
+    else if(W2.v===1&&W2.t<W2.warnEnd+360){ctx.fillStyle=PAL[0];ctx.globalAlpha=0.7;ctx.fillRect(0,170,W,10);ctx.globalAlpha=1;ctext('LEFT/RIGHT STEER · A SHOOT · DODGE RED GATES',172,13,1,0);}}
   riftX(i){return 262+i*4-this.rift.d;}
   riftCol(x){const r=this.rift;if(!r||r.warn>0)return null;const i=Math.floor((x+r.d-262)/4);return i>=0&&i<r.C.length?r.C[i]:null;}
   updRift(){const r=this.rift;if(!r)return;const s=this.ship;
@@ -1455,7 +1464,12 @@ class CorsairGame{
         for(let j=-r;j<=r;j++){const ww=Math.round(Math.sqrt(r*r-j*j));px(cx-ww,G-hg-r+j,ww*2+1,1);}
         for(let i=-r+1;i<r;i+=2)px(cx+i,G-hg-r,1,1,L);px(cx,G-hg-2*r-2,1,2);B.push({x:cx,y:G-hg-2*r-3});}
       x+=w+3+Math.floor(R()*9);}
-    this.farC=f;this.nearC=n;this.blink=B;}
+    this.farC=f;this.nearC=n;this.blink=B;
+    {const nb=document.createElement('canvas');nb.width=512;nb.height=150;const q=nb.getContext('2d'),BY=[0,8,2,10,12,4,14,6,3,11,1,9,15,7,13,5];
+      for(let k=0;k<7;k++){const bx=20+k*72+((k*37)%30),by=20+((k*53)%100),rx=34+((k*29)%30),ry=14+((k*17)%14);
+        for(let y=-ry;y<=ry;y++)for(let x=-rx;x<=rx;x++){const d=(x*x)/(rx*rx)+(y*y)/(ry*ry);if(d>1)continue;
+          const th=BY[((y+by)&3)*4+((x+bx)&3)],dens=(1-d)*9;if(th<dens){q.fillStyle=PAL[th<dens-8?9:1];q.fillRect(((bx+x)%512+512)%512,by+y,1,1);}}}
+      this.nebC=nb;}}
   drawRift(){const r=this.rift,t=this.t;if(!r)return;
     // sky event: a violet/cyan fissure splits the skyline, then rides the rift mouth in
     const cx=Math.round(r.warn>0?236:Math.min(236,this.riftX(0)));
@@ -1475,6 +1489,7 @@ class CorsairGame{
       if((i+(t>>2))%9===0){ctx.fillStyle=PAL[13];if(a>Y0)ctx.fillRect(x+2,a-1,1,1);if(b<Y1)ctx.fillRect(x+1,b,1,1);}}
     for(const m of r.M){if(m.got)continue;const x=this.riftX(m.i);if(x<-6||x>262)continue;sprC((t>>3)&1?'cc_mote':'cc_mote2',x,m.cy!=null?m.cy:m.y);}}
   draw(){if(this.worm){this.drawWorm();return;}const t=this.t,th=this.th;ctx.fillStyle=PAL[0];ctx.fillRect(0,0,W,H);
+    if(this.nebC){const nx=Math.floor(this.scrollX*0.12)%512;ctx.drawImage(this.nebC,-nx,18);ctx.drawImage(this.nebC,512-nx,18);}
     for(const st of this.stars){const ph=((t+st.p*7)>>3)%6;if(ph===0)continue;const x=st.x|0,y=st.y|0;ctx.fillStyle=PAL[ph===1&&st.z===3?14:st.c];ctx.fillRect(x,y,1,1);}
     const fo=Math.floor(this.scrollX*0.35)%512,no=Math.floor(this.scrollX)%512;
     ctx.drawImage(this.farC,-fo,H-30);ctx.drawImage(this.farC,512-fo,H-30);
@@ -1489,7 +1504,7 @@ class CorsairGame{
       else if(e.k==='pod')sprC(e.hp<=1?'cc_pod2':'cc_pod',e.x,e.y+((t>>4)&1));
       else if(e.k==='podlet')sprC('cc_podlet',e.x,e.y);
       else if(e.k==='bulwark'){sprC('cc_bulw',e.x,e.y);
-        if(e.sh){const sw=e.shHits||0,c1=sw>=20?3:sw>=10?5:11;for(let k=-8;k<=8;k++){ctx.fillStyle=PAL[((k+(t>>2))&3)?c1:13];ctx.fillRect(Math.round(e.x-13-Math.sqrt(64-k*k)*0.4),Math.round(e.y)+k,1,1);}}
+        if(e.sh){const sw=e.shHits||0,c1=sw>=30?3:sw>=15?5:11;for(let k=-8;k<=8;k++){ctx.fillStyle=PAL[((k+(t>>2))&3)?c1:13];ctx.fillRect(Math.round(e.x-13-Math.sqrt(64-k*k)*0.4),Math.round(e.y)+k,1,1);}}
         else if((t>>2)&1){ctx.fillStyle=PAL[3];ctx.fillRect(Math.round(e.x)-1,Math.round(e.y)-1,3,2);}}
       else if(e.k==='seed'){const warn=e.fuse<60&&(t>>2)&1;ctx.fillStyle=PAL[warn?3:4];
         for(let k=0;k<8;k++){const a=e.rot+k*0.7854,len=k&1?4:6;for(let d=3;d<=len;d++)ctx.fillRect(Math.round(e.x+Math.cos(a)*d),Math.round(e.y+Math.sin(a)*d),1,1);}
@@ -1719,13 +1734,13 @@ const aC=document.createElement('canvas');aC.width=24;aC.height=24;$('bA').appen
 const bC=document.createElement('canvas');bC.width=24;bC.height=24;$('bB').appendChild(bC);
 function drawControls(){ctlDirty=false;const T=IN.touch;
   let x=dpC.getContext('2d');x.clearRect(0,0,48,48);
-  x.fillStyle=PAL[0];x.fillRect(15,1,18,46);x.fillRect(1,15,46,18);
+  const LR=!!(G&&G.worm);x.fillStyle=PAL[0];if(!LR)x.fillRect(15,1,18,46);x.fillRect(1,15,46,18);
   const arm=(rx,ry,rw,rh,on)=>{x.fillStyle=PAL[on?10:15];x.fillRect(rx,ry,rw,rh);x.fillStyle=PAL[on?11:14];x.fillRect(rx,ry,rw,1);};
-  arm(16,2,16,14,T.up);arm(16,32,16,14,T.down);arm(2,16,14,16,T.left);arm(32,16,14,16,T.right);
+  if(!LR){arm(16,2,16,14,T.up);arm(16,32,16,14,T.down);}arm(2,16,14,16,T.left);arm(32,16,14,16,T.right);
   x.fillStyle=PAL[15];x.fillRect(16,16,16,16);x.fillStyle=PAL[1];x.fillRect(21,21,6,6);
   x.fillStyle=PAL[13];
-  x.fillRect(23,6,2,1);x.fillRect(22,7,4,1);x.fillRect(21,8,6,1);
-  x.fillRect(21,39,6,1);x.fillRect(22,40,4,1);x.fillRect(23,41,2,1);
+  if(!LR){x.fillRect(23,6,2,1);x.fillRect(22,7,4,1);x.fillRect(21,8,6,1);
+  x.fillRect(21,39,6,1);x.fillRect(22,40,4,1);x.fillRect(23,41,2,1);}
   x.fillRect(6,23,1,2);x.fillRect(7,22,1,4);x.fillRect(8,21,1,6);
   x.fillRect(39,21,1,6);x.fillRect(40,22,1,4);x.fillRect(41,23,1,2);
   const btn=(c,lab,col,hi,on)=>{const y=c.getContext('2d');y.clearRect(0,0,24,24);
@@ -1835,7 +1850,7 @@ bindHold($('bA'),'a');bindHold($('bB'),'b');
 (function(){const dp=$('dpad');let id=null;
   const set=e=>{const r=dp.getBoundingClientRect();const dx=e.clientX-(r.left+r.width/2),dy=e.clientY-(r.top+r.height/2);const d=Math.hypot(dx,dy);const T=IN.touch;
     const o=[T.up,T.down,T.left,T.right].join();T.up=T.down=T.left=T.right=false;
-    if(d>=r.width*0.1){T.right=dx>d*0.38;T.left=dx<-d*0.38;T.down=dy>d*0.38;T.up=dy<-d*0.38;}
+    if(d>=r.width*0.1){T.right=dx>d*0.38;T.left=dx<-d*0.38;if(!(G&&G.worm)){T.down=dy>d*0.38;T.up=dy<-d*0.38;}}
     if(o!==[T.up,T.down,T.left,T.right].join())ctlDirty=true;ctlLit(dp,true);};
   dp.addEventListener('pointerdown',e=>{e.preventDefault();audioUnlock();id=e.pointerId;try{dp.setPointerCapture(id);}catch(_){}set(e);});
   dp.addEventListener('pointermove',e=>{if(e.pointerId===id)set(e);});
