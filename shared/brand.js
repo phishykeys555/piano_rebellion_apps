@@ -1,8 +1,8 @@
-/* CHMA app-suite access gate (2026-11-15). One studio code per quarter; only its SHA-256 lives here.
+/* CHMA app-suite access gate (2026-11-15; code changed 2026-11-18). One studio code per quarter; only its SHA-256 lives here.
    A soft gate: it stops link-sharing and casual use, not a determined techie (public repo).
    To rotate each quarter: put the new code's sha256 (lowercase, trimmed) in GATE.hash, bump GATE.q, publish. */
 (function(){
- var GATE={hash:'b3cdf39439c2facca82473a56b5f102c330ee791b0b01d154b8873f790f783fe',q:'2026-Q4',form:'https://form.jotform.com/263181165308051'};
+ var GATE={hash:'cc4e6ddd43692b4072bc164e645ceea2d471f89b4168fc7b1443e21d127652c2',q:'2026-Q4',form:'https://form.jotform.com/263181165308051'};
  var KEY='chmaGate';
  /* Evan's Fretboard tools stay open until the beta reaches Fretboard Revolution (embedded on his students' dashboards) */
  if(/\/(guitar-tuner|drum-machine|simple-metronome)\//.test(location.pathname))return; /* simple-metronome (2026-11-18): embedded on every song page, like the Modal Metronome */

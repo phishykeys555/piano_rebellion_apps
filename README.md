@@ -4,8 +4,8 @@ Original music games by [Clarendon Hills Music Academy](https://clarendonhillsmu
 
 - `note-sprint/` — Note Sprint (source of truth: piano_rebellion_curriculum- `apps/note-sprint.html`)
 - `drum-machine/` — Modal Metronome (drum machine + bass, from the Notion embed on the Evan dashboard; recorded-sample credits are in the app footer)
-- `guitar-tuner/` — Guitar Revolution Strobe Tuner (true strobe: heterodyne phase vs exact reference at f, 2f, 4f in an AudioWorklet; YIN note finder; tunings, A4 430–450; one screen, starts on its own, always auto; vintage design).
-- `song-player/` — Song Dissector (Capo-style play-along: studio-grade speed 40–130% and key ±6 via Signalsmith Stretch (MIT, `song-player/vendor/`, patched to mix parts in the worklet), A-B loop, speed-up trainer, PARTS mixer with mute/solo). One player for every song: `?s=<song id>`. Parts: split offline with Demucs htdemucs_6s, residual redistributed so parts sum to the record; ship `audio/<id>/mix.mp3` (320k) + parts at half volume (`boost:2`), `rest` = record minus parts. Songs without parts: one MP3 + one line in `SONGS`. Any song can also be split on the device: Detailed 6 parts (htdemucs_6s, default) or Classic 4 parts (htdemucs), ONNX Runtime Web, see `song-player/vendor/README.md`.
+- `guitar-tuner/` — Guitar Revolution Strobe Tuner (true strobe: heterodyne phase vs exact reference at f, 2f, 4f in an AudioWorklet; YIN note finder; tunings, A4 430–450, reference tone; vintage design).
+- `song-player/` — Song Dissector (Capo-style play-along: studio-grade speed 40–130% and key ±6 via Signalsmith Stretch (MIT, `song-player/vendor/`, patched to mix parts in the worklet), A-B loop, speed-up trainer, PARTS mixer with mute/solo). One player for every song: `?s=<song id>`. Parts: split offline with Demucs htdemucs_6s, residual redistributed so parts sum to the record; ship `audio/<id>/mix.mp3` (320k) + parts at half volume (`boost:2`), `rest` = record minus parts. Songs without parts: one MP3 + one line in `SONGS`.
 - `rhythm-trainer/` — Rhythm Trainer (tap or clap rhythms, timing graded against the written notes; 8 levels incl. 3 syncopation levels)
 - `shared/hype.js` — round-screen music for every Challenge mode: nine original synthesized songs (lo-fi, funk, pop-punk, house, trap, drum & bass, synthwave, samba, epic), a different one each round (shuffled per session, no repeats until all have played; the bonus round always gets the epic one). Same API and mic-safe timing as before.
 
@@ -21,10 +21,9 @@ Every app shows its version at the bottom of the page: `Version YYYY-MM-DD.N` (d
 | Modal Metronome | 2026-11-13.5 |
 | Hanon Speed Trainer | 2026-11-13.1 |
 | Major 7th Play-Along | 2026-11-11.8 |
-| Song Dissector | 2026-11-13.15 |
+| Song Dissector | 2026-11-11.12 |
 | Strobe Tuner (Guitar Revolution) | 2026-11-13.1 |
 | Fab Fours (find the four groups of four; was Groupies) | 2026-11-13.7 |
-| Pop Quiz (music trivia: 18 topics, Daily 10, Party mode) | 2026-11-13.2 |
 | Ear Trainer | 2026-11-13.4 |
 | Meter Master (internal-clock trainer) | 2026-11-13.4 |
 | Symbol Memory (classic Memory: identical pairs, symbol with its name under it; Bravura font, OFL, in `symbol-memory/fonts/`) | 2026-11-13.5 |
@@ -32,3 +31,10 @@ Every app shows its version at the bottom of the page: `Version YYYY-MM-DD.N` (d
 | Round music (`shared/hype.js`) | 2026-11-12.1 |
 | Share helper (`shared/share.js`: share sheet, clipboard, copy box; is.gd short links + chmusicacademy.com) | 2026-11-13.2 |
 | Riff Simon Says | 2026-11-13.5 |
+| Access gate (top of `shared/brand.js`) | 2026-11-18.1 |
+
+## Access gate (studio code)
+
+Every app that loads `shared/brand.js` asks for the studio code once per device (stored in `localStorage` as the code's hash). Guitar Tuner and Modal Metronome stay open until the beta reaches Fretboard Revolution. It is a soft gate: the repo is public, so it stops link-sharing, not a determined techie. Only the SHA-256 of the code is in this repo; the code itself lives in the studio's Notion page for Help Desk replies, never here.
+
+Rotate each quarter: pick a new code, put `sha256(code.trim().toLowerCase())` in `GATE.hash`, bump `GATE.q`, publish to `gh-pages`, and update the Notion page. "Forgot the code?" goes to the Jotform request form (Help Desk replies with the current code).
