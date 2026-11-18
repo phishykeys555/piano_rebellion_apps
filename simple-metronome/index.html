@@ -1,17 +1,17 @@
 <!DOCTYPE html>
 <html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Simple Metronome · Clarendon Hills Music Academy</title>
-<meta name="description" content="A plain, easy metronome: pick a speed, press Start.">
-<meta property="og:type" content="website"><meta property="og:site_name" content="Clarendon Hills Music Academy"><meta property="og:title" content="Simple Metronome · Clarendon Hills Music Academy"><meta property="og:description" content="A plain, easy metronome: pick a speed, press Start.">
+<meta name="description" content="An easy metronome: speed, time signature, subdivisions and drum sounds.">
+<meta property="og:type" content="website"><meta property="og:site_name" content="Clarendon Hills Music Academy"><meta property="og:title" content="Simple Metronome · Clarendon Hills Music Academy"><meta property="og:description" content="An easy metronome: speed, time signature, subdivisions and drum sounds.">
 <link rel="stylesheet" href="../shared/chma.css"><script src="../shared/brand.js"></script>
 <style>
-/* Simple Metronome v1.0.0 (2026-11-18): the one-screen metronome for song pages. Speed, Start, beats per bar, tap. Nothing else. */
+/* Simple Metronome v1.1.0 (2026-11-18): the one-screen metronome for song pages. Speed, Start, time signature, subdivision, sound (the Modal Metronome's drum samples), tap, volume. */
 :root{--bg:#fff;--fg:#37352f;--mut:#787774;--bd:#e3e2e0;--btn:#f7f6f3;--on:#2383e2;--acc:#e03e3e;--dot:#e3e2e0}
 @media (prefers-color-scheme:dark){:root{--bg:#191919;--fg:#e6e6e5;--mut:#9b9b9b;--bd:#3a3a3a;--btn:#2a2a2a;--dot:#3a3a3a}}
 *{box-sizing:border-box}
 body{margin:0;font-family:-apple-system,Segoe UI,Helvetica,Arial,sans-serif;background:var(--bg);color:var(--fg);-webkit-tap-highlight-color:transparent}
 .wrap{max-width:460px;margin:0 auto;padding:16px;display:flex;flex-direction:column;align-items:center;gap:14px}
-.dots{display:flex;gap:12px;justify-content:center;min-height:30px}
+.dots{display:flex;flex-wrap:wrap;gap:10px;max-width:100%;justify-content:center;min-height:30px}
 .dot{width:26px;height:26px;border-radius:50%;background:var(--dot);transition:background .12s,transform .12s}
 .dot.one{outline:2px solid var(--acc);outline-offset:2px}
 .dot.on{background:var(--on);transform:scale(1.15)}.dot.one.on{background:var(--acc)}
@@ -26,7 +26,12 @@ input[type=range]{width:100%;accent-color:var(--on);height:32px}
 .go.stop{background:var(--acc);border-color:var(--acc)}
 .row{display:flex;gap:8px;width:100%;align-items:center;justify-content:center;flex-wrap:wrap}
 .lbl{font-size:14px;color:var(--mut);margin-right:4px}
-.seg button{min-width:52px;height:44px;font-size:17px;font-weight:600}
+.opt[hidden]{display:none}
+.opt{width:100%;display:flex;flex-direction:column;align-items:center;gap:6px}
+.seg{display:flex;flex-wrap:wrap;gap:6px;justify-content:center}
+.seg button{min-width:52px;height:44px;padding:0 12px;font-size:16px;font-weight:600}
+.hint8{font-size:13px;color:var(--mut);margin:-6px 0 0}.hint8[hidden]{display:none}
+.dot.grp{outline:2px solid var(--on);outline-offset:2px}.dot.sub{width:12px;height:12px;align-self:center}
 .seg button[aria-pressed=true]{background:var(--on);border-color:var(--on);color:#fff}
 .tap{height:44px;padding:0 22px;font-size:16px;font-weight:600}
 .vol{display:flex;align-items:center;gap:8px;width:100%}.vol input{flex:1}
@@ -43,39 +48,70 @@ input[type=range]{width:100%;accent-color:var(--on);height:32px}
   </div>
   <input type="range" id="slider" min="30" max="240" step="1" value="70" aria-label="Speed">
   <button class="go" id="go">Start</button>
-  <div class="row"><span class="lbl">Beats per bar</span><span class="seg row" id="beats" role="group" aria-label="Beats per bar" style="width:auto"></span></div>
+  <div class="opt"><span class="lbl">Time signature</span><span class="seg" id="ts" role="group" aria-label="Time signature"></span></div>
+  <div class="opt" id="subRow"><span class="lbl">Subdivision</span><span class="seg" id="sub" role="group" aria-label="Subdivision"></span></div>
+  <p class="hint8" id="hint8" hidden>Each click is an eighth note.</p>
+  <div class="opt"><span class="lbl">Sound</span><span class="seg" id="snd" role="group" aria-label="Sound"></span></div>
   <div class="row"><button class="tap" id="tap">Tap tempo</button></div>
   <div class="vol"><span class="lbl" aria-hidden="true">🔈</span><input type="range" id="vol" min="0" max="100" value="80" aria-label="Volume"><span class="lbl" aria-hidden="true">🔊</span></div>
   <p class="hint">Space bar starts and stops. Up and down arrows change the speed.</p>
-  <p class="appver">Simple Metronome · Version 2026-11-18.1</p>
+  <p class="appver">Simple Metronome · Version 2026-11-18.2</p>
 </main>
 <script>
 (function(){
 const $=id=>document.getElementById(id), KEY='chma-simple-metronome';
 const QS=new URLSearchParams(location.search);
 let saved={}; try{saved=JSON.parse(localStorage.getItem(KEY)||'{}')||{}}catch(e){}
+// time signatures: n beats of 1/d. In x/8 each click is an eighth note; acc = the beats that start a group (accented)
+const TS={'2/4':{n:2,acc:[0]},'3/4':{n:3,acc:[0]},'4/4':{n:4,acc:[0]},'5/4':{n:5,acc:[0,3]},'6/8':{n:6,acc:[0,3],e:1},'7/8':{n:7,acc:[0,2,4],e:1},'9/8':{n:9,acc:[0,3,6],e:1},'12/8':{n:12,acc:[0,3,6,9],e:1}};
+const SUBS={1:'♩ Quarters',2:'♫ 8ths',3:'Triplets',4:'16ths'};
+const SNDS={click:'Click',wood:'Woodblock',sticks:'Sticks',hat:'Hi-hat',drums:'Drum beat',ride:'Ride',bell:'Cowbell'};
 const clampB=v=>Math.max(30,Math.min(240,Math.round(v)||70));
-// a song page's link sets the speed (?bpm=); otherwise the last speed used on this device
 let bpm=clampB(QS.get('bpm')||saved.bpm||70);
-let beats=[2,3,4,6].includes(+QS.get('beats'))?+QS.get('beats'):/waltz|3-4|34/i.test(QS.get('pre')||'')?3:[2,3,4,6].includes(saved.beats)?saved.beats:4;
+let ts=TS[QS.get('ts')]?QS.get('ts'):{2:'2/4',3:'3/4',4:'4/4',6:'6/8'}[QS.get('beats')]||(/waltz|3-4|34/i.test(QS.get('pre')||'')?'3/4':TS[saved.ts]?saved.ts:'4/4');
+let sub=SUBS[QS.get('sub')]?+QS.get('sub'):SUBS[saved.sub]?saved.sub:1;
+let snd=SNDS[QS.get('snd')]?QS.get('snd'):SNDS[saved.snd]?saved.snd:'click';
 let vol=saved.vol!=null?saved.vol:80;
-const save=()=>{try{localStorage.setItem(KEY,JSON.stringify({bpm,beats,vol}))}catch(e){}};
+const save=()=>{try{localStorage.setItem(KEY,JSON.stringify({bpm,ts,sub,snd,vol}))}catch(e){}};
 try{if(navigator.audioSession)navigator.audioSession.type='playback'}catch(e){} // iPhone: sound even with the ringer switch on silent
-let ac=null,master=null,timer=null,next=0,beat=0,running=false;const lights=[];
+let ac=null,master=null,timer=null,next=0,step=0,running=false;const lights=[];
 function audio(){if(!ac){const AC=window.AudioContext||window.webkitAudioContext;ac=new AC();master=ac.createGain();master.connect(ac.destination)}master.gain.value=Math.pow(vol/100,1.5);if(ac.state!=='running')ac.resume();return ac}
-function click(t,first){const o=ac.createOscillator(),g=ac.createGain();o.type='square';o.frequency.value=first?1760:1175;
-  g.gain.setValueAtTime(0.0001,t);g.gain.exponentialRampToValueAtTime(first?0.5:0.32,t+0.001);g.gain.exponentialRampToValueAtTime(0.0001,t+0.05);
-  o.connect(g);g.connect(master);o.start(t);o.stop(t+0.06)}
-function tick(){while(next<ac.currentTime+0.12){const b=beat;click(next,b===0);lights.push({t:next,b});next+=60/bpm;beat=(beat+1)%beats}}
+// drum samples: the Modal Metronome's Blonde Bop kit (velocity layers 1-5)
+const BUF={},LOAD={};
+function need(names){names.forEach(n=>{if(LOAD[n])return;LOAD[n]=fetch('../drum-machine/kits/bb/'+n+'.mp3').then(r=>r.arrayBuffer()).then(b=>new Promise((ok,no)=>audio().decodeAudioData(b,ok,no))).then(d=>{BUF[n]=d}).catch(()=>{delete LOAD[n]})})}
+const KIT={sticks:['stick_4','stick_3','stick_1'],hat:['kick_4','hat_4','hat_1'],drums:['kick_4','snare_4','hat_4','hat_1','kick_3'],ride:['kick_4','ride_4','ride_3','ride_1'],bell:['bell_5','bell_3','bell_1']};
+function samp(n,t,g){const b=BUF[n];if(!b)return false;const s=ac.createBufferSource(),v=ac.createGain();s.buffer=b;v.gain.value=g;s.connect(v);v.connect(master);s.start(t);return true}
+function beep(t,f,g,len,type){const o=ac.createOscillator(),v=ac.createGain();o.type=type||'square';o.frequency.value=f;v.gain.setValueAtTime(0.0001,t);v.gain.exponentialRampToValueAtTime(g,t+0.001);v.gain.exponentialRampToValueAtTime(0.0001,t+len);o.connect(v);v.connect(master);o.start(t);o.stop(t+len+0.01)}
+// lv: 3 = beat 1, 2 = start of a group (5/4, x/8), 1 = other beat, 0 = subdivision. bi = beat number in the bar
+function hit(t,lv,bi){
+  if(snd==='click'){beep(t,[880,1175,1175,1760][lv],[0.12,0.3,0.36,0.5][lv],0.05);return}
+  if(snd==='wood'){const f=[1200,1500,1650,1900][lv],g=[0.18,0.5,0.6,0.8][lv];beep(t,f,g,0.06,'sine');beep(t,f*2.7,g*0.25,0.03,'sine');return}
+  let ok=true;
+  if(snd==='sticks')ok=samp(KIT.sticks[lv>=2?0:lv===1?1:2],t,lv?(lv===3?1:0.8):0.45);
+  else if(snd==='bell')ok=samp(KIT.bell[lv>=2?0:lv===1?1:2],t,lv?0.8:0.4);
+  else if(snd==='hat'){if(lv===3)samp('kick_4',t,0.9);ok=samp(lv?'hat_4':'hat_1',t,lv?0.9:0.7)}
+  else if(snd==='ride'){if(lv===3)samp('kick_4',t,0.7);ok=samp(lv===3?'ride_4':lv?'ride_3':'ride_1',t,lv?0.9:0.6)}
+  else if(snd==='drums'){ // kick on 1 (and group starts), snare on the backbeat (2 and 4 in 4/4, 2 and 3 in 3/4), hi-hat on every beat, soft hat on subdivisions
+    if(!lv)ok=samp('hat_1',t,0.7);else{const T=TS[ts];let k=lv>=2;if(!k&&!T.e&&T.n!==3&&bi%2===0)k=true;
+      samp(k?(lv===3?'kick_4':'kick_3'):'snare_4',t,k?1:0.75);ok=samp('hat_4',t,0.6)}}
+  if(!ok)beep(t,[880,1175,1175,1760][lv],[0.12,0.3,0.36,0.5][lv],0.05) // samples still loading: click instead
+}
+function plan(){const T=TS[ts],k=T.e?1:sub;return{T,k,per:60/bpm/k,total:T.n*k}}
+function tick(){const P=plan();while(next<ac.currentTime+0.12){const bi=Math.floor(step/P.k),onBeat=step%P.k===0;
+  const lv=!onBeat?0:bi===0?3:P.T.acc.includes(bi)?2:1;hit(next,lv,bi);if(onBeat)lights.push({t:next,b:bi});next+=P.per;step=(step+1)%P.total}}
 function draw(){if(!running)return;const now=ac.currentTime;let cur=null;while(lights.length&&lights[0].t<=now)cur=lights.shift();
   if(cur){const d=$('dots').children;for(let i=0;i<d.length;i++)d[i].classList.toggle('on',i===cur.b)}requestAnimationFrame(draw)}
-function start(){audio();running=true;beat=0;lights.length=0;next=ac.currentTime+0.06;tick();timer=setInterval(tick,25);requestAnimationFrame(draw);$('go').textContent='Stop';$('go').classList.add('stop')}
+function start(){audio();need(KIT[snd]||[]);running=true;step=0;lights.length=0;next=ac.currentTime+0.08;tick();timer=setInterval(tick,25);requestAnimationFrame(draw);$('go').textContent='Stop';$('go').classList.add('stop')}
 function stop(){running=false;clearInterval(timer);timer=null;[...$('dots').children].forEach(d=>d.classList.remove('on'));$('go').textContent='Start';$('go').classList.remove('stop')}
 function toggle(){running?stop():start()}
 function setBpm(v){bpm=clampB(v);$('bpm').textContent=bpm;$('slider').value=bpm;save()}
-function setBeats(n){beats=n;beat=0;$('dots').innerHTML='';for(let i=0;i<n;i++){const d=document.createElement('div');d.className='dot'+(i===0?' one':'');$('dots').appendChild(d)}
-  [...$('beats').children].forEach(b=>b.setAttribute('aria-pressed',String(+b.dataset.n===n)));save()}
-[2,3,4,6].forEach(n=>{const b=document.createElement('button');b.textContent=n;b.dataset.n=n;b.onclick=()=>setBeats(n);$('beats').appendChild(b)});
+function seg(id,opts,cur,fn){const el=$(id);el.innerHTML='';Object.keys(opts).forEach(k=>{const b=document.createElement('button');b.textContent=opts[k];b.dataset.v=k;b.setAttribute('aria-pressed',String(k==String(cur)));b.onclick=()=>fn(k);el.appendChild(b)})}
+function mark(id,cur){[...$(id).children].forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.v==String(cur))))}
+function setTs(v){ts=v;step=0;const T=TS[ts];$('dots').innerHTML='';for(let i=0;i<T.n;i++){const d=document.createElement('div');d.className='dot'+(i===0?' one':T.acc.includes(i)?' grp':'');$('dots').appendChild(d)}
+  $('subRow').hidden=!!T.e;$('hint8').hidden=!T.e;mark('ts',ts);save()}
+function setSub(v){sub=+v;step=0;mark('sub',sub);save()}
+function setSnd(v){snd=v;if(ac)need(KIT[snd]||[]);mark('snd',snd);save()}
+seg('ts',Object.fromEntries(Object.keys(TS).map(k=>[k,k])),ts,setTs);seg('sub',SUBS,sub,setSub);seg('snd',SNDS,snd,setSnd);
 // hold − or + to keep changing
 function hold(el,d){let t=null,r=null;const end=()=>{clearTimeout(t);clearInterval(r)};
   el.addEventListener('pointerdown',e=>{e.preventDefault();setBpm(bpm+d);t=setTimeout(()=>{r=setInterval(()=>setBpm(bpm+d),70)},400)});
@@ -90,7 +126,7 @@ let taps=[];$('tap').addEventListener('pointerdown',e=>{e.preventDefault();const
 document.addEventListener('keydown',e=>{if(e.target.tagName==='INPUT'&&e.target.type!=='range')return;
   if(e.code==='Space'){e.preventDefault();toggle()}else if(e.key==='ArrowUp'){e.preventDefault();setBpm(bpm+1)}else if(e.key==='ArrowDown'){e.preventDefault();setBpm(bpm-1)}});
 document.addEventListener('visibilitychange',()=>{if(!document.hidden&&running&&ac&&ac.state!=='running')ac.resume()});
-setBpm(bpm);setBeats(beats);
-window.__sm={state:()=>({bpm,beats,running,vol})};
+setBpm(bpm);setTs(ts);
+window.__sm={state:()=>({bpm,ts,sub,snd,running,vol,loaded:Object.keys(BUF)})};
 })();
 </script></body></html>
