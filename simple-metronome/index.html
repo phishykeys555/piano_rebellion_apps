@@ -55,7 +55,7 @@ input[type=range]{width:100%;accent-color:var(--on);height:32px}
   <div class="row"><button class="tap" id="tap">Tap tempo</button></div>
   <div class="vol"><span class="lbl" aria-hidden="true">🔈</span><input type="range" id="vol" min="0" max="100" value="80" aria-label="Volume"><span class="lbl" aria-hidden="true">🔊</span></div>
   <p class="hint">Space bar starts and stops. Up and down arrows change the speed.</p>
-  <p class="appver">Simple Metronome · Version 2026-11-18.2</p>
+  <p class="appver">Simple Metronome · Version 2026-11-18.3</p>
 </main>
 <script>
 (function(){
@@ -63,14 +63,19 @@ const $=id=>document.getElementById(id), KEY='chma-simple-metronome';
 const QS=new URLSearchParams(location.search);
 let saved={}; try{saved=JSON.parse(localStorage.getItem(KEY)||'{}')||{}}catch(e){}
 // time signatures: n beats of 1/d. In x/8 each click is an eighth note; acc = the beats that start a group (accented)
-const TS={'2/4':{n:2,acc:[0]},'3/4':{n:3,acc:[0]},'4/4':{n:4,acc:[0]},'5/4':{n:5,acc:[0,3]},'6/8':{n:6,acc:[0,3],e:1},'7/8':{n:7,acc:[0,2,4],e:1},'9/8':{n:9,acc:[0,3,6],e:1},'12/8':{n:12,acc:[0,3,6,9],e:1}};
+// compound meters (c: 6/8, 9/8, 12/8): the BPM counts the dotted quarter and each click is an eighth (as in the Modal Metronome); 7/8: the BPM counts the eighth
+const TS={'2/4':{n:2,acc:[0]},'3/4':{n:3,acc:[0]},'4/4':{n:4,acc:[0]},'5/4':{n:5,acc:[0,3]},'6/8':{n:6,acc:[0,3],e:1,c:1},'7/8':{n:7,acc:[0,2,4],e:1},'9/8':{n:9,acc:[0,3,6],e:1,c:1},'12/8':{n:12,acc:[0,3,6,9],e:1,c:1}};
+// a song page's Modal Metronome preset (?pre=) -> time signature, subdivision and sound here
+const PRE=QS.get('pre')||'', PMAP={waltz:['3/4'],jwaltz:['3/4',1,'ride'],brwaltz:['3/4',1,'ride'],sixeight:['6/8'],mjafro:['6/8',1,'bell'],slowblues:['12/8',1,'drums'],jbshuf:['12/8',1,'drums'],
+  shuffle:['4/4',3,'drums'],texas:['4/4',3,'drums'],halfshuf:['4/4',3,'drums'],brshuf:['4/4',3,'ride'],mjelvin:['4/4',3,'ride'],p54swing:['5/4',1,'ride'],p54rock:['5/4',1,'drums'],p78:['7/8',1,'drums']};
+const PM=PMAP[PRE]||(PRE&&PRE!=='click'?[null,null,/jazz|bop|swing|twofeel|uptempo|^br|ride/.test(PRE)?'ride':'drums']:[]);
 const SUBS={1:'♩ Quarters',2:'♫ 8ths',3:'Triplets',4:'16ths'};
 const SNDS={click:'Click',wood:'Woodblock',sticks:'Sticks',hat:'Hi-hat',drums:'Drum beat',ride:'Ride',bell:'Cowbell'};
 const clampB=v=>Math.max(30,Math.min(240,Math.round(v)||70));
 let bpm=clampB(QS.get('bpm')||saved.bpm||70);
-let ts=TS[QS.get('ts')]?QS.get('ts'):{2:'2/4',3:'3/4',4:'4/4',6:'6/8'}[QS.get('beats')]||(/waltz|3-4|34/i.test(QS.get('pre')||'')?'3/4':TS[saved.ts]?saved.ts:'4/4');
-let sub=SUBS[QS.get('sub')]?+QS.get('sub'):SUBS[saved.sub]?saved.sub:1;
-let snd=SNDS[QS.get('snd')]?QS.get('snd'):SNDS[saved.snd]?saved.snd:'click';
+let ts=TS[QS.get('ts')]?QS.get('ts'):{2:'2/4',3:'3/4',4:'4/4',6:'6/8'}[QS.get('beats')]||PM[0]||(PRE?'4/4':TS[saved.ts]?saved.ts:'4/4');
+let sub=SUBS[QS.get('sub')]?+QS.get('sub'):PM[1]||(PRE?1:SUBS[saved.sub]?saved.sub:1);
+let snd=SNDS[QS.get('snd')]?QS.get('snd'):PM[2]||(SNDS[saved.snd]?saved.snd:'click');
 let vol=saved.vol!=null?saved.vol:80;
 const save=()=>{try{localStorage.setItem(KEY,JSON.stringify({bpm,ts,sub,snd,vol}))}catch(e){}};
 try{if(navigator.audioSession)navigator.audioSession.type='playback'}catch(e){} // iPhone: sound even with the ringer switch on silent
@@ -96,7 +101,7 @@ function hit(t,lv,bi){
       samp(k?(lv===3?'kick_4':'kick_3'):'snare_4',t,k?1:0.75);ok=samp('hat_4',t,0.6)}}
   if(!ok)beep(t,[880,1175,1175,1760][lv],[0.12,0.3,0.36,0.5][lv],0.05) // samples still loading: click instead
 }
-function plan(){const T=TS[ts],k=T.e?1:sub;return{T,k,per:60/bpm/k,total:T.n*k}}
+function plan(){const T=TS[ts],k=T.e?1:sub;return{T,k,per:T.c?60/bpm/3:60/bpm/k,total:T.n*k}}
 function tick(){const P=plan();while(next<ac.currentTime+0.12){const bi=Math.floor(step/P.k),onBeat=step%P.k===0;
   const lv=!onBeat?0:bi===0?3:P.T.acc.includes(bi)?2:1;hit(next,lv,bi);if(onBeat)lights.push({t:next,b:bi});next+=P.per;step=(step+1)%P.total}}
 function draw(){if(!running)return;const now=ac.currentTime;let cur=null;while(lights.length&&lights[0].t<=now)cur=lights.shift();
@@ -108,7 +113,7 @@ function setBpm(v){bpm=clampB(v);$('bpm').textContent=bpm;$('slider').value=bpm;
 function seg(id,opts,cur,fn){const el=$(id);el.innerHTML='';Object.keys(opts).forEach(k=>{const b=document.createElement('button');b.textContent=opts[k];b.dataset.v=k;b.setAttribute('aria-pressed',String(k==String(cur)));b.onclick=()=>fn(k);el.appendChild(b)})}
 function mark(id,cur){[...$(id).children].forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.v==String(cur))))}
 function setTs(v){ts=v;step=0;const T=TS[ts];$('dots').innerHTML='';for(let i=0;i<T.n;i++){const d=document.createElement('div');d.className='dot'+(i===0?' one':T.acc.includes(i)?' grp':'');$('dots').appendChild(d)}
-  $('subRow').hidden=!!T.e;$('hint8').hidden=!T.e;mark('ts',ts);save()}
+  $('subRow').hidden=!!T.e;$('hint8').hidden=!T.e;$('hint8').textContent=T.c?'Each click is an eighth note. The speed counts the dotted quarter (3 clicks).':'Each click is an eighth note.';mark('ts',ts);save()}
 function setSub(v){sub=+v;step=0;mark('sub',sub);save()}
 function setSnd(v){snd=v;if(ac)need(KIT[snd]||[]);mark('snd',snd);save()}
 seg('ts',Object.fromEntries(Object.keys(TS).map(k=>[k,k])),ts,setTs);seg('sub',SUBS,sub,setSub);seg('snd',SNDS,snd,setSnd);
