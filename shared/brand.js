@@ -5,7 +5,7 @@
  var GATE={hash:'b3cdf39439c2facca82473a56b5f102c330ee791b0b01d154b8873f790f783fe',q:'2026-Q4',form:'https://form.jotform.com/263181165308051'};
  var KEY='chmaGate';
  /* Evan's Fretboard tools stay open until the beta reaches Fretboard Revolution (embedded on his students' dashboards) */
- if(/\/(guitar-tuner|drum-machine)\//.test(location.pathname))return;
+ if(/\/(guitar-tuner|drum-machine|simple-metronome)\//.test(location.pathname))return; /* simple-metronome (2026-11-18): embedded on every song page, like the Modal Metronome */
  try{if(localStorage.getItem(KEY)===GATE.hash)return}catch(e){}
  if(!(window.crypto&&crypto.subtle))return; /* never lock out a browser that cannot check the code */
  var de=document.documentElement;de.classList.add('chma-locked');
