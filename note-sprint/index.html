@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>Note Sprint</title><meta name="description" content="Note-reading challenge rounds: a 30-second warm-up sets your targets, then beat each round's target to unlock the next, all the way to a bonus round. Tap the answer or play your real piano and the app listens."><meta property="og:type" content="website"><meta property="og:site_name" content="Clarendon Hills Music Academy"><meta property="og:title" content="Note Sprint · Clarendon Hills Music Academy"><meta property="og:description" content="Note-reading challenge rounds: a 30-second warm-up sets your targets, then beat each round's target to unlock the next, all the way to a bonus round. Tap the answer or play your real piano and the app listens."><meta property="og:url" content="https://phishykeys555.github.io/piano_rebellion_apps/note-sprint/"><meta property="og:image" content="https://phishykeys555.github.io/piano_rebellion_apps/share/note-sprint.png"><meta property="og:image:width" content="1200"><meta property="og:image:height" content="630"><meta property="og:image:alt" content="Note Sprint · Clarendon Hills Music Academy"><meta name="twitter:card" content="summary_large_image"><meta name="twitter:title" content="Note Sprint · Clarendon Hills Music Academy"><meta name="twitter:description" content="Note-reading challenge rounds: a 30-second warm-up sets your targets, then beat each round's target to unlock the next, all the way to a bonus round. Tap the answer or play your real piano and the app listens."><meta name="twitter:image" content="https://phishykeys555.github.io/piano_rebellion_apps/share/note-sprint.png">
+<title>Note Sprint</title><meta name="description" content="Note-reading challenge rounds like an arcade hoop game: points carry over, and each 30-second round has a total to reach, all the way to a bonus round. Tap the answer or play your real piano and the app listens."><meta property="og:type" content="website"><meta property="og:site_name" content="Clarendon Hills Music Academy"><meta property="og:title" content="Note Sprint · Clarendon Hills Music Academy"><meta property="og:description" content="Note-reading challenge rounds like an arcade hoop game: points carry over, and each 30-second round has a total to reach, all the way to a bonus round. Tap the answer or play your real piano and the app listens."><meta property="og:url" content="https://phishykeys555.github.io/piano_rebellion_apps/note-sprint/"><meta property="og:image" content="https://phishykeys555.github.io/piano_rebellion_apps/share/note-sprint.png"><meta property="og:image:width" content="1200"><meta property="og:image:height" content="630"><meta property="og:image:alt" content="Note Sprint · Clarendon Hills Music Academy"><meta name="twitter:card" content="summary_large_image"><meta name="twitter:title" content="Note Sprint · Clarendon Hills Music Academy"><meta name="twitter:description" content="Note-reading challenge rounds like an arcade hoop game: points carry over, and each 30-second round has a total to reach, all the way to a bonus round. Tap the answer or play your real piano and the app listens."><meta name="twitter:image" content="https://phishykeys555.github.io/piano_rebellion_apps/share/note-sprint.png">
 <link rel="stylesheet" href="../shared/chma.css">
 <script src="../shared/brand.js"></script>
 <script src="../shared/hype.js"></script>
@@ -345,7 +345,7 @@ details.how p{margin:0;padding:0 16px 12px;line-height:1.45;color:var(--muted)}
   </div>
   <div class="keyrow"><label for="keySel">Key signature</label><select id="keySel"></select></div></div>
   <details class="how"><summary>How it works</summary>
-    <p>Name the note. Say it out loud as you tap. Start Challenge runs timed rounds: a 30-second warm-up sets your targets, then beat each round's target to unlock the next.</p>
+    <p>Name the note. Say it out loud as you tap. Start Challenge runs timed rounds like an arcade hoop game: your points carry over, and each 30-second round has a total to reach to unlock the next. Round 1 is easy; each round needs a faster pace.</p>
     <p id="kbTip">Keyboard: A–G to answer. In a key with sharps or flats, tap ♯ or ♭ first (or press = / −). Piano keys must be the exact key, right octave.</p></details>
   <details id="settingsBox">
     <summary>Custom settings</summary>
@@ -395,7 +395,7 @@ details.how p{margin:0;padding:0 16px 12px;line-height:1.45;color:var(--muted)}
       </fieldset>
     </div>
   </details>
-  <p class="tip appverp" id="appVer"><span class="appver">Note Sprint · Version 2026-11-18.3</span></p>
+  <p class="tip appverp" id="appVer"><span class="appver">Note Sprint · Version 2026-11-19.1</span></p>
   </div>
   <div class="play">
 
@@ -1287,22 +1287,23 @@ details.how p{margin:0;padding:0 16px 12px;line-height:1.45;color:var(--muted)}
   $("againBtn").addEventListener("click",()=>arcStart());
   $("shareBtn").addEventListener("click",()=>chmaShare.share({app:"note-sprint",text:shareTxt}));
 
-  // ---------- arcade: rounds like the arcade hoop game. Total score carries over, but each round has its own fresh target: extra points never count toward the next round ----------
-  // Base running totals for L1 letters; scaled for harder levels and slower answer modes. Last 10 s of a round = on fire, 2x points.
-  const ARC_BASE=[10,24,40,60,84], ARC_T=30, ARC_FIRE=10;
+  // ---------- arcade (rebuilt 2026-11-19 from a studio request: "like the basketball arcade games… points carry over… if you go fast first time it sets you up for failure") ----------
+  // Like the hoop game: the score is one running total, and each round has a fixed total to reach before its 30 seconds run out. The targets are the same
+  // for everyone at a level (scaled only for harder levels and slower answer modes), so a fast round never raises the bar: it banks a cushion.
+  // Round 1 is easy; each round asks for a faster pace. Last 10 s of a round = on fire, 2x points; the bonus round is 2x the whole way.
+  const ARC_BASE=[8,20,34,50,68], ARC_BONUS=88, ARC_T=30, ARC_FIRE=10;
   const retryOK=()=>$("retryOn").checked&&!arc;
   const mult=()=>arc&&(arc.bonus||timeLeft<=ARC_FIRE)?2:1;
   function arcFactor(){ const s=readSettings(), lv={"1":1,"2":1,"3":.6,"4":.55,"5":.6,"C":.8}[level]||.8, md=s.iv?1:{letters:1,piano:.85,mic:.65}[s.mode]||1; return lv*md }
-  function arcNeeds(){ const f=arcFactor(); return ARC_BASE.map(x=>Math.max(1,Math.round(x*f))) }
-  function arcBar(){ if(!arc) return; if(arc.warm){ $("arcRound").textContent="ROUND 1 OF 5 · WARM-UP"; $("arcNeed").textContent=`SCORE ${half(st.points)}`; $("arcNeed").classList.remove("met");
-      const fire=timeLeft<=ARC_FIRE; $("arcFire").hidden=!fire; $("watch").classList.toggle("fire",fire); $("arcFill").style.width=(100*(ARC_T-timeLeft)/ARC_T)+"%"; $("arcMeter").classList.remove("hit"); return }
-    const need=arc.bonus?arc.bonusNeed:arc.needs[arc.round-1];
-    $("arcRound").textContent=arc.bonus?"BONUS ROUND":`ROUND ${arc.round} OF 5`;
-    const rp=st.points-(arc.start||0), rn=need-(arc.start||0); $("arcNeed").textContent=(st.points>=need?`✓ ${half(rp)} / ${half(rn)}`:`${half(rp)} / ${half(rn)}`); $("arcNeed").classList.toggle("met",!arc.bonus&&st.points>=need);
+  function arcNeeds(){ const f=arcFactor(), n=[]; ARC_BASE.concat([ARC_BONUS]).forEach((x,i)=>n.push(Math.max(i?n[i-1]+2:2,Math.round(x*f)))); return n }  // 5 round totals + the bonus total, each at least 2 above the last
+  function arcBar(){ if(!arc) return;
+    const need=arc.bonus?arc.needs[5]:arc.needs[arc.round-1], prev=arc.bonus?arc.needs[4]:arc.round>1?arc.needs[arc.round-2]:0;
+    $("arcRound").textContent=arc.bonus?"BONUS ROUND · 2x":`ROUND ${arc.round} OF 5`;
+    $("arcNeed").textContent=(st.points>=need?`✓ ${half(st.points)} / ${half(need)}`:`${half(st.points)} / ${half(need)}`); $("arcNeed").classList.toggle("met",st.points>=need);
     const fire=arc.bonus||timeLeft<=ARC_FIRE; $("arcFire").hidden=!fire; $("watch").classList.toggle("fire",fire);
-    // target meter: fills toward this round's running total; turns green with a flash the moment it's reached
-    const m=$("arcMeter"), start=arc.start||0, pct=Math.min(100,Math.max(0,(st.points-start)/(need-start)*100));
-    $("arcFill").style.width=pct+"%"; const hit=st.points>=need; $("arcHit").textContent=arc.bonus?"✓ BONUS TARGET HIT · 2x POINTS":"✓ TARGET HIT";
+    // target meter: fills from the last round's total toward this round's; turns green with a flash the moment it's reached
+    const m=$("arcMeter"), pct=Math.min(100,Math.max(0,(st.points-prev)/Math.max(1,need-prev)*100));
+    $("arcFill").style.width=pct+"%"; const hit=st.points>=need; $("arcHit").textContent=arc.bonus?"✓ BONUS TARGET HIT":"✓ TARGET HIT";
     if(hit&&!arc.hit){ arc.hit=true; m.classList.remove("flash"); void m.offsetWidth; m.classList.add("flash"); const hs=$("hitStamp"); hs.classList.remove("go"); void hs.offsetWidth; hs.classList.add("go"); chime(); $("card")&&$("card").classList.add("met"); $("staffbox").classList.add("hitglow"); setTimeout(()=>$("staffbox").classList.remove("hitglow"),900) }
     m.classList.toggle("hit",hit) }
   function arcSplash(t,sub,ms,then,pre){ ms=Math.max(4500,2500+String(sub||"").length*30);   /* long enough to read (students said the round screens flashed by); tap to go sooner */ $("arcSplashT").textContent=t; $("arcSplashS").textContent=sub; $("arcSplashP").textContent=pre||""; const sp=$("arcSplash"); sp.hidden=false; locked=true; $("card")&&$("card").classList.remove("met");
@@ -1310,27 +1311,20 @@ details.how p{margin:0;padding:0 16px 12px;line-height:1.45;color:var(--muted)}
     sp.classList.remove("go"); void sp.offsetWidth; sp.classList.add("go"); whoosh(); hypePlay(ms);
     const tok=++splashTok, t0=performance.now(), go=()=>{ if(tok!==splashTok) return; splashTok++; hypeStop(120); sp.onclick=null; $("arcSplash").hidden=true; if(arc) then() }; sp.onclick=()=>{ if(performance.now()-t0>900) go() }; let hint=sp.querySelector('.tapgo'); if(!hint){ hint=document.createElement('small'); hint.className='tapgo'; hint.style.cssText='display:block;margin-top:14px;opacity:.6;font-size:12px'; hint.textContent='Tap to start'; ($("arcSplashS").parentNode||sp).appendChild(hint) } setTimeout(go,ms) }   // a stopped or restarted challenge never wakes an old splash
   let splashTok=0;
-  function arcStart(){ resetScore(); sheet(false); arc={round:1,bonus:false,warm:true,needs:[]};
-    $("arcbar").hidden=false; $("arcMeter").hidden=false; chalLabel(true);
-    arcSplash("ROUND 1","Warm-up: score as many as you can in 30 seconds. Your score sets your targets. One try per note, no second chances. Last 10 seconds = 2x points.",2600,arcRound,"CHALLENGE MODE") }
+  function arcStart(){ resetScore(); sheet(false); arc={round:1,bonus:false,needs:arcNeeds(),hit:false};
+    $("arcbar").hidden=false; $("arcMeter").hidden=false; chalLabel(true); timeLeft=ARC_T; arcBar();
+    arcSplash("ROUND 1",`Reach ${half(arc.needs[0])} points in 30 seconds. Your points carry over: every round adds to one total. One try per note. Last 10 seconds = 2x points.`,2600,arcRound,"CHALLENGE MODE") }
   function arcRound(){ clearInterval(timer); timeMax=ARC_T; timeLeft=ARC_T; $("clockrow").hidden=false; showClock(); arcBar(); newQuestion(true);
     timer=setInterval(()=>{ timeLeft--; showClock(); arcBar(); if(timeLeft<=0) arcRoundEnd() },1000) }
   function arcRoundEnd(){ clearInterval(timer); timer=null; locked=true;
-    if(arc.bonus) return arcFinish(true,arc.bonusNeed-(arc.start||0),st.points-(arc.start||0));
-    if(arc.warm){ // the warm-up sets the targets: each later round asks for a little more than this student's own first round
-      // each round asks for more than the last (1x, 1.15x, 1.3x, 1.5x the warm-up), never below a floor for this level and answer mode,
-      // so a slow or sandbagged warm-up can't make every round a gimme
-      const B=Math.max(3,st.points), RAMP=[0,0,1,1.15,1.3,1.5], f=arcFactor(), STEP=[10,14,16,20,24]; arc.inc=[st.points];
-      for(let r=2;r<=5;r++){ const floor=Math.max(3,Math.round(0.5*STEP[r-1]*f)), want=Math.round(B*RAMP[r]); arc.inc.push(Math.max(floor,want,arc.inc[r-2]+(r>2?1:0))) } arc.start=st.points; arc.needs=[st.points,st.points+arc.inc[1]];
-      arc.warm=false; arc.round=2; arc.hit=false; arcBar();
-      return arcSplash("ROUND 2",`Target this round: ${half(arc.inc[1])} points. Fresh count, extras don't carry.`,2600,arcRound,`WARM-UP DONE · YOUR BASELINE ${half(st.points)}`) }
+    if(arc.bonus) return arcFinish(true,arc.needs[5],st.points);
     const need=arc.needs[arc.round-1];
-    if(st.points<need) return arcFinish(false,need-(arc.start||0),st.points-(arc.start||0));
-    if(arc.round===5){ const got5=st.points-(arc.start||0), bt=Math.max(arc.inc[4]+1,Math.round(got5*1.05)); arc.bonus=true; arc.start=st.points; arc.bonusNeed=st.points+bt; arc.hit=false; arcBar();
-      return arcSplash("BONUS ROUND",`Every point counts double. Target: ${half(bt)} points in 30 seconds.`,2400,arcRound,"ROUND 5 CLEARED ✓") }
-    const cleared=arc.round, got=st.points-(arc.start||0); arc.round++;
-    // adapt round to round: the next target is at least 5% more than what was just scored, so a strong round raises the bar right away
-    arc.inc[arc.round-1]=Math.max(arc.inc[arc.round-1],Math.round(got*1.05),arc.inc[arc.round-2]+1); arc.start=st.points; arc.needs[arc.round-1]=st.points+arc.inc[arc.round-1]; arc.hit=false; arcBar(); arcSplash(`ROUND ${arc.round}`,`Target this round: ${half(arc.inc[arc.round-1])} points. Fresh count, extras don't carry.`,2400,arcRound,`ROUND ${cleared} CLEARED ✓`) }
+    if(st.points<need) return arcFinish(false,need,st.points);
+    if(arc.round===5){ arc.bonus=true; arc.hit=false; arcBar();
+      return arcSplash("BONUS ROUND",`Every point counts double. Reach ${half(arc.needs[5])} total in 30 seconds.`,2400,arcRound,`ROUND 5 CLEARED ✓ · ${half(st.points)} POINTS`) }
+    const cleared=arc.round; arc.round++; arc.hit=false; arcBar();
+    const nx=arc.needs[arc.round-1], gap=nx-st.points;
+    arcSplash(`ROUND ${arc.round}`,`Reach ${half(nx)} total. You have ${half(st.points)}, so ${gap>0?half(gap)+" more to go":"you are already there: keep stacking"}.`,2400,arcRound,`ROUND ${cleared} CLEARED ✓`) }
   let shareTxt="";
   // share text: brag line (level + how far), clef/key/answer mode, the numbers, one square per round
   function arcShareText(won,got,need,prev){ const s=readSettings(), L=LEVELS.find(x=>x.id===level)||LEVELS[0], rounds=arc.bonus?6:arc.round, mins=rounds*ARC_T/60;
@@ -1347,7 +1341,7 @@ details.how p{margin:0;padding:0 16px 12px;line-height:1.45;color:var(--muted)}
   function arcFinish(won,need,got){ const failedRound=won?0:arc.round; const reached=arc.bonus?"Bonus round":`Round ${arc.round}`, key="arcbest-"+level+"-"+readSettings().mode, prevBest=+store.get(key,0)||0, best=Math.max(prevBest,st.points), isNew=st.points>0&&st.points>=best; shareTxt=arcShareText(won,got,need,prevBest);
     store.set(key,best); sprintOver=true; locked=true; arc=null; $("arcbar").hidden=true; $("arcMeter").hidden=true; $("watch").classList.remove("fire"); chalLabel(false);
     $("rTitle").textContent=won?"Challenge cleared!":"Challenge over"; $("againBtn").textContent="Play again";
-    $("rWhy").textContent=won?(got>=need?`All 5 rounds cleared and the bonus target hit (${half(got)} / ${half(need)}).`:`All 5 rounds cleared. Bonus target was ${half(need)}; you had ${half(got)}.`):`Round ${failedRound} target was ${half(need)}. You had ${half(got)}. Hit the target before the 30 seconds run out to unlock Round ${failedRound+1}.`;
+    $("rWhy").textContent=won?(got>=need?`All 5 rounds cleared and the bonus total hit (${half(got)} / ${half(need)}).`:`All 5 rounds cleared. The bonus total was ${half(need)}; you had ${half(got)}.`):`Round ${failedRound} needed ${half(need)} total. You had ${half(got)}. Reach the total before the 30 seconds run out to unlock Round ${failedRound+1}.`;
     $("rScore").innerHTML=`${half(st.points)} <small>points · ${reached}${isNew?" · new high score":""}</small>`;
     $("rPct").textContent=(st.total?Math.min(100,Math.round(100*st.correct/st.total)):0)+"%"; $("rTotal").textContent=st.total; $("rBest").textContent=st.best;
     const miss=Object.entries(st.misses).sort((a,b)=>b[1]-a[1]).slice(0,5);
