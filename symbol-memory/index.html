@@ -184,6 +184,13 @@ h2[tabindex]:focus{outline:none}
   .arcmeter.flash{animation:none!important} .arcmeter i{transition:none}
   .setup{transition:none!important}
 }
+/* Meaning card (2026-11-19, Derek: "tell them what it is after the match so they learn while playing"): pops over the board on every match, read aloud */
+.boardwrap{position:relative}
+.defpop{position:absolute;left:50%;top:50%;z-index:20;width:min(92%,460px);transform:translate(-50%,-50%) scale(.9);opacity:0;pointer-events:none;background:var(--c-panel,#1c1d22);color:var(--c-ink,#fff);border:2px solid var(--good);border-radius:18px;box-shadow:0 12px 40px rgba(0,0,0,.45);padding:16px 18px;text-align:center;transition:opacity .18s,transform .18s}
+.defpop.show{opacity:1;transform:translate(-50%,-50%) scale(1);pointer-events:auto;cursor:pointer}
+.defpop b{display:block;font-size:24px;line-height:1.15;color:var(--good);margin-bottom:6px}
+.defpop span{display:block;font-size:18px;line-height:1.4}
+.defpop small{display:block;margin-top:8px;font-size:12px;opacity:.6}
 </style></head>
 <body>
 <div class="scrim" id="scrim"></div>
@@ -216,10 +223,10 @@ h2[tabindex]:focus{outline:none}
     <details id="settingsBox"><summary>Settings</summary>
       <label><input type="checkbox" id="soundOn" checked> Sounds</label>
       <label><input type="checkbox" id="hypeOn" checked> Music on round screens</label>
-      <label><input type="checkbox" id="speakOn" checked> Read meanings aloud in Learn</label>
+      <label><input type="checkbox" id="speakOn" checked> Read each meaning aloud after a match</label>
       <label class="selrow">Voice <select id="voiceSel"><option value="">Most natural on this device</option></select></label>
     </details>
-    <p class="appver" id="appVer">Symbol Memory · Version 2026-11-13.5</p>
+    <p class="appver" id="appVer">Symbol Memory · Version 2026-11-19.1</p>
     <p class="credit">Music symbols: <a href="https://github.com/steinbergmedia/bravura" target="_blank" rel="noopener">Bravura</a> by Steinberg, <a href="fonts/OFL.txt" target="_blank" rel="noopener">SIL Open Font License</a>.</p>
   </aside>
 
@@ -234,7 +241,7 @@ h2[tabindex]:focus{outline:none}
       </div>
       <div class="arcrow" id="arcRow" hidden><div class="arcbar"><span class="pill" id="arcRound">ROUND 1 OF 5</span><span class="pill need" id="arcNeed">0 / 700</span><span class="pill" id="arcTotal">TOTAL 0</span><span class="pill fire" id="arcFire" hidden>BONUS 2X</span></div><div class="arcmeter" id="arcMeter" hidden><i id="arcFill"></i><b id="arcHit">✓ TARGET HIT</b></div></div>
       <div class="info" id="info" aria-live="polite"></div>
-      <div class="boardwrap" id="boardWrap"><div class="board" id="board" role="group" aria-label="Cards"></div></div>
+      <div class="boardwrap" id="boardWrap"><div class="board" id="board" role="group" aria-label="Cards"></div><div class="defpop" id="defPop" aria-live="polite"></div></div>
 
       <div class="arcsplash" id="arcSplash" hidden><div class="boom"></div><div id="arcPcs"></div><div class="pre" id="arcSplashP"></div><b id="arcSplashT">ROUND 1</b><span id="arcSplashS"></span><small>Tap to start</small></div>
       <div class="hitstamp" id="hitStamp" aria-hidden="true">TARGET HIT!</div>
@@ -458,7 +465,7 @@ function tap(i){ const c=deck[i]; if(!c||busy||gameOver) return; focusI=i; rove(
   if(c.up) return;
   if(open.length===2){ clearTimeout(lockT); flipBack() }   // a third tap closes the last miss right away
   startClock(); if(mode==="learn"){ peeked=true; $("peekBtn").setAttribute("aria-disabled","true") }
-  setUp(i,true); sfx("flip"); open.push(i);
+  defHide(); setUp(i,true); sfx("flip"); open.push(i);
   if(open.length<2){ info("Now find its twin."); return }
   moves++; const [a,b]=open, A=deck[a], B=deck[b];
   if(A.s.id===B.s.id&&a!==b){ A.done=B.done=true; open=[]; matched++; [a,b].forEach(j=>{ cardEl(j).classList.add("done"); label(j) }); sfx("match");
@@ -468,8 +475,14 @@ function tap(i){ const c=deck[i]; if(!c||busy||gameOver) return; focusI=i; rove(
   else { combo=0; sfx("miss"); [a,b].forEach(j=>cardEl(j).classList.add("miss")); info("Not a pair. Remember where those were.","bad");
     render(); lockT=setTimeout(flipBack,FAST?150:(mode==="learn"?1400:1000)) } }
 function flipBack(){ open.forEach(j=>{ cardEl(j).classList.remove("miss"); setUp(j,false) }); open=[] }
+let defT=null;
+function defHide(){ clearTimeout(defT); $("defPop").classList.remove("show") }
+$("defPop").addEventListener("click",defHide);
 function explain(s,again,gain){ info(`<b>${s.plain}:</b>&nbsp;${s.meaning}${gain?` <b>+${gain}</b>`:""}`,"good");
-  if(mode==="learn") speak(sayOf(s));
+  // every match, every mode: the meaning pops up big over the board and is read aloud; it clears itself, or on a tap, or when the next card flips
+  const d=$("defPop"); d.innerHTML=`<b>${s.plain}</b><span>${s.meaning}</span><small>Tap to keep playing</small>`; d.classList.add("show"); clearTimeout(defT);
+  defT=setTimeout(defHide,Math.min(7000,2600+String(s.meaning).length*45));
+  speak(sayOf(s));
   if(again){ deck.forEach((c,j)=>{ if(c.s.id===s.id){ const el=cardEl(j); el.classList.remove("glow"); void el.offsetWidth; el.classList.add("glow"); setTimeout(()=>el.classList.remove("glow"),1200) } }) } }
 function peek(){ if(mode!=="learn"||peeked||busy||gameOver) return; peeked=true; busy=true; $("peekBtn").setAttribute("aria-disabled","true"); $("board").classList.add("peek");
   deck.forEach((c,i)=>{ if(!c.done) setUp(i,true) }); sfx("flip"); info("Peek: remember where things are…");
