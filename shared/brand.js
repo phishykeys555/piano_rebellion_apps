@@ -1,4 +1,4 @@
-/* CHMA app-suite access gate (2026-11-15; code changed 2026-11-18). One studio code per quarter; only its SHA-256 lives here.
+/* CHMA app-suite access gate (2026-11-15; code changed 2026-11-18; code shown on the gate 2026-11-19, Derek). One studio code per quarter; only its SHA-256 lives here.
    A soft gate: it stops link-sharing and casual use, not a determined techie (public repo).
    To rotate each quarter: put the new code's sha256 (lowercase, trimmed) in GATE.hash, bump GATE.q, publish. */
 (function(){
@@ -20,7 +20,10 @@
  '#chma-gate input:focus{border-color:#4a7fd1;box-shadow:0 0 0 3px rgba(74,127,209,.35)}'+
  '#chma-gate button{width:100%;margin-top:12px;padding:14px;border:0;box-shadow:none;border-radius:12px;background:#2f63b4;color:#fff;font:600 1rem Inter,system-ui,sans-serif;cursor:pointer}'+
  '#chma-gate .err{min-height:1.4em;margin:10px 0 0;color:#ff8a80;font-size:.9rem}'+
- '#chma-gate a{color:#9cc1ff;font-size:.9rem}';
+ '#chma-gate a{color:#9cc1ff;font-size:.9rem}'+
+ '#chma-gate .code{margin:0 0 18px;padding:12px;border-radius:12px;background:#2f63b4;color:#fff}'+
+ '#chma-gate .code b{display:block;font:800 2.6rem/1.05 Inter,system-ui,sans-serif;letter-spacing:.06em}'+
+ '#chma-gate .code span{font-size:.9rem;font-weight:600}';
  (document.head||de).appendChild(st);
  var base=(document.currentScript&&document.currentScript.src||'').replace(/brand\.js.*$/,'');
  function sha(t){return crypto.subtle.digest('SHA-256',new TextEncoder().encode(t)).then(function(b){return Array.from(new Uint8Array(b)).map(function(x){return x.toString(16).padStart(2,'0')}).join('')})}
@@ -29,6 +32,7 @@
   var d=document.createElement('div');d.id='chma-gate';d.setAttribute('role','dialog');d.setAttribute('aria-modal','true');d.setAttribute('aria-labelledby','chma-gate-h');
   d.innerHTML='<form class="g" novalidate><img src="'+base+'chma-logo-dark.png" alt="Clarendon Hills Music Academy" width="120" height="59">'+
    '<h1 id="chma-gate-h">Piano Rebellion App Suite</h1><p>Enter your studio code to start training. You only need to do this once on this device.</p>'+
+   '<div class="code"><span>Access code for all apps</span><b>chma</b></div>'+
    '<label for="chma-code" style="position:absolute;left:-9999px">Studio code</label>'+
    '<input id="chma-code" type="text" autocomplete="off" autocapitalize="none" spellcheck="false" placeholder="Studio code">'+
    '<button type="submit">Unlock</button><p class="err" aria-live="polite"></p>'+
