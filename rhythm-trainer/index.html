@@ -532,7 +532,7 @@ details.how p{margin-top:6px}
   // Volume (2026-11-19, Derek): every app sound goes through one gain (0–300%) and a limiter, so turning it up gets louder without crackling
   let BUS=null, VOL=+store.get("vol","180"); if(!(VOL>=0&&VOL<=300)) VOL=180;
   const volG=()=>Math.pow(VOL/100,1.3);
-  function bus(){ const a=ctx(); if(!BUS||BUS.context!==a){ const g=a.createGain(), lim=a.createDynamicsCompressor(); lim.threshold.value=-3; lim.knee.value=0; lim.ratio.value=20; lim.attack.value=0.001; lim.release.value=0.08; g.gain.value=volG(); g.connect(lim).connect(a.destination); BUS=g } return BUS }
+  function bus(){ const a=ctx(); if(!BUS||BUS.context!==a){ const g=a.createGain(), lim=a.createDynamicsCompressor(); lim.threshold.value=-6; lim.knee.value=0; lim.ratio.value=20; lim.attack.value=0.001; lim.release.value=0.08; g.gain.value=volG(); g.connect(lim).connect(a.destination); BUS=g } return BUS }
   function abortRun(){ hypeStop(120); if(!run&&!sess&&!arc&&!calHook) return; calHook=null; run=null; hush(); if(sess||arc) stopSession(true); $("go").disabled=false; $("hear").disabled=false; $("arcSplash").hidden=true; lockUI(); drawBar(null);
     msg(null,"Paused","The app was in the background, so this try stopped. Press Start to go again.") }
   document.addEventListener("visibilitychange",()=>{ if(document.hidden) abortRun() }); window.addEventListener("pagehide",()=>abortRun());
@@ -582,19 +582,19 @@ details.how p{margin-top:6px}
   // amp: 1 = a normal beat; 6/8 uses 1.3 for beat 4 (the secondary accent) and 0.7 for the eighths between the beats
   const outG=new Map(); // each click's own loudness (accent, soft in your bar), so the strike detector knows how loud that click should sound
   // learn/first: a count-in click, which One note's detector studies (how it sounds through your speaker and how late it arrives)
-  function click(t,accent,soft,amp,learn,first){ amp=amp||1; outT.push(t); if(outT.length>64) outT.shift(); const G=(accent?0.55:0.38)*(soft?0.35:1)*amp; outG.set(t,G); if(outG.size>64) outG.delete(outG.keys().next().value);
+  function click(t,accent,soft,amp,learn,first){ amp=amp||1; outT.push(t); if(outT.length>64) outT.shift(); const G=(accent?0.9:0.65)*(soft?0.35:1)*amp; outG.set(t,G); /* louder 2026-11-19 (Derek: "the click is faint"): was 0.55 / 0.38 */ if(outG.size>64) outG.delete(outG.keys().next().value);
     const sk=clkSound(); if(sk!=="classic"&&sndPlay(sk,t,accent?"a":"n",G*(accent?1.15:1))){ fxClick(t,accent?"a":"n",G,learn,first); return }
-    const a=ctx(), f=tockF()*(accent?1.335:1), out=a.createBiquadFilter(); out.type="lowpass"; out.frequency.value=2600; out.connect(bus());
+    const a=ctx(), f=tockF()*(accent?1.335:1), out=a.createBiquadFilter(); out.type="lowpass"; out.frequency.value=inMode==="note"&&mic?2600:4500; out.connect(bus());
     const o=a.createOscillator(), g=a.createGain(), o2=a.createOscillator(), g2=a.createGain(); o.type="sine"; o2.type="sine"; fxClick(t,accent?"a":"n",G,learn,first);
     // One note: no pitch sweep and a 6 ms rise, so the click's sound stays on its own two pitches (which the note detector masks out)
     const nm=inMode==="note"&&mic, atk=nm?0.006:0.0015;
     if(nm) o.frequency.setValueAtTime(f,t); else { o.frequency.setValueAtTime(f*1.35,t); o.frequency.exponentialRampToValueAtTime(f,t+0.012) } o2.frequency.setValueAtTime(f*2.76,t);
     g.gain.setValueAtTime(0.0001,t); g.gain[nm?"linearRampToValueAtTime":"exponentialRampToValueAtTime"](G,t+atk); g.gain.exponentialRampToValueAtTime(0.0001,t+0.09);
-    g2.gain.setValueAtTime(0.0001,t); g2.gain[nm?"linearRampToValueAtTime":"exponentialRampToValueAtTime"]((accent?0.16:0.11)*(soft?0.35:1)*amp,t+(nm?atk:0.001)); g2.gain.exponentialRampToValueAtTime(0.0001,t+0.035);
+    g2.gain.setValueAtTime(0.0001,t); g2.gain[nm?"linearRampToValueAtTime":"exponentialRampToValueAtTime"]((accent?0.3:0.22)*(soft?0.35:1)*amp,t+(nm?atk:0.001)); g2.gain.exponentialRampToValueAtTime(0.0001,t+0.035);
     o.connect(g).connect(out); o2.connect(g2).connect(out); track(o); track(o2); o.start(t); o2.start(t); o.stop(t+0.1); o2.stop(t+0.05) }
   // Subdivision: a softer, higher, shorter "tick" on every 8th-note "&" (about 9 dB under the beat click), a single pure tone so the
   // mic modes can tell it apart; it is reported to the note detector like every click.
-  function sub(t,soft,learn,first){ outT.push(t); if(outT.length>64) outT.shift(); const G=0.135*(soft?0.35:1); outG.set(t,G); if(outG.size>64) outG.delete(outG.keys().next().value);
+  function sub(t,soft,learn,first){ outT.push(t); if(outT.length>64) outT.shift(); const G=0.22*(soft?0.35:1); outG.set(t,G); if(outG.size>64) outG.delete(outG.keys().next().value);
     const sk=clkSound(); if(sk!=="classic"&&sndPlay(sk,t,"s",G)){ fxClick(t,"s",G,learn,first); return }
     const a=ctx(), f=tockF()*2, o=a.createOscillator(), g=a.createGain(), out=a.createBiquadFilter(); out.type="lowpass"; out.frequency.value=2600; out.connect(bus()); fxClick(t,"s",G,learn,first);
     o.type="sine"; o.frequency.setValueAtTime(f,t); g.gain.setValueAtTime(0.0001,t); g.gain.linearRampToValueAtTime(G,t+0.004); g.gain.exponentialRampToValueAtTime(0.0001,t+0.05);
@@ -1357,6 +1357,6 @@ class NoteFlux{
   if(document.fonts) document.fonts.ready.then(()=>{ if(!run) drawBar(curRes) });
 })();
 </script>
-<p class="appver" style="text-align:center;font-size:11px;opacity:.6;margin:18px 0 10px;font-family:ui-monospace,Menlo,monospace">Rhythm Trainer · Version 2026-11-19.6</p>
+<p class="appver" style="text-align:center;font-size:11px;opacity:.6;margin:18px 0 10px;font-family:ui-monospace,Menlo,monospace">Rhythm Trainer · Version 2026-11-19.7</p>
 </body>
 </html>
