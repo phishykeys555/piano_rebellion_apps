@@ -95,6 +95,10 @@ details{border:1px solid var(--border);border-radius:12px;background:var(--panel
 .arcmeter s{position:absolute;top:0;bottom:0;width:3px;margin-left:-1px;background:var(--ink);opacity:.8;z-index:1}
 .arcsplash.go b{animation:pop .5s cubic-bezier(.2,1.6,.4,1)} @keyframes pop{from{transform:scale(.4);opacity:0}to{transform:scale(1);opacity:1}}
 .hitstamp{position:absolute;left:50%;top:38%;z-index:7;transform:translate(-50%,-50%) rotate(-8deg) scale(0);font-weight:900;font-size:34px;color:var(--good);border:4px solid var(--good);border-radius:12px;padding:6px 14px;background:var(--panel);pointer-events:none;opacity:0}
+/* Challenge (2026-11-19, Derek): every rhythm flashes its accuracy over the staff */
+.scoreflash{position:absolute;left:50%;top:50%;z-index:6;transform:translate(-50%,-50%) scale(0);font-weight:900;font-size:56px;line-height:1;font-variant-numeric:tabular-nums;color:var(--good);background:var(--panel);border-radius:16px;padding:6px 16px;box-shadow:0 4px 18px rgba(0,0,0,.25);pointer-events:none;opacity:0}
+.scoreflash.ok{color:var(--ok)}.scoreflash.bad{color:var(--bad)}
+.scoreflash.go{animation:sflash 1.2s ease-out} @keyframes sflash{0%{transform:translate(-50%,-50%) scale(.5);opacity:0}12%{transform:translate(-50%,-50%) scale(1.08);opacity:1}22%{transform:translate(-50%,-50%) scale(1)}70%{opacity:1}100%{transform:translate(-50%,-50%) scale(1);opacity:0}}
 .hitstamp.go{animation:stamp 1.1s ease-out} @keyframes stamp{0%{transform:translate(-50%,-50%) rotate(-8deg) scale(2.2);opacity:0}15%{transform:translate(-50%,-50%) rotate(-8deg) scale(1);opacity:1}75%{opacity:1}100%{opacity:0}}
 /* ---- CHMA design system (Studio Gear dark / Pocket Synth light) ---- */
 :root:root:root{--bg:var(--c-page);--panel:var(--c-key);--ink:var(--c-ink);--muted:var(--c-mut);--accent:var(--c-sel);--accent-ink:var(--c-sel-ink);
@@ -144,7 +148,7 @@ button:disabled{opacity:.45;cursor:default;box-shadow:none;transform:none}
 /* keyboard users see where they are; reduced motion: the splash and the ON TARGET stamp fade instead of zooming */
 #micStat a{color:var(--c-act);font-weight:700;text-decoration:underline;display:inline-block;padding:8px 2px;margin:-8px 0}
 button:focus-visible,select:focus-visible,summary:focus-visible,input:focus-visible,a:focus-visible{outline:3px solid var(--c-act);outline-offset:2px}
-@media (prefers-reduced-motion:reduce){ .arcsplash.go b{animation:fadein .2s} .hitstamp.go{animation:stampfade 1.1s} .arcmeter i{transition:none} button{transition:none}
+@media (prefers-reduced-motion:reduce){ .scoreflash.go{animation:sfade 1.2s} @keyframes sfade{0%{opacity:0;transform:translate(-50%,-50%) scale(1)}10%,70%{opacity:1;transform:translate(-50%,-50%) scale(1)}100%{opacity:0;transform:translate(-50%,-50%) scale(1)}} .arcsplash.go b{animation:fadein .2s} .hitstamp.go{animation:stampfade 1.1s} .arcmeter i{transition:none} button{transition:none}
   @keyframes fadein{from{opacity:0}to{opacity:1}} @keyframes stampfade{0%{opacity:0;transform:translate(-50%,-50%) rotate(-8deg) scale(1)}15%,75%{opacity:1;transform:translate(-50%,-50%) rotate(-8deg) scale(1)}100%{opacity:0;transform:translate(-50%,-50%) rotate(-8deg) scale(1)}} }
 
 /* ---- Layout v2 (2026-11-12): one consistent 12/16 px rhythm, labelled groups, Start always in reach ----
@@ -239,7 +243,7 @@ details.how p{margin-top:6px}
     <div class="arcbar" id="arcbar" hidden><span class="pill" id="arcRound">ROUND 1</span><span class="pill need" id="arcNeed"></span><span class="pill clock" id="clockPill">30 s</span></div>
     <div class="arcmeter" id="arcMeter" hidden><i id="arcFill"></i><s id="arcTgt" hidden></s><b id="arcHit">✓ ON TARGET</b></div>
     <div class="cxbar" id="cxBar" hidden title="How hard this rhythm is within the round"><span>COMPLEXITY</span><i><b id="cxFill"></b></i></div>
-    <div class="paper"><svg id="bar" role="img" aria-label="Rhythm to tap"></svg></div>
+    <div class="paper" style="position:relative"><svg id="bar" role="img" aria-label="Rhythm to tap"></svg><div class="scoreflash" id="scoreFlash" aria-live="polite"></div></div>
     <div class="msg" id="msg" role="status" aria-live="polite"><div class="v">Press Start</div><div class="c">You'll hear one bar of clicks first. Start tapping on beat 1 of the next bar.</div></div>
     <div class="seg" id="inSeg" role="group" aria-label="How you answer"><button data-in="tap"><span aria-hidden="true">👆</span> Tap</button><button data-in="clap"><span aria-hidden="true">👏</span> Clap or snap</button><button data-in="note"><span aria-hidden="true">🎹</span> One note</button><button data-in="midi"><span aria-hidden="true">🎛️</span> MIDI</button></div>
     <div id="midiBox" hidden><div class="micp"><label for="midiSel">MIDI keyboard</label><select id="midiSel"><option value="all">All connected devices</option></select></div>
@@ -834,9 +838,10 @@ details.how p{margin-top:6px}
     stats() }
   document.querySelectorAll("#modeSeg button").forEach(b=>b.addEventListener("click",()=>setMode(b.dataset.m)));
   function chime(){ const a=ctx(),t=a.currentTime; [784,1047,1319].forEach((f,i)=>{ const o=a.createOscillator(),g=a.createGain(); o.type="triangle"; o.frequency.value=f; g.gain.setValueAtTime(0.0001,t+i*0.08); g.gain.exponentialRampToValueAtTime(0.25,t+i*0.08+0.01); g.gain.exponentialRampToValueAtTime(0.0001,t+i*0.08+0.35); o.connect(g).connect(bus()); o.start(t+i*0.08); o.stop(t+i*0.08+0.4) }) }
+  function scoreFlash(v){ const f=$("scoreFlash"); f.textContent=v+"%"; f.className="scoreflash"+(v>=90?"":v>=70?" ok":" bad"); void f.offsetWidth; f.classList.add("go") }
   function afterGrade(r){ const pts=r.cpts!=null?r.cpts:Math.max(0,r.perfect+0.5*r.ok-0.5*r.extras);
     if(gmode==="practice"){ round.push(r); const hs=bestNum(bestKey()); if(hs==null||r.score>hs) store.set(bestKey(),r.score); $("go").textContent="Next rhythm"; $("again").hidden=false; stats(); if(loopOn&&loopAt!=null){ const t=loopAt; loopAt=null; loopRes={score:r.score,res:curRes}; $("results").hidden=true; $("again").hidden=true; play("test",t).then(loopBtn) } return }
-    const S=sess; if(!S) return; S.points+=pts; S.bars.push(r);
+    const S=sess; if(!S) return; S.points+=pts; S.bars.push(r); scoreFlash(r.score);
     if(arc){ arc.rp=(arc.rp||0)+pts; if(arc.ramp){ const nxb=arc.deck&&arc.deck[arc.bi], step=!!(nxb&&bar&&bar.diff!=null&&nxb.diff-bar.diff>Math.max(0.75,0.1*bar.diff)); /* the next rhythm is a clear step harder: hold the tempo for it (never both at once) */ const d0=r.score>=95?2:r.score>=80?1:r.score>=60?0:-2, d=step?Math.min(0,d0):d0; nb=Math.max(arc.start,Math.min(arc.cap,arc.bpm+d)); arc.dir=Math.sign(nb-arc.bpm); arc.bpm=nb; arc.top=Math.max(arc.top,nb) } }
     stats(); if(arc) arcBar();
     if(S.left>0&&!S.stopped) setTimeout(()=>{ if(sess===S&&S.left>0&&!S.stopped){ newBar(); play("test") } },500); else setTimeout(()=>{ if(sess===S) sessionOver() },500) }
@@ -934,7 +939,7 @@ details.how p{margin-top:6px}
   function playView(){ try{ if(wideMQ&&wideMQ.matches) return; const r=($("pad").hidden?$("go"):$("pad")).getBoundingClientRect(), st=document.querySelector(".stats").getBoundingClientRect(); if(r.bottom>innerHeight-70||st.top<0) window.scrollBy({top:st.top-8,behavior:"smooth"}) }catch(e){} }
   async function startTest(){ playView(); await play("test") }
   // while the results sheet covers the card, the controls under it are out of the Tab order (no tabbing into hidden buttons)
-  new MutationObserver(()=>{ const on=!$("results").hidden; [...$("card").children].forEach(el=>{ if(el.id!=="results"&&el.id!=="hitStamp"){ if(on) el.setAttribute("inert",""); else el.removeAttribute("inert") } }) }).observe($("results"),{attributes:true,attributeFilter:["hidden"]});
+  new MutationObserver(()=>{ const on=!$("results").hidden; [...$("card").children].forEach(el=>{ if(el.id!=="results"&&el.id!=="hitStamp"&&el.id!=="scoreFlash"){ if(on) el.setAttribute("inert",""); else el.removeAttribute("inert") } }) }).observe($("results"),{attributes:true,attributeFilter:["hidden"]});
   $("shareBtn").addEventListener("click",()=>chmaShare.share({app:"rhythm-trainer",text:shareTxt}));
   $("close").addEventListener("click",()=>{ $("results").hidden=true; stats(); newBar(); msg(null,"Ready","Press Start."); $("go").focus({preventScroll:true}) });
   $("newRound").addEventListener("click",()=>{ $("results").hidden=true; if(gmode==="chal") arcStart(); else { round=[]; stats(); newBar() } $("go").focus({preventScroll:true}) });
@@ -1352,6 +1357,6 @@ class NoteFlux{
   if(document.fonts) document.fonts.ready.then(()=>{ if(!run) drawBar(curRes) });
 })();
 </script>
-<p class="appver" style="text-align:center;font-size:11px;opacity:.6;margin:18px 0 10px;font-family:ui-monospace,Menlo,monospace">Rhythm Trainer · Version 2026-11-19.5</p>
+<p class="appver" style="text-align:center;font-size:11px;opacity:.6;margin:18px 0 10px;font-family:ui-monospace,Menlo,monospace">Rhythm Trainer · Version 2026-11-19.6</p>
 </body>
 </html>
