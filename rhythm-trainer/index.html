@@ -685,10 +685,12 @@ details.how p{margin-top:6px}
   function holdSpec(ev){ return ev.filter(e=>!e.r&&!e.tie).map(n=>{ const i=ev.indexOf(n); let j=i+1; while(j<ev.length&&ev[j].tie) j++;
     const last=ev[j-1], end=last.s+last.d, len=end-n.s, nx=ev[j], tied=j>i+1, beforeRest=!!(nx&&nx.r), dotted=n.d===3||n.d===6||n.d===12;
     return {s:n.s,end,len,tied,beforeRest,dotted,graded:len>=4||tied||dotted||beforeRest} }) }
-  // windows: Perfect within 15% of the written length, Good within 30%; on long notes never wider than a quarter / half of a beat (a whole note held a
-  // beat too long is "held too long", not good); never tighter than 60 / 120 ms. Otherwise "let go early" / "held too long".
-  const holdWin=(L,beat)=>({p:Math.max(0.06,Math.min(0.15*L,0.25*beat)),g:Math.max(0.12,Math.min(0.3*L,0.5*beat))});
-  const HOLD_PEN={perfect:0,good:0.15,early:0.35,late:0.35,held:0.35}; // taken off that note's attack score (never below 0)
+  // windows (loosened 2026-11-19, Derek: "a bit rigid on the holds, be a little more forgiving"): Perfect within 25% of the written length,
+  // Good within 50%; on long notes never wider than 0.4 / 0.75 of a beat; never tighter than 100 / 200 ms. Otherwise "let go early" / "held too long".
+  // Lifting a little early to play the next note is normal playing, so when another note follows right away the early side gets a lift allowance.
+  const holdWin=(L,beat)=>({p:Math.max(0.1,Math.min(0.25*L,0.4*beat)),g:Math.max(0.2,Math.min(0.5*L,0.75*beat))});
+  const liftOf=L=>0.08+0.1*L; // seconds forgiven on an early let-go when the next note starts where this one ends
+  const HOLD_PEN={perfect:0,good:0.05,early:0.3,late:0.3,held:0.35}; // taken off that note's attack score (never below 0)
   const HCOL={perfect:"#1f8a4c",good:"#c98a06",early:"#c2352b",late:"#c2352b",held:"#c2352b"};
   // ---------- grading ----------
   // Timing quality (2026-11-12.2): each note pairs with one hit within 250 ms (so a late note is "late", not "missed"), but it SCORES by
@@ -724,10 +726,10 @@ details.how p{margin-top:6px}
       // the release (Tap, graded notes only). Not double-punished: a late start held for the right length is a good release too,
       // so the release is judged by whichever is closer, the written end or the written length from where you started.
       let hold=null; if(HS&&HS[ni].graded){ const hs=HS[ni], L=hs.len*u, w=holdWin(L,u*MT().beatU), r=rels[bi]; let err=null, g="held";
-        if(r!=null){ const e1=r-(st+hs.end*u), e2=(r-taps[bi])-L; err=Math.abs(e2)<Math.abs(e1)?e2:e1; const a=Math.abs(err); g=a<=w.p?"perfect":a<=w.g?"good":err<0?"early":"late" }
+        if(r!=null){ const e1=r-(st+hs.end*u), e2=(r-taps[bi])-L; err=Math.abs(e2)<Math.abs(e1)?e2:e1; const a=err<0&&!hs.beforeRest&&hs.end<MT().units?Math.max(0,-err-liftOf(L)):Math.abs(err); g=a<=w.p?"perfect":a<=w.g?"good":err<0?"early":"late" }
         sc=Math.max(0,sc-HOLD_PEN[g]); hold={...hs,a:(taps[bi]-st)/u,r:r==null?null:(r-st)/u,err,g,col:HCOL[g]}; holds.push(hold) }
       // Challenge points: 1 perfect start, ½ good start, then −½ for a long note let go early or held too long (never below 0 for the note)
-      cp+=Math.max(0,(a<=TW.P?1:a<=TW.G?0.5:0)-(hold&&HOLD_PEN[hold.g]>=0.35?0.5:0));
+      cp+=Math.max(0,(a<=TW.P?1:a<=TW.G?0.5:0)-(hold&&HOLD_PEN[hold.g]>=0.3?0.5:0));
       pts+=sc; byNote.set(idx,{col}); resTaps.push({s16:(taps[bi]-st)/u,col}) });
     const UN=MT().units, extras=taps.filter((t,i)=>!used.has(i)); extras.forEach(t=>resTaps.push({s16:Math.max(-0.5,Math.min(UN+0.3,(t-st)/u)),col:"#7a808b",extra:true}));
     const score=Math.max(0,Math.round(100*(pts-0.5*extras.length)/notes.length));
@@ -743,7 +745,7 @@ details.how p{margin-top:6px}
     // a missed note with a wrong tap right next to it is one reading mistake: say which count was tapped instead
     const swap=missed.length?ex.map((x,k)=>({x,k})).filter(o=>Math.abs(o.x-missed[0])<=2&&exG[o.k]>=0&&exG[o.k]<=UN-1&&exG[o.k]!==missed[0]).sort((a,b)=>Math.abs(a.x-missed[0])-Math.abs(b.x-missed[0]))[0]:null;
     // holds: the one to fix first (a tied note let go early is the classic, then the biggest miss), in counting language
-    const offH=holds.filter(h=>HOLD_PEN[h.g]>=0.35), hx=offH.find(h=>h.tied&&h.g==="early")||offH.sort((a,b)=>(b.err==null?1e9:Math.abs(b.err))-(a.err==null?1e9:Math.abs(a.err)))[0];
+    const offH=holds.filter(h=>HOLD_PEN[h.g]>=0.3), hx=offH.find(h=>h.tied&&h.g==="early")||offH.sort((a,b)=>(b.err==null?1e9:Math.abs(b.err))-(a.err==null?1e9:Math.abs(a.err)))[0];
     const hmsg=hx?holdMsg(hx,u):null, holdsClean=holds.every(h=>h.g==="perfect");
     let v, c, cls;
     if(score>=90){ v=`✓ Locked in · ${score}%`; cls="good"; c=missed.length?`Tight, but you missed the note on "${CNT(missed[0])}".`:extras.length?(why?"Tight. "+why:`Tight, but ${extras.length===1?"one extra tap":extras.length+" extra taps"}. One tap per note.`):hmsg?"Tight. "+hmsg:perfect===notes.length&&holdsClean?"Every note perfect.":"Tight. Keep the same feel at the next tempo." }
@@ -1328,6 +1330,6 @@ class NoteFlux{
   if(document.fonts) document.fonts.ready.then(()=>{ if(!run) drawBar(curRes) });
 })();
 </script>
-<p class="appver" style="text-align:center;font-size:11px;opacity:.6;margin:18px 0 10px;font-family:ui-monospace,Menlo,monospace">Rhythm Trainer · Version 2026-11-18.1</p>
+<p class="appver" style="text-align:center;font-size:11px;opacity:.6;margin:18px 0 10px;font-family:ui-monospace,Menlo,monospace">Rhythm Trainer · Version 2026-11-19.1</p>
 </body>
 </html>
