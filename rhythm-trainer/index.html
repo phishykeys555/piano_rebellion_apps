@@ -201,7 +201,7 @@ details.how p{margin-top:6px}
   <p class="sec">Speed and time</p>
   <div class="tempo" id="tempo" role="group" aria-label="Tempo"><span id="tempoLbl">Tempo</span></div>
   <div class="tsig" id="meterSeg" role="group" aria-label="Time signature"><span>Time</span></div>
-  <div class="subrow"><label class="clkpick">Click <select id="clkPick" aria-label="Click sound"><option value="classic">Classic click</option><option value="cow">🐄 More cowbell</option><option value="wood">Woodblock</option><option value="rim">Side stick</option><option value="hat">Hi-hat</option><option value="clave">Clave</option><option value="beep">Beep (electronic)</option><option value="kick">Kick + hat (drummer)</option></select></label><label class="clkpick volpick" title="Click and app volume">Volume <input type="range" id="volR" min="0" max="300" step="5" aria-label="Click volume"></label><span class="clksafe" id="clkSafe" hidden>(mic-safe click used)</span><button class="chip" id="loopChip" aria-pressed="false" title="Single tries: count a bar, play the rhythm, count a bar, play it again… until you press Stop">🔁 Loop: <b>Off</b></button><button class="chip" id="subChip" aria-pressed="false" title="A soft tick on every 8th-note &amp;">♪♪ 8th-note ticks: <b>Off</b></button></div>
+  <div class="subrow"><label class="clkpick">Click <select id="clkPick" aria-label="Click sound"><option value="classic">Classic click</option><option value="cow">🐄 More cowbell</option><option value="wood">Woodblock</option><option value="rim">Side stick</option><option value="hat">Hi-hat</option><option value="clave">Clave</option><option value="beep">Beep (electronic)</option><option value="kick">Kick on 1 + hi-hat (drummer)</option></select></label><label class="clkpick volpick" title="Click and app volume">Volume <input type="range" id="volR" min="0" max="300" step="5" aria-label="Click volume"></label><span class="clksafe" id="clkSafe" hidden>(mic-safe click used)</span><button class="chip" id="loopChip" aria-pressed="false" title="Single tries: count a bar, play the rhythm, count a bar, play it again… until you press Stop">🔁 Loop: <b>Off</b></button><button class="chip" id="subChip" aria-pressed="false" title="A soft tick on every 8th-note &amp;">♪♪ 8th-note ticks: <b>Off</b></button></div>
   <p class="sec">Play</p>
   <div class="seg modes" id="modeSeg" role="group" aria-label="Mode"><button data-m="practice"><span aria-hidden="true">🎯</span> Single tries</button><button data-m="chal"><span aria-hidden="true">🏆</span> Challenge</button></div>
   <div id="micSlot"></div>
@@ -212,7 +212,7 @@ details.how p{margin-top:6px}
     <div class="set">
       <label><input type="checkbox" id="counts" checked> Show the counts under the notes</label>
       <label><input type="checkbox" id="guide"> Play the rhythm with me (easier)</label>
-      <label>Click sound <select id="clkSel"><option value="classic">Classic click</option><option value="cow">🐄 More cowbell</option><option value="wood">Woodblock</option><option value="rim">Side stick</option><option value="hat">Hi-hat</option><option value="clave">Clave</option><option value="beep">Beep (electronic)</option><option value="kick">Kick + hat (drummer)</option></select></label>
+      <label>Click sound <select id="clkSel"><option value="classic">Classic click</option><option value="cow">🐄 More cowbell</option><option value="wood">Woodblock</option><option value="rim">Side stick</option><option value="hat">Hi-hat</option><option value="clave">Clave</option><option value="beep">Beep (electronic)</option><option value="kick">Kick on 1 + hi-hat (drummer)</option></select></label>
       <span class="stamp">Click sounds: side stick, hi-hat and kick are samples from AVL Drumkits by Glen MacArthur (CC BY-SA 4.0), shared with the Drum Machine; the others are synthesized here. In Clap or snap, the sampled sounds switch to the classic click; in One note, only the classic click, woodblock and clave are used (the others switch, so the mic never hears them as notes).</span>
       <label id="subRow"><input type="checkbox" id="subdiv"> Subdivide: 8th notes (a soft tick on every "&amp;")</label>
       <label><input type="checkbox" id="cursor" checked> Show the moving cursor (turn off to read without it)</label>
@@ -550,7 +550,7 @@ details.how p{margin-top:6px}
     wood:{n:"Woodblock",p:[[1,1,0.04],[2.3,0.32,0.022],[3.9,0.1,0.012]],b:[880,820,950,1020,760]},
     clave:{n:"Clave",p:[[1,1,0.075],[1.62,0.1,0.03]],b:[2500,2350,2650,2220]},
     beep:{n:"Beep (electronic)",noNote:1,p:[[1,1,0.05,1],[3,0.12,0.05,1]],b:[1000,940,1060,880,1120]},
-    rim:{n:"Side stick",s:"ss/stick_",sv:[3,5,2]}, hat:{n:"Hi-hat",s:"bb/hat_",sv:[3,5,2]}, kick:{n:"Kick + hat (drummer)",s:"bp/kick_",sv:[3,5,2],sub:"bb/hat_"}};
+    rim:{n:"Side stick",s:"ss/stick_",sv:[3,5,2]}, hat:{n:"Hi-hat",s:"bb/hat_",sv:[3,5,2]}, kick:{n:"Kick on 1 + hi-hat (drummer)",s:"bp/kick_",sv:[3,5,2],sub:"bb/hat_"}};
   const micMode=()=>inMode==="clap"||inMode==="note";
   // the sound actually played: a sampled (noise-like) sound is swapped for the classic click while a mic mode listens
   const clkSafe=k=>!(micMode()&&CLK[k].s)&&!(inMode==="note"&&CLK[k].noNote);
@@ -566,6 +566,8 @@ details.how p{margin-top:6px}
   function prepSnd(){ const k=$("clkSel").value, S=CLK[k]; if(!S||!S.s) return; for(const v of S.sv){ loadSnd(S.s+v); if(S.sub) loadSnd(S.sub+v) } }
   // play one tick of the chosen sound: kind a = accent (beat 1), n = beat, s = subdivision (about 9 dB under the beat)
   function sndPlay(k,t,kind,G){ const a=ctx(), S=CLK[k], out=a.createGain(); out.gain.value=1; out.connect(bus());
+    // Kick + hat (2026-11-19, Derek): kick on the downbeat only, hi-hat on every quarter (soft hat on the 8th ticks)
+    if(k==="kick"&&kind==="n"){ const hb=SBUF["bb/hat_"+S.sv[1]]; if(!hb) return false; const h=a.createBufferSource(); h.buffer=hb; const hg=a.createGain(); hg.gain.value=Math.min(2.2,G*2.6); h.connect(hg).connect(out); track(h); h.start(t); return true }
     if(S.s){ const v=S.sv[kind==="a"?1:kind==="s"?2:0], path=(kind==="s"&&S.sub?S.sub:S.s)+v, buf=SBUF[path]; if(!buf) return false;
       const src=a.createBufferSource(); src.buffer=buf; const g=a.createGain(); g.gain.value=Math.min(2.2,G*2.4); src.connect(g).connect(out); track(src); src.start(t);
       if(k==="kick"&&kind!=="s"){ const hb=SBUF["bb/hat_"+S.sv[0]]; if(hb){ const h=a.createBufferSource(); h.buffer=hb; const hg=a.createGain(); hg.gain.value=G*1.2; h.connect(hg).connect(out); track(h); h.start(t) } } return true }
@@ -1350,6 +1352,6 @@ class NoteFlux{
   if(document.fonts) document.fonts.ready.then(()=>{ if(!run) drawBar(curRes) });
 })();
 </script>
-<p class="appver" style="text-align:center;font-size:11px;opacity:.6;margin:18px 0 10px;font-family:ui-monospace,Menlo,monospace">Rhythm Trainer · Version 2026-11-19.4</p>
+<p class="appver" style="text-align:center;font-size:11px;opacity:.6;margin:18px 0 10px;font-family:ui-monospace,Menlo,monospace">Rhythm Trainer · Version 2026-11-19.5</p>
 </body>
 </html>
