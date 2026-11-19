@@ -531,7 +531,7 @@ details.how p{margin-top:6px}
       audio.onstatechange=()=>{ if(audio.state!=="running"&&(run||sess||arc||calHook)) abortRun() } } return audio }
   // Volume (2026-11-19, Derek): every app sound goes through one gain (0–300%) and a limiter, so turning it up gets louder without crackling
   let BUS=null, VOL=+store.get("vol2","100"); if(!(VOL>=0&&VOL<=200)) VOL=100; /* 2026-11-19 (Derek: "way too loud now"): default back to 100%, max 200%; a fresh key so the old 180% saves reset */
-  const volG=()=>Math.pow(VOL/100,1.3);
+  const volG=()=>Math.pow(VOL/100,2); // squared: the bottom of the slider is truly quiet (20% = 4% gain, about -28 dB)
   function bus(){ const a=ctx(); if(!BUS||BUS.context!==a){ const g=a.createGain(), lim=a.createDynamicsCompressor(); lim.threshold.value=-6; lim.knee.value=0; lim.ratio.value=20; lim.attack.value=0.001; lim.release.value=0.08; g.gain.value=volG(); g.connect(lim).connect(a.destination); BUS=g } return BUS }
   function abortRun(){ hypeStop(120); if(!run&&!sess&&!arc&&!calHook) return; calHook=null; run=null; hush(); if(sess||arc) stopSession(true); $("go").disabled=false; $("hear").disabled=false; $("arcSplash").hidden=true; lockUI(); drawBar(null);
     msg(null,"Paused","The app was in the background, so this try stopped. Press Start to go again.") }
