@@ -64,3 +64,8 @@
   el.innerHTML='<div class="chma-stripe"></div><div class="chma-head"><a class="chma-logo" href="'+SITE+'" target="_blank" rel="noopener" aria-label="Clarendon Hills Music Academy website"><picture><source srcset="'+base+'chma-logo-dark.png" media="(prefers-color-scheme: dark)"><img src="'+base+'chma-logo-light.png" alt="Clarendon Hills Music Academy" width="73" height="36"></picture></a><span class="chma-ver">'+(el.dataset.ver||((document.querySelector('.appver')||{}).textContent||'').replace(/^.*Version\s*/,'v'))+'</span></div>'}
  function run(){document.querySelectorAll('[data-chma-head]').forEach(build)}
  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',run);else run();window.chmaHead=run})();
+
+/* Beta (2026-11-19, Derek: "Don't share results, take that off all until we are out of beta"): every game's "Share result" button is hidden.
+   To bring sharing back after beta, set CHMA_SHARE_RESULTS=true. */
+(function(){var CHMA_SHARE_RESULTS=false;if(CHMA_SHARE_RESULTS)return;
+ var st=document.createElement('style');st.textContent='#shareBtn,#shareB,#rShare{display:none!important}';(document.head||document.documentElement).appendChild(st)})();
