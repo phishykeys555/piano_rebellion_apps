@@ -157,7 +157,7 @@ button:focus-visible,select:focus-visible,summary:focus-visible,input:focus-visi
 .sec{margin:4px 0 -4px;font-size:10.5px;font-weight:700;letter-spacing:.16em;text-transform:uppercase;color:var(--c-mut)}
 .levels{gap:6px} .lvl{padding:6px 2px;gap:1px} .lvl b{font-size:14px} .lvl span{font-size:10.5px;line-height:1.15}
 .tempo,.tsig{gap:6px} .tempo button,.tsig button{min-height:40px}
-.subrow{margin-top:-2px}
+.subrow{margin-top:-2px} .volpick{margin-right:0} .volpick input{width:120px;accent-color:var(--c-act,#2f63b4)}
 .card{gap:12px}
 .stats{padding:8px 12px} .stat b{font-size:18px}
 .msg{min-height:40px}
@@ -201,7 +201,7 @@ details.how p{margin-top:6px}
   <p class="sec">Speed and time</p>
   <div class="tempo" id="tempo" role="group" aria-label="Tempo"><span id="tempoLbl">Tempo</span></div>
   <div class="tsig" id="meterSeg" role="group" aria-label="Time signature"><span>Time</span></div>
-  <div class="subrow"><label class="clkpick">Click <select id="clkPick" aria-label="Click sound"><option value="classic">Classic click</option><option value="cow">🐄 More cowbell</option><option value="wood">Woodblock</option><option value="rim">Side stick</option><option value="hat">Hi-hat</option><option value="clave">Clave</option><option value="beep">Beep (electronic)</option><option value="kick">Kick + hat (drummer)</option></select></label><span class="clksafe" id="clkSafe" hidden>(mic-safe click used)</span><button class="chip" id="subChip" aria-pressed="false" title="A soft tick on every 8th-note &amp;">♪♪ 8th-note ticks: <b>Off</b></button></div>
+  <div class="subrow"><label class="clkpick">Click <select id="clkPick" aria-label="Click sound"><option value="classic">Classic click</option><option value="cow">🐄 More cowbell</option><option value="wood">Woodblock</option><option value="rim">Side stick</option><option value="hat">Hi-hat</option><option value="clave">Clave</option><option value="beep">Beep (electronic)</option><option value="kick">Kick + hat (drummer)</option></select></label><label class="clkpick volpick" title="Click and app volume">Volume <input type="range" id="volR" min="0" max="300" step="5" aria-label="Click volume"></label><span class="clksafe" id="clkSafe" hidden>(mic-safe click used)</span><button class="chip" id="subChip" aria-pressed="false" title="A soft tick on every 8th-note &amp;">♪♪ 8th-note ticks: <b>Off</b></button></div>
   <p class="sec">Play</p>
   <div class="seg modes" id="modeSeg" role="group" aria-label="Mode"><button data-m="practice"><span aria-hidden="true">🎯</span> Single tries</button><button data-m="chal"><span aria-hidden="true">🏆</span> Challenge</button></div>
   <div id="micSlot"></div>
@@ -525,6 +525,10 @@ details.how p{margin-top:6px}
   function ctx(){ if(!audio){ aSess(mic?"play-and-record":"playback"); audio=new (window.AudioContext||window.webkitAudioContext)();
       // a phone call, the lock screen or another app can pause the audio clock: stop the try cleanly instead of freezing mid-bar
       audio.onstatechange=()=>{ if(audio.state!=="running"&&(run||sess||arc||calHook)) abortRun() } } return audio }
+  // Volume (2026-11-19, Derek): every app sound goes through one gain (0–300%) and a limiter, so turning it up gets louder without crackling
+  let BUS=null, VOL=+store.get("vol","180"); if(!(VOL>=0&&VOL<=300)) VOL=180;
+  const volG=()=>Math.pow(VOL/100,1.3);
+  function bus(){ const a=ctx(); if(!BUS||BUS.context!==a){ const g=a.createGain(), lim=a.createDynamicsCompressor(); lim.threshold.value=-3; lim.knee.value=0; lim.ratio.value=20; lim.attack.value=0.001; lim.release.value=0.08; g.gain.value=volG(); g.connect(lim).connect(a.destination); BUS=g } return BUS }
   function abortRun(){ hypeStop(120); if(!run&&!sess&&!arc&&!calHook) return; calHook=null; run=null; hush(); if(sess||arc) stopSession(true); $("go").disabled=false; $("hear").disabled=false; $("arcSplash").hidden=true; lockUI(); drawBar(null);
     msg(null,"Paused","The app was in the background, so this try stopped. Press Start to go again.") }
   document.addEventListener("visibilitychange",()=>{ if(document.hidden) abortRun() }); window.addEventListener("pagehide",()=>abortRun());
@@ -561,7 +565,7 @@ details.how p{margin-top:6px}
     fetch("../drum-machine/kits/"+path+".mp3").then(r=>r.arrayBuffer()).then(b=>a.decodeAudioData(b)).then(buf=>{ SBUF[path]=buf }).catch(()=>{ delete SBUF[path] }) }
   function prepSnd(){ const k=$("clkSel").value, S=CLK[k]; if(!S||!S.s) return; for(const v of S.sv){ loadSnd(S.s+v); if(S.sub) loadSnd(S.sub+v) } }
   // play one tick of the chosen sound: kind a = accent (beat 1), n = beat, s = subdivision (about 9 dB under the beat)
-  function sndPlay(k,t,kind,G){ const a=ctx(), S=CLK[k], out=a.createGain(); out.gain.value=1; out.connect(a.destination);
+  function sndPlay(k,t,kind,G){ const a=ctx(), S=CLK[k], out=a.createGain(); out.gain.value=1; out.connect(bus());
     if(S.s){ const v=S.sv[kind==="a"?1:kind==="s"?2:0], path=(kind==="s"&&S.sub?S.sub:S.s)+v, buf=SBUF[path]; if(!buf) return false;
       const src=a.createBufferSource(); src.buffer=buf; const g=a.createGain(); g.gain.value=Math.min(2.2,G*2.4); src.connect(g).connect(out); track(src); src.start(t);
       if(k==="kick"&&kind!=="s"){ const hb=SBUF["bb/hat_"+S.sv[0]]; if(hb){ const h=a.createBufferSource(); h.buffer=hb; const hg=a.createGain(); hg.gain.value=G*1.2; h.connect(hg).connect(out); track(h); h.start(t) } } return true }
@@ -574,7 +578,7 @@ details.how p{margin-top:6px}
   // learn/first: a count-in click, which One note's detector studies (how it sounds through your speaker and how late it arrives)
   function click(t,accent,soft,amp,learn,first){ amp=amp||1; outT.push(t); if(outT.length>64) outT.shift(); const G=(accent?0.55:0.38)*(soft?0.35:1)*amp; outG.set(t,G); if(outG.size>64) outG.delete(outG.keys().next().value);
     const sk=clkSound(); if(sk!=="classic"&&sndPlay(sk,t,accent?"a":"n",G*(accent?1.15:1))){ fxClick(t,accent?"a":"n",G,learn,first); return }
-    const a=ctx(), f=tockF()*(accent?1.335:1), out=a.createBiquadFilter(); out.type="lowpass"; out.frequency.value=2600; out.connect(a.destination);
+    const a=ctx(), f=tockF()*(accent?1.335:1), out=a.createBiquadFilter(); out.type="lowpass"; out.frequency.value=2600; out.connect(bus());
     const o=a.createOscillator(), g=a.createGain(), o2=a.createOscillator(), g2=a.createGain(); o.type="sine"; o2.type="sine"; fxClick(t,accent?"a":"n",G,learn,first);
     // One note: no pitch sweep and a 6 ms rise, so the click's sound stays on its own two pitches (which the note detector masks out)
     const nm=inMode==="note"&&mic, atk=nm?0.006:0.0015;
@@ -586,20 +590,20 @@ details.how p{margin-top:6px}
   // mic modes can tell it apart; it is reported to the note detector like every click.
   function sub(t,soft,learn,first){ outT.push(t); if(outT.length>64) outT.shift(); const G=0.135*(soft?0.35:1); outG.set(t,G); if(outG.size>64) outG.delete(outG.keys().next().value);
     const sk=clkSound(); if(sk!=="classic"&&sndPlay(sk,t,"s",G)){ fxClick(t,"s",G,learn,first); return }
-    const a=ctx(), f=tockF()*2, o=a.createOscillator(), g=a.createGain(), out=a.createBiquadFilter(); out.type="lowpass"; out.frequency.value=2600; out.connect(a.destination); fxClick(t,"s",G,learn,first);
+    const a=ctx(), f=tockF()*2, o=a.createOscillator(), g=a.createGain(), out=a.createBiquadFilter(); out.type="lowpass"; out.frequency.value=2600; out.connect(bus()); fxClick(t,"s",G,learn,first);
     o.type="sine"; o.frequency.setValueAtTime(f,t); g.gain.setValueAtTime(0.0001,t); g.gain.linearRampToValueAtTime(G,t+0.004); g.gain.exponentialRampToValueAtTime(0.0001,t+0.05);
     o.connect(g).connect(out); track(o); o.start(t); o.stop(t+0.06) }
   // (unused) pitchless tick
   function tick(t,accent){ outT.push(t); const a=ctx(), L=Math.floor(a.sampleRate*0.03), nb=a.createBuffer(1,L,a.sampleRate), d=nb.getChannelData(0);
     for(let i=0;i<L;i++) d[i]=(Math.random()*2-1)*Math.exp(-i/a.sampleRate/0.004);
-    const s=a.createBufferSource(), hp=a.createBiquadFilter(), g=a.createGain(); s.buffer=nb; hp.type="highpass"; hp.frequency.value=5000; g.gain.value=accent?1:0.6; s.connect(hp).connect(g).connect(a.destination); s.start(t) }
+    const s=a.createBufferSource(), hp=a.createBiquadFilter(), g=a.createGain(); s.buffer=nb; hp.type="highpass"; hp.frequency.value=5000; g.gain.value=accent?1:0.6; s.connect(hp).connect(g).connect(bus()); s.start(t) }
   // Hear it plays the rhythm as handclaps. While your microphone is listening, the guide stays a soft tone so the mic doesn't count it as your clap.
   function hand(t){ outT.push(t); if(outT.length>64) outT.shift(); const a=ctx(), L=Math.floor(a.sampleRate*0.12), nb=a.createBuffer(1,L,a.sampleRate), d=nb.getChannelData(0);
     for(let i=0;i<L;i++){ const tt=i/a.sampleRate; let e=Math.exp(-(tt-0.02)/0.03)*(tt>=0.02); for(const o of [0,0.008,0.016]) if(tt>=o&&tt<o+0.006) e=Math.max(e,Math.exp(-(tt-o)/0.002)); d[i]=(Math.random()*2-1)*e }
     const s=a.createBufferSource(), bp=a.createBiquadFilter(), g=a.createGain(); s.buffer=nb; bp.type="bandpass"; bp.frequency.value=1200; bp.Q.value=0.9; g.gain.value=0.9;
-    s.connect(bp).connect(g).connect(a.destination); track(s); s.start(t) }
+    s.connect(bp).connect(g).connect(bus()); track(s); s.start(t) }
   function wood(t,dur){ outT.push(t); if(outT.length>64) outT.shift(); const a=ctx(), o=a.createOscillator(), g=a.createGain(); o.type="triangle"; o.frequency.value=880;
-    g.gain.setValueAtTime(0.0001,t); g.gain.exponentialRampToValueAtTime(0.42,t+0.003); g.gain.exponentialRampToValueAtTime(0.0001,t+Math.min(0.25,dur)); o.connect(g).connect(a.destination); track(o); o.start(t); o.stop(t+0.3) }
+    g.gain.setValueAtTime(0.0001,t); g.gain.exponentialRampToValueAtTime(0.42,t+0.003); g.gain.exponentialRampToValueAtTime(0.0001,t+Math.min(0.25,dur)); o.connect(g).connect(bus()); track(o); o.start(t); o.stop(t+0.3) }
 
   // ---------- run a bar: 1 count-in bar of clicks, then the rhythm bar ----------
   // In a challenge each round has its own tempo (arc.bpm); the selected tempo (bpm) is never changed by it.
@@ -821,7 +825,7 @@ details.how p{margin-top:6px}
     msg(null,m==="practice"?"Single tries":"Challenge mode",m==="practice"?"One rhythm at a time, with your timing after every try.":"Faster + accuracy. Round 1 is a 30-second warm-up at your tempo. Play well and the tempo climbs, up to 8% a round. Each round after the warm-up has its own points target, counted from 0: play accurately for most of the 30 seconds to reach it. 5 rounds, then a bonus round. (Settings: turn off the speed-up for a steady tempo.)");
     stats() }
   document.querySelectorAll("#modeSeg button").forEach(b=>b.addEventListener("click",()=>setMode(b.dataset.m)));
-  function chime(){ const a=ctx(),t=a.currentTime; [784,1047,1319].forEach((f,i)=>{ const o=a.createOscillator(),g=a.createGain(); o.type="triangle"; o.frequency.value=f; g.gain.setValueAtTime(0.0001,t+i*0.08); g.gain.exponentialRampToValueAtTime(0.25,t+i*0.08+0.01); g.gain.exponentialRampToValueAtTime(0.0001,t+i*0.08+0.35); o.connect(g).connect(a.destination); o.start(t+i*0.08); o.stop(t+i*0.08+0.4) }) }
+  function chime(){ const a=ctx(),t=a.currentTime; [784,1047,1319].forEach((f,i)=>{ const o=a.createOscillator(),g=a.createGain(); o.type="triangle"; o.frequency.value=f; g.gain.setValueAtTime(0.0001,t+i*0.08); g.gain.exponentialRampToValueAtTime(0.25,t+i*0.08+0.01); g.gain.exponentialRampToValueAtTime(0.0001,t+i*0.08+0.35); o.connect(g).connect(bus()); o.start(t+i*0.08); o.stop(t+i*0.08+0.4) }) }
   function afterGrade(r){ const pts=r.cpts!=null?r.cpts:Math.max(0,r.perfect+0.5*r.ok-0.5*r.extras);
     if(gmode==="practice"){ round.push(r); const hs=bestNum(bestKey()); if(hs==null||r.score>hs) store.set(bestKey(),r.score); $("go").textContent="Next rhythm"; $("again").hidden=false; stats(); return }
     const S=sess; if(!S) return; S.points+=pts; S.bars.push(r);
@@ -1287,6 +1291,8 @@ class NoteFlux{
     $("micBtn").textContent="Turn on the microphone"; $("micBtn").disabled=false; $("micCtl").hidden=true; micHint() }
   $("micBtn").addEventListener("click",()=>micStart($("micSel").value||undefined));
   $("micSel").addEventListener("change",e=>micStart(e.target.value));
+  $("volR").value=String(VOL); $("volR").addEventListener("input",e=>{ VOL=+e.target.value; store.set("vol",String(VOL)); if(BUS) BUS.gain.setTargetAtTime(volG(),BUS.context.currentTime,0.02) });
+  $("volR").addEventListener("change",()=>{ const a=ctx(); if(a.state!=="running") a.resume(); if(!run&&!sess&&!arc&&!calHook) click(a.currentTime+0.03,true) });
   { const gv=+store.get("gain","3"); $("micGain").value=isFinite(gv)&&gv>=0.25&&gv<=12?String(gv):"3" } $("micGain").addEventListener("input",e=>{ if(mic){ mic.g.gain.value=+e.target.value; if(mic.det) mic.det.port.postMessage({g:+e.target.value}); fxSync() } store.set("gain",e.target.value) });
   const wideMQ=window.matchMedia?matchMedia("(min-width:900px)"):null;
   function placeMic(){ const mb=$("micBox"); if(wideMQ&&wideMQ.matches){ if(mb.parentNode!==$("micSlot")) $("micSlot").appendChild(mb) } else if(mb.previousElementSibling!==$("inSeg")) $("inSeg").after(mb) }
@@ -1330,6 +1336,6 @@ class NoteFlux{
   if(document.fonts) document.fonts.ready.then(()=>{ if(!run) drawBar(curRes) });
 })();
 </script>
-<p class="appver" style="text-align:center;font-size:11px;opacity:.6;margin:18px 0 10px;font-family:ui-monospace,Menlo,monospace">Rhythm Trainer · Version 2026-11-19.1</p>
+<p class="appver" style="text-align:center;font-size:11px;opacity:.6;margin:18px 0 10px;font-family:ui-monospace,Menlo,monospace">Rhythm Trainer · Version 2026-11-19.2</p>
 </body>
 </html>
