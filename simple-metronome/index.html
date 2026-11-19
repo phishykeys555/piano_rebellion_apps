@@ -5,7 +5,7 @@
 <meta property="og:type" content="website"><meta property="og:site_name" content="Clarendon Hills Music Academy"><meta property="og:title" content="Simple Metronome · Clarendon Hills Music Academy"><meta property="og:description" content="An easy metronome: speed, time signature, subdivisions and drum sounds.">
 <link rel="stylesheet" href="../shared/chma.css"><script src="../shared/brand.js"></script>
 <style>
-/* Simple Metronome v1.2.0 (2026-11-19: Shaker and Side stick for the Drum beat): the one-screen metronome for song pages. Speed, Start, time signature, subdivision, sound (the Modal Metronome's drum samples), tap, volume. */
+/* Simple Metronome v1.3.0 (2026-11-19: keeps playing in the background; Shaker and Side stick for the Drum beat): the one-screen metronome for song pages. Speed, Start, time signature, subdivision, sound (the Modal Metronome's drum samples), tap, volume. */
 :root{--bg:#fff;--fg:#37352f;--mut:#787774;--bd:#e3e2e0;--btn:#f7f6f3;--on:#2383e2;--acc:#e03e3e;--dot:#e3e2e0}
 @media (prefers-color-scheme:dark){:root{--bg:#191919;--fg:#e6e6e5;--mut:#9b9b9b;--bd:#3a3a3a;--btn:#2a2a2a;--dot:#3a3a3a}}
 *{box-sizing:border-box}
@@ -90,7 +90,7 @@ input[type=range]{width:100%;accent-color:var(--on);height:32px}
   <div class="row"><button class="tap" id="tap">Tap tempo</button><button class="tap" id="kick1" aria-pressed="false">Kick on 1</button><button class="tap dk" id="shk" aria-pressed="false" title="Shaker plays the subdivision (8ths) instead of the hi-hat">Shaker</button><button class="tap dk" id="xs" aria-pressed="false" title="Side stick (cross-stick) instead of the snare">Side stick</button></div>
   <div class="vol"><span class="lbl" aria-hidden="true">🔈</span><input type="range" id="vol" min="0" max="100" value="80" aria-label="Volume"><span class="lbl" aria-hidden="true">🔊</span></div>
   <p class="hint">Space bar starts and stops. Up and down arrows change the speed.</p>
-  <p class="appver">Simple Metronome · Version 2026-11-19.1</p>
+  <p class="appver">Simple Metronome · Version 2026-11-19.2</p>
   </div>
 </main>
 <script>
@@ -117,18 +117,20 @@ let kick1=QS.get('kick')!=null?QS.get('kick')==='1':!!saved.kick1;
 let shk=QS.get('shk')!=null?QS.get('shk')==='1':!!saved.shk, xs=QS.get('xs')!=null?QS.get('xs')==='1':!!saved.xs; // Drum beat options (2026-11-19): shaker on the subdivision, side stick for the snare
 const save=()=>{try{localStorage.setItem(KEY,JSON.stringify({bpm,ts,sub,snd,vol,kick1,shk,xs}))}catch(e){}};
 try{if(navigator.audioSession)navigator.audioSession.type='playback'}catch(e){} // iPhone: sound even with the ringer switch on silent
-let ac=null,master=null,timer=null,next=0,step=0,running=false;const lights=[];
-function audio(){if(!ac){const AC=window.AudioContext||window.webkitAudioContext;ac=new AC();master=ac.createGain();master.connect(ac.destination)}master.gain.value=Math.pow(vol/100,1.5);if(ac.state!=='running')ac.resume();return ac}
+let ac=null,master=null,running=false,C=null,OUT=null;
+// Background play (2026-11-19): iPad/iPhone freeze page timers when you switch apps, so the bar is rendered once and looped on the audio engine (no timers needed to keep time)
+let src=null,t0=0,P0=null,rbT=null,rbN=0;
+function audio(){if(!ac){const AC=window.AudioContext||window.webkitAudioContext;ac=new AC();master=ac.createGain();master.connect(ac.destination);C=ac;OUT=master}master.gain.value=Math.pow(vol/100,1.5);if(ac.state!=='running')ac.resume();return ac}
 // drum samples: the Modal Metronome's Blonde Bop kit (velocity layers 1-5)
 const BUF={},LOAD={};
-function need(names){names.forEach(n=>{if(LOAD[n])return;LOAD[n]=fetch(n.startsWith('cb')?'sounds/'+(n==='cb'?'cowbell':'cowbell-soft')+'.mp3':n==='shaker'?'sounds/shaker.mp3':n==='xstick'?'../drum-machine/kits/ss/stick_4.mp3':'../drum-machine/kits/bb/'+n+'.mp3').then(r=>r.arrayBuffer()).then(b=>new Promise((ok,no)=>audio().decodeAudioData(b,ok,no))).then(d=>{BUF[n]=d}).catch(()=>{delete LOAD[n]})})}
+function need(names){names.forEach(n=>{if(LOAD[n])return;LOAD[n]=fetch(n.startsWith('cb')?'sounds/'+(n==='cb'?'cowbell':'cowbell-soft')+'.mp3':n==='shaker'?'sounds/shaker.mp3':n==='xstick'?'../drum-machine/kits/ss/stick_4.mp3':'../drum-machine/kits/bb/'+n+'.mp3').then(r=>r.arrayBuffer()).then(b=>new Promise((ok,no)=>audio().decodeAudioData(b,ok,no))).then(d=>{BUF[n]=d;if(running)rebuild()}).catch(()=>{delete LOAD[n]})})}
 const KIT={sticks:['stick_4','stick_3','stick_1'],hat:['kick_4','hat_4','hat_1'],drums:['kick_4','snare_4','hat_4','hat_1','kick_3','shaker','xstick'],ride:['kick_4','ride_4','ride_3','ride_1'],bell:['cb','cbs']};
-function samp(n,t,g){const b=BUF[n];if(!b)return false;const s=ac.createBufferSource(),v=ac.createGain();s.buffer=b;v.gain.value=g;s.connect(v);v.connect(master);s.start(t);return true}
-function beep(t,f,g,len,type){const o=ac.createOscillator(),v=ac.createGain();o.type=type||'square';o.frequency.value=f;v.gain.setValueAtTime(0.0001,t);v.gain.exponentialRampToValueAtTime(g,t+0.001);v.gain.exponentialRampToValueAtTime(0.0001,t+len);o.connect(v);v.connect(master);o.start(t);o.stop(t+len+0.01)}
+function samp(n,t,g){const b=BUF[n];if(!b)return false;const s=C.createBufferSource(),v=C.createGain();s.buffer=b;v.gain.value=g;s.connect(v);v.connect(OUT);s.start(t);return true}
+function beep(t,f,g,len,type){const o=C.createOscillator(),v=C.createGain();o.type=type||'square';o.frequency.value=f;v.gain.setValueAtTime(0.0001,t);v.gain.exponentialRampToValueAtTime(g,t+0.001);v.gain.exponentialRampToValueAtTime(0.0001,t+len);o.connect(v);v.connect(OUT);o.start(t);o.stop(t+len+0.01)}
 // fallback cowbell while the recording loads: the classic drum-machine recipe, two square tones (587 and 845 Hz) through a band-pass, a sharp hit then a short ring
-function cowbell(t,g){const bp=ac.createBiquadFilter(),v=ac.createGain();bp.type='bandpass';bp.frequency.value=2640;bp.Q.value=1;
+function cowbell(t,g){const bp=C.createBiquadFilter(),v=C.createGain();bp.type='bandpass';bp.frequency.value=2640;bp.Q.value=1;
   v.gain.setValueAtTime(0.0001,t);v.gain.exponentialRampToValueAtTime(0.9*g,t+0.002);v.gain.exponentialRampToValueAtTime(0.25*g,t+0.04);v.gain.exponentialRampToValueAtTime(0.0001,t+0.35);
-  [587,845].forEach(f=>{const o=ac.createOscillator();o.type='square';o.frequency.value=f;o.connect(bp);o.start(t);o.stop(t+0.36)});bp.connect(v);v.connect(master)}
+  [587,845].forEach(f=>{const o=C.createOscillator();o.type='square';o.frequency.value=f;o.connect(bp);o.start(t);o.stop(t+0.36)});bp.connect(v);v.connect(OUT)}
 // lv: 3 = beat 1, 2 = start of a group (5/4, x/8), 1 = other beat, 0 = subdivision. bi = beat number in the bar
 function hit(t,lv,bi){
   // Kick on 1 (2026-11-18): a kick drum on every downbeat, under any sound (the drum sounds already kick on 1)
@@ -148,20 +150,29 @@ function hit(t,lv,bi){
   if(!ok)beep(t,[880,1175,1175,1760][lv],[0.12,0.3,0.36,0.5][lv],0.05) // samples still loading: click instead
 }
 function plan(){const T=TS[ts],k=T.e?1:sub;return{T,k,per:T.c?60/bpm/3:60/bpm/k,total:T.n*k}}
-function tick(){const P=plan();while(next<ac.currentTime+0.12){const bi=Math.floor(step/P.k),onBeat=step%P.k===0;
-  const lv=!onBeat?0:bi===0?3:P.T.acc.includes(bi)?2:1;hit(next,lv,bi);if(onBeat)lights.push({t:next,b:bi});next+=P.per;step=(step+1)%P.total}}
-function draw(){if(!running)return;const now=ac.currentTime;let cur=null;while(lights.length&&lights[0].t<=now)cur=lights.shift();
-  if(cur){const d=$('dots').children;for(let i=0;i<d.length;i++)d[i].classList.toggle('on',i===cur.b)}requestAnimationFrame(draw)}
-function start(){audio();need(KIT[snd]||[]);if(kick1)need(['kick_4']);running=true;step=0;lights.length=0;next=ac.currentTime+0.08;tick();timer=setInterval(tick,25);requestAnimationFrame(draw);$('go').textContent='Stop';$('go').classList.add('stop')}
-function stop(){running=false;clearInterval(timer);timer=null;[...$('dots').children].forEach(d=>d.classList.remove('on'));$('go').textContent='Start';$('go').classList.remove('stop')}
+// one full bar (every click) rendered offline; sounds that ring past the bar line wrap round to its start so the loop is seamless
+function render(P){const sr=ac.sampleRate,len=Math.max(1,Math.round(P.total*P.per*sr)),tail=Math.round(1.2*sr),OAC=window.OfflineAudioContext||window.webkitOfflineAudioContext,off=new OAC(2,len+tail,sr);
+  C=off;OUT=off.destination;try{for(let st=0;st<P.total;st++){const bi=Math.floor(st/P.k),onBeat=st%P.k===0;hit(st*P.per,!onBeat?0:bi===0?3:P.T.acc.includes(bi)?2:1,bi)}}finally{C=ac;OUT=master}
+  const done=b=>{const o=ac.createBuffer(2,len,sr);for(let c=0;c<2;c++){const a=b.getChannelData(Math.min(c,b.numberOfChannels-1)),d=o.getChannelData(c);d.set(a.subarray(0,len));for(let i=len;i<a.length;i++)d[(i-len)%len]+=a[i]}return o};
+  const pr=off.startRendering();return pr&&pr.then?pr.then(done):new Promise(ok=>{off.oncomplete=e=>ok(done(e.renderedBuffer))})}
+// rebuild after any change; the new loop takes over on the next click so the beat never skips
+function rebuild(){clearTimeout(rbT);rbT=setTimeout(()=>{if(!running)return;const n=++rbN,P=plan();render(P).then(buf=>{if(n!==rbN||!running)return;
+  const now=ac.currentTime+0.04,s2=ac.createBufferSource();s2.buffer=buf;s2.loop=true;s2.connect(master);let at=now,st=0;
+  if(src&&P0){const into=(now-t0)%(P0.total*P0.per),k=Math.ceil(into/P0.per-1e-6);at=now+(k*P0.per-into);st=(P0.k===P.k&&P0.total===P.total)?k%P.total:0;try{src.stop(at)}catch(e){}}
+  s2.start(at,st*P.per);src=s2;t0=at-st*P.per;P0=P}).catch(()=>{})},src?60:0)}
+function draw(){if(!running)return;const now=ac.currentTime;if(P0&&now>=t0){const st=Math.floor(((now-t0)%(P0.total*P0.per))/P0.per),b=Math.floor(st/P0.k),d=$('dots').children;for(let i=0;i<d.length;i++)d[i].classList.toggle('on',i===b)}requestAnimationFrame(draw)}
+function media(on){try{const ms=navigator.mediaSession;if(!ms)return;if(window.MediaMetadata&&on)ms.metadata=new MediaMetadata({title:'Simple Metronome',artist:bpm+' BPM · '+ts,album:'Clarendon Hills Music Academy'});ms.playbackState=on?'playing':'paused';
+  ms.setActionHandler('play',()=>{if(!running)start()});ms.setActionHandler('pause',()=>{if(running)stop()});ms.setActionHandler('stop',()=>{if(running)stop()})}catch(e){}}
+function start(){audio();need(KIT[snd]||[]);if(kick1)need(['kick_4']);running=true;src=null;P0=null;rebuild();requestAnimationFrame(draw);media(true);$('go').textContent='Stop';$('go').classList.add('stop')}
+function stop(){running=false;rbN++;clearTimeout(rbT);if(src){try{src.stop()}catch(e){}src=null}P0=null;[...$('dots').children].forEach(d=>d.classList.remove('on'));media(false);$('go').textContent='Start';$('go').classList.remove('stop')}
 function toggle(){running?stop():start()}
-function setBpm(v){bpm=clampB(v);$('bpm').textContent=bpm;$('slider').value=bpm;save()}
+function setBpm(v){bpm=clampB(v);$('bpm').textContent=bpm;$('slider').value=bpm;save();if(running){rebuild();media(true)}}
 function seg(id,opts,cur,fn){const el=$(id);el.innerHTML='';Object.keys(opts).forEach(k=>{const b=document.createElement('button');b.textContent=opts[k];b.dataset.v=k;b.setAttribute('aria-pressed',String(k==String(cur)));b.onclick=()=>fn(k);el.appendChild(b)})}
 function mark(id,cur){[...$(id).children].forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.v==String(cur))))}
-function setTs(v){ts=v;step=0;const T=TS[ts];$('dots').innerHTML='';for(let i=0;i<T.n;i++){const d=document.createElement('div');d.className='dot'+(i===0?' one':T.acc.includes(i)?' grp':'');$('dots').appendChild(d)}
-  $('subRow').hidden=!!T.e;$('hint8').hidden=!T.e;$('hint8').textContent=T.c?'Each click is an eighth note. The speed counts the dotted quarter (3 clicks).':'Each click is an eighth note.';mark('ts',ts);save()}
-function setSub(v){sub=+v;step=0;mark('sub',sub);save()}
-function setSnd(v){snd=v;if(ac)need(KIT[snd]||[]);mark('snd',snd);paintDk();save()}
+function setTs(v){ts=v;const T=TS[ts];$('dots').innerHTML='';for(let i=0;i<T.n;i++){const d=document.createElement('div');d.className='dot'+(i===0?' one':T.acc.includes(i)?' grp':'');$('dots').appendChild(d)}
+  $('subRow').hidden=!!T.e;$('hint8').hidden=!T.e;$('hint8').textContent=T.c?'Each click is an eighth note. The speed counts the dotted quarter (3 clicks).':'Each click is an eighth note.';mark('ts',ts);save();if(running)rebuild()}
+function setSub(v){sub=+v;mark('sub',sub);save();if(running)rebuild()}
+function setSnd(v){snd=v;if(ac)need(KIT[snd]||[]);mark('snd',snd);paintDk();save();if(running)rebuild()}
 function paintDk(){const on=snd==='drums';['shk','xs'].forEach(id=>{const b=document.getElementById(id);if(!b)return;b.hidden=!on;b.setAttribute('aria-pressed',String(id==='shk'?shk:xs))})}
 seg('ts',Object.fromEntries(Object.keys(TS).map(k=>[k,k])),ts,setTs);seg('sub',SUBS,sub,setSub);seg('snd',SNDS,snd,setSnd);
 // hold − or + to keep changing
@@ -179,9 +190,9 @@ document.addEventListener('keydown',e=>{if(e.target.tagName==='INPUT'&&e.target.
   if(e.code==='Space'){e.preventDefault();toggle()}else if(e.key==='ArrowUp'){e.preventDefault();setBpm(bpm+1)}else if(e.key==='ArrowDown'){e.preventDefault();setBpm(bpm-1)}});
 document.addEventListener('visibilitychange',()=>{if(!document.hidden&&running&&ac&&ac.state!=='running')ac.resume()});
 const kb=$('kick1');const paintK=()=>kb.setAttribute('aria-pressed',String(kick1));paintK();
-kb.addEventListener('click',()=>{kick1=!kick1;if(kick1&&ac)need(['kick_4']);paintK();save()});
-$('shk').addEventListener('click',()=>{shk=!shk;paintDk();save()});$('xs').addEventListener('click',()=>{xs=!xs;paintDk();save()});paintDk();
+kb.addEventListener('click',()=>{kick1=!kick1;if(kick1&&ac)need(['kick_4']);paintK();save();if(running)rebuild()});
+$('shk').addEventListener('click',()=>{shk=!shk;paintDk();save();if(running)rebuild()});$('xs').addEventListener('click',()=>{xs=!xs;paintDk();save();if(running)rebuild()});paintDk();
 setBpm(bpm);setTs(ts);
-window.__sm={state:()=>({bpm,ts,sub,snd,running,vol,kick1,shk,xs,loaded:Object.keys(BUF)})};
+window.__sm={state:()=>({bpm,ts,sub,snd,running,vol,kick1,shk,xs,loaded:Object.keys(BUF),loop:src?{t0,len:src.buffer.duration,now:ac.currentTime,buf:src.buffer}:null})};
 })();
 </script></body></html>
