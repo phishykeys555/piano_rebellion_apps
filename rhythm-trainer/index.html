@@ -264,7 +264,7 @@ details.how p{margin-top:6px}
     </div>
     <button class="pad" id="pad">TAP</button>
     <div class="row actions">
-      <button class="ghost" id="hear"><span aria-hidden="true">▶</span> Hear it</button>
+      <button class="ghost" id="hear"><span aria-hidden="true">▶</span> Hear it</button><button class="ghost" id="hearCount" title="Claps plus a voice counting every note: 1, e, &amp;, a"><span aria-hidden="true">🗣</span> Hear it + count</button>
       <button class="ghost" id="again" hidden><span aria-hidden="true">↺</span> Try this one again</button>
       <button class="primary" id="go">Start</button>
     </div>
@@ -566,7 +566,7 @@ details.how p{margin-top:6px}
   // where the clicks sit in the spectrum (beat at the base, subdivision an octave up), for the One note detector's mask; null = the classic click
   function clkRanges(){ const k=clkSound(); if(k==="classic") return null; const S=CLK[k], f=clkBase(k), out=[]; for(const m of [1,2]) for(const [r] of S.p) out.push([f*r*m*0.97,f*r*m*1.03]); return out }
   const SBUF={}; function loadSnd(path){ if(SBUF[path]!==undefined||!audio) return; SBUF[path]=null; const a=audio;
-    fetch(path[0]==="@"?"../simple-metronome/sounds/"+path.slice(1)+".mp3":"../drum-machine/kits/"+path+".mp3").then(r=>r.arrayBuffer()).then(b=>a.decodeAudioData(b)).then(buf=>{ SBUF[path]=buf }).catch(()=>{ delete SBUF[path] }) }
+    fetch(path[0]==="@"?"../simple-metronome/sounds/"+path.slice(1)+".mp3":path[0]==="#"?"count/"+path.slice(1)+".wav":"../drum-machine/kits/"+path+".mp3").then(r=>r.arrayBuffer()).then(b=>a.decodeAudioData(b)).then(buf=>{ SBUF[path]=buf }).catch(()=>{ delete SBUF[path] }) }
   function prepSnd(){ const k=$("clkSel").value, S=CLK[k]; if(!S||!S.s) return; for(const v of S.sv){ loadSnd(S.s+v); if(S.sub) loadSnd(S.sub+v) } }
   // play one tick of the chosen sound: kind a = accent (beat 1), n = beat, s = subdivision (about 9 dB under the beat)
   function sndPlay(k,t,kind,G){ const a=ctx(), S=CLK[k], out=a.createGain(); out.gain.value=1; out.connect(bus());
@@ -617,7 +617,7 @@ details.how p{margin-top:6px}
   // One note mode: the shortest gap between two hits of your note, under 60% of a 16th at this tempo (16ths at 160 BPM are 94 ms apart)
   const noteRefr=()=>Math.min(0.08,0.55*u16());
   const countWords=()=>{ const M=MT(); return M.compound?"1 2 3 4 5 6":[...Array(M.beats)].map((_,i)=>i+1).join(" · ") };
-  async function play(mode,at){ // mode: "test" | "hear"; at = loop: the count bar starts exactly here (its clicks were already scheduled)
+  async function play(mode,at,opt){ // mode: "test" | "hear"; at = loop: the count bar starts exactly here (its clicks were already scheduled)
     if(run||starting||calHook) return; const S0=sess; starting=true; let a;
     // waiting for the audio or the microphone can take a while: a second press, Stop, or the clock running out in that gap must not start a second bar
     try{ a=ctx(); await a.resume(); prepSnd(); if(inMode==="midi"&&mode==="test") await midiStart(); if(micMode()&&mode==="test"&&!mic) await micStart($("micSel").value||undefined)
@@ -637,6 +637,10 @@ details.how p{margin-top:6px}
     else { // 6/8: the count-in bar clicks all six eighths (accent on 1, secondary accent on 4); the bar you play clicks the two dotted-quarter beats
       if(mode!=="hear"&&!pre) for(let k=0;k<6;k++) click(t0+k*SP/3,k===0,false,k===3?1.3:k===0?1:0.7,mode==="test",mode==="test"&&k<2);
       for(let b=0;b<2;b++) click(start+b*SP,b===0,mode==="test"&&micMode(),b===1?1.3:1) }
+    // spoken count (2026-11-19, Derek: "Hear it with clap and verbal counting"): every note's count, plus any beat with no new note, said right on time
+    if(mode==="hear"&&opt&&opt.count){ const pts=new Set(bar.notes.map(n=>n.s)); for(let b=0;b<M.beats;b++) pts.add(b*M.beatU); const L=[...pts].filter(x=>x<M.units).sort((x,y)=>x-y);
+      L.forEach((u,i)=>{ const w=CNTW[CNT(u)], buf=SBUF["#"+w]; if(!buf) return; const src=a.createBufferSource(), g=a.createGain(); src.buffer=buf; g.gain.value=1.1; src.connect(g).connect(bus()); track(src);
+        const t=start+u*U-0.015; src.start(Math.max(a.currentTime,t)); if(i+1<L.length) src.stop(start+L[i+1]*U-0.02) }) }
     if(mode==="hear"||$("guide").checked) bar.notes.forEach(n=>(mode==="test"&&inMode==="clap"&&mic)?wood(start+n.s*U,n.d*U):hand(start+n.s*U));
     msg(null, mode==="hear"?"Listen…":"Count in: "+countWords(), mode==="hear"?"":loopOn&&loopRes?`Last time: ${loopRes.score}%. Again on beat 1.`:"Start tapping on beat 1 of the next bar.");
     // Tap with "Grade how long I hold" on: releases are graded too. A note that ends with the bar may be let go after the bar ends,
@@ -935,6 +939,12 @@ details.how p{margin-top:6px}
   $("loopChip").addEventListener("click",()=>{ loopOn=!loopOn; store.set("loop",loopOn); paintLoop(); if(!loopOn&&loopAt!=null) loopAt=null }); paintLoop();
   $("again").addEventListener("click",async()=>{ if(run||starting||calHook) return; $("again").hidden=true; if(round.length) round.pop(); stats(); await startTest() });
   fastPress($("hear"),()=>{ if(!bar) newBar(); play("hear") });
+  // the counting voice: public-domain LJSpeech voice (Piper TTS), one short clip per syllable
+  const CNTW={"1":"one","2":"two","3":"three","4":"four","5":"five","6":"six","e":"ee","&":"and","a":"uh"};
+  function countLoad(){ ctx(); Object.values(CNTW).forEach(w=>loadSnd("#"+w)); const t0=performance.now();
+    return new Promise(r=>{ const k=()=>{ if(Object.values(CNTW).every(w=>SBUF["#"+w])||performance.now()-t0>3000) r(); else setTimeout(k,40) }; k() }) }
+  fastPress($("hearCount"),async()=>{ if(run||starting||calHook) return; if(!bar) newBar(); const a=ctx(); await a.resume(); await countLoad(); play("hear",null,{count:true}) });
+  new MutationObserver(()=>{ $("hearCount").disabled=$("hear").disabled }).observe($("hear"),{attributes:true,attributeFilter:["disabled"]});
   // phones: when a try starts, scroll so the staff, the pad and the Start bar share the screen
   function playView(){ try{ if(wideMQ&&wideMQ.matches) return; const r=($("pad").hidden?$("go"):$("pad")).getBoundingClientRect(), st=document.querySelector(".stats").getBoundingClientRect(); if(r.bottom>innerHeight-70||st.top<0) window.scrollBy({top:st.top-8,behavior:"smooth"}) }catch(e){} }
   async function startTest(){ playView(); await play("test") }
@@ -1357,6 +1367,6 @@ class NoteFlux{
   if(document.fonts) document.fonts.ready.then(()=>{ if(!run) drawBar(curRes) });
 })();
 </script>
-<p class="appver" style="text-align:center;font-size:11px;opacity:.6;margin:18px 0 10px;font-family:ui-monospace,Menlo,monospace">Rhythm Trainer · Version 2026-11-19.9</p>
+<p class="appver" style="text-align:center;font-size:11px;opacity:.6;margin:18px 0 10px;font-family:ui-monospace,Menlo,monospace">Rhythm Trainer · Version 2026-11-19.10</p>
 </body>
 </html>
