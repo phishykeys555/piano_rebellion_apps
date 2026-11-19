@@ -201,7 +201,7 @@ details.how p{margin-top:6px}
   <p class="sec">Speed and time</p>
   <div class="tempo" id="tempo" role="group" aria-label="Tempo"><span id="tempoLbl">Tempo</span></div>
   <div class="tsig" id="meterSeg" role="group" aria-label="Time signature"><span>Time</span></div>
-  <div class="subrow"><label class="clkpick">Click <select id="clkPick" aria-label="Click sound"><option value="classic">Classic click</option><option value="cow">🐄 More cowbell</option><option value="wood">Woodblock</option><option value="rim">Side stick</option><option value="hat">Hi-hat</option><option value="clave">Clave</option><option value="beep">Beep (electronic)</option><option value="kick">Kick + hat (drummer)</option></select></label><label class="clkpick volpick" title="Click and app volume">Volume <input type="range" id="volR" min="0" max="300" step="5" aria-label="Click volume"></label><span class="clksafe" id="clkSafe" hidden>(mic-safe click used)</span><button class="chip" id="subChip" aria-pressed="false" title="A soft tick on every 8th-note &amp;">♪♪ 8th-note ticks: <b>Off</b></button></div>
+  <div class="subrow"><label class="clkpick">Click <select id="clkPick" aria-label="Click sound"><option value="classic">Classic click</option><option value="cow">🐄 More cowbell</option><option value="wood">Woodblock</option><option value="rim">Side stick</option><option value="hat">Hi-hat</option><option value="clave">Clave</option><option value="beep">Beep (electronic)</option><option value="kick">Kick + hat (drummer)</option></select></label><label class="clkpick volpick" title="Click and app volume">Volume <input type="range" id="volR" min="0" max="300" step="5" aria-label="Click volume"></label><span class="clksafe" id="clkSafe" hidden>(mic-safe click used)</span><button class="chip" id="loopChip" aria-pressed="false" title="Single tries: count a bar, play the rhythm, count a bar, play it again… until you press Stop">🔁 Loop: <b>Off</b></button><button class="chip" id="subChip" aria-pressed="false" title="A soft tick on every 8th-note &amp;">♪♪ 8th-note ticks: <b>Off</b></button></div>
   <p class="sec">Play</p>
   <div class="seg modes" id="modeSeg" role="group" aria-label="Mode"><button data-m="practice"><span aria-hidden="true">🎯</span> Single tries</button><button data-m="chal"><span aria-hidden="true">🏆</span> Challenge</button></div>
   <div id="micSlot"></div>
@@ -611,7 +611,7 @@ details.how p{margin-top:6px}
   // One note mode: the shortest gap between two hits of your note, under 60% of a 16th at this tempo (16ths at 160 BPM are 94 ms apart)
   const noteRefr=()=>Math.min(0.08,0.55*u16());
   const countWords=()=>{ const M=MT(); return M.compound?"1 2 3 4 5 6":[...Array(M.beats)].map((_,i)=>i+1).join(" · ") };
-  async function play(mode){ // mode: "test" | "hear"
+  async function play(mode,at){ // mode: "test" | "hear"; at = loop: the count bar starts exactly here (its clicks were already scheduled)
     if(run||starting||calHook) return; const S0=sess; starting=true; let a;
     // waiting for the audio or the microphone can take a while: a second press, Stop, or the clock running out in that gap must not start a second bar
     try{ a=ctx(); await a.resume(); prepSnd(); if(inMode==="midi"&&mode==="test") await midiStart(); if(micMode()&&mode==="test"&&!mic) await micStart($("micSel").value||undefined)
@@ -624,15 +624,15 @@ details.how p{margin-top:6px}
     if(document.hidden){ if(sess||arc) abortRun(); return } // a page hidden while waiting never starts a bar it can't draw (a challenge stops, as it does when hidden mid-bar)
     taps=[]; rels=[]; padDown(); if(mic&&mic.nd) try{ mic.nd.port.postMessage({refr:Math.max(0.03,noteRefr()-0.01)}) }catch(e){} $("results").hidden=true; $("again").hidden=true; $("go").disabled=!sess; $("hear").disabled=true;
     const M=MT(), SP=spb(), U=SP/M.beatU; // this bar's tempo, fixed for the whole bar (count-in, clicks, cursor and grading)
-    const t0=a.currentTime+0.15-(mode==="hear"?M.beats*SP:0), start=t0+M.beats*SP, end=start+M.units*U; // Hear it starts right away (no silent bar)
+    const pre=at!=null&&at+M.beats*SP>a.currentTime+0.05, t0=pre?at:a.currentTime+0.15-(mode==="hear"?M.beats*SP:0), start=t0+M.beats*SP, end=start+M.units*U; // Hear it starts right away (no silent bar)
     // while you play into the mic, the clicks in your bar are softer so the mic hears you, not them
-    if(!M.compound) for(let b=0;b<2*M.beats;b++){ if(mode==="hear"&&b<M.beats) continue; const ci=mode==="test"&&b<M.beats, sf=b>=M.beats&&mode==="test"&&micMode(); click(t0+b*SP,b%M.beats===0,sf,1,ci,ci&&b<2);
+    if(!M.compound) for(let b=0;b<2*M.beats;b++){ if((mode==="hear"||pre)&&b<M.beats) continue; const ci=mode==="test"&&b<M.beats, sf=b>=M.beats&&mode==="test"&&micMode(); click(t0+b*SP,b%M.beats===0,sf,1,ci,ci&&b<2);
       if(subOn()&&mode==="test") sub(t0+b*SP+SP/2,sf,ci,ci&&b===0) }
     else { // 6/8: the count-in bar clicks all six eighths (accent on 1, secondary accent on 4); the bar you play clicks the two dotted-quarter beats
-      if(mode!=="hear") for(let k=0;k<6;k++) click(t0+k*SP/3,k===0,false,k===3?1.3:k===0?1:0.7,mode==="test",mode==="test"&&k<2);
+      if(mode!=="hear"&&!pre) for(let k=0;k<6;k++) click(t0+k*SP/3,k===0,false,k===3?1.3:k===0?1:0.7,mode==="test",mode==="test"&&k<2);
       for(let b=0;b<2;b++) click(start+b*SP,b===0,mode==="test"&&micMode(),b===1?1.3:1) }
     if(mode==="hear"||$("guide").checked) bar.notes.forEach(n=>(mode==="test"&&inMode==="clap"&&mic)?wood(start+n.s*U,n.d*U):hand(start+n.s*U));
-    msg(null, mode==="hear"?"Listen…":"Count in: "+countWords(), mode==="hear"?"":"Start tapping on beat 1 of the next bar.");
+    msg(null, mode==="hear"?"Listen…":"Count in: "+countWords(), mode==="hear"?"":loopOn&&loopRes?`Last time: ${loopRes.score}%. Again on beat 1.`:"Start tapping on beat 1 of the next bar.");
     // Tap with "Grade how long I hold" on: releases are graded too. A note that ends with the bar may be let go after the bar ends,
     // so grading waits (only while it is still held) until that note's Good window has passed.
     const holds=mode==="test"&&keyIn()&&$("holds").checked, endL=holds?Math.max(0,...holdSpec(bar.ev).filter(h=>h.graded&&h.end===M.units).map(h=>h.len)):0;
@@ -643,8 +643,9 @@ details.how p{margin-top:6px}
     if(mode==="test"&&inMode==="note") fxWins(bar.notes.map(n=>start+n.s*U),null,U,mlag); if(mode==="test"){ lastStart=start; lastU=U; lastHolds=holds } lockUI();
     const tick=()=>{ if(run!==R) return; /* this bar was stopped (or replaced): its frame loop ends here */ const now=a.currentTime; let px=null, pos=null;
       if(now>=start&&now<=end){ pos=(now-start)/U; px=$("cursor").checked?xOf(pos):null; if(mode==="test"&&!run.go){ run.go=true; msg(null,"Go!",inMode==="clap"?"Clap or snap every note.":inMode==="note"?"Play your note for every note.":"Tap every note.") } }
-      else if(now<start&&mode==="test"){ const n=M.compound?6:M.beats, left=Math.ceil((start-now)/(M.compound?SP/3:SP)); $("msg").querySelector(".v").textContent=left<=n?"Count in: "+(n+1-left):"Get ready"; }
-      drawBar(null,px,pos);
+      if(loopOn&&mode==="test"&&gmode==="practice"&&!R.q&&now>=end-0.3){ R.q=true; loopAt=end; countClicks(end,M,SP) }
+      if(now<start&&mode==="test"){ const n=M.compound?6:M.beats, left=Math.ceil((start-now)/(M.compound?SP/3:SP)); $("msg").querySelector(".v").textContent=left<=n?"Count in: "+(n+1-left):"Get ready"; }
+      if(loopOn&&loopRes&&mode==="test"&&now<start) drawBar(loopRes.res); else drawBar(null,px,pos);
       if(now>end+R.tail&&!(R.holds&&now<end+R.grace&&[...held.values()].some(h=>h.arr===taps&&h.i>=0))){ const m=run.mode; run=null; $("go").disabled=false; lockUI(); $("hear").disabled=!!sess; if(m==="test") grade(); else { drawBar(null); msg(null,"Your turn","Press Start, count in, then tap it.") } return }
       requestAnimationFrame(tick) };
     tick() }
@@ -705,7 +706,8 @@ details.how p{margin-top:6px}
   // how close it was: full marks within P (21 ms at 72 BPM; 10% of a 16th, kept between 18 and 30 ms), then falling in a straight line
   // to 0 at P + 70 ms (91 ms at 72 BPM). Further off = 0 for that note. Extra hits (rests, doubles, banging) cost 0.5 each, a missed
   // note scores 0. (Until 11.23 anything within 60 ms was perfect and 120-250 ms still earned 0.4, so sloppy playing read 90%+.)
-  const tWin=u=>{ const P=Math.min(0.03,Math.max(0.018,0.1*u)), O=P+0.07; return {P,G:(P+O)/2,O} };
+  // loosened 2026-11-19 (Derek: "grading is a bit strict, chill out"): Perfect within 30-45 ms (was 18-30), partial credit out to ~110 ms past that (was 70)
+  const tWin=u=>{ const P=Math.min(0.045,Math.max(0.03,0.12*u)), O=P+0.11; return {P,G:(P+O)/2,O} };
   const tScore=(a,W)=>a<=W.P?1:Math.max(0,(W.O-a)/(W.O-W.P));
   function grade(){
     const st=lastStart, u=lastU;
@@ -831,7 +833,7 @@ details.how p{margin-top:6px}
   document.querySelectorAll("#modeSeg button").forEach(b=>b.addEventListener("click",()=>setMode(b.dataset.m)));
   function chime(){ const a=ctx(),t=a.currentTime; [784,1047,1319].forEach((f,i)=>{ const o=a.createOscillator(),g=a.createGain(); o.type="triangle"; o.frequency.value=f; g.gain.setValueAtTime(0.0001,t+i*0.08); g.gain.exponentialRampToValueAtTime(0.25,t+i*0.08+0.01); g.gain.exponentialRampToValueAtTime(0.0001,t+i*0.08+0.35); o.connect(g).connect(bus()); o.start(t+i*0.08); o.stop(t+i*0.08+0.4) }) }
   function afterGrade(r){ const pts=r.cpts!=null?r.cpts:Math.max(0,r.perfect+0.5*r.ok-0.5*r.extras);
-    if(gmode==="practice"){ round.push(r); const hs=bestNum(bestKey()); if(hs==null||r.score>hs) store.set(bestKey(),r.score); $("go").textContent="Next rhythm"; $("again").hidden=false; stats(); return }
+    if(gmode==="practice"){ round.push(r); const hs=bestNum(bestKey()); if(hs==null||r.score>hs) store.set(bestKey(),r.score); $("go").textContent="Next rhythm"; $("again").hidden=false; stats(); if(loopOn&&loopAt!=null){ const t=loopAt; loopAt=null; loopRes={score:r.score,res:curRes}; $("results").hidden=true; $("again").hidden=true; play("test",t).then(loopBtn) } return }
     const S=sess; if(!S) return; S.points+=pts; S.bars.push(r);
     if(arc){ arc.rp=(arc.rp||0)+pts; if(arc.ramp){ const nxb=arc.deck&&arc.deck[arc.bi], step=!!(nxb&&bar&&bar.diff!=null&&nxb.diff-bar.diff>Math.max(0.75,0.1*bar.diff)); /* the next rhythm is a clear step harder: hold the tempo for it (never both at once) */ const d0=r.score>=95?2:r.score>=80?1:r.score>=60?0:-2, d=step?Math.min(0,d0):d0; nb=Math.max(arc.start,Math.min(arc.cap,arc.bpm+d)); arc.dir=Math.sign(nb-arc.bpm); arc.bpm=nb; arc.top=Math.max(arc.top,nb) } }
     stats(); if(arc) arcBar();
@@ -914,8 +916,16 @@ details.how p{margin-top:6px}
     ["contextmenu","selectstart","dragstart"].forEach(k=>el.addEventListener(k,e=>e.preventDefault()));
     el.addEventListener("pointerdown",e=>{ if(e.button>0||el.disabled) return; if(e.pointerType!=="mouse"&&!(audio&&audio.state==="running")) return; e.preventDefault(); at=performance.now(); fn() });
     el.addEventListener("click",e=>{ if(e.detail>0&&performance.now()-at<1500){ at=-1e9; return } fn() }) }
-  fastPress($("go"),async()=>{ if(gmode!=="practice"&&(sess||arc)){ stopSession(); return } if(run||starting) return; if(calHook){ msg(null,"Calibrating…","Finish the 8 clicks first (Settings), then press Start."); return }
-    if(gmode!=="practice") return arcStart(); if($("go").textContent==="Next rhythm"||!bar) newBar(); $("go").textContent="Start"; $("again").hidden=true; await startTest() });
+  fastPress($("go"),async()=>{ if(loopOn&&gmode==="practice"&&(run||loopAt!=null)){ loopStop(); return } if(gmode!=="practice"&&(sess||arc)){ stopSession(); return } if(run||starting) return; if(calHook){ msg(null,"Calibrating…","Finish the 8 clicks first (Settings), then press Start."); return }
+    if(gmode!=="practice") return arcStart(); if($("go").textContent==="Next rhythm"||!bar) newBar(); $("go").textContent="Start"; $("again").hidden=true; loopRes=null; await startTest(); loopBtn() });
+  // ---------- practice loop (2026-11-19, Derek): count bar, play bar, count bar, play bar… on one rhythm, in time, until Stop ----------
+  let loopOn=!!store.get("loop",false), loopAt=null, loopRes=null;
+  function countClicks(t0,M,SP){ if(!M.compound) for(let b=0;b<M.beats;b++) click(t0+b*SP,b===0,false,1);
+    else for(let k=0;k<6;k++) click(t0+k*SP/3,k===0,false,k===3?1.3:k===0?1:0.7) }
+  function loopBtn(){ if(loopOn&&gmode==="practice"&&(run||loopAt!=null)){ $("go").textContent="Stop"; $("go").disabled=false } }
+  function loopStop(){ loopAt=null; loopRes=null; run=null; hush(); held.clear(); $("go").disabled=false; $("hear").disabled=false; lockUI(); drawBar(null); $("go").textContent="Start"; msg(null,"Loop stopped","Press Start to loop this rhythm again. Turn Loop off for one try at a time.") }
+  const paintLoop=()=>{ $("loopChip").setAttribute("aria-pressed",String(loopOn)); $("loopChip").querySelector("b").textContent=loopOn?"On":"Off" };
+  $("loopChip").addEventListener("click",()=>{ loopOn=!loopOn; store.set("loop",loopOn); paintLoop(); if(!loopOn&&loopAt!=null) loopAt=null }); paintLoop();
   $("again").addEventListener("click",async()=>{ if(run||starting||calHook) return; $("again").hidden=true; if(round.length) round.pop(); stats(); await startTest() });
   fastPress($("hear"),()=>{ if(!bar) newBar(); play("hear") });
   // phones: when a try starts, scroll so the staff, the pad and the Start bar share the screen
@@ -1340,6 +1350,6 @@ class NoteFlux{
   if(document.fonts) document.fonts.ready.then(()=>{ if(!run) drawBar(curRes) });
 })();
 </script>
-<p class="appver" style="text-align:center;font-size:11px;opacity:.6;margin:18px 0 10px;font-family:ui-monospace,Menlo,monospace">Rhythm Trainer · Version 2026-11-19.3</p>
+<p class="appver" style="text-align:center;font-size:11px;opacity:.6;margin:18px 0 10px;font-family:ui-monospace,Menlo,monospace">Rhythm Trainer · Version 2026-11-19.4</p>
 </body>
 </html>
