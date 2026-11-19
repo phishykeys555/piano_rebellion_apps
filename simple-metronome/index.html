@@ -5,7 +5,7 @@
 <meta property="og:type" content="website"><meta property="og:site_name" content="Clarendon Hills Music Academy"><meta property="og:title" content="Simple Metronome · Clarendon Hills Music Academy"><meta property="og:description" content="An easy metronome: speed, time signature, subdivisions and drum sounds.">
 <link rel="stylesheet" href="../shared/chma.css"><script src="../shared/brand.js"></script>
 <style>
-/* Simple Metronome v1.1.0 (2026-11-18): the one-screen metronome for song pages. Speed, Start, time signature, subdivision, sound (the Modal Metronome's drum samples), tap, volume. */
+/* Simple Metronome v1.2.0 (2026-11-19: Shaker and Side stick for the Drum beat): the one-screen metronome for song pages. Speed, Start, time signature, subdivision, sound (the Modal Metronome's drum samples), tap, volume. */
 :root{--bg:#fff;--fg:#37352f;--mut:#787774;--bd:#e3e2e0;--btn:#f7f6f3;--on:#2383e2;--acc:#e03e3e;--dot:#e3e2e0}
 @media (prefers-color-scheme:dark){:root{--bg:#191919;--fg:#e6e6e5;--mut:#9b9b9b;--bd:#3a3a3a;--btn:#2a2a2a;--dot:#3a3a3a}}
 *{box-sizing:border-box}
@@ -34,6 +34,7 @@ input[type=range]{width:100%;accent-color:var(--on);height:32px}
 .dot.grp{outline:2px solid var(--on);outline-offset:2px}.dot.sub{width:12px;height:12px;align-self:center}
 .seg button[aria-pressed=true]{background:var(--on);border-color:var(--on);color:#fff}
 .tap[aria-pressed=true]{background:var(--on);border-color:var(--on);color:#fff}
+.tap.dk[hidden]{display:none}
 .tap{height:44px;padding:0 22px;font-size:16px;font-weight:600}
 .vol{display:flex;align-items:center;gap:8px;width:100%}.vol input{flex:1}
 .hint{font-size:13px;color:var(--mut);text-align:center;margin:0}
@@ -86,10 +87,10 @@ input[type=range]{width:100%;accent-color:var(--on);height:32px}
   <div class="opt" id="subRow"><span class="lbl">Subdivision</span><span class="seg" id="sub" role="group" aria-label="Subdivision"></span></div>
   <p class="hint8" id="hint8" hidden>Each click is an eighth note.</p>
   <div class="opt"><span class="lbl">Sound</span><span class="seg" id="snd" role="group" aria-label="Sound"></span></div>
-  <div class="row"><button class="tap" id="tap">Tap tempo</button><button class="tap" id="kick1" aria-pressed="false">Kick on 1</button></div>
+  <div class="row"><button class="tap" id="tap">Tap tempo</button><button class="tap" id="kick1" aria-pressed="false">Kick on 1</button><button class="tap dk" id="shk" aria-pressed="false" title="Shaker plays the subdivision (8ths) instead of the hi-hat">Shaker</button><button class="tap dk" id="xs" aria-pressed="false" title="Side stick (cross-stick) instead of the snare">Side stick</button></div>
   <div class="vol"><span class="lbl" aria-hidden="true">🔈</span><input type="range" id="vol" min="0" max="100" value="80" aria-label="Volume"><span class="lbl" aria-hidden="true">🔊</span></div>
   <p class="hint">Space bar starts and stops. Up and down arrows change the speed.</p>
-  <p class="appver">Simple Metronome · Version 2026-11-18.7</p>
+  <p class="appver">Simple Metronome · Version 2026-11-19.1</p>
   </div>
 </main>
 <script>
@@ -113,14 +114,15 @@ let sub=SUBS[QS.get('sub')]?+QS.get('sub'):PM[1]||(PRE?1:SUBS[saved.sub]?saved.s
 let snd=SNDS[QS.get('snd')]?QS.get('snd'):PM[2]||(SNDS[saved.snd]?saved.snd:'click');
 let vol=saved.vol!=null?saved.vol:80;
 let kick1=QS.get('kick')!=null?QS.get('kick')==='1':!!saved.kick1;
-const save=()=>{try{localStorage.setItem(KEY,JSON.stringify({bpm,ts,sub,snd,vol,kick1}))}catch(e){}};
+let shk=QS.get('shk')!=null?QS.get('shk')==='1':!!saved.shk, xs=QS.get('xs')!=null?QS.get('xs')==='1':!!saved.xs; // Drum beat options (2026-11-19): shaker on the subdivision, side stick for the snare
+const save=()=>{try{localStorage.setItem(KEY,JSON.stringify({bpm,ts,sub,snd,vol,kick1,shk,xs}))}catch(e){}};
 try{if(navigator.audioSession)navigator.audioSession.type='playback'}catch(e){} // iPhone: sound even with the ringer switch on silent
 let ac=null,master=null,timer=null,next=0,step=0,running=false;const lights=[];
 function audio(){if(!ac){const AC=window.AudioContext||window.webkitAudioContext;ac=new AC();master=ac.createGain();master.connect(ac.destination)}master.gain.value=Math.pow(vol/100,1.5);if(ac.state!=='running')ac.resume();return ac}
 // drum samples: the Modal Metronome's Blonde Bop kit (velocity layers 1-5)
 const BUF={},LOAD={};
-function need(names){names.forEach(n=>{if(LOAD[n])return;LOAD[n]=fetch(n.startsWith('cb')?'sounds/'+(n==='cb'?'cowbell':'cowbell-soft')+'.mp3':'../drum-machine/kits/bb/'+n+'.mp3').then(r=>r.arrayBuffer()).then(b=>new Promise((ok,no)=>audio().decodeAudioData(b,ok,no))).then(d=>{BUF[n]=d}).catch(()=>{delete LOAD[n]})})}
-const KIT={sticks:['stick_4','stick_3','stick_1'],hat:['kick_4','hat_4','hat_1'],drums:['kick_4','snare_4','hat_4','hat_1','kick_3'],ride:['kick_4','ride_4','ride_3','ride_1'],bell:['cb','cbs']};
+function need(names){names.forEach(n=>{if(LOAD[n])return;LOAD[n]=fetch(n.startsWith('cb')?'sounds/'+(n==='cb'?'cowbell':'cowbell-soft')+'.mp3':n==='shaker'?'sounds/shaker.mp3':n==='xstick'?'../drum-machine/kits/ss/stick_4.mp3':'../drum-machine/kits/bb/'+n+'.mp3').then(r=>r.arrayBuffer()).then(b=>new Promise((ok,no)=>audio().decodeAudioData(b,ok,no))).then(d=>{BUF[n]=d}).catch(()=>{delete LOAD[n]})})}
+const KIT={sticks:['stick_4','stick_3','stick_1'],hat:['kick_4','hat_4','hat_1'],drums:['kick_4','snare_4','hat_4','hat_1','kick_3','shaker','xstick'],ride:['kick_4','ride_4','ride_3','ride_1'],bell:['cb','cbs']};
 function samp(n,t,g){const b=BUF[n];if(!b)return false;const s=ac.createBufferSource(),v=ac.createGain();s.buffer=b;v.gain.value=g;s.connect(v);v.connect(master);s.start(t);return true}
 function beep(t,f,g,len,type){const o=ac.createOscillator(),v=ac.createGain();o.type=type||'square';o.frequency.value=f;v.gain.setValueAtTime(0.0001,t);v.gain.exponentialRampToValueAtTime(g,t+0.001);v.gain.exponentialRampToValueAtTime(0.0001,t+len);o.connect(v);v.connect(master);o.start(t);o.stop(t+len+0.01)}
 // fallback cowbell while the recording loads: the classic drum-machine recipe, two square tones (587 and 845 Hz) through a band-pass, a sharp hit then a short ring
@@ -139,8 +141,10 @@ function hit(t,lv,bi){
   else if(snd==='hat'){if(lv===3)samp('kick_4',t,0.9);ok=samp(lv?'hat_4':'hat_1',t,lv?0.9:0.7)}
   else if(snd==='ride'){if(lv===3)samp('kick_4',t,0.7);ok=samp(lv===3?'ride_4':lv?'ride_3':'ride_1',t,lv?0.9:0.6)}
   else if(snd==='drums'){ // kick on 1 (and group starts), snare on the backbeat (2 and 4 in 4/4, 2 and 3 in 3/4), hi-hat on every beat, soft hat on subdivisions
-    if(!lv)ok=samp('hat_1',t,0.7);else{const T=TS[ts];let k=lv>=2;if(!k&&!T.e&&T.n!==3&&bi%2===0)k=true;
-      samp(k?(lv===3?'kick_4':'kick_3'):'snare_4',t,k?1:0.75);ok=samp('hat_4',t,0.6)}}
+    // Shaker on: the shaker plays every subdivision instead of the hi-hat. Side stick on: cross-stick instead of the snare.
+    const top=g=>shk?samp('shaker',t,g*1.4)||samp(g>0.65?'hat_4':'hat_1',t,g):samp(g>0.65?'hat_4':'hat_1',t,g);
+    if(!lv)ok=top(0.6);else{const T=TS[ts];let k=lv>=2;if(!k&&!T.e&&T.n!==3&&bi%2===0)k=true;
+      if(k)samp(lv===3?'kick_4':'kick_3',t,1);else if(!(xs&&samp('xstick',t,1)))samp('snare_4',t,0.75);ok=top(shk?0.75:0.6)}}
   if(!ok)beep(t,[880,1175,1175,1760][lv],[0.12,0.3,0.36,0.5][lv],0.05) // samples still loading: click instead
 }
 function plan(){const T=TS[ts],k=T.e?1:sub;return{T,k,per:T.c?60/bpm/3:60/bpm/k,total:T.n*k}}
@@ -157,7 +161,8 @@ function mark(id,cur){[...$(id).children].forEach(b=>b.setAttribute('aria-presse
 function setTs(v){ts=v;step=0;const T=TS[ts];$('dots').innerHTML='';for(let i=0;i<T.n;i++){const d=document.createElement('div');d.className='dot'+(i===0?' one':T.acc.includes(i)?' grp':'');$('dots').appendChild(d)}
   $('subRow').hidden=!!T.e;$('hint8').hidden=!T.e;$('hint8').textContent=T.c?'Each click is an eighth note. The speed counts the dotted quarter (3 clicks).':'Each click is an eighth note.';mark('ts',ts);save()}
 function setSub(v){sub=+v;step=0;mark('sub',sub);save()}
-function setSnd(v){snd=v;if(ac)need(KIT[snd]||[]);mark('snd',snd);save()}
+function setSnd(v){snd=v;if(ac)need(KIT[snd]||[]);mark('snd',snd);paintDk();save()}
+function paintDk(){const on=snd==='drums';['shk','xs'].forEach(id=>{const b=document.getElementById(id);if(!b)return;b.hidden=!on;b.setAttribute('aria-pressed',String(id==='shk'?shk:xs))})}
 seg('ts',Object.fromEntries(Object.keys(TS).map(k=>[k,k])),ts,setTs);seg('sub',SUBS,sub,setSub);seg('snd',SNDS,snd,setSnd);
 // hold − or + to keep changing
 function hold(el,d){let t=null,r=null;const end=()=>{clearTimeout(t);clearInterval(r)};
@@ -175,7 +180,8 @@ document.addEventListener('keydown',e=>{if(e.target.tagName==='INPUT'&&e.target.
 document.addEventListener('visibilitychange',()=>{if(!document.hidden&&running&&ac&&ac.state!=='running')ac.resume()});
 const kb=$('kick1');const paintK=()=>kb.setAttribute('aria-pressed',String(kick1));paintK();
 kb.addEventListener('click',()=>{kick1=!kick1;if(kick1&&ac)need(['kick_4']);paintK();save()});
+$('shk').addEventListener('click',()=>{shk=!shk;paintDk();save()});$('xs').addEventListener('click',()=>{xs=!xs;paintDk();save()});paintDk();
 setBpm(bpm);setTs(ts);
-window.__sm={state:()=>({bpm,ts,sub,snd,running,vol,kick1,loaded:Object.keys(BUF)})};
+window.__sm={state:()=>({bpm,ts,sub,snd,running,vol,kick1,shk,xs,loaded:Object.keys(BUF)})};
 })();
 </script></body></html>
