@@ -1,7 +1,7 @@
 <!doctype html>
 <html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>Fab Fours · Clarendon Hills Music Academy</title>
-<meta name="description" content="Fab Fours: find the four groups of four. A daily music word puzzle with theory, history and pop culture topics.">
+<meta name="description" content="Fab Fours: find the four groups of four. A daily music word puzzle with theory, history, pop culture and musicals topics.">
 <link rel="stylesheet" href="../shared/chma.css">
 <script src="../shared/brand.js"></script>
 <script src="../shared/share.js"></script>
@@ -102,7 +102,7 @@ kbd{font:600 11px var(--f-num);background:var(--c-key);border:1px solid var(--c-
 }
 @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
 </style></head><body><main>
-<div data-chma-head data-ver="v2026-11-13.7"></div>
+<div data-chma-head data-ver="v2026-11-19.1"></div>
 <div class="top">
  <div class="ttl"><h1>Fab <em>Fours</em></h1><p class="tag">Find the four bands of four.</p></div>
  <button class="ib" id="helpB" aria-label="How to play" title="How to play">?</button>
@@ -111,7 +111,7 @@ kbd{font:600 11px var(--f-num);background:var(--c-key);border:1px solid var(--c-
 </div>
 <div class="bar">
  <div class="seg" role="group" aria-label="Mode"><button id="mDaily" aria-pressed="true">Daily</button><button id="mPrac" aria-pressed="false">Practice</button></div>
- <select id="topic" aria-label="Topic"><option value="all">All topics</option><option value="theory">Theory</option><option value="history">History</option><option value="pop">Pop Culture</option></select>
+ <select id="topic" aria-label="Topic"><option value="all">All topics</option><option value="theory">Theory</option><option value="history">History</option><option value="pop">Pop Culture</option><option value="musicals">Musicals</option></select>
 </div>
 <div class="info"><span id="pLabel">&nbsp;</span><span id="pHint">Pick 4 that belong together</span></div>
 <div id="board" role="grid" aria-label="Puzzle tiles"></div>
@@ -121,7 +121,7 @@ kbd{font:600 11px var(--f-num);background:var(--c-key);border:1px solid var(--c-
  <button id="deselect">Deselect all</button>
  <button id="submit">Submit</button>
 </div>
-<p class="appver">Fab Fours · Version 2026-11-13.7</p>
+<p class="appver">Fab Fours · Version 2026-11-19.1</p>
 </main>
 <div id="toast" role="status" aria-live="assertive"></div>
 <div class="sr" id="live" aria-live="polite"></div>
@@ -164,7 +164,7 @@ kbd{font:600 11px var(--f-num);background:var(--c-key);border:1px solid var(--c-
 "use strict";
 const $=id=>document.getElementById(id);
 const TIERS={1:{name:"Warm-up",ico:"♩",emo:"🎹"},2:{name:"Groove",ico:"♫",emo:"🥁"},3:{name:"Deep cut",ico:"◉",emo:"💿"},4:{name:"Brain melter",ico:"✸",emo:"🤯"}};
-const TOPIC_NAME={all:"All topics",theory:"Theory",history:"History",pop:"Pop Culture"};
+const TOPIC_NAME={all:"All topics",theory:"Theory",history:"History",pop:"Pop Culture",musicals:"Musicals"};
 const EPOCH=Date.UTC(2026,10,12); /* Daily #1 = 2026-11-12 */
 let PUZ=[];
 
