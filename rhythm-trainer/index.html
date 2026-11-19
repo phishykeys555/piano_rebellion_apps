@@ -224,7 +224,7 @@ details.how p{margin-top:6px}
       <label><input type="checkbox" id="holds" checked> Grade how long I hold (Tap, MIDI)</label>
       <span class="stamp">Tap only: quarter notes and longer, dotted and tied notes, and notes right before a rest are also graded on when you let go (the bar under each note shows how long you held it; the tick is where it ends). Clap or snap and One note grade only when each note starts.</span>
       <div class="row"><button class="ghost" id="cal">Calibrate timing</button><span class="stamp" id="calTxt" role="status" aria-live="polite"></span></div>
-      <span class="stamp">Calibrate once per device, and again with Bluetooth headphones: tap (or clap, or play your note) along with 12 clicks. Tap, Clap and One note each keep their own setting.</span>
+      <span class="stamp">Optional: Tap and MIDI come set up for most devices. Calibrate if notes you know are on time still read early or late, and again with Bluetooth headphones: tap (or clap, or play your note) along with 12 clicks. Tap, Clap and One note each keep their own setting.</span>
     </div>
   </details>
   </div>
@@ -652,7 +652,11 @@ details.how p{margin-top:6px}
   // Timing: you hear each click a little after it's scheduled (speaker/Bluetooth delay), and a screen tap registers a little late too.
   // Until you calibrate, take off the delay the device reports plus a typical touch (30 ms) or microphone (15 ms) lag. Calibrating replaces this with your own measured number.
   // (Measured on the bench: claps and piano notes are stamped within a few ms of their true attack, so the mic modes share the same small allowance.)
-  const autoLag=src=>{ if(src==="midi") return 0.004; /* MIDI times are mapped to what you heard (getOutputTimestamp), so only the cable/USB delay is left */ const a=audio; const o=a?((a.outputLatency||0)+(a.baseLatency||0)):0; return Math.min(0.25,o+(src==="mic"?0.015:0.03)) };
+  // Built-in default (2026-11-19, Derek: "build in default delay so students don't have to calibrate"): players naturally press a little AHEAD of a click
+  // they hear (anticipation, ~20-60 ms in tapping research), and Derek's own calibrations read Tap -19 ms and MIDI about -55 ms where the old defaults
+  // assumed +50 / +4. So Tap and MIDI now expect a 40 ms lead; Calibrate still overrides it exactly.
+  const LEAD=0.04;
+  const autoLag=src=>{ if(src==="midi") return 0.004-LEAD; /* MIDI times are mapped to what you heard (getOutputTimestamp), so only the cable/USB delay and the lead are left */ const a=audio; const o=a?((a.outputLatency||0)+(a.baseLatency||0)):0; return src==="mic"?Math.min(0.25,o+0.015):Math.min(0.25,o+0.03-LEAD) };
   const manLag=src=>src==="midi"?latMidi:src!=="mic"?latency:inMode==="note"?latNote:latClap;
   const hitLog=[]; // test hook: every raw hit (tap or mic) as it arrives, before any correction
   function tapAt(tsec,src,info){ if(src==="mic"&&hypeWait()>0){ hypeSup++; return } hitLog.push({t:tsec,src:src||"tap",mode:inMode,via:info&&info.via}); if(hitLog.length>400) hitLog.shift(); if(calHook){ calHook(tsec,info); return -1 } if(!run||run.mode!=="test") return -1; const man=manLag(src); const t=tsec-(man!=null?man/1000:autoLag(src)); if(t<run.start-0.3||t>run.end+0.2) return -1; taps.push(t); rels.push(null);
@@ -1336,6 +1340,6 @@ class NoteFlux{
   if(document.fonts) document.fonts.ready.then(()=>{ if(!run) drawBar(curRes) });
 })();
 </script>
-<p class="appver" style="text-align:center;font-size:11px;opacity:.6;margin:18px 0 10px;font-family:ui-monospace,Menlo,monospace">Rhythm Trainer · Version 2026-11-19.2</p>
+<p class="appver" style="text-align:center;font-size:11px;opacity:.6;margin:18px 0 10px;font-family:ui-monospace,Menlo,monospace">Rhythm Trainer · Version 2026-11-19.3</p>
 </body>
 </html>
