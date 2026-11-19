@@ -6,6 +6,9 @@
  var KEY='chmaGate';
  /* Evan's Fretboard tools stay open until the beta reaches Fretboard Revolution (embedded on his students' dashboards) */
  if(/\/(guitar-tuner|drum-machine|simple-metronome)\//.test(location.pathname))return; /* simple-metronome (2026-11-18): embedded on every song page, like the Modal Metronome */
+ /* VIP waitlist apps (2026-11-19, Derek: "Take off pass word block for now"): open, no code. The waitlist email links straight to these.
+    To lock them again, delete the next line. */
+ if(/\/(note-sprint|rhythm-trainer|meter-master|ear-trainer)\//.test(location.pathname))return;
  try{if(localStorage.getItem(KEY)===GATE.hash)return}catch(e){}
  if(!(window.crypto&&crypto.subtle))return; /* never lock out a browser that cannot check the code */
  var de=document.documentElement;de.classList.add('chma-locked');

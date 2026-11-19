@@ -31,9 +31,9 @@ Every app shows its version at the bottom of the page: `Version YYYY-MM-DD.N` (d
 | Round music (`shared/hype.js`) | 2026-11-12.1 |
 | Share helper (`shared/share.js`: share sheet, clipboard, copy box; is.gd short links + chmusicacademy.com) | 2026-11-13.2 |
 | Riff Simon Says | 2026-11-13.5 |
-| Access gate (top of `shared/brand.js`) | 2026-11-19.1 |
+| Access gate (top of `shared/brand.js`) | 2026-11-19.2 |
 
-## Access gate (studio code)
+## Access gate (studio code) Note Sprint, Rhythm Trainer, Meter Master and Ear Trainer are open with no code for now (2026-11-19): the VIP waitlist email links to them.
 
 Every app that loads `shared/brand.js` asks for the studio code once per device (stored in `localStorage` as the code's hash). Guitar Tuner and Modal Metronome stay open until the beta reaches Fretboard Revolution. It is a soft gate: the repo is public, so it stops link-sharing, not a determined techie. Only the SHA-256 of the code is in this repo; the code itself lives in the studio's Notion page for Help Desk replies, never here.
 
