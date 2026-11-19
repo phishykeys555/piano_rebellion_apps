@@ -395,7 +395,7 @@ details.how p{margin:0;padding:0 16px 12px;line-height:1.45;color:var(--muted)}
       </fieldset>
     </div>
   </details>
-  <p class="tip appverp" id="appVer"><span class="appver">Note Sprint · Version 2026-11-19.2</span></p>
+  <p class="tip appverp" id="appVer"><span class="appver">Note Sprint · Version 2026-11-19.3</span></p>
   </div>
   <div class="play">
 
@@ -494,12 +494,15 @@ details.how p{margin:0;padding:0 16px 12px;line-height:1.45;color:var(--muted)}
     {id:"7", name:"Bass spaces",  s:{staffMode:"bass",b:{treble:[1,7],bass:[1,7]},acc:false,ls:"spaces"}},
     {id:"11",name:"Bass lines",   s:{staffMode:"bass",b:{treble:[0,8],bass:[0,8]},acc:false,ls:"lines"}},
     {id:"2", name:"Bass all",     s:{staffMode:"bass",range:0,acc:false,ls:"all"}},
-    {id:"12",name:"Treble upper ledgers",s:{staffMode:"treble",b:{treble:[10,15],bass:BL},acc:false,ls:"all"}},
-    {id:"13",name:"Treble lower ledgers",s:{staffMode:"treble",b:{treble:[-7,-2],bass:BL},acc:false,ls:"all"}},
-    {id:"14",name:"Bass upper ledgers",  s:{staffMode:"bass",b:{treble:TL,bass:[10,15]},acc:false,ls:"all"}},
+    {id:"3", name:"Both hands",   s:{staffMode:"grand",range:0,acc:false,ls:"all"}},
+    // Middle C zone (2026-11-19): A3 to E4 read in BOTH clefs, where the hands meet: middle C as the 1st ledger below treble and the 1st ledger above bass
+    {id:"17",name:"Middle C zone",s:{staffMode:"grand",b:{treble:[-4,0],bass:[8,12]},acc:false,ls:"all"}},
+    // ledger levels stop at 2 ledger lines (plus the note just past the 2nd); 3-ledger notes live in All + ledgers and Ledgers ♯♭
+    {id:"12",name:"Treble upper ledgers",s:{staffMode:"treble",b:{treble:[10,13],bass:BL},acc:false,ls:"all"}},
+    {id:"13",name:"Treble lower ledgers",s:{staffMode:"treble",b:{treble:[-5,-2],bass:BL},acc:false,ls:"all"}},
+    {id:"14",name:"Bass upper ledgers",  s:{staffMode:"bass",b:{treble:TL,bass:[10,13]},acc:false,ls:"all"}},
     {id:"15",name:"Bass lower ledgers",  s:{staffMode:"bass",b:{treble:TL,bass:[-5,-2]},acc:false,ls:"all"}},
     {id:"16",name:"All + ledgers",s:{staffMode:"grand",b:{treble:TL,bass:BL},acc:false,ls:"all"}},
-    {id:"3", name:"Both hands",   s:{staffMode:"grand",range:0,acc:false,ls:"all"}},
     {id:"4", name:"Ledgers ♯♭",   s:{staffMode:"grand",range:2,acc:true,ls:"all"}},
     {id:"5", name:"Intervals",    s:{staffMode:"mix",range:0,acc:false,iv:true,ls:"all"}},
     {id:"8", name:"Treble ledgers",hidden:1,s:{staffMode:"treble",range:3,acc:false,ls:"ledger"}},
@@ -1305,7 +1308,7 @@ details.how p{margin:0;padding:0 16px 12px;line-height:1.45;color:var(--muted)}
   const ARC_BASE=[8,20,34,50,68], ARC_BONUS=88, ARC_T=30, ARC_FIRE=10;
   const retryOK=()=>$("retryOn").checked&&!arc;
   const mult=()=>arc&&(arc.bonus||timeLeft<=ARC_FIRE)?2:1;
-  function arcFactor(){ const s=readSettings(), lv={"1":1,"2":1,"6":1,"7":1,"10":1,"11":1,"12":.6,"13":.6,"14":.6,"15":.6,"16":.5,"8":.6,"9":.6,"3":.6,"4":.55,"5":.6,"C":.8}[level]||.8, md=s.iv?1:{letters:1,piano:.85,mic:.65}[s.mode]||1; return lv*md }
+  function arcFactor(){ const s=readSettings(), lv={"1":1,"2":1,"6":1,"7":1,"10":1,"11":1,"12":.6,"13":.6,"14":.6,"15":.6,"16":.5,"17":.65,"8":.6,"9":.6,"3":.6,"4":.55,"5":.6,"C":.8}[level]||.8, md=s.iv?1:{letters:1,piano:.85,mic:.65}[s.mode]||1; return lv*md }
   function arcNeeds(){ const f=arcFactor(), n=[]; ARC_BASE.concat([ARC_BONUS]).forEach((x,i)=>n.push(Math.max(i?n[i-1]+2:2,Math.round(x*f)))); return n }  // 5 round totals + the bonus total, each at least 2 above the last
   function arcBar(){ if(!arc) return;
     const need=arc.bonus?arc.needs[5]:arc.needs[arc.round-1], prev=arc.bonus?arc.needs[4]:arc.round>1?arc.needs[arc.round-2]:0;
