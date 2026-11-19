@@ -234,7 +234,7 @@ input[type=range]{accent-color:var(--c-act)}
         <details id="dbgBox" style="margin-top:8px"><summary>Show details</summary><div class="dbg" id="dbg">No mic events yet.</div></details>
       </div>
     </details>
-    <p class="appver" id="appVer">Meter Master · Version 2026-11-18.1</p>
+    <p class="appver" id="appVer">Meter Master · Version 2026-11-19.1</p>
   </section>
 
   <section class="play">
@@ -422,13 +422,19 @@ const FIX={solid:"Next rung: a longer silence, or the same level at a slower tem
 let audio=null;
 const aSess=t=>{ try{ if(navigator.audioSession) navigator.audioSession.type=t }catch(e){} };
 function ctx(){ if(!audio){ aSess("playback"); audio=new (window.AudioContext||window.webkitAudioContext)({latencyHint:"interactive"});
-  audio.onstatechange=()=>{ if(audio.state!=="running"&&(run||calHook)) abort("The audio paused (another app or the lock screen), so this run stopped. Press Start to go again.") } } return audio }
+  audio.onstatechange=()=>{ if(audio.state!=="running"&&(run||calHook)) abort("The audio paused (another app or the lock screen), so this run stopped. Press Start to go again.") }; cowBuf(audio) } return audio }
 const noiseCache=new WeakMap();
 function noise(ac){ let b=noiseCache.get(ac); if(!b){ const L=Math.floor(ac.sampleRate*0.25); b=ac.createBuffer(1,L,ac.sampleRate); const d=b.getChannelData(0); let s=12345; for(let i=0;i<L;i++){ s=(s*1103515245+12345)&0x7fffffff; d[i]=s/0x3fffffff-1 } noiseCache.set(ac,b) } return b }
 // every sound ends by 0.2 s, so even at 240 BPM (0.25 s a beat) a silence is truly silent from its first beat
 function envG(ac,t,peak,att,dec){ const g=ac.createGain(); g.gain.setValueAtTime(0.0001,t); g.gain.exponentialRampToValueAtTime(peak,t+att); g.gain.exponentialRampToValueAtTime(0.0001,t+att+dec); g.gain.setValueAtTime(0,t+att+dec+0.002); return g }
+const COWB=new WeakMap();
+function cowBuf(ac){ const c=COWB.get(ac); if(c instanceof AudioBuffer) return c; if(!c){ COWB.set(ac,"loading"); fetch("../simple-metronome/sounds/cowbell.mp3").then(r=>r.arrayBuffer()).then(b=>ac.decodeAudioData(b)).then(buf=>COWB.set(ac,buf)).catch(()=>COWB.delete(ac)) } return null }
 const SND={
-  cow(ac,d,t,acc,trk){ const k=acc?1.12:1, g=envG(ac,t,acc?0.5:0.32,0.002,0.15), bp=ac.createBiquadFilter(); bp.type="bandpass"; bp.frequency.value=1400*k; bp.Q.value=0.9; bp.connect(g); g.connect(d);
+  cow(ac,d,t,acc,trk){ const cb=cowBuf(ac);
+    if(cb){ // 2026-11-19 (Derek: "worst cow sound ever, use a real sample"): the recorded cowbell (VCSL, CC0) shared with Simple Metronome, trimmed to end by 0.19 s
+      const s=ac.createBufferSource(), g=ac.createGain(); s.buffer=cb; g.gain.setValueAtTime(acc?1:0.62,t); g.gain.setValueAtTime(acc?1:0.62,t+0.11); g.gain.exponentialRampToValueAtTime(0.0001,t+0.185); g.gain.setValueAtTime(0,t+0.19);
+      s.connect(g); g.connect(d); trk(s); s.start(t); s.stop(t+0.2); return }
+    const k=acc?1.12:1, g=envG(ac,t,acc?0.5:0.32,0.002,0.15), bp=ac.createBiquadFilter(); bp.type="bandpass"; bp.frequency.value=1400*k; bp.Q.value=0.9; bp.connect(g); g.connect(d);
     [562,845].forEach(f=>{ const o=ac.createOscillator(); o.type="square"; o.frequency.value=f*k; o.connect(bp); trk(o); o.start(t); o.stop(t+0.17) }) },
   click(ac,d,t,acc,trk){ const g=envG(ac,t,acc?0.6:0.4,0.0008,0.03), o=ac.createOscillator(); o.type="sine"; o.frequency.value=acc?3200:2400; o.connect(g); g.connect(d); trk(o); o.start(t); o.stop(t+0.045);
     const s=ac.createBufferSource(), hp=ac.createBiquadFilter(), g2=envG(ac,t,acc?0.35:0.22,0.0005,0.012); s.buffer=noise(ac); hp.type="highpass"; hp.frequency.value=3000; s.connect(hp).connect(g2); g2.connect(d); trk(s); s.start(t); s.stop(t+0.03) },
