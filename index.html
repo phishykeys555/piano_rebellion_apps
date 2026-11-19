@@ -51,8 +51,13 @@ button,a,label,summary,select,input{-webkit-tap-highlight-color:transparent}
 @media (min-width:900px) and (max-width:1179px){
   .groups .apps a{padding:11px 10px;gap:6px}
 }
+/* Access code banner 2026-11-19 (Derek): big, above the app center */
+.codebar{max-width:1200px;margin:0 auto 14px;text-align:center;background:var(--c-act);color:#fff;border-radius:var(--r-card);padding:16px 12px;box-shadow:var(--shadow-card)}
+.codebar .k{display:block;font:700 15px var(--f-num);letter-spacing:.12em;text-transform:uppercase;opacity:.92}
+.codebar .c{display:block;font:800 clamp(40px,11vw,72px)/1.05 var(--f-title);letter-spacing:.06em;margin:4px 0 2px}
+.codebar .n{display:block;font:600 16px var(--f-body)}
 </style></head>
-<body><main>
+<body><div class="codebar" role="note"><span class="k">Access code</span><span class="c">chma</span><span class="n">Works for all apps</span></div><main>
 <div data-chma-head></div>
 <div class="toprow"><div><h1>Music <em>Games</em></h1>
 <p class="sub">Pick a trainer and start playing.</p></div><button type="button" class="sharebtn" id="shareHub">Share these games</button></div>
@@ -84,7 +89,7 @@ button,a,label,summary,select,input{-webkit-tap-highlight-color:transparent}
 <li><a href="guitar-tuner/"><div class="txt"><b>Strobe Tuner</b><span>Guitar Revolution: tune every string with a true strobe.</span></div><i aria-hidden="true">›</i></a></li>
 </ul></section>
 </div>
-<p class="appver">Music Games · Version 2026-11-13.1</p>
+<p class="appver">Music Games · Version 2026-11-19.1</p>
 </main>
 <script>document.getElementById("shareHub").addEventListener("click",()=>chmaShare.share({app:"hub",text:"🎹 Music Games: 13 free practice games and tools.\nNote reading, rhythm, ear training, daily music puzzles, trivia and a real band to play with."}))</script>
 </body></html>
