@@ -11,3 +11,9 @@ This repo is PUBLIC and its gh-pages branch is the live studio app site.
 ## Changelog (LOCKED 2026-11-20, Derek)
 - Every version bump adds an entry to `CHANGELOG.html` in the same commit (newest first, Added/Changed/Fixed, folder path).
 - `CHANGELOG.html` is never linked from the hub or any page.
+
+## Beta lane and app feedback (LOCKED 2026-11-20, Derek, button "Beta lane first")
+- Student and Claude-scan requests live in Notion APP UPDATES (DB); the public Jotform feeds it; the daily Routine "Apps - Daily Feedback & Update Run" (7:41 PM CT) triages, builds and ships.
+- Every auto-shipped change goes to the beta copy first: `python3 tools/make_beta.py <folder> <gh-pages worktree>` writes `<folder>-beta/index.html` on gh-pages (noindex, BETA ribbon, never linked). The next run promotes it to the live folder after 24 hours with no new errors and no Declined.
+- main can hold a change that is still in beta. Before publishing any app folder from main to gh-pages by hand, check APP UPDATES rows with Status "Beta" for that app; publish only what is meant to go live.
+
