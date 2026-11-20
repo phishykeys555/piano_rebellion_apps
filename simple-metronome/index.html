@@ -5,7 +5,7 @@
 <meta property="og:type" content="website"><meta property="og:site_name" content="Clarendon Hills Music Academy"><meta property="og:title" content="Simple Metronome · Clarendon Hills Music Academy"><meta property="og:description" content="An easy metronome: speed, time signature, subdivisions and drum sounds.">
 <link rel="stylesheet" href="../shared/chma.css"><script src="../shared/brand.js"></script>
 <style>
-/* Simple Metronome v1.3.0 (2026-11-19: keeps playing in the background; Shaker and Side stick for the Drum beat): the one-screen metronome for song pages. Speed, Start, time signature, subdivision, sound (the Modal Metronome's drum samples), tap, volume. */
+/* Simple Metronome v1.4.0 (2026-11-20: every option is a dropdown; 1st beat sound menu replaces Kick on 1; Additional sound menu for the Drum beat; Tap under the tempo; BPM thumb; volume under the speed slider): the one-screen metronome for song pages. Speed, Start, time signature, subdivision, sound (the Modal Metronome's drum samples), tap, volume. */
 :root{--bg:#fff;--fg:#37352f;--mut:#787774;--bd:#e3e2e0;--btn:#f7f6f3;--on:#2383e2;--acc:#e03e3e;--dot:#e3e2e0}
 @media (prefers-color-scheme:dark){:root{--bg:#191919;--fg:#e6e6e5;--mut:#9b9b9b;--bd:#3a3a3a;--btn:#2a2a2a;--dot:#3a3a3a}}
 *{box-sizing:border-box}
@@ -27,7 +27,7 @@ input[type=range]{width:100%;accent-color:var(--on);height:32px}
 .row{display:flex;gap:8px;width:100%;align-items:center;justify-content:center;flex-wrap:wrap}
 .lbl{font-size:14px;color:var(--mut);margin-right:4px}
 .opt[hidden]{display:none}
-.opt{width:100%;display:flex;flex-direction:column;align-items:center;gap:6px}
+.opt{width:100%;display:flex;flex-direction:row;align-items:center;gap:10px}.opt .lbl{flex:0 0 120px;text-align:right;margin:0}.opt select{flex:1 1 auto;min-width:0}.hint8{align-self:stretch;padding-left:130px;text-align:left}.tap{min-width:160px}
 .seg{display:flex;flex-wrap:wrap;gap:6px;justify-content:center}
 .seg button{min-width:52px;height:44px;padding:0 12px;font-size:16px;font-weight:600}
 .hint8{font-size:13px;color:var(--mut);margin:-6px 0 0}.hint8[hidden]{display:none}
@@ -37,6 +37,16 @@ input[type=range]{width:100%;accent-color:var(--on);height:32px}
 .tap.dk[hidden]{display:none}
 .tap{height:44px;padding:0 22px;font-size:16px;font-weight:600}
 .vol{display:flex;align-items:center;gap:8px;width:100%}.vol input{flex:1}
+.vi{width:24px;height:24px;flex:0 0 24px;fill:none;stroke:var(--mut);stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.opt select{font:inherit;font-size:16px;font-weight:600;color:var(--fg);background:var(--btn);border:1px solid var(--bd);border-radius:12px;height:44px;padding:0 12px;width:100%;max-width:320px}
+.opt select:disabled{opacity:.45;cursor:not-allowed}
+label.opt{cursor:default}
+/* BPM slider: a big round thumb that says BPM */
+.bpmsl{-webkit-appearance:none;appearance:none;background:transparent;height:48px;--p:20%}
+.bpmsl::-webkit-slider-runnable-track{height:8px;border-radius:4px;background:linear-gradient(90deg,var(--on) var(--p),var(--bd) var(--p))}
+.bpmsl::-moz-range-track{height:8px;border-radius:4px;background:var(--bd)}.bpmsl::-moz-range-progress{height:8px;border-radius:4px;background:var(--on)}
+.bpmsl::-webkit-slider-thumb{-webkit-appearance:none;width:46px;height:46px;margin-top:-19px;border-radius:50%;border:3px solid #fff;box-shadow:0 1px 4px rgba(0,0,0,.35);background:var(--on) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 46 46'%3E%3Ctext x='23' y='27.5' text-anchor='middle' font-family='Helvetica,Arial,sans-serif' font-size='12' font-weight='700' fill='white'%3EBPM%3C/text%3E%3C/svg%3E") center/100% no-repeat}
+.bpmsl::-moz-range-thumb{width:40px;height:40px;border-radius:50%;border:3px solid #fff;box-shadow:0 1px 4px rgba(0,0,0,.35);background:var(--on) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 46 46'%3E%3Ctext x='23' y='27.5' text-anchor='middle' font-family='Helvetica,Arial,sans-serif' font-size='12' font-weight='700' fill='white'%3EBPM%3C/text%3E%3C/svg%3E") center/100% no-repeat}
 .hint{font-size:13px;color:var(--mut);text-align:center;margin:0}
 @media (hover:none){.hint{display:none}}
 .L,.R{display:contents}
@@ -54,18 +64,20 @@ input[type=range]{width:100%;accent-color:var(--on);height:32px}
  input[type=range]{height:24px}
  .go{height:44px;font-size:18px;border-radius:12px}
  .opt{flex-direction:row;align-items:center;gap:8px}
- .opt .lbl{flex:0 0 74px;text-align:right;font-size:12px;margin:0}
+ .opt select{height:32px;font-size:13px;border-radius:8px;max-width:none}
+ .bpmsl{height:36px}.bpmsl::-webkit-slider-thumb{width:34px;height:34px;margin-top:-13px}
+ .opt .lbl{flex:0 0 96px;text-align:right;font-size:12px;margin:0}
  .seg{justify-content:flex-start;gap:4px}
  .seg button{min-width:38px;height:30px;padding:0 8px;font-size:13px;border-radius:8px}
- .hint8{margin:0 0 0 82px;font-size:11px}
+ .hint8{margin:0 0 0 104px;font-size:11px}
  .R>.row{justify-content:flex-start;padding-left:82px;width:auto}
  .tap{height:30px;font-size:13px;padding:0 14px;border-radius:8px}
- .vol{padding-left:82px;width:auto}
+ .vol{width:100%}.vi{width:18px;height:18px;flex-basis:18px}
  .hint,.appver{display:none}
 }
 @media (min-width:600px) and (max-width:860px) and (max-height:480px){
  .seg button{height:27px;padding:0 6px;font-size:12px;min-width:32px}
- .opt .lbl{flex-basis:62px}.hint8,.R>.row,.vol{padding-left:70px;margin-left:0}
+ .opt .lbl{flex-basis:84px}.hint8{padding-left:0;margin-left:92px}
  .R{gap:4px}.L{flex-basis:230px;gap:6px}
 }
 .appver{font-size:11px;opacity:.6;margin:4px 0 0;font-family:ui-monospace,Menlo,monospace}
@@ -79,18 +91,20 @@ input[type=range]{width:100%;accent-color:var(--on);height:32px}
     <div class="num"><b id="bpm">70</b><span>BEATS PER MINUTE</span></div>
     <button class="pm" id="plus" aria-label="Faster">+</button>
   </div>
-  <input type="range" id="slider" min="30" max="240" step="1" value="70" aria-label="Speed">
+  <button class="tap" id="tap">Tap tempo</button>
+  <input type="range" id="slider" class="bpmsl" min="30" max="240" step="1" value="70" aria-label="Speed in beats per minute">
+  <div class="vol"><svg class="vi" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9.5h3.5L12 5.5v13l-4.5-4H4z"/><path d="M15.5 9.5l5 5M20.5 9.5l-5 5"/></svg><input type="range" id="vol" min="0" max="100" value="80" aria-label="Volume"><svg class="vi" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9.5h3.5L12 5.5v13l-4.5-4H4z"/><path d="M15.5 9a4.5 4.5 0 0 1 0 6M18 6.5a8 8 0 0 1 0 11"/></svg></div>
   <button class="go" id="go">Start</button>
   </div>
   <div class="R">
-  <div class="opt"><span class="lbl">Time signature</span><span class="seg" id="ts" role="group" aria-label="Time signature"></span></div>
-  <div class="opt" id="subRow"><span class="lbl">Subdivision</span><span class="seg" id="sub" role="group" aria-label="Subdivision"></span></div>
+  <label class="opt"><span class="lbl">Time signature</span><select id="ts"></select></label>
+  <label class="opt" id="subRow"><span class="lbl">Subdivision</span><select id="sub"></select></label>
   <p class="hint8" id="hint8" hidden>Each click is an eighth note.</p>
-  <div class="opt"><span class="lbl">Sound</span><span class="seg" id="snd" role="group" aria-label="Sound"></span></div>
-  <div class="row"><button class="tap" id="tap">Tap tempo</button><button class="tap" id="kick1" aria-pressed="false">Kick on 1</button><button class="tap dk" id="shk" aria-pressed="false" title="Shaker plays the subdivision (8ths) instead of the hi-hat">Shaker</button><button class="tap dk" id="xs" aria-pressed="false" title="Side stick (cross-stick) instead of the snare">Side stick</button></div>
-  <div class="vol"><span class="lbl" aria-hidden="true">🔈</span><input type="range" id="vol" min="0" max="100" value="80" aria-label="Volume"><span class="lbl" aria-hidden="true">🔊</span></div>
+  <label class="opt"><span class="lbl">Sound</span><select id="snd"></select></label>
+  <label class="opt"><span class="lbl">1st beat</span><select id="first"></select></label>
+  <label class="opt" id="addRow"><span class="lbl">Additional sound</span><select id="add" title="Only with the Drum beat sound"></select></label>
   <p class="hint">Space bar starts and stops. Up and down arrows change the speed.</p>
-  <p class="appver">Simple Metronome · Version 2026-11-19.2</p>
+  <p class="appver">Simple Metronome · Version 2026-11-20.1</p>
   </div>
 </main>
 <script>
@@ -113,9 +127,12 @@ let ts=TS[QS.get('ts')]?QS.get('ts'):{2:'2/4',3:'3/4',4:'4/4',6:'6/8'}[QS.get('b
 let sub=SUBS[QS.get('sub')]?+QS.get('sub'):PM[1]||(PRE?1:SUBS[saved.sub]?saved.sub:1);
 let snd=SNDS[QS.get('snd')]?QS.get('snd'):PM[2]||(SNDS[saved.snd]?saved.snd:'click');
 let vol=saved.vol!=null?saved.vol:80;
-let kick1=QS.get('kick')!=null?QS.get('kick')==='1':!!saved.kick1;
-let shk=QS.get('shk')!=null?QS.get('shk')==='1':!!saved.shk, xs=QS.get('xs')!=null?QS.get('xs')==='1':!!saved.xs; // Drum beat options (2026-11-19): shaker on the subdivision, side stick for the snare
-const save=()=>{try{localStorage.setItem(KEY,JSON.stringify({bpm,ts,sub,snd,vol,kick1,shk,xs}))}catch(e){}};
+// 1st beat (2026-11-20): one extra sound on every downbeat, any main sound. Replaces the Kick on 1 button (old setting and ?kick=1 become Kick).
+const FIRSTS={none:'Nothing extra',kick:'Kick',cow:'Cowbell',xstick:'Side stick',wood:'Woodblock',beep:'Beep'};
+let first=FIRSTS[QS.get('first')]?QS.get('first'):QS.get('kick')!=null?(QS.get('kick')==='1'?'kick':'none'):FIRSTS[saved.first]?saved.first:saved.kick1?'kick':'none';
+let shk=QS.get('shk')!=null?QS.get('shk')==='1':!!saved.shk, xs=QS.get('xs')!=null?QS.get('xs')==='1':!!saved.xs; // Drum beat additional sound (2026-11-19): shaker on the subdivision, side stick for the snare
+const ADDS={none:'None',shk:'Shaker (8ths)',xs:'Side stick',both:'Shaker + side stick'};
+const save=()=>{try{localStorage.setItem(KEY,JSON.stringify({bpm,ts,sub,snd,vol,first,shk,xs}))}catch(e){}};
 try{if(navigator.audioSession)navigator.audioSession.type='playback'}catch(e){} // iPhone: sound even with the ringer switch on silent
 let ac=null,master=null,running=false,C=null,OUT=null;
 // Background play (2026-11-19): iPad/iPhone freeze page timers when you switch apps, so the bar is rendered once and looped on the audio engine (no timers needed to keep time)
@@ -133,8 +150,9 @@ function cowbell(t,g){const bp=C.createBiquadFilter(),v=C.createGain();bp.type='
   [587,845].forEach(f=>{const o=C.createOscillator();o.type='square';o.frequency.value=f;o.connect(bp);o.start(t);o.stop(t+0.36)});bp.connect(v);v.connect(OUT)}
 // lv: 3 = beat 1, 2 = start of a group (5/4, x/8), 1 = other beat, 0 = subdivision. bi = beat number in the bar
 function hit(t,lv,bi){
-  // Kick on 1 (2026-11-18): a kick drum on every downbeat, under any sound (the drum sounds already kick on 1)
-  if(kick1&&lv===3&&!/^(drums|hat|ride)$/.test(snd))samp('kick_4',t,1);
+  // 1st beat sound (2026-11-20): on every downbeat, on top of the main sound (Kick skips the drum sounds that already kick on 1)
+  if(lv===3&&first!=='none'){if(first==='kick'){if(!/^(drums|hat|ride)$/.test(snd))samp('kick_4',t,1)}else if(first==='cow'){if(!samp('cb',t,0.8))cowbell(t,0.8)}else if(first==='xstick')samp('xstick',t,1);
+    else if(first==='wood'){beep(t,1900,0.7,0.06,'sine');beep(t,5130,0.18,0.03,'sine')}else if(first==='beep')beep(t,1760,0.45,0.05)}
   if(snd==='click'){beep(t,[880,1175,1175,1760][lv],[0.12,0.3,0.36,0.5][lv],0.05);return}
   if(snd==='wood'){const f=[1200,1500,1650,1900][lv],g=[0.18,0.5,0.6,0.8][lv];beep(t,f,g,0.06,'sine');beep(t,f*2.7,g*0.25,0.03,'sine');return}
   let ok=true;
@@ -163,18 +181,24 @@ function rebuild(){clearTimeout(rbT);rbT=setTimeout(()=>{if(!running)return;cons
 function draw(){if(!running)return;const now=ac.currentTime;if(P0&&now>=t0){const st=Math.floor(((now-t0)%(P0.total*P0.per))/P0.per),b=Math.floor(st/P0.k),d=$('dots').children;for(let i=0;i<d.length;i++)d[i].classList.toggle('on',i===b)}requestAnimationFrame(draw)}
 function media(on){try{const ms=navigator.mediaSession;if(!ms)return;if(window.MediaMetadata&&on)ms.metadata=new MediaMetadata({title:'Simple Metronome',artist:bpm+' BPM · '+ts,album:'Clarendon Hills Music Academy'});ms.playbackState=on?'playing':'paused';
   ms.setActionHandler('play',()=>{if(!running)start()});ms.setActionHandler('pause',()=>{if(running)stop()});ms.setActionHandler('stop',()=>{if(running)stop()})}catch(e){}}
-function start(){audio();need(KIT[snd]||[]);if(kick1)need(['kick_4']);running=true;src=null;P0=null;rebuild();requestAnimationFrame(draw);media(true);$('go').textContent='Stop';$('go').classList.add('stop')}
+function start(){audio();need(KIT[snd]||[]);needFirst();running=true;src=null;P0=null;rebuild();requestAnimationFrame(draw);media(true);$('go').textContent='Stop';$('go').classList.add('stop')}
 function stop(){running=false;rbN++;clearTimeout(rbT);if(src){try{src.stop()}catch(e){}src=null}P0=null;[...$('dots').children].forEach(d=>d.classList.remove('on'));media(false);$('go').textContent='Start';$('go').classList.remove('stop')}
 function toggle(){running?stop():start()}
-function setBpm(v){bpm=clampB(v);$('bpm').textContent=bpm;$('slider').value=bpm;save();if(running){rebuild();media(true)}}
-function seg(id,opts,cur,fn){const el=$(id);el.innerHTML='';Object.keys(opts).forEach(k=>{const b=document.createElement('button');b.textContent=opts[k];b.dataset.v=k;b.setAttribute('aria-pressed',String(k==String(cur)));b.onclick=()=>fn(k);el.appendChild(b)})}
-function mark(id,cur){[...$(id).children].forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.v==String(cur))))}
+const FNEED={kick:['kick_4'],cow:['cb'],xstick:['xstick']};function needFirst(){if(ac&&FNEED[first])need(FNEED[first])}
+function fill(){const e=$('slider');e.style.setProperty('--p',((bpm-30)/(240-30)*100)+'%')}
+function setBpm(v){bpm=clampB(v);$('bpm').textContent=bpm;$('slider').value=bpm;fill();save();if(running){rebuild();media(true)}}
+// every option is a dropdown (2026-11-20): less scrolling on a phone
+function seg(id,opts,cur,fn){const el=$(id);el.innerHTML='';Object.keys(opts).forEach(k=>{const o=document.createElement('option');o.value=k;o.textContent=opts[k];el.appendChild(o)});el.value=String(cur);el.onchange=()=>fn(el.value)}
+function mark(id,cur){$(id).value=String(cur)}
 function setTs(v){ts=v;const T=TS[ts];$('dots').innerHTML='';for(let i=0;i<T.n;i++){const d=document.createElement('div');d.className='dot'+(i===0?' one':T.acc.includes(i)?' grp':'');$('dots').appendChild(d)}
   $('subRow').hidden=!!T.e;$('hint8').hidden=!T.e;$('hint8').textContent=T.c?'Each click is an eighth note. The speed counts the dotted quarter (3 clicks).':'Each click is an eighth note.';mark('ts',ts);save();if(running)rebuild()}
 function setSub(v){sub=+v;mark('sub',sub);save();if(running)rebuild()}
 function setSnd(v){snd=v;if(ac)need(KIT[snd]||[]);mark('snd',snd);paintDk();save();if(running)rebuild()}
-function paintDk(){const on=snd==='drums';['shk','xs'].forEach(id=>{const b=document.getElementById(id);if(!b)return;b.hidden=!on;b.setAttribute('aria-pressed',String(id==='shk'?shk:xs))})}
+// Additional sound: greyed out unless the sound is Drum beat
+function paintDk(){const on=snd==='drums',a=$('add');a.disabled=!on;$('addRow').classList.toggle('off',!on);a.value=shk&&xs?'both':shk?'shk':xs?'xs':'none'}
 seg('ts',Object.fromEntries(Object.keys(TS).map(k=>[k,k])),ts,setTs);seg('sub',SUBS,sub,setSub);seg('snd',SNDS,snd,setSnd);
+seg('first',FIRSTS,first,v=>{first=v;needFirst();save();if(running)rebuild()});
+seg('add',ADDS,'none',v=>{shk=v==='shk'||v==='both';xs=v==='xs'||v==='both';save();if(running)rebuild()});
 // hold − or + to keep changing
 function hold(el,d){let t=null,r=null;const end=()=>{clearTimeout(t);clearInterval(r)};
   el.addEventListener('pointerdown',e=>{e.preventDefault();setBpm(bpm+d);t=setTimeout(()=>{r=setInterval(()=>setBpm(bpm+d),70)},400)});
@@ -189,10 +213,8 @@ let taps=[];$('tap').addEventListener('pointerdown',e=>{e.preventDefault();const
 document.addEventListener('keydown',e=>{if(e.target.tagName==='INPUT'&&e.target.type!=='range')return;
   if(e.code==='Space'){e.preventDefault();toggle()}else if(e.key==='ArrowUp'){e.preventDefault();setBpm(bpm+1)}else if(e.key==='ArrowDown'){e.preventDefault();setBpm(bpm-1)}});
 document.addEventListener('visibilitychange',()=>{if(!document.hidden&&running&&ac&&ac.state!=='running')ac.resume()});
-const kb=$('kick1');const paintK=()=>kb.setAttribute('aria-pressed',String(kick1));paintK();
-kb.addEventListener('click',()=>{kick1=!kick1;if(kick1&&ac)need(['kick_4']);paintK();save();if(running)rebuild()});
-$('shk').addEventListener('click',()=>{shk=!shk;paintDk();save();if(running)rebuild()});$('xs').addEventListener('click',()=>{xs=!xs;paintDk();save();if(running)rebuild()});paintDk();
+paintDk();
 setBpm(bpm);setTs(ts);
-window.__sm={state:()=>({bpm,ts,sub,snd,running,vol,kick1,shk,xs,loaded:Object.keys(BUF),loop:src?{t0,len:src.buffer.duration,now:ac.currentTime,buf:src.buffer}:null})};
+window.__sm={state:()=>({bpm,ts,sub,snd,running,vol,first,shk,xs,loaded:Object.keys(BUF),loop:src?{t0,len:src.buffer.duration,now:ac.currentTime,buf:src.buffer}:null})};
 })();
 </script></body></html>

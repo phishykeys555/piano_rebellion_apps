@@ -312,11 +312,11 @@ details .note{font-size:14px;color:var(--c-mut);margin:8px 0 0}
 
   <details class="how"><summary>How it works</summary>
     <p class="tip"><b>Relative pitch</b> means you hear one note you know (the reference), then work out the next note by how far away it is. You don't need perfect pitch for this. You need distance.</p>
-    <p class="tip"><b>Mystery note:</b> the app says "This is C" and plays it, then plays a mystery note. Tap it on the keyboard (or on the note names, in Settings). Levels 7 and 8 change the reference, so you can't just memorize C.</p>
+    <p class="tip"><b>Mystery note:</b> the app says "This is C" and plays it, then plays a mystery note. Tap it on the keyboard (or on the note names, in "Settings"). Levels 7 and 8 change the reference, so you can't just memorize C.</p>
     <p class="tip"><b>Scale degree:</b> the app plays I – IV – V – I to set the key, then one note. Name its number in the scale: 1 is home (do), 5 is sol. Level 5 is a minor key, counted from its parent major like every numeral in the studio: in A minor (parent C) the cadence is vi – ii – III – vi (III is E major, borrowing G♯ from harmonic minor), and A is 6, B is 7, C is 1.</p>
-    <p class="tip"><b>MIDI keyboard:</b> pick it under Answer with (Chrome or Edge on a computer) and press the key you hear: in Scale degree and Interval, the key's distance from the reference is your answer.</p>
+    <p class="tip"><b>MIDI keyboard:</b> pick it under "Answer with" (Chrome or Edge on a computer) and press the key you hear: in Scale degree and Interval, the key's distance from the reference is your answer.</p>
     <p class="tip"><b>Interval:</b> two notes, name the distance. m = minor, M = major, P = perfect, TT = tritone (6 half steps), P8 = octave.</p>
-    <p class="tip"><b>Single tries:</b> one question at a time. Replay the reference or the mystery as often as you like, then press Next. <b>Challenge:</b> 5 rounds of 8 questions and a bonus round. Round 1 is the warm-up that sets your targets; each round's points count up from 0. Right answer = 1 point, right within 3 seconds = 2. One replay of each per question, one try, no second chances.</p>
+    <p class="tip"><b>Single tries:</b> one question at a time. Replay the reference or the mystery as often as you like, then press "Next". <b>Challenge:</b> 5 rounds of 8 questions and a bonus round. Round 1 is the warm-up that sets your targets; each round's points count up from 0. Right answer = 1 point, right within 3 seconds = 2. One replay of each per question, one try, no second chances.</p>
   </details>
   <details id="settingsBox"><summary>Settings</summary>
     <div class="setrow"><span>Mystery note: answer with</span><div class="seg" id="ansSeg" role="group" aria-label="Answer with"><button data-a="kb">Keyboard</button><button data-a="names">Note names</button></div></div>
@@ -330,7 +330,7 @@ details .note{font-size:14px;color:var(--c-mut);margin:8px 0 0}
     <label><input type="checkbox" id="hypeOn" checked> Music on round screens</label>
     <p class="note">MIDI keyboard (Chrome or Edge on a computer): press a key to answer. Mystery note = that key; Scale degree and Interval = its distance from the reference, the same as on the keyboard here. Play-it-on-your-piano (microphone) answers are not in this version.</p>
   </details>
-  <p class="appver" id="appVer">Ear Trainer · Version 2026-11-18.1</p>
+  <p class="appver" id="appVer">Ear Trainer · Version 2026-11-20.1</p>
   <p class="credit">Piano: Salamander Grand Piano V3 by Alexander Holm (<a href="https://creativecommons.org/licenses/by/3.0/" target="_blank" rel="noopener">CC BY 3.0</a>), retuned by Markus Fiedler, via sfzinstruments. Song cues name public-domain or traditional tunes; no recordings are used.</p>
   </section>
 
@@ -678,7 +678,7 @@ function stopChallenge(){ splashTok++; hypeStop(120); clearTimers(); hush(); $("
 function idle(){ clearTimers(); hush(); q=null; phase="idle"; $("card").classList.remove("answered"); const lv=L();
   if(ex===1&&!lv.rand&&lv.dir==="up") buildPiano(60,84); else buildPiano(48,72); clearMarks(); if(ex===1&&!lv.rand) mark(60,"ref");
   $("fb").innerHTML=""; document.querySelectorAll("#padWrap button").forEach(b=>b.classList.remove("hit","miss"));
-  $("prompt").innerHTML=gmode==="chal"?`Challenge: 5 rounds of 8 questions, then a bonus round. <small>Press Start Challenge.</small>`:`${EXS[ex].name} · Level ${level}: ${lv.name} <small>Press Play to hear the first question.</small>`;
+  $("prompt").innerHTML=gmode==="chal"?`Challenge: 5 rounds of 8 questions, then a bonus round. <small>Press "Start Challenge".</small>`:`${EXS[ex].name} · Level ${level}: ${lv.name} <small>Press "Play" to hear the first question.</small>`;
   requestAnimationFrame(()=>centerOn(60,72,true)); btns() }
 function setup(){ stopChallenge(); sheet(false);
   document.querySelectorAll("#exSeg button").forEach(b=>b.setAttribute("aria-pressed",String(+b.dataset.ex===ex)));
@@ -731,10 +731,10 @@ function chmaMidi(o){
   function show(){ let t="";
     if(M.state==="none") t="MIDI works in Chrome or Edge on a computer.";
     else if(M.state==="framed") t="MIDI can't turn on inside this page."+full();
-    else if(M.state==="blocked") t="MIDI was blocked. Allow MIDI for this page (the icon in the address bar), then pick MIDI again.";
+    else if(M.state==="blocked") t="MIDI was blocked. Allow MIDI for this page (the icon in the address bar), then pick \"MIDI\" again.";
     else if(M.state==="asking") t="Connecting to MIDI…";
     else if(M.state==="on"){ const a=ins(), p=picked(); t=a.length?`<span class="cm-led" aria-hidden="true" title="Flashes when a key arrives"></span>Connected: <b>${esc(p.map(nm).join(", "))}</b> <span class="cm-key">Press a key: the light flashes.</span>`:"No MIDI keyboard found. Plug it in by USB and switch it on: it connects by itself." }
-    else t="Pick MIDI to connect your keyboard (Chrome or Edge on a computer).";
+    else t="Pick \"MIDI\" to connect your keyboard (Chrome or Edge on a computer).";
     st.innerHTML=t; const a=M.state==="on"?ins():[]; pk.hidden=a.length<2;
     if(a.length>1){ const v=M.dev&&a.some(i=>i.id===M.dev)?M.dev:""; sel.innerHTML='<option value="">All MIDI inputs</option>'+a.map(i=>`<option value="${esc(i.id)}">${esc(nm(i))}</option>`).join(""); sel.value=v }
     if(o.onStatus) try{ o.onStatus(M.state,picked().map(nm)) }catch(e){} }
