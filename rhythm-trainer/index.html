@@ -194,6 +194,8 @@ details.how p{margin-top:6px}
   #micSlot #micBox{border:1px solid var(--c-line);border-radius:12px;padding:12px;background:var(--c-panel2)}
 }
 @media (min-width:900px) and (max-height:760px){ .wrap>.chma-headwrap{margin-bottom:-6px} }
+.card,.card *{-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}.card pre,.card input[type=text],.card textarea{-webkit-user-select:text;user-select:text}
+#pad{touch-action:none}html{overscroll-behavior-y:none}
 </style>
 </head>
 <body>
@@ -725,6 +727,8 @@ details.how p{margin-top:6px}
   // pointerdown is the pad's only input path (no click, touchstart or mousedown handler), so each physical tap is one hit; preventDefault stops the
   // synthetic mouse events, and the long-press menu and selection are blocked (2026-11-13.4)
   ["contextmenu","selectstart","dragstart"].forEach(k=>$("pad").addEventListener(k,e=>e.preventDefault()));
+  // Phones (2026-11-20.11): cancel touchstart so fast taps never start iOS text selection ("How it works" below the pad); the hit still comes from pointerdown.
+  $("pad").addEventListener("touchstart",e=>{ if(e.cancelable) e.preventDefault() },{passive:false});
   $("pad").addEventListener("pointerdown",e=>{ e.preventDefault(); try{ $("pad").setPointerCapture(e.pointerId) }catch(_){} if(audio) pressAt(audio.currentTime,e.pointerId) });
   const lift=e=>{ if(held.has(e.pointerId)) releaseAt(audio?audio.currentTime:0,e.pointerId) };
   ["pointerup","pointercancel","lostpointercapture"].forEach(k=>$("pad").addEventListener(k,lift)); ["pointerup","pointercancel"].forEach(k=>document.addEventListener(k,lift,true));
@@ -839,7 +843,9 @@ details.how p{margin-top:6px}
   // and in Tap with holds graded, −½ for a long note let go early or held too long (a note never goes below 0). The most a rhythm can earn is still
   // 1 per note, so the round targets (and the "never reachable in 2 rhythms" rule) keep the same basis.
   // Level, tempo, mode and input are locked while a rhythm plays or a challenge runs (press Stop first), so a change can never re-grade the wrong bar.
-  function lockUI(){ const on=!!(run||sess||arc); document.querySelectorAll("#levels button,#tempo button,#meterSeg button,#modeSeg button,#inSeg button").forEach(b=>b.disabled=on) }
+  document.addEventListener("touchmove",e=>{ if(document.body.classList.contains("rtlive")&&e.cancelable) e.preventDefault() },{passive:false});
+document.addEventListener("selectstart",e=>{ if(document.body.classList.contains("rtlive")&&!(e.target.closest&&e.target.closest("input,textarea,pre"))) e.preventDefault() });
+function lockUI(){ const on=!!(run||sess||arc); document.body.classList.toggle("rtlive",on); document.querySelectorAll("#levels button,#tempo button,#meterSeg button,#modeSeg button,#inSeg button").forEach(b=>b.disabled=on) }
   let gmode="practice", sess=null, arc=null; const ARC_T=30;
   // Challenge "Faster + accuracy". Tempo: after every rhythm, its score moves the tempo (95%+: +2 BPM, 80-94%: +1, 60-79%: hold, under 60%: -2),
   // never below the round's start and never above its cap = start x 1.08; the next round starts at that cap (overall max 180). Speed-up off = steady.
@@ -1458,6 +1464,6 @@ class NoteFlux{
   if(document.fonts) document.fonts.ready.then(()=>{ if(!run) drawBar(curRes) });
 })();
 </script>
-<p class="appver" style="text-align:center;font-size:11px;opacity:.6;margin:18px 0 10px;font-family:ui-monospace,Menlo,monospace">Rhythm Trainer · Version 2026-11-20.10</p>
+<p class="appver" style="text-align:center;font-size:11px;opacity:.6;margin:18px 0 10px;font-family:ui-monospace,Menlo,monospace">Rhythm Trainer · Version 2026-11-20.11</p>
 </body>
 </html>
