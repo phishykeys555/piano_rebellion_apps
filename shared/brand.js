@@ -69,3 +69,13 @@
    To bring sharing back after beta, set CHMA_SHARE_RESULTS=true. */
 (function(){var CHMA_SHARE_RESULTS=false;if(CHMA_SHARE_RESULTS)return;
  var st=document.createElement('style');st.textContent='#shareBtn,#shareB,#rShare{display:none!important}';(document.head||document.documentElement).appendChild(st)})();
+
+/* Footer credit (2026-11-20, Derek: "App name, the Clarendon Hills Music Academy with link to our website"): every "App · Version X" line becomes
+   "App · Clarendon Hills Music Academy · Version X", the academy name linking to the website. Lines filled in later by the app are caught too. */
+(function(){var SITE='https://clarendonhillsmusicacademy.com/',RE=/^\s*(.+?)\s*·\s*(Version\s+\S+)\s*$/;
+ function fix(el){ if(!el||el.querySelector('a')) return; var m=(el.textContent||'').replace(/ /g,' ').match(RE); if(!m) return;
+  el.textContent=''; el.appendChild(document.createTextNode(m[1]+' · ')); var a=document.createElement('a'); a.href=SITE; a.target='_blank'; a.rel='noopener'; a.textContent='Clarendon Hills Music Academy';
+  a.style.cssText='color:inherit;text-decoration:underline;text-underline-offset:2px'; el.appendChild(a); el.appendChild(document.createTextNode(' · '+m[2])) }
+ function run(){ var els=document.querySelectorAll('.appver'); for(var i=0;i<els.length;i++){ (function(el){ fix(el); try{ new MutationObserver(function(){ fix(el) }).observe(el,{childList:true,characterData:true,subtree:true}) }catch(e){} })(els[i]) } }
+ if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',run); else run();
+})();
