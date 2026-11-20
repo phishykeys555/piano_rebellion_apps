@@ -1,0 +1,226 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Scale Climber · Clarendon Hills Music Academy</title><meta name="description" content="Graded vocal warm-up scales: hear the pattern, sing it back, and climb a half step at a time. Every note graded in cents and timing. Four levels, tempo you choose."><meta property="og:type" content="website"><meta property="og:site_name" content="Clarendon Hills Music Academy"><meta property="og:title" content="Scale Climber · Clarendon Hills Music Academy"><meta property="og:description" content="Graded vocal warm-up scales: sing it back and climb a half step at a time."><meta property="og:url" content="https://phishykeys555.github.io/piano_rebellion_apps/scale-climber/">
+<link rel="stylesheet" href="../shared/chma.css">
+<script src="../shared/brand.js"></script>
+<link rel="stylesheet" href="../shared/voice-apps.css">
+<script src="../shared/voice-pitch.js"></script>
+<style>
+/* Scale Climber: tempo and mode chips, start key, one graded chip per note of the pattern */
+.chips.tempo{grid-template-columns:auto repeat(6,minmax(0,1fr));grid-auto-flow:row}
+.chips.mode{grid-template-columns:repeat(2,minmax(0,1fr));grid-auto-flow:row} .chips.mode .chip{font-family:var(--f-body);font-size:13px}
+.keyrow{display:flex;align-items:center;gap:10px;font-size:14px} .keyrow label{font-weight:600}
+.grades{display:flex;flex-wrap:wrap;gap:4px;justify-content:center;min-height:42px}
+.grades .g{min-width:34px;padding:3px 4px;border-radius:8px;background:var(--c-lcd);color:#9aa3b2;display:flex;flex-direction:column;align-items:center;font:700 11px/1.2 var(--f-num)}
+.grades .g small{font-size:9.5px;font-weight:500;opacity:.85}
+.grades .g.clean{background:color-mix(in srgb,var(--c-ok) 30%,var(--c-lcd));color:#fff}
+.grades .g.close{background:color-mix(in srgb,var(--c-warn) 34%,var(--c-lcd));color:#fff}
+.grades .g.off,.grades .g.none{background:color-mix(in srgb,var(--c-bad) 34%,var(--c-lcd));color:#fff}
+.grades .g.now{outline:2px solid var(--c-act)}
+.target .tn b small{font-size:15px;color:var(--c-mut);font-family:var(--f-body);font-weight:600;margin-left:6px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div data-chma-head data-ver="Version 2026-11-20.1"></div>
+  <div class="setup">
+  <header>
+    <h1>Scale <em>Climber</em></h1>
+    <p class="sub">Sing the pattern clean, then climb a half step.</p>
+  </header>
+  <p class="sec">Voice type</p>
+  <div class="voices" id="voices" role="group" aria-label="Voice type"></div>
+  <p class="tip" id="voiceTip">Not sure? Men usually start with Baritone, women and kids with Alto. Your Instructor can tell you.</p>
+  <p class="sec">Level</p>
+  <div class="levels" id="levels" role="group" aria-label="Level"></div>
+  <p class="sec">Tempo and start</p>
+  <div class="chips tempo" id="tempo" role="group" aria-label="Tempo"><span>BPM</span></div>
+  <div class="chips mode" id="mode" role="group" aria-label="How you sing"><button class="chip" type="button" data-m="hear">Hear, then sing</button><button class="chip" type="button" data-m="along">Sing along (headphones)</button></div>
+  <div class="keyrow"><label for="startKey">Start key</label><select class="keysel" id="startKey"></select></div>
+  <div class="micbox">
+    <div class="mrow"><button class="ghost" id="micBtn" type="button">Turn on the microphone</button><div class="lvlbar" aria-hidden="true"><i id="micLvl"></i></div></div>
+    <a class="mopen" id="micOpen" href="./" target="_blank" rel="noopener" hidden>Open full screen</a>
+    <p class="mstat" id="micStat" role="status" aria-live="polite"></p>
+  </div>
+  <details>
+    <summary>Settings</summary>
+    <div class="set">
+      <label for="sens">Mic sensitivity <input type="range" id="sens" min="0" max="100" step="1"></label>
+      <label for="vol">Tone volume <input type="range" id="vol" min="10" max="100" step="1"></label>
+      <span class="stamp">A key is clean when every note lands within 50¢ and the notes average 30¢ or closer. Miss a key and you get one more try on it. Timing is measured from each click; Bluetooth headphones add delay.</span>
+    </div>
+  </details>
+  </div>
+
+  <section class="card" id="card" aria-label="Practice">
+    <div class="stats">
+      <div class="stat"><b id="sKey">–</b><span>Key</span></div>
+      <div class="stat"><b id="sBpm">–</b><span>BPM</span></div>
+      <div class="stat"><b id="sClean">0</b><span>Clean</span></div>
+      <div class="stat"><b id="sTop">–</b><span>Highest</span></div>
+    </div>
+    <div class="target">
+      <div class="tn"><span id="tLbl">Now</span><b id="tName">–</b></div>
+      <div class="live"><b id="lCents">–</b><span id="lNote">Your voice</span></div>
+    </div>
+    <canvas class="plot" id="plot" role="img" aria-label="The pattern's notes and your pitch over time"></canvas>
+    <div class="grades" id="grades" aria-label="Note grades"></div>
+    <div class="msg" id="msg" role="status" aria-live="polite"><div class="v">Press Start</div><div class="c">Hear the pattern, two clicks, then sing it back on the beat.</div></div>
+    <p class="phones" data-vp-phones hidden>Use headphones: the mic can hear the speaker.</p>
+    <div class="row actions">
+      <button class="ghost" id="hear" type="button"><span aria-hidden="true">▶</span> Hear it</button>
+      <button class="primary" id="go" type="button">Start</button>
+    </div>
+
+    <div class="results" id="results" role="region" aria-label="Results" hidden>
+      <h2 id="rTitle" tabindex="-1" style="outline:none">Climb done</h2>
+      <div class="big" id="rBig">–</div>
+      <div class="pass" id="rPass"></div>
+      <div class="rgrid">
+        <div><b id="rClean">–</b><span>Clean keys</span></div>
+        <div><b id="rErr">–</b><span>Avg pitch error</span></div>
+        <div><b id="rTime">–</b><span>Avg timing</span></div>
+        <div><b id="rRange">–</b><span>Notes sung clean</span></div>
+        <div><b id="rLvl">–</b><span>Level</span></div>
+        <div><b id="rBpm">–</b><span>Tempo</span></div>
+      </div>
+      <p class="tip" id="rWhy"></p>
+      <div class="stamp" id="rStamp"></div>
+      <p class="tip">Screenshot this screen and send it to your Instructor.</p>
+      <div class="credit">Scale Climber · Created by Derek Berg · <a href="https://clarendonhillsmusicacademy.com/" target="_blank" rel="noopener">Clarendon Hills Music Academy</a></div>
+      <div class="row"><button class="ghost" id="rBack" type="button">Back</button><button class="ghost" id="rNext" type="button" hidden>Next level</button><button class="primary" id="rAgain" type="button">Climb again</button></div>
+    </div>
+  </section>
+</div>
+
+<script>
+(function(){
+  const $=id=>document.getElementById(id), VP=window.VP, APP='Scale Climber';
+  const store={get(k,d){try{const v=localStorage.getItem('sc-'+k);return v==null?d:JSON.parse(v)}catch(e){return d}},set(k,v){try{localStorage.setItem('sc-'+k,JSON.stringify(v))}catch(e){}}};
+  // Level ladder. pat = scale steps from the key note (half steps). ramp = BPM added after every clean key (the tempo gate level).
+  const OCT=[0,2,4,5,7,9,11,12,11,9,7,5,4,2,0];
+  const LEVELS=[
+    {id:1,name:'5-note',sub:'do to sol',pat:[0,2,4,5,7,5,4,2,0]},
+    {id:2,name:'Octave',sub:'do to high do',pat:OCT},
+    {id:3,name:'Arpeggio',sub:'1-3-5-8',pat:[0,4,7,12,7,4,0]},
+    {id:4,name:'Speed up',sub:'+6 BPM a key',pat:OCT,ramp:6}];
+  const SOLF={0:'do',2:'re',4:'mi',5:'fa',7:'sol',9:'la',11:'ti',12:'do'};
+  const TEMPOS=[60,72,84,96,108,120], PASSKEYS=5, CLEAN=25, NEAR=50, KEYAVG=30;
+  let voice=VP.voice(), level=+store.get('level',1)||1, bpm=+store.get('bpm',72)||72, mode=store.get('mode','hear'), run=null;
+  const L=()=>LEVELS.find(x=>x.id===level)||LEVELS[0], top=()=>Math.max(...L().pat);
+  const fmtC=c=>{ if(c==null) return '–'; const r=Math.round(c); return (r>0?'+':r<0?'−':'')+Math.abs(r)+'¢' };
+  const plot=VP.plot($('plot')); plot.span=6; plot.nowX=0.4;
+
+  function msg(cls,v,c){ const m=$('msg'); m.className='msg'+(cls?' '+cls:''); m.querySelector('.v').textContent=v; m.querySelector('.c').textContent=c||'' }
+  function passed(lv){ return !!(voice&&store.get('pass-'+voice.id+'-'+lv,false)) }
+  function drawLevels(){ $('levels').innerHTML=LEVELS.map(x=>`<button class="lvl" type="button" data-l="${x.id}" aria-pressed="${x.id===level}"><b>L${x.id}</b><span>${x.name}</span><span>${x.sub}</span>${passed(x.id)?'<span class="done">✓ passed</span>':''}</button>`).join('');
+    $('levels').querySelectorAll('.lvl').forEach(b=>b.addEventListener('click',()=>{ if(run) stopRun(); level=+b.dataset.l; store.set('level',level); drawLevels(); keys(); idle() })) }
+  function drawTempo(){ const el=$('tempo'); el.querySelectorAll('.chip').forEach(b=>b.remove());
+    TEMPOS.forEach(t=>{ const b=document.createElement('button'); b.type='button'; b.className='chip'; b.textContent=t; b.setAttribute('aria-pressed',t===bpm); b.addEventListener('click',()=>{ if(run) return; bpm=t; store.set('bpm',t); drawTempo(); idle() }); el.appendChild(b) }) }
+  function drawMode(){ $('mode').querySelectorAll('.chip').forEach(b=>{ b.setAttribute('aria-pressed',b.dataset.m===mode); b.onclick=()=>{ if(run) return; mode=b.dataset.m; store.set('mode',mode); drawMode(); idle() } }) }
+  function keys(){ const s=$('startKey'); if(!voice){ s.innerHTML='<option>Pick a voice type</option>'; s.disabled=true; return } s.disabled=false;
+    const hiK=voice.hi-top(), def=Math.max(voice.lo,Math.min(hiK,voice.l1-2)), saved=+store.get('start-'+voice.id,def), cur=Math.max(voice.lo,Math.min(hiK,saved));
+    let h=''; for(let m=voice.lo;m<=hiK;m++) h+=`<option value="${m}"${m===cur?' selected':''}>${VP.noteName(m)}${m===def?' (suggested)':''}</option>`; s.innerHTML=h }
+  $('startKey').addEventListener('change',e=>{ if(voice) store.set('start-'+voice.id,+e.target.value) });
+  function onVoice(v){ voice=v; $('voices').classList.remove('need'); $('voiceTip').hidden=true; if(run) stopRun(); drawLevels(); keys(); idle() }
+  VP.voicePicker($('voices'),onVoice); if(voice) $('voiceTip').hidden=true;
+  const mp=VP.micPanel(APP,{btn:'micBtn',open:'micOpen',stat:'micStat',lvl:'micLvl',sens:'sens',vol:'vol',
+    idle:'Start asks for the microphone. Tap Allow when your device asks.',on:'Listening. Sing any note: the level bar turns green.'});
+
+  function idle(){ if(run) return; const k=voice?+$('startKey').value:60; $('sKey').textContent=voice?VP.noteName(k):'–'; $('sBpm').textContent=bpm;
+    plot.cents=null; plot.lo=k-2; plot.hi=k+top()+2; plot.targets=[]; gradesRow(L().pat.map(()=>null),-1) }
+  function gradesRow(G,cur){ const p=L().pat; $('grades').innerHTML=p.map((d,i)=>{ const g=G[i]; return `<div class="g ${g?g.grade:''}${i===cur?' now':''}">${SOLF[d]||d}<small>${g?(g.c==null?'–':fmtC(g.c).replace('¢','')):'&nbsp;'}</small></div>` }).join('') }
+
+  // ---------- one climb ----------
+  async function startRun(){ if(!voice){ $('voices').classList.add('need'); $('voices').scrollIntoView({block:'center',behavior:'smooth'}); msg('bad','Pick your voice type first','Tap the one that fits you, then press Start.'); return }
+    VP.ctx(); const ok=await mp.go(); if(!ok){ msg('bad','The microphone is off','See the note under the microphone button.'); return }
+    if(innerWidth<900) try{ $('card').scrollIntoView({behavior:'smooth',block:'start'}) }catch(e){}
+    run={key:+$('startKey').value,bpm,lv:L(),mode,clean:[],tries:0,frames:[],timers:[],cur:null,startKey:+$('startKey').value,startBpm:bpm};
+    $('results').hidden=true; $('go').textContent='Stop'; $('sClean').textContent='0'; $('sTop').textContent='–'; doKey() }
+  function stopRun(quiet){ if(!run) return; run.timers.forEach(clearTimeout); run=null; $('go').textContent='Start'; plot.targets=[]; if(!quiet) msg('','Stopped','Press Start to climb again.'); idle() }
+  function at(t,fn){ const ms=Math.max(0,(t-VP.now())*1000); run.timers.push(setTimeout(fn,ms)) }
+  function doKey(){ if(!run) return; const R=run, lv=R.lv, pat=lv.pat, b=60/R.bpm, T=VP.now()+0.35, k=R.key;
+    let S; const tg=[];
+    if(R.mode==='hear'){ pat.forEach((d,i)=>{ VP.tone(k+d,b*0.9,T+i*b,0.9); VP.click(T+i*b,false); tg.push({t0:T+i*b,t1:T+(i+0.9)*b,midi:k+d,tol:CLEAN,color:'#9aa3b2',state:'done'}) });
+      S=T+(pat.length+2)*b; VP.click(T+pat.length*b,true); VP.click(T+(pat.length+1)*b,true) }
+    else{ S=T+2*b; VP.click(T,true); VP.click(T+b,true); pat.forEach((d,i)=>VP.tone(k+d,b*0.9,S+i*b,0.9)) }
+    pat.forEach((d,i)=>{ VP.click(S+i*b,false); tg.push({t0:S+i*b,t1:S+(i+0.92)*b,midi:k+d,tol:CLEAN,label:SOLF[d]}) });
+    const E=S+pat.length*b;
+    R.cur={k,S,E,b,notes:pat.map((d,i)=>({m:k+d,ts:S+i*b})),G:pat.map(()=>null),idx:-1}; R.frames=[];
+    plot.lo=k-2; plot.hi=k+top()+2; plot.targets=tg;
+    $('sKey').textContent=VP.noteName(k); $('sBpm').textContent=R.bpm; gradesRow(R.cur.G,-1);
+    msg('',R.mode==='hear'?'Listen…':'Get ready…',`Key of ${VP.pcName(k)}${R.tries?' · one more try':''}. ${R.mode==='hear'?'Two clicks, then sing it back.':'Sing with the tones after two clicks.'}`);
+    at(S-b*0.25,()=>msg('go','Sing',R.mode==='hear'?'On the beat, one note per click.':'Sing along with the tones.'));
+    at(E+0.3,gradeKey) }
+
+  function onFrame(f){ const R=run, C=R&&R.cur;
+    plot.pts.push({t:f.t,m:f.midi,ok:false});
+    let tgt=null; if(C&&f.t>=C.S-C.b*0.3&&f.t<C.E){ const i=Math.max(0,Math.min(C.notes.length-1,Math.floor((f.t-C.S)/C.b+0.15))); tgt=C.notes[i].m;
+      if(i!==C.idx){ C.idx=i; gradesRow(C.G,i) } }
+    if(C&&f.t>=C.S-C.b*0.5&&f.t<=C.E+0.25&&!(R.mode==='hear'&&f.ref&&f.t<C.S)) R.frames.push({t:f.t,m:f.voiced?f.midi:null});
+    if(tgt!=null){ $('tLbl').textContent='Sing'; $('tName').innerHTML=VP.noteName(tgt)+'<small>'+(SOLF[tgt-C.k]||'')+'</small>' }
+    else if(!R){ $('tLbl').textContent='Now'; $('tName').textContent='–' }
+    const lc=$('lCents');
+    if(f.voiced){ const c=tgt!=null?(f.midi-tgt)*100:f.cents; plot.pts[plot.pts.length-1].ok=tgt!=null&&Math.abs(c)<=CLEAN;
+      lc.textContent=fmtC(c); lc.className=tgt==null?'':Math.abs(c)<=CLEAN?'ok':Math.abs(c)<=NEAR?'near':'off'; $('lNote').textContent='You: '+f.note }
+    else { lc.textContent='–'; lc.className=''; $('lNote').textContent='Your voice' } }
+
+  function gradeNote(n,b,F,lat){ const w0=n.ts+0.3*b+lat, w1=n.ts+0.9*b+lat;
+    const v=F.filter(x=>x.t>=w0&&x.t<=w1), vs=v.filter(x=>x.m!=null).map(x=>(x.m-n.m)*100);
+    const c=vs.length?VP.median(vs):null, cov=v.length?vs.length/v.length:0;
+    let on=null; const o0=n.ts-0.35*b+lat, o1=n.ts+0.7*b+lat;
+    for(let i=0;i<F.length-1;i++){ const x=F[i], y=F[i+1]; if(x.t<o0||x.t>o1) continue; if(x.m!=null&&y.m!=null&&Math.abs((x.m-n.m)*100)<=NEAR&&Math.abs((y.m-n.m)*100)<=NEAR){ on=x.t-n.ts-lat; break } }
+    const grade=c==null||cov<0.25?'none':Math.abs(c)<=CLEAN?'clean':Math.abs(c)<=NEAR?'close':'off';
+    return {m:n.m,c,on,grade} }
+  function gradeKey(){ const R=run; if(!R) return; const C=R.cur, lat=VP.latency();
+    C.G=C.notes.map(n=>gradeNote(n,C.b,R.frames,lat)); gradesRow(C.G,-1);
+    const bad=C.G.filter(g=>g.grade==='none'||g.grade==='off'), cs=C.G.filter(g=>g.c!=null).map(g=>Math.abs(g.c)), avg=cs.length?cs.reduce((a,x)=>a+x,0)/cs.length:null;
+    const ons=C.G.filter(g=>g.on!=null).map(g=>g.on), tim=ons.length?ons.reduce((a,x)=>a+x,0)/ons.length:null;
+    const clean=!bad.length&&avg!=null&&avg<=KEYAVG;
+    plot.targets.forEach(T=>T.state='done');
+    if(clean){ R.clean.push({k:C.k,avg,tim,bpm:R.bpm,top:C.k+top()}); R.tries=0;
+      $('sClean').textContent=R.clean.length; $('sTop').textContent=VP.noteName(C.k);
+      const nk=C.k+1;
+      if(nk+top()>voice.hi){ msg('good','Top of your range','Every key clean. Nice climb.'); return at(VP.now()+1.2,()=>finish('top')) }
+      msg('good','Clean. Up a half step',`Avg ${Math.round(avg)}¢${tim!=null?' · timing '+fmtMs(tim):''}`);
+      R.key=nk; if(R.lv.ramp) R.bpm=Math.min(200,R.bpm+R.lv.ramp); at(VP.now()+1.0,doKey) }
+    else{ const worst=bad[0]||C.G.slice().sort((a,b)=>Math.abs(b.c||0)-Math.abs(a.c||0))[0];
+      const why=worst.grade==='none'?`No clear note on ${SOLF[worst.m-C.k]||VP.noteName(worst.m)}. Sing out, one note per click.`:`${SOLF[worst.m-C.k]||''} (${VP.noteName(worst.m)}) was ${fmtC(worst.c)} ${worst.c>0?'sharp':'flat'}.`;
+      if(R.tries<1){ R.tries++; msg('ok','Not clean yet, one more try',why); at(VP.now()+1.6,doKey) }
+      else { msg('bad','Stuck on this key',why); R.lastWhy=why; at(VP.now()+1.4,()=>finish('miss')) } } }
+  const fmtMs=s=>{ const ms=Math.round(s*1000); return Math.abs(ms)<=40?'on the beat':Math.abs(ms)+' ms '+(ms>0?'late':'early') };
+
+  function finish(why){ const R=run; if(!R) return; R.timers.forEach(clearTimeout); run=null; $('go').textContent='Start';
+    const n=R.clean.length, lv=R.lv;
+    $('rBig').innerHTML=n?`${VP.noteName(R.clean[n-1].k)}<small>highest clean key</small>`:`–<small>no clean key yet</small>`;
+    $('rClean').textContent=n+(n===1?' key':' keys');
+    const ae=n?R.clean.reduce((a,x)=>a+x.avg,0)/n:null; $('rErr').textContent=ae!=null?Math.round(ae)+'¢':'–';
+    const ts=R.clean.filter(x=>x.tim!=null); $('rTime').textContent=ts.length?fmtMs(ts.reduce((a,x)=>a+x.tim,0)/ts.length):'–';
+    $('rRange').textContent=n?VP.noteName(R.clean[0].k)+' to '+VP.noteName(R.clean[n-1].top):'–';
+    $('rLvl').textContent='L'+lv.id+' '+lv.name; $('rBpm').textContent=lv.ramp&&n?R.startBpm+' → '+R.clean[n-1].bpm+' BPM':R.startBpm+' BPM';
+    const pass=n>=PASSKEYS||(why==='top'&&n>=2); $('rPass').className='pass '+(pass?'yes':'no');
+    $('rPass').textContent=pass?`Level ${lv.id} passed: ${n} clean keys in a row.`:`${n} clean ${n===1?'key':'keys'}. Pass = ${PASSKEYS} clean keys in a row.`;
+    if(pass){ store.set('pass-'+voice.id+'-'+lv.id,true); drawLevels() }
+    $('rWhy').textContent=why==='top'?'You reached the top of your voice type\'s range.':why==='miss'?(R.lastWhy||''):'';
+    $('rNext').hidden=!(pass&&lv.id<LEVELS.length);
+    $('rStamp').textContent=voice.name+' · '+(R.mode==='hear'?'Hear, then sing':'Sing along')+' · '+new Date().toLocaleString([], {dateStyle:'medium',timeStyle:'short'});
+    $('results').hidden=false; try{ $('rTitle').focus({preventScroll:true}) }catch(e){} }
+
+  $('go').addEventListener('click',()=>{ if(run) finish('stop'); else startRun() });
+  $('hear').addEventListener('click',()=>{ if(run||!voice) return; const k=+$('startKey').value, b=60/bpm, T=VP.now()+0.1; L().pat.forEach((d,i)=>{ VP.tone(k+d,b*0.9,T+i*b,0.9) }) });
+  $('rBack').addEventListener('click',()=>{ $('results').hidden=true; idle(); msg('','Press Start','Hear the pattern, two clicks, then sing it back on the beat.') });
+  $('rAgain').addEventListener('click',()=>{ $('results').hidden=true; startRun() });
+  $('rNext').addEventListener('click',()=>{ level=Math.min(LEVELS.length,level+1); store.set('level',level); drawLevels(); keys(); $('results').hidden=true; startRun() });
+  VP.listen(f=>{ if(!$('results').hidden&&!run) return; onFrame(f) }); VP.on('stop',()=>{ if(run) stopRun() });
+  (function loop(){ if(VP.isOn()||run){ plot.now=VP.now(); plot.trim(); plot.draw() } requestAnimationFrame(loop) })();
+  drawLevels(); drawTempo(); drawMode(); keys(); idle(); plot.draw();
+  if(!voice) msg('','Pick your voice type','Then press Start.');
+  window.__sc={levels:()=>LEVELS,state:()=>run&&{key:run.key,bpm:run.bpm,clean:run.clean.length,tries:run.tries,cur:run.cur&&{k:run.cur.k,S:run.cur.S,b:run.cur.b,notes:run.cur.notes}},level:()=>level};
+})();
+</script>
+<p class="appver">Scale Climber · Version 2026-11-20.1</p>
+</body>
+</html>
