@@ -338,7 +338,7 @@ details.more .settings{padding:4px 0 6px}
         <div class="msg" id="msg" role="alert"></div>
       </section>
     </div>
-    <p class="appver">Strobe Tuner &middot; Version 2026-11-13.1</p>
+    <p class="appver">Strobe Tuner &middot; Version 2026-11-20.1</p>
   </main>
   <div class="cheek" aria-hidden="true"></div>
 </div>
@@ -645,7 +645,7 @@ async function start(){
     const n = err && err.name;
     if ((n === 'NotAllowedError' || n === 'SecurityError') && isFramed && micPolicyOff()) showMsg(FRAMED_MSG + openTab());
     else if (n === 'NotAllowedError' || n === 'SecurityError' || n === 'PermissionDeniedError')
-      showMsg('The tuner needs to hear your guitar. Tap <b>Allow</b> when your device asks about the microphone. If you tapped Don’t Allow, turn the microphone on for this site in your browser settings (iPhone/iPad Safari: tap <b>aA</b> in the address bar, then Website Settings, then Microphone), then tap the tuner again.' + openTab());
+      showMsg('The tuner needs to hear your guitar. Tap "<b>Allow</b>" when your device asks about the microphone. If you tapped "Don’t Allow", turn the microphone on for this site in your browser settings (iPhone/iPad Safari: tap "<b>aA</b>" in the address bar, then "Website Settings", then "Microphone"), then tap the tuner again.' + openTab());
     else if (n === 'NotFoundError' || n === 'OverconstrainedError' || n === 'DevicesNotFoundError')
       showMsg('No microphone found. Plug one in or use a phone or tablet, then tap the tuner again.');
     else if (n === 'NotReadableError' || n === 'TrackStartError' || n === 'AbortError')

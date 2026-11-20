@@ -264,8 +264,8 @@ details.how p{margin:10px 0 0}
 
   <details class="how"><summary>How it works</summary>
     <p class="tip">No sheet music. Just the keys. Learn every key on the piano by sight.</p>
-    <p class="tip">Answer with: tap the screen, play a MIDI keyboard (Chrome or Edge on a computer), or in Find the key, play your own piano and let the microphone hear it. On a real piano any octave counts.</p>
-    <p class="tip">Practice: take your time (turn on Second try in Settings to try again after a miss). Challenge: five 30-second rounds and a bonus round. Round 1 is the warm-up that sets your targets. One try per key, no second chances. Last 10 seconds of a round = 2x points.</p>
+    <p class="tip">Answer with: tap the screen, play a MIDI keyboard (Chrome or Edge on a computer), or in "Find the key", play your own piano and let the microphone hear it. On a real piano any octave counts.</p>
+    <p class="tip">Practice: take your time (turn on "Second try" in "Settings" to try again after a miss). Challenge: five 30-second rounds and a bonus round. Round 1 is the warm-up that sets your targets. One try per key, no second chances. Last 10 seconds of a round = 2x points.</p>
   </details>
   <details><summary>Settings</summary>
     <label><input type="checkbox" id="soundOn" checked> Play the key's sound</label>
@@ -274,7 +274,7 @@ details.how p{margin:10px 0 0}
     <label><input type="checkbox" id="retryOn"> Second try on a miss (practice only)</label>
     <label><input type="checkbox" id="flatsOn"> Call black keys by their flat name (D♭) in Find the key</label>
   </details>
-  <p class="appver" id="appVer">Key Finder · Version 2026-11-18.1</p>
+  <p class="appver" id="appVer">Key Finder · Version 2026-11-20.1</p>
   </section>
 
   <section class="play">
@@ -302,7 +302,7 @@ details.how p{margin:10px 0 0}
       <a href="#" class="diaglink" id="micDiagLink" hidden>Mic not catching keys? Show details</a>
       <div class="micdiag" id="micDiag" hidden>
         <div class="dhead"><b>Mic details</b><span><button type="button" id="micDiagCopy">Copy log</button> <button type="button" id="micDiagClose">Close</button></span></div>
-        <p class="dnote">The last 20 sounds the microphone heard, newest last. Something missed? Tap Copy log and paste it to your teacher.</p>
+        <p class="dnote">The last 20 sounds the microphone heard, newest last. Something missed? Tap "Copy log" and paste it to your instructor.</p>
         <pre id="micDiagLog">Nothing heard yet.</pre>
       </div>
     </div>
@@ -547,10 +547,10 @@ details.how p{margin:10px 0 0}
     function show(){ let t="";
       if(M.state==="none") t="MIDI works in Chrome or Edge on a computer.";
       else if(M.state==="framed") t="MIDI can't turn on inside this page."+full();
-      else if(M.state==="blocked") t="MIDI was blocked. Allow MIDI for this page (the icon in the address bar), then pick MIDI again.";
+      else if(M.state==="blocked") t="MIDI was blocked. Allow MIDI for this page (the icon in the address bar), then pick \"MIDI\" again.";
       else if(M.state==="asking") t="Connecting to MIDI…";
       else if(M.state==="on"){ const a=ins(), p=picked(); t=a.length?`<span class="cm-led" aria-hidden="true" title="Flashes when a key arrives"></span>Connected: <b>${esc(p.map(nm).join(", "))}</b> <span class="cm-key">Press a key: the light flashes.</span>`:"No MIDI keyboard found. Plug it in by USB and switch it on: it connects by itself." }
-      else t="Pick MIDI to connect your keyboard (Chrome or Edge on a computer).";
+      else t="Pick \"MIDI\" to connect your keyboard (Chrome or Edge on a computer).";
       st.innerHTML=t; const a=M.state==="on"?ins():[]; pk.hidden=a.length<2;
       if(a.length>1){ const v=M.dev&&a.some(i=>i.id===M.dev)?M.dev:""; sel.innerHTML='<option value="">All MIDI inputs</option>'+a.map(i=>`<option value="${esc(i.id)}">${esc(nm(i))}</option>`).join(""); sel.value=v }
       if(o.onStatus) try{ o.onStatus(M.state,picked().map(nm)) }catch(e){} }
@@ -575,7 +575,7 @@ details.how p{margin:10px 0 0}
   function inMark(){ if(inMode==="mic"&&mode!=="find") inMode="screen";
     document.querySelectorAll("#inSeg button").forEach(b=>{ b.setAttribute("aria-pressed",String(b.dataset.i===inMode)); if(b.dataset.i==="mic") b.disabled=mode!=="find" });
     $("midiBox").hidden=inMode!=="midi"; if(inMode==="midi") MIDI.start();
-    $("inTip").hidden=mode==="find"; $("inTip").textContent="Play my piano works in Find the key.";
+    $("inTip").hidden=mode==="find"; $("inTip").textContent="\"Play my piano\" works in \"Find the key\".";
     $("micPad").hidden=!micOn(); if(micOn()) micIntro(); else micStop() }
   document.querySelectorAll("#inSeg button").forEach(b=>b.addEventListener("click",()=>{ if(b.disabled) return; inMode=b.dataset.i; store.set("in",inMode); inMark() }));
   // ---------- microphone: hear a real piano, no MIDI ----------
@@ -677,14 +677,14 @@ details.how p{margin:10px 0 0}
   function micPolicyBlocked(){ try{ const p=document.permissionsPolicy||document.featurePolicy; return !!(p&&p.allowsFeature&&!p.allowsFeature("microphone")) }catch(e){ return false } }
   function fullUrl(){ try{ const u=new URL(location.href); u.hash=""; u.searchParams.set("in","mic"); u.searchParams.set("game","find"); u.searchParams.set("level",level); return u.href }catch(e){ return location.href.split("#")[0] } }
   function micHelp(text,open){ const st=$("micStat"); st.textContent=text; $("micOpen").hidden=!open; $("micBtn").hidden=!!open&&micPolicyBlocked(); $("heard").hidden=$("micBtn").hidden; if(open) $("micOpen").href=fullUrl() }
-  function micIntro(){ if(mic) return; if(inFrame&&micPolicyBlocked()) micHelp("This page sits inside another page (like Notion) that can't share the microphone. Open full screen, then tap Turn on the microphone.",true);
+  function micIntro(){ if(mic) return; if(inFrame&&micPolicyBlocked()) micHelp("This page sits inside another page (like Notion) that can't share the microphone. Open full screen, then tap \"Turn on the microphone\".",true);
     else{ $("micOpen").hidden=true; $("micBtn").hidden=false; $("heard").hidden=false; $("micStat").textContent="Play the key on your piano. Any octave counts." } }
   let micBusy=false, micTry=0;
   async function micStart(deviceId){ if(micBusy) return; micBusy=true; const my=++micTry; $("micBtn").disabled=true; $("micBtn").textContent="Waiting for the microphone…";
     // no answer from the browser (a hidden or ignored permission prompt): never leave the button stuck
-    const slow=setTimeout(()=>{ if(micTry===my&&micBusy) fail("Still waiting for the microphone. Tap Allow if your device is asking."+(inFrame?" No question showed up? Open full screen:":" Then tap the button again."),inFrame) },9000);
+    const slow=setTimeout(()=>{ if(micTry===my&&micBusy) fail("Still waiting for the microphone. Tap \"Allow\" if your device is asking."+(inFrame?" No question showed up? Open full screen:":" Then tap the button again."),inFrame) },9000);
     const fail=(t,open)=>{ clearTimeout(slow); micBusy=false; $("micBtn").disabled=false; $("micBtn").textContent="Turn on the microphone"; try{ if(navigator.audioSession&&!mic) navigator.audioSession.type="playback" }catch(e){} micHelp(t,open) };
-    if(inFrame&&micPolicyBlocked()) return fail("This page sits inside another page (like Notion) that can't share the microphone. Open full screen, then tap Turn on the microphone.",true);
+    if(inFrame&&micPolicyBlocked()) return fail("This page sits inside another page (like Notion) that can't share the microphone. Open full screen, then tap \"Turn on the microphone\".",true);
     if(!window.isSecureContext||!navigator.mediaDevices||!navigator.mediaDevices.getUserMedia) return fail("This browser can't reach the microphone here. Open Key Finder in Safari or Chrome."+(inFrame?" Or open it full screen:":""),inFrame);
     try{
     try{ if(navigator.audioSession) navigator.audioSession.type="play-and-record" }catch(e){}
@@ -704,13 +704,13 @@ details.how p{margin:10px 0 0}
     stream.getAudioTracks().forEach(t=>t.addEventListener("ended",micLost));
     mic.timer=setInterval(micTick,TICK); micBusy=false; $("micBtn").textContent="Microphone on"; $("micBtn").disabled=true; $("micBtn").hidden=false; $("micOpen").hidden=true; $("micCtl").hidden=false; if(!micDiagOn) $("micDiagLink").hidden=false;
     setThr(THR);
-    $("micStat").textContent="Listening. Play any key: the Level bar should jump past the line. Too low? Raise Sensitivity.";
+    $("micStat").textContent="Listening. Play any key: the Level bar should jump past the line. Too low? Raise \"Sensitivity\".";
     try{ const devs=(await navigator.mediaDevices.enumerateDevices()).filter(d=>d.kind==="audioinput"), cur=stream.getAudioTracks()[0].getSettings().deviceId;
       $("micSel").innerHTML=devs.map((d,i)=>`<option value="${d.deviceId}">${(d.label||("Microphone "+(i+1))).replace(/[<>&"]/g,"")}</option>`).join(""); if(cur) $("micSel").value=cur }catch(e){}
   }catch(e){ if(my!==micTry) return; const n=e&&e.name;
     if(n==="NotAllowedError"||n==="SecurityError"||n==="PermissionDeniedError")
-      fail(inFrame?"The page this sits inside (like Notion) may be blocking the microphone. Open full screen and allow it there. Tapped Don't Allow before? Turn the microphone on in your browser's site settings (iPhone/iPad Safari: aA in the address bar, then Website Settings).":
-        "Key Finder needs to hear your piano. Tap Allow when your device asks about the microphone. If you tapped Don't Allow, turn the microphone on for this site in your browser settings (iPhone/iPad Safari: tap aA in the address bar, then Website Settings, then Microphone), then tap the button again.",inFrame);
+      fail(inFrame?"The page this sits inside (like Notion) may be blocking the microphone. Open full screen and allow it there. Tapped \"Don't Allow\" before? Turn the microphone on in your browser's site settings (iPhone/iPad Safari: \"aA\" in the address bar, then \"Website Settings\").":
+        "Key Finder needs to hear your piano. Tap \"Allow\" when your device asks about the microphone. If you tapped \"Don't Allow\", turn the microphone on for this site in your browser settings (iPhone/iPad Safari: tap \"aA\" in the address bar, then \"Website Settings\", then \"Microphone\"), then tap the button again.",inFrame);
     else if(n==="NotFoundError"||n==="OverconstrainedError"||n==="DevicesNotFoundError") fail("No microphone found. Plug one in or use a phone or tablet, then tap the button again.");
     else if(n==="NotReadableError"||n==="TrackStartError"||n==="AbortError") fail("Another app is using the microphone. Close it (or end the call), then tap the button again.");
     else fail("The microphone didn't start. Reload the page and tap the button again."+(inFrame?" Or open Key Finder full screen:":""),inFrame) } }
@@ -840,7 +840,7 @@ details.how p{margin:10px 0 0}
       if(!mine(m,Q)||Q.id!==micAskId()){ const early=!Q||Q.tg==null;
         if(early) m.pend={md,at:m.armedAt}; dlog(m,{rd:dkn(md),tg:Q&&Q.tg!=null?dkn(Q.tg):"-",dec:early?"heard between notes (kept 150 ms in case the note was about to show)":"not counted: began before this note showed",why:how}); return }
       if(!sameKey(md,Q.tg)&&!((m.hard||m.hit)&&m.by==="level")){ dlog(m,{rd:dkn(md),tg:dkn(Q.tg),dec:"not graded: too weak an attack to call it a wrong key",why:how+", by "+m.by}); return }
-      Q.heard=true; m.ansAt=now; m.ansH=m.armH; if(m.clipSaid&&!m.clip){ m.clipSaid=false; $("micStat").textContent="Listening. Play any key: the Level bar should jump past the line. Too low? Raise Sensitivity." }
+      Q.heard=true; m.ansAt=now; m.ansH=m.armH; if(m.clipSaid&&!m.clip){ m.clipSaid=false; $("micStat").textContent="Listening. Play any key: the Level bar should jump past the line. Too low? Raise \"Sensitivity\"." }
       dlog(m,{rd:dkn(md),tg:dkn(Q.tg),dec:sameKey(md,Q.tg)?"right":"wrong key",why:how+", by "+m.by+(m.preR?", "+(m.pk/m.preR).toFixed(1)+"x over the ringing level":"")}); heardNote(md); answerHeard(md) }
     const learn=rs=>{ rs=rs.slice().sort((a,b)=>a-b); const med=rs[Math.floor(rs.length/2)]||0; tuneOff=Math.max(-0.6,Math.min(0.6,tuneOff+0.5*med)); store.set("tuneOff",tuneOff) };
     // a struck string only fades after its peak; a voice swells and dips. Beating strings may lift the level a little between looks

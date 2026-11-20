@@ -210,7 +210,7 @@ details.how p{margin-top:6px}
   <p class="sec">Speed and time</p>
   <div class="tempo" id="tempo" role="group" aria-label="Tempo"><span id="tempoLbl">Tempo</span></div>
   <div class="tsig" id="meterSeg" role="group" aria-label="Time signature"><span>Time</span></div>
-  <div class="subrow"><label class="clkpick">Click <select id="clkPick" aria-label="Click sound"><option value="classic">Classic click</option><option value="cow">🐄 More cowbell</option><option value="wood">Woodblock</option><option value="rim">Side stick</option><option value="hat">Hi-hat</option><option value="clave">Clave</option><option value="beep">Beep (electronic)</option><option value="kick">Kick on 1 + hi-hat (drummer)</option></select></label><label class="clkpick volpick" title="Click and app volume">Volume <input type="range" id="volR" min="0" max="200" step="5" aria-label="Click volume"></label><label class="clkpick volpick" title="Counting voice volume">Voice <input type="range" id="vvolR" min="0" max="200" step="5" aria-label="Counting voice volume"></label><span class="clksafe" id="clkSafe" hidden>(mic-safe click used)</span><button class="chip" id="loopChip" aria-pressed="false" title="Single tries: count a bar, play the rhythm, count a bar, play it again… until you press Stop">🔁 Loop: <b>Off</b></button><button class="chip" id="subChip" aria-pressed="false" title="A soft tick on every 8th-note &amp;">♪♪ 8th-note ticks: <b>Off</b></button></div>
+  <div class="subrow"><label class="clkpick">Click <select id="clkPick" aria-label="Click sound"><option value="classic">Classic click</option><option value="cow">🐄 More cowbell</option><option value="wood">Woodblock</option><option value="rim">Side stick</option><option value="hat">Hi-hat</option><option value="clave">Clave</option><option value="beep">Beep (electronic)</option><option value="kick">Kick on 1 + hi-hat (drummer)</option></select></label><label class="clkpick volpick" title="Click and app volume">Volume <input type="range" id="volR" min="0" max="200" step="5" aria-label="Click volume"></label><label class="clkpick volpick" title="Counting voice volume">Voice <input type="range" id="vvolR" min="0" max="200" step="5" aria-label="Counting voice volume"></label><span class="clksafe" id="clkSafe" hidden>(mic-safe click used)</span><button class="chip" id="loopChip" aria-pressed="false" title="Single tries: count a bar, play the rhythm, count a bar, play it again… until you press &quot;Stop&quot;">🔁 Loop: <b>Off</b></button><button class="chip" id="subChip" aria-pressed="false" title="A soft tick on every 8th-note &amp;">♪♪ 8th-note ticks: <b>Off</b></button></div>
   <p class="sec">Play</p>
   <div class="seg modes" id="modeSeg" role="group" aria-label="Mode"><button data-m="practice"><span aria-hidden="true">🎯</span> Single tries</button><button data-m="chal"><span aria-hidden="true">🏆</span> Challenge</button></div>
   <div id="micSlot"></div>
@@ -222,18 +222,18 @@ details.how p{margin-top:6px}
       <label><input type="checkbox" id="counts" checked> Show the counts under the notes</label>
       <label><input type="checkbox" id="guide"> Play the rhythm with me (easier)</label>
       <label>Click sound <select id="clkSel"><option value="classic">Classic click</option><option value="cow">🐄 More cowbell</option><option value="wood">Woodblock</option><option value="rim">Side stick</option><option value="hat">Hi-hat</option><option value="clave">Clave</option><option value="beep">Beep (electronic)</option><option value="kick">Kick on 1 + hi-hat (drummer)</option></select></label>
-      <span class="stamp">Click sounds: side stick, hi-hat and kick are samples from AVL Drumkits by Glen MacArthur (CC BY-SA 4.0), shared with the Drum Machine; the others are synthesized here. In Clap or snap, the sampled sounds switch to the classic click; in One note, only the classic click, woodblock and clave are used (the others switch, so the mic never hears them as notes).</span>
+      <span class="stamp">Click sounds: side stick, hi-hat and kick are samples from AVL Drumkits by Glen MacArthur (CC BY-SA 4.0), shared with the Drum Machine; the others are synthesized here. In "Clap or snap", the sampled sounds switch to the classic click; in "One note", only the classic click, woodblock and clave are used (the others switch, so the mic never hears them as notes).</span>
       <label id="subRow"><input type="checkbox" id="subdiv"> Subdivide: 8th notes (a soft tick on every "&amp;")</label>
       <label><input type="checkbox" id="cursor" checked> Show the moving cursor (turn off to read without it)</label>
       <label><input type="checkbox" id="lightup" checked> Light up each note in blue when it should be hit</label>
       <label><input type="checkbox" id="ramp" checked> Challenge: speed up as you play</label>
       <label><input type="checkbox" id="mixHard"> Single tries: mix harder ones in (some from the next level)</label>
       <label><input type="checkbox" id="hypeOn" checked> Music on round screens</label>
-      <span class="stamp">On: every rhythm you play well nudges the tempo up (95%+: +2 BPM, 80%+: +1, under 60%: −2), up to 8% faster each round, never below where the round started. Off: one steady tempo. A change applies from the next Start.</span>
+      <span class="stamp">On: every rhythm you play well nudges the tempo up (95%+: +2 BPM, 80%+: +1, under 60%: −2), up to 8% faster each round, never below where the round started. Off: one steady tempo. A change applies from the next "Start".</span>
       <label><input type="checkbox" id="holds" checked> Grade how long I hold (Tap, MIDI, One note)</label>
-      <span class="stamp">Tap, MIDI and One note: quarter notes and longer, dotted and tied notes, and notes right before a rest are also graded on when you let go (the bar under each note shows how long you held it; the tick is where it ends). In One note the mic hears you let go (the damper stops the sound), so the hold windows are a little wider. Clap or snap grades only when each note starts.</span>
+      <span class="stamp">"Tap", "MIDI" and "One note": quarter notes and longer, dotted and tied notes, and notes right before a rest are also graded on when you let go (the bar under each note shows how long you held it; the tick is where it ends). In "One note" the mic hears you let go (the damper stops the sound), so the hold windows are a little wider. "Clap or snap" grades only when each note starts.</span>
       <div class="row"><button class="ghost" id="cal">Calibrate timing</button><span class="stamp" id="calTxt" role="status" aria-live="polite"></span></div>
-      <span class="stamp">Optional: Tap and MIDI come set up for most devices. Calibrate if notes you know are on time still read early or late, and again with Bluetooth headphones: tap (or clap, or play your note) along with 12 clicks. Tap, Clap and One note each keep their own setting.</span>
+      <span class="stamp">Optional: "Tap" and "MIDI" come set up for most devices. Calibrate if notes you know are on time still read early or late, and again with Bluetooth headphones: tap (or clap, or play your note) along with 12 clicks. "Tap", "Clap" and "One note" each keep their own setting.</span>
     </div>
   </details>
   </div>
@@ -265,7 +265,7 @@ details.how p{margin-top:6px}
       <p class="tip" id="micStat" role="status" aria-live="polite" style="margin-top:6px">Clap or snap once: the Level bar should jump past the line.</p>
       <p class="tip noteonly" style="margin-top:2px"><a href="#" id="diagLink">Mic not catching hits? Show details</a></p>
       <div id="diag" class="diag" hidden><div class="row" style="justify-content:space-between"><b>What the mic decided (newest first)</b><button class="ghost" id="diagCopy">Copy log</button></div><pre id="diagRows"></pre></div>
-      <p class="tip" style="margin-top:4px">Clap or snap grades when each note starts (a clap can't be held). One note also grades how long you hold each long note: let the key up on time.</p>
+      <p class="tip" style="margin-top:4px">"Clap or snap" grades when each note starts (a clap can't be held). "One note" also grades how long you hold each long note: let the key up on time.</p>
     </div>
     <button class="pad" id="pad">TAP</button>
     <div class="row actions">
@@ -273,7 +273,7 @@ details.how p{margin-top:6px}
       <button class="ghost" id="again" hidden><span aria-hidden="true">↺</span> Try this one again</button>
       <button class="primary" id="go">Start</button>
     </div>
-    <details class="how"><summary>How it works</summary><p class="tip">Tap the pad or the space bar, or switch to Clap or snap. Rests are silent: don't tap them. In Tap, hold long notes down for their full length and let go on time. Clapping or playing with speakers? Headphones are best: the mic never hears the clicks at all.</p></details>
+    <details class="how"><summary>How it works</summary><p class="tip">Tap the pad or the space bar, or switch to "Clap or snap". Rests are silent: don't tap them. In "Tap", hold long notes down for their full length and let go on time. Clapping or playing with speakers? Headphones are best: the mic never hears the clicks at all.</p></details>
 
     <div class="arcsplash" id="arcSplash" hidden><div class="pre" id="spP"></div><b id="spT"></b><em id="spB" hidden></em><span id="spS"></span><small class="sptap" id="spTap" hidden>Tap to start</small></div><div class="hitstamp" id="hitStamp">ON TARGET!</div>
     <div class="results" id="results" role="region" aria-label="Results" hidden>
@@ -540,7 +540,7 @@ details.how p{margin-top:6px}
   const volG=()=>0.45*Math.pow(VOL/100,2); // 0.6 (about -4.5 dB, 2026-11-20): 100% now peaks well under full scale instead of leaning on the limiter // squared: the bottom of the slider is truly quiet (20% = 4% gain, about -28 dB)
   function bus(){ const a=ctx(); if(!BUS||BUS.context!==a){ const g=a.createGain(), lim=a.createDynamicsCompressor(); lim.threshold.value=-6; lim.knee.value=0; lim.ratio.value=20; lim.attack.value=0.001; lim.release.value=0.08; g.gain.value=volG(); g.connect(lim).connect(a.destination); BUS=g } return BUS }
   function abortRun(){ hypeStop(120); if(!run&&!sess&&!arc&&!calHook) return; calHook=null; run=null; hush(); if(sess||arc) stopSession(true); $("go").disabled=false; $("hear").disabled=false; $("arcSplash").hidden=true; lockUI(); drawBar(null);
-    msg(null,"Paused","The app was in the background, so this try stopped. Press Start to go again.") }
+    msg(null,"Paused","The app was in the background, so this try stopped. Press \"Start\" to go again.") }
   document.addEventListener("visibilitychange",()=>{ if(document.hidden) abortRun() }); window.addEventListener("pagehide",()=>abortRun());
   // every scheduled sound is kept until it ends, so Stop (or the app going to the background) silences the rest of the bar at once
   const live=new Set(); const track=n=>{ live.add(n); n.onended=()=>live.delete(n); return n };
@@ -694,7 +694,7 @@ details.how p{margin-top:6px}
         const c=n+1-left; if(left<=n&&R.cf!==c){ R.cf=c; const f=$("cntFlash"); f.textContent=c; f.classList.toggle("one",c===1); f.style.setProperty("--cntd",Math.max(0.25,Math.min(0.7,step*0.85))+"s"); f.classList.remove("go"); void f.offsetWidth; f.classList.add("go") } }
       else if(R.cf){ R.cf=0; $("cntFlash").classList.remove("go") }
       if(loopOn&&loopRes&&mode==="test"&&now<start) drawBar(loopRes.res); else drawBar(null,px,pos);
-      if(now>end+R.tail&&!(R.holds&&now<end+R.grace&&([...held.values()].some(h=>h.arr===taps&&h.i>=0)||nHeld()))){ const m=run.mode; run=null; $("go").disabled=false; lockUI(); $("hear").disabled=!!sess; if(m==="test") grade(); else { drawBar(null); msg(null,"Your turn","Press Start, count in, then tap it.") } return }
+      if(now>end+R.tail&&!(R.holds&&now<end+R.grace&&([...held.values()].some(h=>h.arr===taps&&h.i>=0)||nHeld()))){ const m=run.mode; run=null; $("go").disabled=false; lockUI(); $("hear").disabled=!!sess; if(m==="test") grade(); else { drawBar(null); msg(null,"Your turn","Press \"Start\", count in, then tap it.") } return }
       requestAnimationFrame(tick) };
     tick() }
 
@@ -821,7 +821,7 @@ details.how p{margin-top:6px}
       else if(avg<-45) c=`Rushing: about ${Math.round(-avg)} ms early on average. Wait for the beat.`;
       else if(avg>45) c=`Dragging: about ${Math.round(avg)} ms late on average. Lock onto the click.`;
       else { const worst=bar.notes[errs.map(Math.abs).indexOf(Math.max(...errs.map(Math.abs)))]; c=worst?`Close. Watch "${CNT(worst.s)}". Say the counts out loud while you tap.`:"Close. Say the counts out loud while you tap." } }
-    if(inMode==="midi"&&latMidi==null&&errs.length>=3&&Math.abs(avg)>25&&Math.max(...errs)-Math.min(...errs)<40) c+=` (Every note ${Math.round(Math.abs(avg))} ms ${avg>0?"late":"early"}? That's keyboard delay: tap Calibrate once.)`;
+    if(inMode==="midi"&&latMidi==null&&errs.length>=3&&Math.abs(avg)>25&&Math.max(...errs)-Math.min(...errs)<40) c+=` (Every note ${Math.round(Math.abs(avg))} ms ${avg>0?"late":"early"}? That's keyboard delay: tap "Calibrate" once.)`;
     msg(cls,v,c);
     lastGrade={score,cpts:Math.max(0,cp-0.5*extras.length),holds:holds.map(h=>({s:h.s,end:h.end,len:h.len,tied:h.tied,g:h.g,err:h.err==null?null:Math.round(h.err*1000)})),v,c};
     afterGrade({score,perfect,ok:okN,notes:notes.length,errs,missed:missed.length,extras:extras.length,cpts:lastGrade.cpts,holdN:holds.length,holdOk:holds.filter(h=>h.g==="perfect"||h.g==="good").length}) }
@@ -882,7 +882,7 @@ details.how p{margin-top:6px}
   function setMode(m){ if(m!=="practice") m="chal"; // only two modes: any other or old value lands on Challenge
     if(sess) stopSession(true); gmode=m; document.querySelectorAll("#modeSeg button").forEach(b=>b.setAttribute("aria-pressed",String(b.dataset.m===m)));
     round=[]; $("results").hidden=true; $("again").hidden=true; $("go").textContent="Start";
-    msg(null,m==="practice"?"Single tries":"Challenge mode",m==="practice"?"One rhythm at a time, with your timing after every try.":"Faster + accuracy. Round 1 is a 30-second warm-up at your tempo. Play well and the tempo climbs, up to 8% a round. Each round after the warm-up has its own points target, counted from 0: play accurately for most of the 30 seconds to reach it. 5 rounds, then a bonus round. (Settings: turn off the speed-up for a steady tempo.)");
+    msg(null,m==="practice"?"Single tries":"Challenge mode",m==="practice"?"One rhythm at a time, with your timing after every try.":"Faster + accuracy. Round 1 is a 30-second warm-up at your tempo. Play well and the tempo climbs, up to 8% a round. Each round after the warm-up has its own points target, counted from 0: play accurately for most of the 30 seconds to reach it. 5 rounds, then a bonus round. (\"Settings\": turn off the speed-up for a steady tempo.)");
     stats() }
   document.querySelectorAll("#modeSeg button").forEach(b=>b.addEventListener("click",()=>setMode(b.dataset.m)));
   function chime(){ const a=ctx(),t=a.currentTime; [784,1047,1319].forEach((f,i)=>{ const o=a.createOscillator(),g=a.createGain(); o.type="triangle"; o.frequency.value=f; g.gain.setValueAtTime(0.0001,t+i*0.08); g.gain.exponentialRampToValueAtTime(0.25,t+i*0.08+0.01); g.gain.exponentialRampToValueAtTime(0.0001,t+i*0.08+0.35); o.connect(g).connect(bus()); o.start(t+i*0.08); o.stop(t+i*0.08+0.4) }) }
@@ -893,11 +893,11 @@ details.how p{margin-top:6px}
     if(arc){ arc.rp=(arc.rp||0)+pts; if(arc.ramp){ const nxb=arc.deck&&arc.deck[arc.bi], step=!!(nxb&&bar&&bar.diff!=null&&nxb.diff-bar.diff>Math.max(0.75,0.1*bar.diff)); /* the next rhythm is a clear step harder: hold the tempo for it (never both at once) */ const d0=r.score>=95?2:r.score>=80?1:r.score>=60?0:-2, d=step?Math.min(0,d0):d0; nb=Math.max(arc.start,Math.min(arc.cap,arc.bpm+d)); arc.dir=Math.sign(nb-arc.bpm); arc.bpm=nb; arc.top=Math.max(arc.top,nb) } }
     stats(); if(arc) arcBar();
     if(S.left>0&&!S.stopped) setTimeout(()=>{ if(sess===S&&S.left>0&&!S.stopped){ newBar(); play("test") } },500); else setTimeout(()=>{ if(sess===S) sessionOver() },500) }
-  function stopSession(silent){ hypeStop(120); if(!sess) return; clearInterval(sess.timer); sess.stopped=true; sess=null; arc=null; splashTok++; if(run){ run=null; hush(); drawBar(null); $("go").disabled=false } lockUI(); $("arcbar").hidden=true; $("arcMeter").hidden=true; $("cxBar").hidden=true; $("arcSplash").hidden=true; $("hear").disabled=false; $("go").textContent="Start"; if(!silent) msg(null,"Stopped","Press Start to go again."); stats() }
+  function stopSession(silent){ hypeStop(120); if(!sess) return; clearInterval(sess.timer); sess.stopped=true; sess=null; arc=null; splashTok++; if(run){ run=null; hush(); drawBar(null); $("go").disabled=false } lockUI(); $("arcbar").hidden=true; $("arcMeter").hidden=true; $("cxBar").hidden=true; $("arcSplash").hidden=true; $("hear").disabled=false; $("go").textContent="Start"; if(!silent) msg(null,"Stopped","Press \"Start\" to go again."); stats() }
   function sessionOver(){ if(!sess) return; if(arc) return arcRoundEnd(); stopSession(true) }
   let shareTxt="";
   function showResults(title,S,why,tag,tempoTxt,steady){ const bars=S.bars, all=bars.flatMap(r=>r.errs), mean=all.length?all.reduce((a,b)=>a+b,0)/all.length:0, key=bestKey(steady), prev=bestNum(key)||0, best=Math.max(prev,S.points), isNew=S.points>0&&S.points>=best;
-    store.set(key,best); $("rTitle").textContent=title; $("rWhy").textContent=(why||"")+(inMode==="midi"&&latMidi==null&&all.length>=6&&Math.abs(mean)>25?` Your notes averaged ${Math.round(Math.abs(mean))} ms ${mean>0?"late":"early"}. If they felt on time, that's keyboard delay: tap Calibrate once and it's gone.`:"");
+    store.set(key,best); $("rTitle").textContent=title; $("rWhy").textContent=(why||"")+(inMode==="midi"&&latMidi==null&&all.length>=6&&Math.abs(mean)>25?` Your notes averaged ${Math.round(Math.abs(mean))} ms ${mean>0?"late":"early"}. If they felt on time, that's keyboard delay: tap "Calibrate" once and it's gone.`:"");
     $("rScore").innerHTML=`${half(S.points)} <small>points</small>${isNew?"<small>· new high score</small>":""}`; // two pieces: on a narrow phone "new high score" wraps to its own line instead of running off the card
     $("rAcc").textContent=bars.length?Math.round(bars.reduce((a,b)=>a+b.score,0)/bars.length)+"%":"–";
     $("rPerfect").textContent=`${bars.reduce((a,b)=>a+b.perfect,0)}/${bars.reduce((a,b)=>a+b.notes,0)}`;
@@ -978,7 +978,7 @@ details.how p{margin-top:6px}
   function countClicks(t0,M,SP){ if(!M.compound) for(let b=0;b<M.beats;b++) click(t0+b*SP,b===0,false,1);
     else for(let k=0;k<6;k++) click(t0+k*SP/3,k===0,false,k===3?1.3:k===0?1:0.7) }
   function loopBtn(){ if(loopOn&&gmode==="practice"&&(run||loopAt!=null)){ $("go").textContent="Stop"; $("go").disabled=false } }
-  function loopStop(){ loopAt=null; loopRes=null; run=null; hush(); held.clear(); $("go").disabled=false; $("hear").disabled=false; lockUI(); drawBar(null); $("go").textContent="Start"; msg(null,"Loop stopped","Press Start to loop this rhythm again. Turn Loop off for one try at a time.") }
+  function loopStop(){ loopAt=null; loopRes=null; run=null; hush(); held.clear(); $("go").disabled=false; $("hear").disabled=false; lockUI(); drawBar(null); $("go").textContent="Start"; msg(null,"Loop stopped","Press \"Start\" to loop this rhythm again. Turn \"Loop\" off for one try at a time.") }
   const paintLoop=()=>{ $("loopChip").setAttribute("aria-pressed",String(loopOn)); $("loopChip").querySelector("b").textContent=loopOn?"On":"Off" };
   $("loopChip").addEventListener("click",()=>{ loopOn=!loopOn; store.set("loop",loopOn); paintLoop(); if(!loopOn&&loopAt!=null) loopAt=null }); paintLoop();
   $("again").addEventListener("click",async()=>{ if(run||starting||calHook) return; $("again").hidden=true; if(round.length) round.pop(); stats(); await startTest() });
@@ -1006,7 +1006,7 @@ details.how p{margin-top:6px}
   // while the results sheet covers the card, the controls under it are out of the Tab order (no tabbing into hidden buttons)
   new MutationObserver(()=>{ const on=!$("results").hidden; [...$("card").children].forEach(el=>{ if(el.id!=="results"&&el.id!=="hitStamp"&&el.id!=="scoreFlash"){ if(on) el.setAttribute("inert",""); else el.removeAttribute("inert") } }) }).observe($("results"),{attributes:true,attributeFilter:["hidden"]});
   $("shareBtn").addEventListener("click",()=>chmaShare.share({app:"rhythm-trainer",text:shareTxt}));
-  $("close").addEventListener("click",()=>{ $("results").hidden=true; stats(); newBar(); msg(null,"Ready","Press Start."); $("go").focus({preventScroll:true}) });
+  $("close").addEventListener("click",()=>{ $("results").hidden=true; stats(); newBar(); msg(null,"Ready","Press \"Start\"."); $("go").focus({preventScroll:true}) });
   $("newRound").addEventListener("click",()=>{ $("results").hidden=true; if(gmode==="chal") arcStart(); else { round=[]; stats(); newBar() } $("go").focus({preventScroll:true}) });
   ["counts","guide"].forEach(id=>{ $(id).checked=store.get(id,id==="counts"); $(id).addEventListener("change",e=>{ store.set(id,e.target.checked); if(!run) drawBar(curRes) }) });
   // Subdivide: 8th notes. Off by default; the chip by the tempo row and the Settings box are the same switch.
@@ -1020,7 +1020,7 @@ details.how p{margin-top:6px}
   $("subChip").addEventListener("click",()=>{ $("subdiv").checked=!$("subdiv").checked; store.set("subdiv",$("subdiv").checked); subUI() }); subUI();
   ["cursor","lightup","ramp","hypeOn","holds"].forEach(id=>{ $(id).checked=store.get(id,true)!==false; $(id).addEventListener("change",e=>{ store.set(id,e.target.checked); if(id==="hypeOn"&&!e.target.checked) hypeStop(120) }) }); $("ramp").addEventListener("change",()=>stats()); try{store.set("who","")}catch(e){} // no names stored (privacy)
   LEVELS.forEach(L=>{ const b=document.createElement("button"); b.className="lvl"; b.innerHTML=`<b>L${LEVELS.indexOf(L)+1}</b><span>${L.name.replace("Syncopation","Synco&shy;pation")}</span>`;
-    b.addEventListener("click",()=>{ hypeStop(120); if(sess||arc) stopSession(true); level=L.id; store.set("level",level); mark(); round=[]; stats(); newBar(); $("go").textContent="Start"; msg(null,"Level "+(LEVELS.indexOf(L)+1)+": "+lvlName(L),"Press Hear it to listen first, or Start.") }); b.dataset.id=L.id; $("levels").appendChild(b) });
+    b.addEventListener("click",()=>{ hypeStop(120); if(sess||arc) stopSession(true); level=L.id; store.set("level",level); mark(); round=[]; stats(); newBar(); $("go").textContent="Start"; msg(null,"Level "+(LEVELS.indexOf(L)+1)+": "+lvlName(L),"Press \"Hear it\" to listen first, or \"Start\".") }); b.dataset.id=L.id; $("levels").appendChild(b) });
   // tempo buttons follow the time signature (quarter-note BPM, or dotted-quarter BPM in 6/8)
   function buildTempo(){ $("tempo").querySelectorAll("button").forEach(b=>b.remove()); const c=MT().compound;
     $("tempoLbl").innerHTML=c?'Tempo<svg class="tbeat" viewBox="0 0 16 22" width="13" height="18" aria-hidden="true"><ellipse cx="5" cy="17" rx="4.4" ry="3.1" transform="rotate(-20 5 17)"/><rect x="8.3" y="1" width="1.4" height="16"/><circle cx="13.2" cy="15" r="1.6"/></svg>':"Tempo"; $("tempo").setAttribute("aria-label",c?"Tempo in dotted-quarter beats per minute":"Tempo in beats per minute");
@@ -1040,7 +1040,7 @@ details.how p{margin-top:6px}
   let calHook=null;
   const inName=m=>m==="clap"?"Clap":m==="note"?"Note":m==="midi"?"MIDI":"Tap";
   const calLabel=()=>{ const v=inMode==="note"?latNote:inMode==="clap"?latClap:inMode==="midi"?latMidi:latency; $("calTxt").textContent=v!=null?`${inName(inMode)} offset ${v} ms`:"" }; calLabel();
-  $("cal").addEventListener("click",async()=>{ if(run||calHook||starting||sess||arc) return; const a=ctx(); await a.resume(); if(run||calHook||starting||sess||arc) return; if(inMode==="midi"&&!(await midiStart())){ $("calTxt").textContent="Connect a MIDI keyboard first (see the message above)."; return } if(micMode()&&!mic&&!(await micStart($("micSel").value||undefined))){ $("calTxt").textContent="Turn on the microphone first (see the message above), or switch to Tap."; return }
+  $("cal").addEventListener("click",async()=>{ if(run||calHook||starting||sess||arc) return; const a=ctx(); await a.resume(); if(run||calHook||starting||sess||arc) return; if(inMode==="midi"&&!(await midiStart())){ $("calTxt").textContent="Connect a MIDI keyboard first (see the message above)."; return } if(micMode()&&!mic&&!(await micStart($("micSel").value||undefined))){ $("calTxt").textContent="Turn on the microphone first (see the message above), or switch to \"Tap\"."; return }
     if(run||calHook||starting||sess||arc) return; // a try or a challenge started while the microphone was opening
     const NC=12, t0=a.currentTime+0.6, sp=0.6, hits=[]; for(let i=0;i<NC;i++) click(t0+i*sp,i===0,false,1,i<3,i<2); fxWins(Array.from({length:NC},(_,i)=>t0+i*sp),0.15);
     $("calTxt").textContent=inMode==="clap"?"Listen to 2 clicks, then clap with each click…":inMode==="note"?"Listen to 2 clicks, then play your note with each click…":"Tap the pad with each click…";
@@ -1048,7 +1048,7 @@ details.how p{margin-top:6px}
     // count-in: whatever the mic hears there is the speaker's own click (its arrival time and loudness). Later, when a click brings that same
     // sound AND another hit, the other hit is yours. Per click the earliest hit nearly as noisy as the noisiest one wins (your clap's first crack).
     const cm=inMode, hook=(t,info)=>hits.push({t,fl:info&&info.fl,pk:info&&info.pk}); calHook=hook; window.__rtCal={t0,sp,hits}; // test hook if(mic&&mic.det) mic.det.port.postMessage({cal:inMode==="clap"}); if(mic) mic.calBand={from:t0+sp-0.05,until:t0+2*sp-0.05,pk:0}; // the 2nd count-in click (the 1st is the accented one, pitched differently)
-    setTimeout(()=>{ if(mic&&mic.det) mic.det.port.postMessage({cal:false}); if(calHook!==hook){ if(!calHook) $("calTxt").textContent="Calibration stopped. Try again."; return } calHook=null; if(!run&&$("msg").querySelector(".v").textContent==="Calibrating…") msg(null,"Ready","Press Start."); const at=h=>h.t-(t0+Math.round((h.t-t0)/sp)*sp), by=new Map(); hits.forEach(h=>{ const k=Math.round((h.t-t0)/sp); if(k<0||k>=NC||Math.abs(at(h))>=0.25) return; if(!by.has(k)) by.set(k,[]); by.get(k).push(h) });
+    setTimeout(()=>{ if(mic&&mic.det) mic.det.port.postMessage({cal:false}); if(calHook!==hook){ if(!calHook) $("calTxt").textContent="Calibration stopped. Try again."; return } calHook=null; if(!run&&$("msg").querySelector(".v").textContent==="Calibrating…") msg(null,"Ready","Press \"Start\"."); const at=h=>h.t-(t0+Math.round((h.t-t0)/sp)*sp), by=new Map(); hits.forEach(h=>{ const k=Math.round((h.t-t0)/sp); if(k<0||k>=NC||Math.abs(at(h))>=0.25) return; if(!by.has(k)) by.set(k,[]); by.get(k).push(h) });
       // the speaker's click, learned on the 2 count-in clicks: the same arrival (within 2 ms) and loudness (within 25%) both times
       const c0=(by.get(0)||[])[0], c1=(by.get(1)||[])[0], sig=cm==="clap"&&c0&&c1&&c0.pk&&c1.pk&&Math.abs(at(c0)-at(c1))<0.002&&c0.pk/c1.pk>0.8&&c0.pk/c1.pk<1.25?{o:(at(c0)+at(c1))/2,pk:Math.max(c0.pk,c1.pk)}:null;
       const best=new Map(); by.forEach((L,k)=>{ if(k<2) return; // one hit per click, the 2 count-in clicks skipped
@@ -1254,7 +1254,7 @@ class NoteFlux{
   const micPolicyOff=()=>{ try{ const pp=document.permissionsPolicy||document.featurePolicy; return !!(pp&&pp.allowsFeature&&!pp.allowsFeature("microphone")) }catch(e){ return false } };
   const FRAMED_MSG="The microphone can't turn on inside this page (Notion and other embeds keep it off).";
   function micMsg(html){ $("micStat").innerHTML=html }
-  function micHint(){ if(micPolicyOff()) micMsg(FRAMED_MSG+fullLink()+" to clap or play, or use Tap here."); else micMsg(inMode==="note"?"Turn on the microphone, then play your note once: the Level bar should jump.":"Turn on the microphone, then clap or snap once: the Level bar should jump past the line.") }
+  function micHint(){ if(micPolicyOff()) micMsg(FRAMED_MSG+fullLink()+" to clap or play, or use \"Tap\" here."); else micMsg(inMode==="note"?"Turn on the microphone, then play your note once: the Level bar should jump.":"Turn on the microphone, then clap or snap once: the Level bar should jump past the line.") }
   function setThr(v){ thr=v; $("thr").style.left=Math.min(100,thr*300)+"%" }
   // ---------- One note detector (NoteFlux) wiring ----------
   const fxPost=m=>{ try{ if(mic&&mic.fx) mic.fx.port.postMessage(m) }catch(e){} };
@@ -1273,11 +1273,11 @@ class NoteFlux{
   let micBusy=false, micTries=0;
   async function micStart(deviceId){
     if(!window.isSecureContext||!navigator.mediaDevices||!navigator.mediaDevices.getUserMedia){ micMsg("This browser can't reach the microphone here. Use Safari or Chrome (the address must start with https)."+(framed?fullLink()+".":"")); return false }
-    if(micPolicyOff()){ micMsg(FRAMED_MSG+fullLink()+" to clap or play, or use Tap here."); return false }
+    if(micPolicyOff()){ micMsg(FRAMED_MSG+fullLink()+" to clap or play, or use \"Tap\" here."); return false }
     if(micBusy) return false; micBusy=true; $("micBtn").disabled=true;
     try{ const a=ctx(); a.resume().catch(()=>{}); if(mic) micStop(); $("micBtn").disabled=true;
-      micMsg("Waiting for the microphone. Tap Allow if your device asks."); const myTry=++micTries;
-      setTimeout(()=>{ if(micBusy&&micTries===myTry) micMsg("Still waiting for the microphone. Look for an Allow box (sometimes at the top of the screen)."+(framed?" Nothing there?"+fullLink()+".":"")) },8000);
+      micMsg("Waiting for the microphone. Tap \"Allow\" if your device asks."); const myTry=++micTries;
+      setTimeout(()=>{ if(micBusy&&micTries===myTry) micMsg("Still waiting for the microphone. Look for an \"Allow\" box (sometimes at the top of the screen)."+(framed?" Nothing there?"+fullLink()+".":"")) },8000);
       const c={echoCancellation:false,noiseSuppression:false,autoGainControl:false}; /* no echo cancellation: it squashes or ducks a sustained piano note (the app rejects its own clicks itself) */ if(deviceId) c.deviceId={exact:deviceId};
       aSess("play-and-record"); const wantNote=inMode==="note", s=await navigator.mediaDevices.getUserMedia({audio:c}); await a.resume();
       // switched to Tap (or between Clap and One note) while the device was asking: close this one instead of listening in the wrong mode
@@ -1394,15 +1394,15 @@ class NoteFlux{
       $("micBtn").textContent="Microphone on"; $("micBtn").disabled=true; $("micCtl").hidden=false; setThr(thr); if(det&&inMode!=="note") $("thr").style.left="15%";
       const devs=(await navigator.mediaDevices.enumerateDevices()).filter(d=>d.kind==="audioinput"), cur=s.getAudioTracks()[0].getSettings().deviceId;
       $("micSel").innerHTML=devs.map((d,i)=>`<option value="${d.deviceId}">${(d.label||("Microphone "+(i+1))).replace(/[<>&]/g,"")}</option>`).join(""); if(cur) $("micSel").value=cur;
-      $("micStat").textContent=inMode==="note"?"Listening. Play your note once: the bar should jump. Too low? Raise Sensitivity.":"Listening. Clap or snap once: the bar should jump past the line. Too low? Raise Sensitivity.";
+      $("micStat").textContent=inMode==="note"?"Listening. Play your note once: the bar should jump. Too low? Raise \"Sensitivity\".":"Listening. Clap or snap once: the bar should jump past the line. Too low? Raise \"Sensitivity\".";
       // the mic can be taken away mid-session (unplugged, another app grabbed it, permission revoked)
       s.getAudioTracks().forEach(t=>t.addEventListener("ended",()=>{ if(mic&&mic.s===s){ micStop(); micMsg("The microphone stopped. Tap the button to turn it on again.") } }));
       micBusy=false; return true
     }catch(e){ micBusy=false; aSess("playback"); if(mic) micStop(); $("micBtn").disabled=false; $("micBtn").textContent="Turn on the microphone"; $("micCtl").hidden=true; console.warn(e);
       const n=e&&e.name;
       if(n==="OverconstrainedError"&&deviceId) return micStart();
-      if(n==="NotAllowedError"||n==="SecurityError"||n==="PermissionDeniedError") micMsg(framed?FRAMED_MSG+fullLink()+" to clap or play, or use Tap here."
-        :"The microphone is blocked. Tap Allow when your device asks. Tapped Don't Allow? Turn the microphone on for this site in your browser settings (iPhone/iPad Safari: tap aA in the address bar, then Website Settings), then tap the button again.");
+      if(n==="NotAllowedError"||n==="SecurityError"||n==="PermissionDeniedError") micMsg(framed?FRAMED_MSG+fullLink()+" to clap or play, or use \"Tap\" here."
+        :"The microphone is blocked. Tap \"Allow\" when your device asks. Tapped \"Don't Allow\"? Turn the microphone on for this site in your browser settings (iPhone/iPad Safari: tap \"aA\" in the address bar, then \"Website Settings\"), then tap the button again.");
       else if(n==="NotReadableError"||n==="AbortError") micMsg("Another app is using the microphone. Close it (or end the call), then tap the button again.");
       else micMsg("No microphone found. Plug one in or pick another, then tap the button again.");
       return false } }
@@ -1437,8 +1437,8 @@ class NoteFlux{
     sel.innerHTML='<option value="all">All connected devices</option>'+ins.map(i=>`<option value="${String(i.id).replace(/"/g,"")}">${String(i.name||"MIDI device").replace(/[<>&]/g,"")}</option>`).join(""); sel.value=ins.some(i=>i.id===cur)?cur:"all";
     ins.forEach(i=>{ i.onmidimessage=(sel.value==="all"||sel.value===i.id)?midiMsg:null });
     $("midiStat").textContent=ins.length?`${ins.length===1?"1 MIDI device":ins.length+" MIDI devices"} connected. Play any key with each note: key down starts it, key up lets go.${latMidi==null?" First time? Tap Calibrate once so your keyboard's delay doesn't count against you.":""}`:"No MIDI keyboard found. Plug one in (USB or Bluetooth MIDI): it shows up here by itself." }
-  async function midiStart(){ if(!navigator.requestMIDIAccess){ $("midiStat").textContent="MIDI works in Chrome, Edge or Opera on a computer or Android. Safari and iPhone/iPad don't support Web MIDI: use Tap or One note there."; return false }
-    if(midiAcc){ midiList(); return true } if(!midiAsk) midiAsk=navigator.requestMIDIAccess({sysex:false}).then(acc=>{ midiAcc=acc; acc.onstatechange=()=>midiList(); midiList(); return true }).catch(()=>{ midiAsk=null; $("midiStat").textContent="MIDI is blocked. Allow MIDI devices for this site in the browser's site settings, then pick MIDI again."; return false });
+  async function midiStart(){ if(!navigator.requestMIDIAccess){ $("midiStat").textContent="MIDI works in Chrome, Edge or Opera on a computer or Android. Safari and iPhone/iPad don't support Web MIDI: use \"Tap\" or \"One note\" there."; return false }
+    if(midiAcc){ midiList(); return true } if(!midiAsk) midiAsk=navigator.requestMIDIAccess({sysex:false}).then(acc=>{ midiAcc=acc; acc.onstatechange=()=>midiList(); midiList(); return true }).catch(()=>{ midiAsk=null; $("midiStat").textContent="MIDI is blocked. Allow MIDI devices for this site in the browser's site settings, then pick \"MIDI\" again."; return false });
     return midiAsk }
   $("midiSel").addEventListener("change",e=>{ store.set("midiDev",e.target.value); midiList() });
   $("noteSel").value=String(store.get("note","60")); if(!$("noteSel").value) $("noteSel").value="60"; $("noteSel").addEventListener("change",e=>{ store.set("note",e.target.value); fxSync() });
@@ -1458,6 +1458,6 @@ class NoteFlux{
   if(document.fonts) document.fonts.ready.then(()=>{ if(!run) drawBar(curRes) });
 })();
 </script>
-<p class="appver" style="text-align:center;font-size:11px;opacity:.6;margin:18px 0 10px;font-family:ui-monospace,Menlo,monospace">Rhythm Trainer · Version 2026-11-20.9</p>
+<p class="appver" style="text-align:center;font-size:11px;opacity:.6;margin:18px 0 10px;font-family:ui-monospace,Menlo,monospace">Rhythm Trainer · Version 2026-11-20.10</p>
 </body>
 </html>
