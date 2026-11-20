@@ -166,7 +166,7 @@ summary{cursor:pointer;padding:0 14px;min-height:44px;display:flex;align-items:c
 </head>
 <body>
 <div class="wrap">
-  <div data-chma-head data-ver="Riff Simon Says · v2026-11-13.5"></div>
+  <div data-chma-head data-ver="Riff Simon Says · v2026-11-20.1"></div>
   <div class="cols">
   <section class="setup">
     <header>
@@ -194,7 +194,7 @@ summary{cursor:pointer;padding:0 14px;min-height:44px;display:flex;align-items:c
       <p class="tip">A groove plays the whole time. The app plays a riff (the <b>call</b>, orange lamp). Then it's <b>your turn</b> (blue lamp): play the same riff back over the same groove, starting on beat 1. Then the next call comes right away, like trading licks in a jam.</p>
       <p class="tip">Every answer is judged: the right notes in the right order (an extra or missed note only costs that note), and how close each note lands to the call's rhythm. The piano roll shows the call as outlines and your notes in color. Red = wrong note (it shows the note you were after).</p>
       <p class="tip">Single tries: a set of trades with a summary at the end. Challenge: rounds with a points target, like the other studio apps. Round 1 is the warm-up that sets your targets.</p>
-      <p class="tip">Best with a digital piano and a USB cable (MIDI) in Chrome or Edge. Calibrate timing once per device in Settings.</p>
+      <p class="tip">Best with a digital piano and a USB cable (MIDI) in Chrome or Edge. Calibrate timing once per device in "Settings".</p>
     </div></details>
     <details class="s-set"><summary>Settings</summary><div class="set">
       <label><input type="checkbox" id="countIn" checked> Count-in bar before the first call</label>
@@ -223,7 +223,7 @@ summary{cursor:pointer;padding:0 14px;min-height:44px;display:flex;align-items:c
       <h3>Credits</h3>
       <p class="tip">Grand piano: Salamander Grand Piano V3 by Alexander Holm (CC BY 3.0), via sfzinstruments. Drums: AVL Drumkits by Glen MacArthur (CC BY-SA 4.0): Black Pearl kick, snare and cross-stick; Blonde Bop hi-hats and ride. Basses (shared with the Modal Metronome): fingered and picked electric, GeneralUser GS by S. Christian Collins (free for any use); upright, FluidR3 GM by Frank Wen (MIT); fingerstyle funk with ghost notes, Black And Blue Basses by Karoryfer Samples (CC0). Rhodes: GeneralUser GS 2.0.3. String pad: FreePats (CC0). Claves: synthesized in the app. Round music: original, synthesized live (CHMA). Riffs are generated from style vocabulary, never copied from records.</p>
     </div></details>
-    <p class="appver">Riff Simon Says · Version 2026-11-18.1</p>
+    <p class="appver">Riff Simon Says · Version 2026-11-20.1</p>
   </section>
 
   <section class="play">
@@ -240,7 +240,7 @@ summary{cursor:pointer;padding:0 14px;min-height:44px;display:flex;align-items:c
       <div class="lamp" id="lamp" aria-live="off"><span class="big" id="lampT">Ready</span><span class="beats" id="beats"></span><span class="chord" id="chord"></span></div>
       <div class="roll" id="roll"><span class="rollhead" id="rollHead">PIANO ROLL</span><svg id="rollSvg" viewBox="0 0 640 150" preserveAspectRatio="none" role="img" aria-label="Call and your answer"></svg></div>
       <div class="legend" aria-hidden="true"><span><i style="border:2px solid var(--callc)"></i>Call</span><span><i style="background:var(--c-ok)"></i>Right</span><span><i style="background:var(--c-bad)"></i>Wrong / extra</span><span><i style="border:2px dashed var(--c-bad)"></i>Missed</span></div>
-      <div class="flash" id="flash" role="status" aria-live="polite">Pick a style and a level, then press Start.</div>
+      <div class="flash" id="flash" role="status" aria-live="polite">Pick a style and a level, then press "Start".</div>
       <div class="kbwrap"><div class="kbscroll" id="kbScroll"><div class="kb" id="kb"></div></div><p class="kbhint" id="kbHint">Computer keys: A S D F G H J K = white keys, W E T Y U = black keys. Z / X = octave down / up.</p></div>
       <div class="arcsplash" id="splash" hidden><div class="pre" id="spP"></div><b id="spT"></b><span id="spS"></span><small>Tap to start</small></div>
       <div class="hitstamp" id="hitStamp" aria-hidden="true">TARGET HIT!</div>
@@ -494,7 +494,7 @@ function loadSounds(){ if(loadP) return loadP; AC(); const jobs=[];
   Object.values(DRUMS).forEach(([k,v])=>[1,2,3,4,5].forEach(i=>jobs.push([k+v+i,KDIR[k]+v+'_'+i+'.mp3'])));
   let done=0; loadP=Promise.all(jobs.map(async([id,u])=>{ try{ buf[id]=await fetchBuf(new URL(u,location.href).href) }catch(e){} done++; if(done%8===0||done===jobs.length) loadUI(done/jobs.length) })).then(()=>{ loaded=true; loadUI(1) });
   return loadP }
-function loadUI(p){ if(p<1&&!T) flash(`Loading the piano and drums… ${Math.round(p*100)}%`,'') ; else if(p>=1&&!T&&/Loading/.test($('flash').textContent)&&bandOK[STYLES[st.style].groove]) flash('Ready. Press Start.','') }
+function loadUI(p){ if(p<1&&!T) flash(`Loading the piano and drums… ${Math.round(p*100)}%`,'') ; else if(p>=1&&!T&&/Loading/.test($('flash').textContent)&&bandOK[STYLES[st.style].groove]) flash('Ready. Press "Start".','') }
 // piano: nearest sample every minor third, velocity layer, Salamander tuning; one voice per key per bus (a restrike damps the old one)
 const pv={};
 function piano(m,t,vel,dur,bus,busName){ if(!ac) return; const n=PNOTES.reduce((p,c)=>Math.abs(c-m)<Math.abs(p-m)?c:p); let L=PLAYERS[0]; for(const x of PLAYERS) if(Math.abs(x[1]-vel*127)<Math.abs(L[1]-vel*127)) L=x;
@@ -525,7 +525,7 @@ function bandFiles(G){ const out=[], L=BLIB[BAND_BASS[G]], K=KLIB[BAND_KEYS[G]];
 function loadBand(G){ if(bandP[G]) return bandP[G]; AC(); const jobs=bandFiles(G).filter(f=>!(f in buf)); let done=0;
   bandP[G]=Promise.all(jobs.map(async f=>{ try{ buf[f]=await fetchBuf(new URL(f+'.mp3',location.href).href) }catch(e){ buf[f]=null }
     done++; if(done%10===0&&!(T&&T.running)&&/Loading/.test($('flash').textContent)) flash(`Loading the band… ${Math.round(100*done/jobs.length)}%`,'') }))
-    .then(()=>{ bandOK[G]=true; if(!(T&&T.running)&&loaded&&/Loading/.test($('flash').textContent)) flash('Ready. Press Start.','') });
+    .then(()=>{ bandOK[G]=true; if(!(T&&T.running)&&loaded&&/Loading/.test($('flash').textContent)) flash('Ready. Press "Start".','') });
   return bandP[G] }
 // bass: one string at a time (the next note, or a dead note, damps the last one), a velocity layer per touch, the tone knob follows the touch
 let bassV=null, bassRR=0;
@@ -721,7 +721,7 @@ function scheduleStep(s,bar,stp,t){ const spb=s.spb, G=STYLES[st.style].groove, 
 }
 function pause(){ if(!T||!T.running) return; T.running=false; T.paused=true; clearInterval(T.sched); hushAll();
   T.segs=T.segs.filter(s=>s.kind==='trade'&&s.judged); // an unfinished trade does not count
-  lampSet('Paused','cnt'); clearKeys(); buttons(); flash('Paused. Replay the call, or press Resume.','') }
+  lampSet('Paused','cnt'); clearKeys(); buttons(); flash('Paused. Replay the call, or press "Resume".','') }
 function stopAll(){ if(T){ T.running=false; clearInterval(T.sched) } hushAll(); hypeStop(120); T=null; document.body.classList.remove('running'); lampSet('Ready',''); clearKeys(); buttons() }
 
 // =====================================================================================
@@ -743,9 +743,9 @@ function autoLearn(r,s){ const src=st.input; if(!T||T.autoDone||store.get(latKey
   r.pairs.forEach(p=>{ if(p.ok&&Math.abs(p.off)<0.45*s.spb*1000&&T.autoOffs.length<10) T.autoOffs.push(p.off) }); T.autoN=(T.autoN||0)+(r.right?1:0);
   const O=T.autoOffs; if(O.length<4||T.autoN<2) return; if(O.length<8&&T.autoN<3) return; T.autoDone=true;
   const q=O.slice().sort((a,b)=>a-b), med=q[q.length>>1], mad=O.map(d=>Math.abs(d-med)).sort((a,b)=>a-b)[O.length>>1];
-  if(mad>20||Math.abs(med)>150){ T.autoMsg=`Your notes moved around (±${Math.round(mad)} ms), so no latency was learned. Tap Calibrate in Settings for best results.`; return }
+  if(mad>20||Math.abs(med)>150){ T.autoMsg=`Your notes moved around (±${Math.round(mad)} ms), so no latency was learned. Tap "Calibrate" in "Settings" for best results.`; return }
   if(Math.abs(med)<4) return;
-  const v=Math.round(lag(src)+med); store.set(latKey(src)+'-auto',v); T.autoMsg=`Latency auto-set to ${v} ms for this device (learned from your steady notes; Calibrate overrides it).`; calLabel() }
+  const v=Math.round(lag(src)+med); store.set(latKey(src)+'-auto',v); T.autoMsg=`Latency auto-set to ${v} ms for this device (learned from your steady notes; "Calibrate" overrides it).`; calLabel() }
 const inLog=[]; // test hook: every note as it arrives
 function noteIn(m,tRaw,vel,src){ if(!ac) return; inLog.push({m,t:tRaw,src}); if(inLog.length>500) inLog.shift();
   if(calHook){ calHook(tRaw); return }
@@ -822,10 +822,10 @@ function chmaMidi(o){
   function show(){ let t="";
     if(M.state==="none") t="MIDI works in Chrome or Edge on a computer.";
     else if(M.state==="framed") t="MIDI can't turn on inside this page."+full();
-    else if(M.state==="blocked") t="MIDI was blocked. Allow MIDI for this page (the icon in the address bar), then pick MIDI again.";
+    else if(M.state==="blocked") t="MIDI was blocked. Allow MIDI for this page (the icon in the address bar), then pick \"MIDI\" again.";
     else if(M.state==="asking") t="Connecting to MIDI…";
     else if(M.state==="on"){ const a=ins(), p=picked(); t=a.length?`<span class="cm-led" aria-hidden="true" title="Flashes when a key arrives"></span>Connected: <b>${esc(p.map(nm).join(", "))}</b> <span class="cm-key">Press a key: the light flashes.</span>`:"No MIDI keyboard found. Plug it in by USB and switch it on: it connects by itself." }
-    else t="Pick MIDI to connect your keyboard (Chrome or Edge on a computer).";
+    else t="Pick \"MIDI\" to connect your keyboard (Chrome or Edge on a computer).";
     st.innerHTML=t; const a=M.state==="on"?ins():[]; pk.hidden=a.length<2;
     if(a.length>1){ const v=M.dev&&a.some(i=>i.id===M.dev)?M.dev:""; sel.innerHTML='<option value="">All MIDI inputs</option>'+a.map(i=>`<option value="${esc(i.id)}">${esc(nm(i))}</option>`).join(""); sel.value=v }
     if(o.onStatus) try{ o.onStatus(M.state,picked().map(nm)) }catch(e){} }
@@ -932,7 +932,7 @@ async function micStart(){ AC(); if(mic) return true;
     node.port.onmessage=e=>micMsg(e.data); mic={stream,src,node,sink};
     try{ const ds=await navigator.mediaDevices.enumerateDevices(), sel=$('micSel'), cur=sel.value; sel.innerHTML='<option value="">Default</option>'+ds.filter(d=>d.kind==='audioinput'&&d.deviceId&&d.deviceId!=='default').map(d=>`<option value="${d.deviceId}">${(d.label||'Microphone').replace(/</g,'&lt;')}</option>`).join(''); sel.value=cur }catch(e){}
     dbg('Mic on. sampleRate '+ac.sampleRate+' Hz, base latency '+Math.round((ac.baseLatency||0)*1000)+' ms, output latency '+Math.round((ac.outputLatency||0)*1000)+' ms.'); inStat(); return true
-  }catch(e){ inStatMsg('<span class="warn">The microphone is blocked or missing.</span> Allow the mic for this page, then press Turn on mic.',true); dbg('getUserMedia failed: '+e.name+' '+e.message); return false } }
+  }catch(e){ inStatMsg('<span class="warn">The microphone is blocked or missing.</span> Allow the mic for this page, then press "Turn on mic".',true); dbg('getUserMedia failed: '+e.name+' '+e.message); return false } }
 function micStop(){ if(!mic) return; try{ mic.stream.getTracks().forEach(t=>t.stop()); mic.src.disconnect(); mic.node.disconnect(); mic.sink.disconnect() }catch(e){} mic=null; dbg('Mic off.') }
 function micMsg(d){ if(d.lv!=null){ const f=$('micFill'); if(f) f.style.width=Math.min(100,Math.round(Math.sqrt(d.lv)*140))+'%'; return }
   if(d.onset!=null){ const mf=d.f>0?69+12*Math.log2(d.f/440):0, m=Math.round(mf), okp=d.f>0&&m>=48&&m<=96&&d.cl>0.6;
@@ -1088,7 +1088,7 @@ function chalFinish(won){ const C=T.chal, k='chal-'+st.style+'-'+st.level, best=
 
 // ---------- results sheet ----------
 let shareTxt='';
-function showResults(chal,won,isNew,best){ const R=T.results; if(!R.length){ stopAll(); flash('Nothing to score yet. Press Start.',''); return }
+function showResults(chal,won,isNew,best){ const R=T.results; if(!R.length){ stopAll(); flash('Nothing to score yet. Press "Start".',''); return }
   const avg=f=>Math.round(R.reduce((a,x)=>a+f(x.r),0)/R.length), offs=R.flatMap(x=>x.r.offs), mean=offs.length?offs.reduce((a,b)=>a+b,0)/offs.length:0, sd=offs.length>1?Math.sqrt(offs.reduce((a,b)=>a+(b-mean)**2,0)/(offs.length-1)):0;
   const sc=avg(x=>x.combined), p=avg(x=>x.pitch), rh=avg(x=>x.rhythm);
   $('rTitle').textContent=chal?(won?'Challenge cleared!':'Challenge over'):'Set done';
@@ -1124,7 +1124,7 @@ function buttons(){ const run=!!(T&&T.running), pz=!!(T&&T.paused);
 function lastCall(){ if(!T) return lastRiff; const j=T.segs&&T.segs.filter(s=>s.kind==='trade'&&s.judged).pop(); return j?j:lastRiff }
 let lastRiff=null;
 function go(){ AC(); if(T&&T.running){ T.stopAfter=true; pauseAndEnd(); return } if(T&&T.paused){ $('flash').textContent=''; start(true); return } start(false) }
-function pauseAndEnd(){ const results=T.results.length; pause(); if(results&&!T.chal) showResults(false); else if(T&&T.chal&&results) chalFinish(false); else { stopAll(); flash('Stopped. Press Start.','') } }
+function pauseAndEnd(){ const results=T.results.length; pause(); if(results&&!T.chal) showResults(false); else if(T&&T.chal&&results) chalFinish(false); else { stopAll(); flash('Stopped. Press "Start".','') } }
 $('goBtn').addEventListener('click',go);
 $('pauseBtn').addEventListener('click',()=>{ pause() });
 $('replayBtn').addEventListener('click',()=>{ const s=lastCall(); if(!s) return; AC(); const t0=ac.currentTime+0.12; s.riff.notes.forEach(n=>{ const a=t0+uTime(n.u,s.spb,s.sw), b=t0+uTime(n.u+n.d,s.spb,s.sw); piano(n.m,a,0.86,Math.max(0.08,(b-a)*0.9),buses.call,'call');

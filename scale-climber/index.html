@@ -25,7 +25,7 @@
 </head>
 <body>
 <div class="wrap">
-  <div data-chma-head data-ver="Version 2026-11-20.1"></div>
+  <div data-chma-head data-ver="Version 2026-11-20.2"></div>
   <div class="setup">
   <header>
     <h1>Scale <em>Climber</em></h1>
@@ -128,19 +128,19 @@
   function onVoice(v){ voice=v; $('voices').classList.remove('need'); $('voiceTip').hidden=true; if(run) stopRun(); drawLevels(); keys(); idle() }
   VP.voicePicker($('voices'),onVoice); if(voice) $('voiceTip').hidden=true;
   const mp=VP.micPanel(APP,{btn:'micBtn',open:'micOpen',stat:'micStat',lvl:'micLvl',sens:'sens',vol:'vol',
-    idle:'Start asks for the microphone. Tap Allow when your device asks.',on:'Listening. Sing any note: the level bar turns green.'});
+    idle:'"Start" asks for the microphone. Tap "Allow" when your device asks.',on:'Listening. Sing any note: the level bar turns green.'});
 
   function idle(){ if(run) return; const k=voice?+$('startKey').value:60; $('sKey').textContent=voice?VP.noteName(k):'–'; $('sBpm').textContent=bpm;
     plot.cents=null; plot.lo=k-2; plot.hi=k+top()+2; plot.targets=[]; gradesRow(L().pat.map(()=>null),-1) }
   function gradesRow(G,cur){ const p=L().pat; $('grades').innerHTML=p.map((d,i)=>{ const g=G[i]; return `<div class="g ${g?g.grade:''}${i===cur?' now':''}">${SOLF[d]||d}<small>${g?(g.c==null?'–':fmtC(g.c).replace('¢','')):'&nbsp;'}</small></div>` }).join('') }
 
   // ---------- one climb ----------
-  async function startRun(){ if(!voice){ $('voices').classList.add('need'); $('voices').scrollIntoView({block:'center',behavior:'smooth'}); msg('bad','Pick your voice type first','Tap the one that fits you, then press Start.'); return }
+  async function startRun(){ if(!voice){ $('voices').classList.add('need'); $('voices').scrollIntoView({block:'center',behavior:'smooth'}); msg('bad','Pick your voice type first','Tap the one that fits you, then press "Start".'); return }
     VP.ctx(); const ok=await mp.go(); if(!ok){ msg('bad','The microphone is off','See the note under the microphone button.'); return }
     if(innerWidth<900) try{ $('card').scrollIntoView({behavior:'smooth',block:'start'}) }catch(e){}
     run={key:+$('startKey').value,bpm,lv:L(),mode,clean:[],tries:0,frames:[],timers:[],cur:null,startKey:+$('startKey').value,startBpm:bpm};
     $('results').hidden=true; $('go').textContent='Stop'; $('sClean').textContent='0'; $('sTop').textContent='–'; doKey() }
-  function stopRun(quiet){ if(!run) return; run.timers.forEach(clearTimeout); run=null; $('go').textContent='Start'; plot.targets=[]; if(!quiet) msg('','Stopped','Press Start to climb again.'); idle() }
+  function stopRun(quiet){ if(!run) return; run.timers.forEach(clearTimeout); run=null; $('go').textContent='Start'; plot.targets=[]; if(!quiet) msg('','Stopped','Press "Start" to climb again.'); idle() }
   function at(t,fn){ const ms=Math.max(0,(t-VP.now())*1000); run.timers.push(setTimeout(fn,ms)) }
   function doKey(){ if(!run) return; const R=run, lv=R.lv, pat=lv.pat, b=60/R.bpm, T=VP.now()+0.35, k=R.key;
     let S; const tg=[];
@@ -221,6 +221,6 @@
   window.__sc={levels:()=>LEVELS,state:()=>run&&{key:run.key,bpm:run.bpm,clean:run.clean.length,tries:run.tries,cur:run.cur&&{k:run.cur.k,S:run.cur.S,b:run.cur.b,notes:run.cur.notes}},level:()=>level};
 })();
 </script>
-<p class="appver">Scale Climber · Version 2026-11-20.1</p>
+<p class="appver">Scale Climber · Version 2026-11-20.2</p>
 </body>
 </html>

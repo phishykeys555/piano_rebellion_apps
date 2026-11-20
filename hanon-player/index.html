@@ -103,7 +103,7 @@ button,a,label,summary,select,input{-webkit-tap-highlight-color:transparent}
  <p class="tip" style="margin-top:10px">Start at a tempo you can play clean. Switching tempo keeps your place in the exercise. Light touch = faster.</p>
 </div>
 
-<p class="appver">Hanon Speed Trainer · Version 2026-11-13.1</p>
+<p class="appver">Hanon Speed Trainer · Version 2026-11-20.1</p>
 </main>
 <script>
 const $=id=>document.getElementById(id);
@@ -160,12 +160,12 @@ function render(){
 function draw(){const d=audio.duration||0,c=audio.currentTime||0,p=d?c/d*100:0;$('fill').style.width=p+'%';$('knob').style.left=p+'%';$('cur').textContent=fmt(c);$('dur').textContent=fmt(d);$('bar').setAttribute('aria-valuenow',Math.round(p));$('bar').setAttribute('aria-valuetext',fmt(c)+' of '+fmt(d))}
 audio.addEventListener('timeupdate',draw);
 audio.addEventListener('ended',()=>{if(loop){audio.currentTime=0;audio.play().catch(()=>{})}else{playing=false;render()}});
-audio.addEventListener('error',()=>{$('msg').textContent='Could not load this track. Check your connection, then tap Play.'});
+audio.addEventListener('error',()=>{$('msg').textContent='Could not load this track. Check your connection, then tap "Play".'});
 audio.addEventListener('playing',()=>{$('msg').textContent=''});
 // Paused or resumed from outside the page (lock-screen controls, a phone call, AirPods): keep the Play button honest.
 audio.addEventListener('pause',()=>{if(loadedBpm&&playing&&!audio.ended){playing=false;render()}});
 audio.addEventListener('play',()=>{if(!playing){playing=true;render()}});
-$('play').onclick=()=>{if(playing){audio.pause();playing=false}else{playing=true;if(audio.error){$('msg').textContent='Loading…';load(true)} /* the last try failed (offline): fetch the track again */audio.play().catch(e=>{playing=false;$('msg').textContent=audio.error||(e&&e.name==='NotSupportedError')?'Could not load this track. Check your connection, then tap Play.':'Tap Play again to start.';render()})}render()};
+$('play').onclick=()=>{if(playing){audio.pause();playing=false}else{playing=true;if(audio.error){$('msg').textContent='Loading…';load(true)} /* the last try failed (offline): fetch the track again */audio.play().catch(e=>{playing=false;$('msg').textContent=audio.error||(e&&e.name==='NotSupportedError')?'Could not load this track. Check your connection, then tap "Play".':'Tap "Play" again to start.';render()})}render()};
 $('down').onclick=()=>setBpm(bpm-10);$('up').onclick=()=>setBpm(bpm+10);
 $('restart').onclick=()=>{audio.currentTime=0;draw()};
 $('loop').onclick=()=>{loop=!loop;render()};

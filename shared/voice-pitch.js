@@ -1,4 +1,4 @@
-/* CHMA Sing apps: shared voice engine. Version 2026-11-20.1
+/* CHMA Sing apps: shared voice engine. Version 2026-11-20.2
    Used by Match Point, Hold Steady and Scale Climber.
    - Microphone in (raw: echo cancellation, noise suppression and auto gain off, same as Note Sprint), YIN pitch at 50 frames a second.
    - Median-of-5 smoothing, voiced/unvoiced gate by loudness (RMS) and YIN confidence.
@@ -114,11 +114,11 @@ function tick(){ if(!mic) return; const a=ctx; mic.an.getFloatTimeDomainData(mic
     rms:r.rms,conf:r.conf,voiced:midi!=null,ref:t<toneUntil,n:frameN};
   last=f; listeners.forEach(fn=>{ try{ fn(f) }catch(e){ console.error(e) } }) }
 function errText(e,app){ const n=e&&e.name;
-  if(n==='FrameBlocked') return {text:'This page sits inside another page (like Notion) that can\'t share the microphone. Open full screen, then tap Turn on the microphone.',open:true};
+  if(n==='FrameBlocked') return {text:'This page sits inside another page (like Notion) that can\'t share the microphone. Open full screen, then tap "Turn on the microphone".',open:true};
   if(n==='NoMediaDevices') return {text:'This browser can\'t reach the microphone here. Open '+app+' in Safari or Chrome.'+(inFrame?' Or open it full screen:':''),open:inFrame};
   if(n==='NotAllowedError'||n==='SecurityError'||n==='PermissionDeniedError') return inFrame?
     {text:'The page this sits inside (like Notion) may be blocking the microphone. Open full screen and allow it there.',open:true}:
-    {text:app+' needs to hear you sing. Tap Allow when your device asks about the microphone. Tapped Don\'t Allow before? Turn the microphone on for this site in your browser settings (iPhone/iPad Safari: aA in the address bar, then Website Settings, then Microphone), then tap the button again.',open:false};
+    {text:app+' needs to hear you sing. Tap "Allow" when your device asks about the microphone. Tapped "Don\'t Allow" before? Turn the microphone on for this site in your browser settings (iPhone/iPad Safari: "aA" in the address bar, then "Website Settings", then "Microphone"), then tap the button again.',open:false};
   if(n==='NotFoundError'||n==='OverconstrainedError') return {text:'No microphone found. Plug one in or use a phone or tablet, then tap the button again.',open:false};
   if(n==='NotReadableError'||n==='AbortError') return {text:'Another app is using the microphone. Close it (or end the call), then tap the button again.',open:false};
   return {text:'The microphone didn\'t start. Reload the page and tap the button again.'+(inFrame?' Or open '+app+' full screen:':''),open:inFrame} }
@@ -166,13 +166,13 @@ function plot(cv){ const P={span:4,nowX:0.72,lo:57,hi:67,targets:[],pts:[],cents
 /* ---------- standard microphone panel ----------
    ids: <prefix>Btn (button), Open (full-screen link), Stat (status line), Lvl (level bar fill), Sens (sensitivity range, optional). */
 function micPanel(app,ids){ const $=id=>document.getElementById(id), btn=$(ids.btn), open=$(ids.open), stat=$(ids.stat), lvl=ids.lvl&&$(ids.lvl);
-  const idle=ids.idle||'Tap the button, then tap Allow when your device asks.';
+  const idle=ids.idle||'Tap the button, then tap "Allow" when your device asks.';
   function help(t,o){ stat.textContent=t; open.hidden=!o; if(o) open.href=location.href.split('#')[0] }
   function set(on){ btn.textContent=on?'Microphone on':'Turn on the microphone'; btn.disabled=!!on; btn.classList.toggle('on',!!on) }
-  if(inFrame&&policyBlocked()) help('This page sits inside another page (like Notion) that can\'t share the microphone. Open full screen, then tap Turn on the microphone.',true); else stat.textContent=idle;
+  if(inFrame&&policyBlocked()) help('This page sits inside another page (like Notion) that can\'t share the microphone. Open full screen, then tap "Turn on the microphone".',true); else stat.textContent=idle;
   let busy=false;
   async function go(){ if(mic) return true; if(busy) return false; busy=true; btn.disabled=true; btn.textContent='Waiting for the microphone…';
-    const slow=setTimeout(()=>{ if(busy) help('Still waiting for the microphone. Tap Allow if your device is asking.'+(inFrame?' No question showed up? Open full screen:':''),inFrame) },9000);
+    const slow=setTimeout(()=>{ if(busy) help('Still waiting for the microphone. Tap "Allow" if your device is asking.'+(inFrame?' No question showed up? Open full screen:':''),inFrame) },9000);
     try{ await start(VP.fakeMode?{fake:VP.fakeMode}:{}); clearTimeout(slow); busy=false; set(true); open.hidden=true; stat.textContent=ids.on||'Listening. Sing any note: the level bar should move.'; return true }
     catch(e){ clearTimeout(slow); busy=false; set(false); const m=errText(e,app); help(m.text,m.open); return false } }
   btn.addEventListener('click',go);

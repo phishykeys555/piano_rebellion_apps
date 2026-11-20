@@ -175,6 +175,7 @@ input[type=range]{accent-color:var(--c-act)}
   .light{width:104px;height:104px}
   .stage{min-height:108px}
 }
+.card,.card *{-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}html{overscroll-behavior-y:none}
 </style>
 </head>
 <body class="chma-page">
@@ -212,7 +213,7 @@ input[type=range]{accent-color:var(--c-act)}
       <p><b>What you get:</b> every tap is checked against the true beat, even in the silence. You'll see if you <b>rushed</b> (sped up), <b>dragged</b> (slowed down), how <b>steady</b> you were, and where you landed when the beat came back.</p>
       <p><b>Points:</b> 3 for a tap within about 25 ms of the beat, 2 within 50 ms, 1 within 90 ms (a bit wider at slow tempos). Taps in the silence count double. Extra taps and drifting tempo cost points.</p>
       <p><b>Challenge:</b> 5 rounds and a bonus round, and the silence grows every round. Round 1 is the warm-up that sets your targets. The pulse light and your tap marks stay dark in the silence, so it's all you.</p>
-      <p><b>Input:</b> tap the pad or press the space bar. <b>Clap or snap:</b> the microphone hears your claps or finger snaps. <b>One note:</b> play one piano key (pick it in Settings); playing it again while it still rings counts too. <b>MIDI:</b> plug in a digital piano and play any key (Chrome or Edge on a computer). With the microphone on speakers, only the silences are graded (the mic hears the app there); with headphones, every beat. Run <b>Calibrate</b> once per input so the app knows your device's delay.</p>
+      <p><b>Input:</b> tap the pad or press the space bar. <b>Clap or snap:</b> the microphone hears your claps or finger snaps. <b>One note:</b> play one piano key (pick it in "Settings"); playing it again while it still rings counts too. <b>MIDI:</b> plug in a digital piano and play any key (Chrome or Edge on a computer). With the microphone on speakers, only the silences are graded (the mic hears the app there); with headphones, every beat. Run "<b>Calibrate</b>" once per input so the app knows your device's delay.</p>
     </details>
 
     <details id="settingsBox"><summary>Settings</summary>
@@ -234,7 +235,7 @@ input[type=range]{accent-color:var(--c-act)}
         <details id="dbgBox" style="margin-top:8px"><summary>Show details</summary><div class="dbg" id="dbg">No mic events yet.</div></details>
       </div>
     </details>
-    <p class="appver" id="appVer">Meter Master · Version 2026-11-19.1</p>
+    <p class="appver" id="appVer">Meter Master · Version 2026-11-20.2</p>
   </section>
 
   <section class="play">
@@ -290,7 +291,7 @@ input[type=range]{accent-color:var(--c-act)}
 <script>
 (()=>{
 'use strict';
-const VER="2026-11-13.4";
+const VER="2026-11-20.2";
 const $=id=>document.getElementById(id);
 const store={get(k,d){try{const v=localStorage.getItem("mm-"+k);return v==null?d:JSON.parse(v)}catch(e){return d}},set(k,v){try{localStorage.setItem("mm-"+k,JSON.stringify(v))}catch(e){}}};
 const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
@@ -415,14 +416,14 @@ const FIX={solid:"Next rung: a longer silence, or the same level at a slower tem
   lost:"Fix: count the bars out loud in the silence: ONE-2-3-4, TWO-2-3-4. Knowing which bar you're in keeps you from falling off.",
   shaky:"Fix: tap from the forearm, not the fingertip. Same motion, same height, every beat.",
   early:"Fix: you're steady but ahead. Wait for the beat. Let it come to you.",
-  late:"Fix: you're steady but behind. If you haven't calibrated, do that first (Settings). If you have, tap a hair sooner.",
+  late:"Fix: you're steady but behind. If you haven't calibrated, do that first (\"Settings\"). If you have, tap a hair sooner.",
   none:"Tap every quarter note, the whole time, including the silence."};
 
 // ================= SOUND =================
 let audio=null;
 const aSess=t=>{ try{ if(navigator.audioSession) navigator.audioSession.type=t }catch(e){} };
 function ctx(){ if(!audio){ aSess("playback"); audio=new (window.AudioContext||window.webkitAudioContext)({latencyHint:"interactive"});
-  audio.onstatechange=()=>{ if(audio.state!=="running"&&(run||calHook)) abort("The audio paused (another app or the lock screen), so this run stopped. Press Start to go again.") }; cowBuf(audio) } return audio }
+  audio.onstatechange=()=>{ if(audio.state!=="running"&&(run||calHook)) abort("The audio paused (another app or the lock screen), so this run stopped. Press \"Start\" to go again.") }; cowBuf(audio) } return audio }
 const noiseCache=new WeakMap();
 function noise(ac){ let b=noiseCache.get(ac); if(!b){ const L=Math.floor(ac.sampleRate*0.25); b=ac.createBuffer(1,L,ac.sampleRate); const d=b.getChannelData(0); let s=12345; for(let i=0;i<L;i++){ s=(s*1103515245+12345)&0x7fffffff; d[i]=s/0x3fffffff-1 } noiseCache.set(ac,b) } return b }
 // every sound ends by 0.2 s, so even at 240 BPM (0.25 s a beat) a silence is truly silent from its first beat
@@ -494,6 +495,11 @@ function padFlash(){ const p=$("pad"); p.classList.add("hit"); clearTimeout(padF
 // pointerdown is the pad's only input path (no click, touchstart or mousedown handler), so each physical tap is one hit; preventDefault stops the
 // synthetic mouse events, and the long-press menu and selection are blocked (2026-11-13.4)
 ["contextmenu","selectstart","dragstart"].forEach(k=>$("pad").addEventListener(k,e=>e.preventDefault()));
+// Phones (2026-11-20.2): fast taps must never turn into text selection, and the page must not slide while you tap.
+// touchstart is cancelled so iOS never starts its double and triple tap selection; the hit itself still comes from pointerdown.
+$("pad").addEventListener("touchstart",e=>{ if(e.cancelable) e.preventDefault() },{passive:false});
+document.addEventListener("selectstart",e=>{ if(run&&!(e.target.closest&&e.target.closest("input,textarea"))) e.preventDefault() });
+document.addEventListener("touchmove",e=>{ if(run&&e.cancelable) e.preventDefault() },{passive:false});
 $("pad").addEventListener("pointerdown",e=>{ e.preventDefault(); if(inMode!=="tap"&&!run&&!calHook) return; hit(evToCtxSafe(e.timeStamp),"tap") });
 document.addEventListener("keyup",e=>{ if(e.code==="Space"&&(run||calHook)) e.preventDefault() });
 document.addEventListener("keydown",e=>{ if(e.code!=="Space") return; const tg=e.target.tagName; if(["INPUT","SELECT","TEXTAREA"].includes(tg)) return;
@@ -533,10 +539,10 @@ function chmaMidi(o){
   function show(){ let t="";
     if(M.state==="none") t="MIDI works in Chrome or Edge on a computer.";
     else if(M.state==="framed") t="MIDI can't turn on inside this page."+full();
-    else if(M.state==="blocked") t="MIDI was blocked. Allow MIDI for this page (the icon in the address bar), then pick MIDI again.";
+    else if(M.state==="blocked") t="MIDI was blocked. Allow MIDI for this page (the icon in the address bar), then pick \"MIDI\" again.";
     else if(M.state==="asking") t="Connecting to MIDI…";
     else if(M.state==="on"){ const a=ins(), p=picked(); t=a.length?`<span class="cm-led" aria-hidden="true" title="Flashes when a key arrives"></span>Connected: <b>${esc(p.map(nm).join(", "))}</b> <span class="cm-key">Press a key: the light flashes.</span>`:"No MIDI keyboard found. Plug it in by USB and switch it on: it connects by itself." }
-    else t="Pick MIDI to connect your keyboard (Chrome or Edge on a computer).";
+    else t="Pick \"MIDI\" to connect your keyboard (Chrome or Edge on a computer).";
     st.innerHTML=t; const a=M.state==="on"?ins():[]; pk.hidden=a.length<2;
     if(a.length>1){ const v=M.dev&&a.some(i=>i.id===M.dev)?M.dev:""; sel.innerHTML='<option value="">All MIDI inputs</option>'+a.map(i=>`<option value="${esc(i.id)}">${esc(nm(i))}</option>`).join(""); sel.value=v }
     if(o.onStatus) try{ o.onStatus(M.state,picked().map(nm)) }catch(e){} }
@@ -564,7 +570,7 @@ function inStatus(){ const s=$("inStat"), h=$("padHint"); document.body.classLis
   if(inMode==="tap"){ s.textContent="Tap the pad or press the space bar on every beat."; h.textContent="Space bar or tap here"; $("pad").firstChild.textContent="TAP" }
   else if(inMode==="midi"){ $("pad").firstChild.textContent="PLAY"; h.textContent="Play any key on your piano"; s.textContent="Play any key on your piano on every beat."; MIDI.show() }
   else { const nt=inMode==="note"; $("pad").firstChild.textContent=nt?"PLAY":"CLAP"; h.textContent=nt?`Play ${noteName()} on your piano`:"Clap or snap on every beat";
-    s.textContent=(mic?"Mic on. ":"The mic turns on when you press Start. ")+(nt?`Play ${noteName()} on every beat (change it in Settings). `:"")+($("phonesOn").checked?"Headphones: every beat is graded.":"Speakers: the mic listens in the silences only (headphones grade every beat).") } }
+    s.textContent=(mic?"Mic on. ":"The mic turns on when you press \"Start\". ")+(nt?`Play ${noteName()} on every beat (change it in "Settings"). `:"")+($("phonesOn").checked?"Headphones: every beat is graded.":"Speakers: the mic listens in the silences only (headphones grade every beat).") } }
 const noteName=()=>{ const o=$("noteSel").selectedOptions[0]; return o?o.textContent.replace(" (Middle C)",""):"C4" };
 
 // ================= MIC: Clap or snap · One note =================
@@ -695,9 +701,9 @@ function hitFlat(x,sr){ const N=512, re=new Float32Array(N), im=new Float32Array
   const b0=Math.ceil(3000*N/sr), b1=Math.min(N/2,Math.floor(10000*N/sr)); let lg=0, ar=0, n=0; for(let k=b0;k<=b1;k++){ const p=re[k]*re[k]+im[k]*im[k]+1e-14; lg+=Math.log(p); ar+=p; n++ } return Math.exp(lg/n)/(ar/n) }
 const WHY={pitch:"not your note's pitch",quiet:"too quiet",weak:"too small a jump","weak-out":"too small a jump between beats","small-out":"between beats and much softer than your notes",double:"the same strike twice"};
 async function micStart(){ const s=$("inStat");
-  if(!window.isSecureContext||!navigator.mediaDevices||!navigator.mediaDevices.getUserMedia){ s.textContent="This browser can't reach the microphone here (the address must start with https). Use Tap or MIDI."; return false }
-  try{ const pp=document.permissionsPolicy||document.featurePolicy; if(pp&&pp.allowsFeature&&!pp.allowsFeature("microphone")){ s.innerHTML=`The microphone can't turn on inside this page (embeds keep it off). <a href="${location.href.split("#")[0]}" target="_blank" rel="noopener">Open full screen</a>, or use Tap.`; return false } }catch(e){}
-  if(mic&&mic.kind===inMode) return true; if(mic) micStop(); const a=ctx(), want=inMode; s.textContent="Waiting for the microphone. Tap Allow if your device asks.";
+  if(!window.isSecureContext||!navigator.mediaDevices||!navigator.mediaDevices.getUserMedia){ s.textContent="This browser can't reach the microphone here (the address must start with https). Use \"Tap\" or \"MIDI\"."; return false }
+  try{ const pp=document.permissionsPolicy||document.featurePolicy; if(pp&&pp.allowsFeature&&!pp.allowsFeature("microphone")){ s.innerHTML=`The microphone can't turn on inside this page (embeds keep it off). <a href="${location.href.split("#")[0]}" target="_blank" rel="noopener">Open full screen</a>, or use "Tap".`; return false } }catch(e){}
+  if(mic&&mic.kind===inMode) return true; if(mic) micStop(); const a=ctx(), want=inMode; s.textContent="Waiting for the microphone. Tap \"Allow\" if your device asks.";
   try{ aSess("play-and-record"); const st=await navigator.mediaDevices.getUserMedia({audio:{echoCancellation:false,noiseSuppression:false,autoGainControl:false}}); await a.resume();
     if(inMode!==want){ st.getTracks().forEach(t=>t.stop()); aSess("playback"); return false }
     if(!a.__mmdet){ detURL=detURL||URL.createObjectURL(new Blob([DET_SRC],{type:"text/javascript"})); a.__mmdet=a.audioWorklet.addModule(detURL) } await a.__mmdet;
@@ -716,9 +722,9 @@ async function micStart(){ const s=$("inStat");
         if(m.rej||(m.cand&&m.why&&m.why!=="quiet")) dbg(`${m.t.toFixed(3)} s  note  not counted: ${WHY[m.why]||m.why}${m.ck?"  (on an app sound)":""}`) } }
     micCfg(); const buf=new Float32Array(an.fftSize);
     mic.timer=setInterval(()=>{ an.getFloatTimeDomainData(buf); let r=0; for(let i=0;i<buf.length;i++) r+=buf[i]*buf[i]; r=Math.sqrt(r/buf.length); $("micLvl").style.width=Math.min(100,r*micGain()*300)+"%" },60);
-    st.getAudioTracks().forEach(t=>t.addEventListener("ended",()=>{ if(mic&&mic.st===st){ micStop(); $("inStat").textContent="The microphone stopped. Press Start to turn it on again." } }));
+    st.getAudioTracks().forEach(t=>t.addEventListener("ended",()=>{ if(mic&&mic.st===st){ micStop(); $("inStat").textContent="The microphone stopped. Press \"Start\" to turn it on again." } }));
     inStatus(); dbg(`${a.currentTime.toFixed(3)} mic on (${want==="note"?"One note: "+noteName():"Clap or snap"}) · ${a.sampleRate} Hz · out latency ${Math.round(outLat()*1000)} ms`); return true
-  }catch(e){ if(mic) micStop(); s.textContent=e&&e.name==="NotAllowedError"?"The microphone was blocked. Allow it for this page (the icon in the address bar), or use Tap.":"The microphone didn't start ("+(e&&e.name||"error")+"). Use Tap or MIDI."; aSess("playback"); return false } }
+  }catch(e){ if(mic) micStop(); s.textContent=e&&e.name==="NotAllowedError"?"The microphone was blocked. Allow it for this page (the icon in the address bar), or use \"Tap\".":"The microphone didn't start ("+(e&&e.name||"error")+"). Use \"Tap\" or \"MIDI\"."; aSess("playback"); return false } }
 function micStop(){ if(!mic) return; try{ clearInterval(mic.timer); mic.st.getTracks().forEach(t=>t.stop()); mic.src.disconnect(); if(mic.det){ mic.det.port.onmessage=null; mic.det.disconnect() } if(mic.fx){ mic.fx.port.onmessage=null; mic.fx.disconnect() } }catch(e){} mic=null; $("micLvl").style.width="0%"; aSess("playback") }
 function hypeBusy(){ try{ return !!(window.chmaHype&&(chmaHype.isPlaying()||performance.now()<chmaHype.endsAt+150)) }catch(e){ return false } }
 // Clap or snap on speakers: how late the app's own sound reaches the mic (a Bluetooth speaker's delay included), learned on the count-in
@@ -760,7 +766,8 @@ async function startRun(L,done){ const a=ctx(); try{ await a.resume() }catch(e){
   const plan=buildPlan(L,bpm,bpb); let wait=0; if(isMic(inMode)&&window.chmaHype){ try{ wait=Math.max(0,chmaHype.endsAt+200-performance.now()) }catch(e){} }
   const t0=a.currentTime+0.35+wait/1000;
   hush(); const sounds=schedule(a,a.destination,plan,t0,$("sndSel").value,$("accOn").checked,track).map(t=>t-t0);
-  run={plan,t0,taps:[],raw:[],sounds,done,phase:"",lastGrade:null,gradeOn:!isMic(inMode)||$("phonesOn").checked,src:inMode,auto:null,autoDone:false,autoMsg:""}; $("latLive").hidden=true; tickBuf.length=0; drawTicks(); lockUI();
+  { const c=$("card"); if(c&&c.scrollIntoView){ const r=c.getBoundingClientRect(); if(r.top<0||r.bottom>innerHeight) c.scrollIntoView({block:r.height>innerHeight?"start":"center"}) } }
+run={plan,t0,taps:[],raw:[],sounds,done,phase:"",lastGrade:null,gradeOn:!isMic(inMode)||$("phonesOn").checked,src:inMode,auto:null,autoDone:false,autoMsg:""}; $("latLive").hidden=true; tickBuf.length=0; drawTicks(); lockUI();
   if(mic&&mic.fx){ fxPost({reset:1}); fxSync(); fxFeed(run); fxWins(plan.beats.filter(b=>b.graded).map(b=>t0+b.t),Math.min(0.08,0.45*plan.P)) }
   $("sPts").textContent="0"; $("sPct").textContent="–"; $("sTempo").textContent="–";
   requestAnimationFrame(loop) }
@@ -787,16 +794,16 @@ function autoLearn(R,final){ if(R.autoDone) return; if(store.get("lat-"+R.src,nu
   R.autoDone=true; const offs=[]; S.forEach(b=>{ let best=null; R.taps.forEach(x=>{ const d=x-b.t; if(Math.abs(d)<0.45*P&&(best==null||Math.abs(d)<Math.abs(best))) best=d }); if(best!=null) offs.push(best) });
   if(offs.length<4||offs.length<0.5*S.length) return;
   const q=offs.slice().sort((a,b)=>a-b), med=q[q.length>>1], mad=offs.map(d=>Math.abs(d-med)).sort((a,b)=>a-b)[offs.length>>1];
-  if(mad>0.02||Math.abs(med)>0.15){ R.autoMsg=`Your taps with the sound ${Math.abs(med)>=0.005?`sat ${fmtMs(med)} off the beat${mad>0.02?" and ":""}`:""}${mad>0.02?`moved around (±${Math.round(mad*1000)} ms)`:""}, so no latency was auto-set. Tap Calibrate for best results.`; return }
+  if(mad>0.02||Math.abs(med)>0.15){ R.autoMsg=`Your taps with the sound ${Math.abs(med)>=0.005?`sat ${fmtMs(med)} off the beat${mad>0.02?" and ":""}`:""}${mad>0.02?`moved around (±${Math.round(mad*1000)} ms)`:""}, so no latency was auto-set. Tap "Calibrate" for best results.`; return }
   if(Math.abs(med)<0.004) return;
-  R.auto=med; R.autoMsg=`Latency auto-set: ${med>0?"+":"−"}${Math.round(Math.abs(med)*1000)} ms (learned from the bars with sound; Calibrate overrides it).`;
+  R.auto=med; R.autoMsg=`Latency auto-set: ${med>0?"+":"−"}${Math.round(Math.abs(med)*1000)} ms (learned from the bars with sound; "Calibrate" overrides it).`;
   $("latLive").textContent=R.autoMsg; $("latLive").hidden=false }
 function liveGrade(R){ if(run!==R) return; autoLearn(R); const rt=heardNow()-R.t0, res=grade(R.plan,tapsOf(R),{until:rt-0.45*R.plan.P,gradeOn:R.gradeOn}); R.lastGrade=res; showLive(res) }
 function showLive(res){ $("sPts").textContent=res.score; $("sPct").textContent=res.max?Math.round(res.pct*100)+"%":"–"; const lg=res.gaps[res.gaps.length-1]; $("sTempo").textContent=lg&&lg.bpm?Math.round(lg.bpm):"–";
   if(arc&&arc.round>1){ const hitT=res.pct>=arc.need/100; $("arcFill").style.width=Math.min(100,res.pct*100)+"%"; $("arcMeter").classList.toggle("hit",hitT); if(hitT&&!arc.hit){ arc.hit=true; const hs=$("hitStamp"); hs.classList.remove("go"); void hs.offsetWidth; hs.classList.add("go") } } }
 function finishRun(R){ if(run!==R) return; setTimeout(()=>{ if(run!==R) return; run=null; autoLearn(R,true); const res=grade(R.plan,tapsOf(R),{gradeOn:R.gradeOn}); res.plan=R.plan; res.rawTaps=tapsOf(R).slice(); res.auto=R.auto; res.autoMsg=R.autoMsg; { const o=res.beats.filter(x=>x.off!=null).map(x=>x.off); res.avgOff=o.length?o.reduce((a,c)=>a+c,0)/o.length:null } res.gradeOn=R.gradeOn; lastRes=res; showLive(res); lockUI(); R.done(res) },Math.round(R.plan.P*450)) }
-function abort(msg){ hush(); if(run){ run=null } calHook=null; if(arc){ arc=null; $("arcRow").hidden=true; $("arcMeter").hidden=true } hypeStop(); $("splash").hidden=true; starting=false; lockUI(); light(false); setState("Stopped",msg||"Press Start to go again.") }
-document.addEventListener("visibilitychange",()=>{ if(document.hidden&&(run||arc||calHook)) abort("The app was in the background, so this run stopped. Press Start to go again.") });
+function abort(msg){ hush(); if(run){ run=null } calHook=null; if(arc){ arc=null; $("arcRow").hidden=true; $("arcMeter").hidden=true } hypeStop(); $("splash").hidden=true; starting=false; lockUI(); light(false); setState("Stopped",msg||"Press \"Start\" to go again.") }
+document.addEventListener("visibilitychange",()=>{ if(document.hidden&&(run||arc||calHook)) abort("The app was in the background, so this run stopped. Press \"Start\" to go again.") });
 
 // ================= PRACTICE =================
 // Start and Hear it act on pointerdown (2026-11-13.4), once per press: the click that follows the same press is skipped, while a keyboard or
@@ -903,7 +910,7 @@ function drawCharts(res){ const plan=res.plan, P=plan.P, B=plan.beats, first=B.f
   res.beats.forEach(r=>{ if(r.off==null) return; c+=`<circle cx="${X(r.b.t).toFixed(1)}" cy="${Y(-r.off).toFixed(1)}" r="3.5" fill="${col(r.pts)}"/>` });
   const sc=$("svgC"); sc.setAttribute("width",W); sc.setAttribute("height",CH); sc.setAttribute("viewBox",`0 0 ${W} ${CH}`); sc.innerHTML=c }
 $("shareBtn").addEventListener("click",()=>chmaShare.share({app:"meter-master",text:shareTxt}));
-$("closeBtn").addEventListener("click",()=>{ $("results").hidden=true; $("card").classList.remove("showres"); setState("Ready","Pick a level and tempo, then press Start.") });
+$("closeBtn").addEventListener("click",()=>{ $("results").hidden=true; $("card").classList.remove("showres"); setState("Ready","Pick a level and tempo, then press \"Start\".") });
 $("againBtn").addEventListener("click",()=>{ $("results").hidden=true; $("card").classList.remove("showres"); $("goBtn").click() });
 
 // ================= CALIBRATION =================

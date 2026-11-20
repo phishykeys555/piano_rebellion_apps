@@ -191,7 +191,7 @@ kbd{font:600 11px var(--f-num);background:var(--c-key);border:1px solid var(--c-
   <button id="partyB"><b>Party</b><small>2 to 6 players</small></button>
  </div>
  <div class="thead"><span class="lbl" id="topicsLbl">Topics</span><button id="allB">All</button><button id="wheelB">Surprise me</button></div>
- <p id="topicNote">Tap topics to pick them for Quick Play, Streak Run and Party.</p>
+ <p id="topicNote">Tap topics to pick them for "Quick Play", "Streak Run" and "Party".</p>
  <div id="grid" role="group" aria-labelledby="topicsLbl"></div>
 </section>
 
@@ -277,7 +277,7 @@ kbd{font:600 11px var(--f-num);background:var(--c-key);border:1px solid var(--c-
  <li><b>Streak Run</b>: keep going until 3 misses.</li>
  <li><b>Party</b>: 2 to 6 players pass one device. Podium at the end.</li></ul>
  <h3>Lifelines (one each per run)</h3>
- <ul><li><b>50/50</b> removes two wrong answers.</li><li><b>Skip</b> swaps the question for another at the same level.</li><li><b>Freeze</b> stops the clock for this question.</li></ul>
+ <ul><li>"<b>50/50</b>" removes two wrong answers.</li><li>"<b>Skip</b>" swaps the question for another at the same level.</li><li>"<b>Freeze</b>" stops the clock for this question.</li></ul>
  <h3>Progress</h3>
  <p>Earn XP, climb from Open Mic to Legend, and fill each topic's mastery. 80% mastery earns that topic's crown. Finish a run every day to keep your streak; every 7 days earns a streak freeze that covers one missed day.</p>
  <h3>Keys</h3><p><kbd>1</kbd> to <kbd>4</kbd> answer, <kbd>Enter</kbd> continue, <kbd>R</kbd> replay the sound.</p>
@@ -286,7 +286,7 @@ kbd{font:600 11px var(--f-num);background:var(--c-key);border:1px solid var(--c-
 <script>
 "use strict";
 const APP_NAME="Pop Quiz";          /* the one place the name lives: rename here */
-const VERSION="2026-11-13.2";
+const VERSION="2026-11-20.1";
 const T_MS=20000, AUTO_MS=6000, RAMP10=[1,1,1,2,2,2,2,3,3,3];
 const QS=new URLSearchParams(location.search), DEBUG=QS.get("debug")==="1";
 const $=id=>document.getElementById(id);
@@ -388,7 +388,7 @@ function renderHome(){
  $("dailySub").textContent=dd?("Done today: "+dd.c+"/10 · "+dd.s.toLocaleString()+" pts"):"Same 10 for everyone today. Easy to hard.";
  $("dailyGo").textContent=dd?"Result":"Play";
  const k=sel.size;$("quickSub").textContent=k?("10 from "+k+" topic"+(k>1?"s":"")):"10 from all topics";
- $("topicNote").textContent=k?(k+" topic"+(k>1?"s":"")+" picked for Quick Play, Streak Run and Party."):"Tap topics to pick them for Quick Play, Streak Run and Party. None picked means all.";
+ $("topicNote").textContent=k?(k+" topic"+(k>1?"s":"")+" picked for \"Quick Play\", \"Streak Run\" and \"Party\"."):"Tap topics to pick them for \"Quick Play\", \"Streak Run\" and \"Party\". None picked means all.";
  $("allB").textContent=k?"Clear":"All";
  $("grid").innerHTML=CATS.map(c=>{const m=mastery(c.id),cnt=BANK.filter(q=>q.cat===c.id).length;
   return '<button class="tile" style="--h:'+c.hue+'" data-cat="'+c.id+'" aria-pressed="'+sel.has(c.id)+'" aria-label="'+esc(c.name)+', '+m+' percent mastery, '+cnt+' questions"'+(cnt?"":" disabled")+'>'+
