@@ -205,7 +205,7 @@ details.how p{margin-top:6px}
   <p class="sec">Speed and time</p>
   <div class="tempo" id="tempo" role="group" aria-label="Tempo"><span id="tempoLbl">Tempo</span></div>
   <div class="tsig" id="meterSeg" role="group" aria-label="Time signature"><span>Time</span></div>
-  <div class="subrow"><label class="clkpick">Click <select id="clkPick" aria-label="Click sound"><option value="classic">Classic click</option><option value="cow">🐄 More cowbell</option><option value="wood">Woodblock</option><option value="rim">Side stick</option><option value="hat">Hi-hat</option><option value="clave">Clave</option><option value="beep">Beep (electronic)</option><option value="kick">Kick on 1 + hi-hat (drummer)</option></select></label><label class="clkpick volpick" title="Click and app volume">Volume <input type="range" id="volR" min="0" max="200" step="5" aria-label="Click volume"></label><span class="clksafe" id="clkSafe" hidden>(mic-safe click used)</span><button class="chip" id="loopChip" aria-pressed="false" title="Single tries: count a bar, play the rhythm, count a bar, play it again… until you press Stop">🔁 Loop: <b>Off</b></button><button class="chip" id="subChip" aria-pressed="false" title="A soft tick on every 8th-note &amp;">♪♪ 8th-note ticks: <b>Off</b></button></div>
+  <div class="subrow"><label class="clkpick">Click <select id="clkPick" aria-label="Click sound"><option value="classic">Classic click</option><option value="cow">🐄 More cowbell</option><option value="wood">Woodblock</option><option value="rim">Side stick</option><option value="hat">Hi-hat</option><option value="clave">Clave</option><option value="beep">Beep (electronic)</option><option value="kick">Kick on 1 + hi-hat (drummer)</option></select></label><label class="clkpick volpick" title="Click and app volume">Volume <input type="range" id="volR" min="0" max="200" step="5" aria-label="Click volume"></label><label class="clkpick volpick" title="Counting voice volume">Voice <input type="range" id="vvolR" min="0" max="200" step="5" aria-label="Counting voice volume"></label><span class="clksafe" id="clkSafe" hidden>(mic-safe click used)</span><button class="chip" id="loopChip" aria-pressed="false" title="Single tries: count a bar, play the rhythm, count a bar, play it again… until you press Stop">🔁 Loop: <b>Off</b></button><button class="chip" id="subChip" aria-pressed="false" title="A soft tick on every 8th-note &amp;">♪♪ 8th-note ticks: <b>Off</b></button></div>
   <p class="sec">Play</p>
   <div class="seg modes" id="modeSeg" role="group" aria-label="Mode"><button data-m="practice"><span aria-hidden="true">🎯</span> Single tries</button><button data-m="chal"><span aria-hidden="true">🏆</span> Challenge</button></div>
   <div id="micSlot"></div>
@@ -530,6 +530,7 @@ details.how p{margin-top:6px}
       // a phone call, the lock screen or another app can pause the audio clock: stop the try cleanly instead of freezing mid-bar
       audio.onstatechange=()=>{ if(audio.state!=="running"&&(run||sess||arc||calHook)) abortRun() } } return audio }
   // Volume (2026-11-19, Derek): every app sound goes through one gain (0–300%) and a limiter, so turning it up gets louder without crackling
+  let VVOL=+store.get("vvol","100"); if(!(VVOL>=0&&VVOL<=200)) VVOL=100;
   let BUS=null, VOL=+store.get("vol2","100"); if(!(VOL>=0&&VOL<=200)) VOL=100; /* 2026-11-19 (Derek: "way too loud now"): default back to 100%, max 200%; a fresh key so the old 180% saves reset */
   const volG=()=>Math.pow(VOL/100,2); // squared: the bottom of the slider is truly quiet (20% = 4% gain, about -28 dB)
   function bus(){ const a=ctx(); if(!BUS||BUS.context!==a){ const g=a.createGain(), lim=a.createDynamicsCompressor(); lim.threshold.value=-6; lim.knee.value=0; lim.ratio.value=20; lim.attack.value=0.001; lim.release.value=0.08; g.gain.value=volG(); g.connect(lim).connect(a.destination); BUS=g } return BUS }
@@ -639,8 +640,15 @@ details.how p{margin-top:6px}
       for(let b=0;b<2;b++) click(start+b*SP,b===0,mode==="test"&&micMode(),b===1?1.3:1) }
     // spoken count (2026-11-19, Derek: "Hear it with clap and verbal counting"): every note's count, plus any beat with no new note, said right on time
     if(mode==="hear"&&opt&&opt.count){ const pts=new Set(bar.notes.map(n=>n.s)); for(let b=0;b<M.beats;b++) pts.add(b*M.beatU); const L=[...pts].filter(x=>x<M.units).sort((x,y)=>x-y);
-      L.forEach((u,i)=>{ const w=CNTW[CNT(u)], buf=SBUF["#"+w]; if(!buf) return; const src=a.createBufferSource(), g=a.createGain(); src.buffer=buf; g.gain.value=1.1; src.connect(g).connect(bus()); track(src);
-        const t=start+u*U-0.015; src.start(Math.max(a.currentTime,t)); if(i+1<L.length) src.stop(start+L[i+1]*U-0.02) }) }
+      // smooth 16ths (2026-11-20, Derek: "clunky, herky jerky"): each syllable uses the full-length clip when it fits before the next one, else the quick clip
+      // (spoken fast), nudged up to 12% faster if it still doesn't fit; it fades out over 30 ms into the next syllable instead of being cut off
+      const VG=Math.pow(VVOL/100,2)*1.1;
+      L.forEach((u,i)=>{ const w=CNTW[CNT(u)], nb=SBUF["#"+w], fb=SBUF["#fast/"+w]; if(!nb&&!fb) return;
+        const t=Math.max(a.currentTime,start+u*U-0.015), nx=i+1<L.length?start+L[i+1]*U-0.015:t+1, gap=nx-t;
+        let buf=nb&&nb.duration<=gap-0.01?nb:(fb||nb), rate=1; if(buf.duration>gap) rate=Math.min(1.12,buf.duration/gap);
+        const src=a.createBufferSource(), g=a.createGain(); src.buffer=buf; src.playbackRate.value=rate; src.connect(g).connect(bus()); track(src);
+        const end=Math.min(t+buf.duration/rate,nx); g.gain.setValueAtTime(VG,t); if(end<t+buf.duration/rate-0.005){ g.gain.setValueAtTime(VG,Math.max(t,end-0.03)); g.gain.linearRampToValueAtTime(0.0001,end) }
+        src.start(t); src.stop(end+0.01) }) }
     if(mode==="hear"||$("guide").checked) bar.notes.forEach(n=>(mode==="test"&&inMode==="clap"&&mic)?wood(start+n.s*U,n.d*U):hand(start+n.s*U));
     msg(null, mode==="hear"?"Listen…":"Count in: "+countWords(), mode==="hear"?"":loopOn&&loopRes?`Last time: ${loopRes.score}%. Again on beat 1.`:"Start tapping on beat 1 of the next bar.");
     // Tap with "Grade how long I hold" on: releases are graded too. A note that ends with the bar may be let go after the bar ends,
@@ -941,8 +949,8 @@ details.how p{margin-top:6px}
   fastPress($("hear"),()=>{ if(!bar) newBar(); play("hear") });
   // the counting voice (2026-11-20, Derek picked Voice A): Kokoro TTS "af_heart" (Apache-2.0), one short clip per syllable
   const CNTW={"1":"one","2":"two","3":"three","4":"four","5":"five","6":"six","e":"ee","&":"and","a":"uh"};
-  function countLoad(){ ctx(); Object.values(CNTW).forEach(w=>loadSnd("#"+w)); const t0=performance.now();
-    return new Promise(r=>{ const k=()=>{ if(Object.values(CNTW).every(w=>SBUF["#"+w])||performance.now()-t0>3000) r(); else setTimeout(k,40) }; k() }) }
+  function countLoad(){ ctx(); Object.values(CNTW).forEach(w=>{ loadSnd("#"+w); loadSnd("#fast/"+w) }); const t0=performance.now();
+    return new Promise(r=>{ const k=()=>{ if(Object.values(CNTW).every(w=>SBUF["#"+w]&&SBUF["#fast/"+w])||performance.now()-t0>3000) r(); else setTimeout(k,40) }; k() }) }
   fastPress($("hearCount"),async()=>{ if(run||starting||calHook) return; if(!bar) newBar(); const a=ctx(); await a.resume(); await countLoad(); play("hear",null,{count:true}) });
   new MutationObserver(()=>{ $("hearCount").disabled=$("hear").disabled }).observe($("hear"),{attributes:true,attributeFilter:["disabled"]});
   // phones: when a try starts, scroll so the staff, the pad and the Start bar share the screen
@@ -1322,6 +1330,7 @@ class NoteFlux{
     $("micBtn").textContent="Turn on the microphone"; $("micBtn").disabled=false; $("micCtl").hidden=true; micHint() }
   $("micBtn").addEventListener("click",()=>micStart($("micSel").value||undefined));
   $("micSel").addEventListener("change",e=>micStart(e.target.value));
+  $("vvolR").value=String(VVOL); $("vvolR").addEventListener("input",e=>{ VVOL=+e.target.value; store.set("vvol",String(VVOL)) });
   $("volR").value=String(VOL); $("volR").addEventListener("input",e=>{ VOL=+e.target.value; store.set("vol2",String(VOL)); if(BUS) BUS.gain.setTargetAtTime(volG(),BUS.context.currentTime,0.02) });
   $("volR").addEventListener("change",()=>{ const a=ctx(); if(a.state!=="running") a.resume(); if(!run&&!sess&&!arc&&!calHook) click(a.currentTime+0.03,true) });
   { const gv=+store.get("gain","3"); $("micGain").value=isFinite(gv)&&gv>=0.25&&gv<=12?String(gv):"3" } $("micGain").addEventListener("input",e=>{ if(mic){ mic.g.gain.value=+e.target.value; if(mic.det) mic.det.port.postMessage({g:+e.target.value}); fxSync() } store.set("gain",e.target.value) });
@@ -1367,6 +1376,6 @@ class NoteFlux{
   if(document.fonts) document.fonts.ready.then(()=>{ if(!run) drawBar(curRes) });
 })();
 </script>
-<p class="appver" style="text-align:center;font-size:11px;opacity:.6;margin:18px 0 10px;font-family:ui-monospace,Menlo,monospace">Rhythm Trainer · Version 2026-11-20.2</p>
+<p class="appver" style="text-align:center;font-size:11px;opacity:.6;margin:18px 0 10px;font-family:ui-monospace,Menlo,monospace">Rhythm Trainer · Version 2026-11-20.3</p>
 </body>
 </html>
