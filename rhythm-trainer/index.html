@@ -566,7 +566,7 @@ details.how p{margin-top:6px}
   // where the clicks sit in the spectrum (beat at the base, subdivision an octave up), for the One note detector's mask; null = the classic click
   function clkRanges(){ const k=clkSound(); if(k==="classic") return null; const S=CLK[k], f=clkBase(k), out=[]; for(const m of [1,2]) for(const [r] of S.p) out.push([f*r*m*0.97,f*r*m*1.03]); return out }
   const SBUF={}; function loadSnd(path){ if(SBUF[path]!==undefined||!audio) return; SBUF[path]=null; const a=audio;
-    fetch(path[0]==="@"?"../simple-metronome/sounds/"+path.slice(1)+".mp3":path[0]==="#"?"count/"+path.slice(1)+".wav":"../drum-machine/kits/"+path+".mp3").then(r=>r.arrayBuffer()).then(b=>a.decodeAudioData(b)).then(buf=>{ SBUF[path]=buf }).catch(()=>{ delete SBUF[path] }) }
+    fetch(path[0]==="@"?"../simple-metronome/sounds/"+path.slice(1)+".mp3":path[0]==="#"?"count/af_heart/"+path.slice(1)+".wav":"../drum-machine/kits/"+path+".mp3").then(r=>r.arrayBuffer()).then(b=>a.decodeAudioData(b)).then(buf=>{ SBUF[path]=buf }).catch(()=>{ delete SBUF[path] }) }
   function prepSnd(){ const k=$("clkSel").value, S=CLK[k]; if(!S||!S.s) return; for(const v of S.sv){ loadSnd(S.s+v); if(S.sub) loadSnd(S.sub+v) } }
   // play one tick of the chosen sound: kind a = accent (beat 1), n = beat, s = subdivision (about 9 dB under the beat)
   function sndPlay(k,t,kind,G){ const a=ctx(), S=CLK[k], out=a.createGain(); out.gain.value=1; out.connect(bus());
@@ -939,7 +939,7 @@ details.how p{margin-top:6px}
   $("loopChip").addEventListener("click",()=>{ loopOn=!loopOn; store.set("loop",loopOn); paintLoop(); if(!loopOn&&loopAt!=null) loopAt=null }); paintLoop();
   $("again").addEventListener("click",async()=>{ if(run||starting||calHook) return; $("again").hidden=true; if(round.length) round.pop(); stats(); await startTest() });
   fastPress($("hear"),()=>{ if(!bar) newBar(); play("hear") });
-  // the counting voice: public-domain LJSpeech voice (Piper TTS), one short clip per syllable
+  // the counting voice (2026-11-20, Derek picked Voice A): Kokoro TTS "af_heart" (Apache-2.0), one short clip per syllable
   const CNTW={"1":"one","2":"two","3":"three","4":"four","5":"five","6":"six","e":"ee","&":"and","a":"uh"};
   function countLoad(){ ctx(); Object.values(CNTW).forEach(w=>loadSnd("#"+w)); const t0=performance.now();
     return new Promise(r=>{ const k=()=>{ if(Object.values(CNTW).every(w=>SBUF["#"+w])||performance.now()-t0>3000) r(); else setTimeout(k,40) }; k() }) }
@@ -1367,6 +1367,6 @@ class NoteFlux{
   if(document.fonts) document.fonts.ready.then(()=>{ if(!run) drawBar(curRes) });
 })();
 </script>
-<p class="appver" style="text-align:center;font-size:11px;opacity:.6;margin:18px 0 10px;font-family:ui-monospace,Menlo,monospace">Rhythm Trainer · Version 2026-11-20.1</p>
+<p class="appver" style="text-align:center;font-size:11px;opacity:.6;margin:18px 0 10px;font-family:ui-monospace,Menlo,monospace">Rhythm Trainer · Version 2026-11-20.2</p>
 </body>
 </html>
