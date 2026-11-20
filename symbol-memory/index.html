@@ -215,7 +215,7 @@ h2[tabindex]:focus{outline:none}
     <button class="k" id="sheetBtn">See every symbol in this level</button>
     <details class="how"><summary>How it works</summary>
       <p>Classic Memory: every symbol is on two identical cards, the symbol big with its name written under it. Flip two cards. If they match, they stay up and you see what the symbol does. If not, they flip back. Remember where things are.</p>
-      <p><b>Learn:</b> press Peek to see every card for 3 seconds before you start. Tap a matched pair any time to read (and hear) its meaning again.</p>
+      <p><b>Learn:</b> press "Peek" to see every card for 3 seconds before you start. Tap a matched pair any time to read (and hear) its meaning again.</p>
       <p><b>Play:</b> the normal game. Fewest moves wins. Your best for each level and size is saved on this device.</p>
       <p><b>Challenge:</b> five rounds and a bonus round. Points count up from 0 each round toward a target: 100 a match, +50 for every match in a row, plus a speed bonus when you clear the board. Hit the target to unlock the next round. Each round adds pairs or harder symbols.</p>
       <p>Keyboard: arrow keys move between cards, Enter or Space flips.</p>
@@ -226,7 +226,7 @@ h2[tabindex]:focus{outline:none}
       <label><input type="checkbox" id="speakOn" checked> Read each meaning aloud after a match</label>
       <label class="selrow">Voice <select id="voiceSel"><option value="">Most natural on this device</option></select></label>
     </details>
-    <p class="appver" id="appVer">Symbol Memory · Version 2026-11-19.1</p>
+    <p class="appver" id="appVer">Symbol Memory · Version 2026-11-20.1</p>
     <p class="credit">Music symbols: <a href="https://github.com/steinbergmedia/bravura" target="_blank" rel="noopener">Bravura</a> by Steinberg, <a href="fonts/OFL.txt" target="_blank" rel="noopener">SIL Open Font License</a>.</p>
   </aside>
 
@@ -447,7 +447,7 @@ function deal(pool,n){ clearTimeout(lockT); clearTimeout(peekT); stopClock(); $(
   deck.forEach((c,i)=>{ const el=document.createElement("button"); el.className="mc"; el.dataset.i=i; el.tabIndex=i===0?0:-1;
     el.innerHTML=`<span class="in"><span class="face back" aria-hidden="true">${BACK}</span>${frontHtml(c)}</span>`;
     el.addEventListener("click",()=>tap(i)); b.appendChild(el); label(i) });
-  info(mode==="learn"?"Press <b>Peek 3 s</b> to see every card first, or just start flipping.":mode==="chal"?"Find the pairs. Every match in a row is worth more.":"Flip two cards. Find the matching pairs.");
+  info(mode==="learn"?"Press \"<b>Peek 3 s</b>\" to see every card first, or just start flipping.":mode==="chal"?"Find the pairs. Every match in a row is worth more.":"Flip two cards. Find the matching pairs.");
   render(); layout(); }
 // classic Memory (owner, 2026-11-13.5: "You are finding MATCHING CARDS ... like the actual game memory"): every pair is two identical cards,
 // each face the symbol big with its name written under it
