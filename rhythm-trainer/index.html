@@ -45,6 +45,11 @@ button:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
 .stats{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
 .stat b{font-family:var(--mono);font-weight:700;font-size:20px;display:block} .stat span{font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
 .paper{background:var(--paper);border-radius:10px;overflow:hidden}
+/* Count-in flash (2026-11-20, Derek: "flash the white screen area with the count off… we need an obvious count in") */
+.cntflash{position:absolute;inset:0;z-index:5;display:flex;align-items:center;justify-content:center;pointer-events:none;opacity:0;background:var(--c-act,#ff6a2b);color:#fff;font:900 min(108px,26vw)/.9 var(--f-title,system-ui),sans-serif;letter-spacing:-.02em}
+.cntflash.one{background:#e5484d}
+.cntflash.go{animation:cntf var(--cntd,.5s) ease-out forwards} @keyframes cntf{0%{opacity:.95}55%{opacity:.75}100%{opacity:0}}
+@media (prefers-reduced-motion:reduce){ @keyframes cntf{0%,60%{opacity:.85}100%{opacity:0}} }
 svg{display:block;width:100%;height:auto}
 .msg{text-align:center;min-height:44px;display:flex;flex-direction:column;gap:2px;align-items:center;justify-content:center}
 .msg .v{font-weight:800;font-size:19px} .msg .c{font-size:14px;color:var(--ink)}
@@ -243,7 +248,7 @@ details.how p{margin-top:6px}
     <div class="arcbar" id="arcbar" hidden><span class="pill" id="arcRound">ROUND 1</span><span class="pill need" id="arcNeed"></span><span class="pill clock" id="clockPill">30 s</span></div>
     <div class="arcmeter" id="arcMeter" hidden><i id="arcFill"></i><s id="arcTgt" hidden></s><b id="arcHit">✓ ON TARGET</b></div>
     <div class="cxbar" id="cxBar" hidden title="How hard this rhythm is within the round"><span>COMPLEXITY</span><i><b id="cxFill"></b></i></div>
-    <div class="paper" style="position:relative"><svg id="bar" role="img" aria-label="Rhythm to tap"></svg><div class="scoreflash" id="scoreFlash" aria-live="polite"></div></div>
+    <div class="paper" style="position:relative"><svg id="bar" role="img" aria-label="Rhythm to tap"></svg><div class="scoreflash" id="scoreFlash" aria-live="polite"></div><div class="cntflash" id="cntFlash" aria-hidden="true"></div></div>
     <div class="msg" id="msg" role="status" aria-live="polite"><div class="v">Press Start</div><div class="c">You'll hear one bar of clicks first. Start tapping on beat 1 of the next bar.</div></div>
     <div class="seg" id="inSeg" role="group" aria-label="How you answer"><button data-in="tap"><span aria-hidden="true">👆</span> Tap</button><button data-in="clap"><span aria-hidden="true">👏</span> Clap or snap</button><button data-in="note"><span aria-hidden="true">🎹</span> One note</button><button data-in="midi"><span aria-hidden="true">🎛️</span> MIDI</button></div>
     <div id="midiBox" hidden><div class="micp"><label for="midiSel">MIDI keyboard</label><select id="midiSel"><option value="all">All connected devices</option></select></div>
@@ -671,7 +676,10 @@ details.how p{margin-top:6px}
     const tick=()=>{ if(run!==R) return; /* this bar was stopped (or replaced): its frame loop ends here */ const now=a.currentTime; let px=null, pos=null;
       if(now>=start&&now<=end){ pos=(now-start)/U; px=$("cursor").checked?xOf(pos):null; if(mode==="test"&&!run.go){ run.go=true; msg(null,"Go!",inMode==="clap"?"Clap or snap every note.":inMode==="note"?"Play your note for every note.":"Tap every note.") } }
       if(loopOn&&mode==="test"&&gmode==="practice"&&!R.q&&now>=end-0.3){ R.q=true; loopAt=end; countClicks(end,M,SP) }
-      if(now<start&&mode==="test"){ const n=M.compound?6:M.beats, left=Math.ceil((start-now)/(M.compound?SP/3:SP)); $("msg").querySelector(".v").textContent=left<=n?"Count in: "+(n+1-left):"Get ready"; }
+      if(now<start&&mode==="test"){ const n=M.compound?6:M.beats, step=M.compound?SP/3:SP, left=Math.ceil((start-now)/step); $("msg").querySelector(".v").textContent=left<=n?"Count in: "+(n+1-left):"Get ready";
+        // the whole staff panel flashes each count-in beat with the big number (beat 1 in red), timed to the click
+        const c=n+1-left; if(left<=n&&R.cf!==c){ R.cf=c; const f=$("cntFlash"); f.textContent=c; f.classList.toggle("one",c===1); f.style.setProperty("--cntd",Math.max(0.25,Math.min(0.7,step*0.85))+"s"); f.classList.remove("go"); void f.offsetWidth; f.classList.add("go") } }
+      else if(R.cf){ R.cf=0; $("cntFlash").classList.remove("go") }
       if(loopOn&&loopRes&&mode==="test"&&now<start) drawBar(loopRes.res); else drawBar(null,px,pos);
       if(now>end+R.tail&&!(R.holds&&now<end+R.grace&&([...held.values()].some(h=>h.arr===taps&&h.i>=0)||nHeld()))){ const m=run.mode; run=null; $("go").disabled=false; lockUI(); $("hear").disabled=!!sess; if(m==="test") grade(); else { drawBar(null); msg(null,"Your turn","Press Start, count in, then tap it.") } return }
       requestAnimationFrame(tick) };
@@ -912,7 +920,7 @@ details.how p{margin-top:6px}
   function hypeWait(){ try{ if(!window.chmaHype) return 0; const now=performance.now(), w=chmaHype.endsAt+250-now; return chmaHype.isPlaying()?Math.max(w,10):Math.max(0,w) }catch(e){ return 0 } }
   // Each round screen stays up long enough to read (at least 4.5 s, longer for longer text); after 0.9 s a tap on it starts the round early.
   function splash(pre,t,tempo,sub,_ms,then){ const tok=++splashTok, ms=Math.max(4500,2500+sub.length*30); $("spP").textContent=pre||""; $("spT").textContent=t; $("spB").textContent=tempo||""; $("spB").hidden=!tempo; $("spS").textContent=sub; $("spTap").hidden=true; const sp=$("arcSplash"); sp.hidden=false; sp.classList.remove("go"); void sp.offsetWidth; sp.classList.add("go");
-    let done=false; const go=()=>{ if(done||tok!==splashTok) return; done=true; hypeStop(120); sp.onpointerdown=null; sp.hidden=true; $("spTap").hidden=true; if(arc) then() };
+    let done=false; const go=()=>{ if(done||tok!==splashTok) return; done=true; hypeStop(120); sp.onpointerdown=null; sp.hidden=true; $("spTap").hidden=true; if(arc) setTimeout(()=>{ if(arc&&tok===splashTok) then() },900) }; // 0.9 s of quiet after the round music so the count-in stands apart (2026-11-20, Derek)
     hypePlay(ms); sp.onpointerdown=null; setTimeout(()=>{ if(tok!==splashTok||done) return; $("spTap").hidden=false; sp.onpointerdown=e=>{ e.preventDefault(); go() } },900); setTimeout(go,ms) }
   function arcStart(){ if(sess) stopSession(true); sess={points:0,bars:[],left:ARC_T,stopped:true}; arc={round:1,ramp:rampOn(),from:0,hit:false}; arcLimits(bpm); lockUI(); $("clockPill").textContent=ARC_T+" s"; $("clockPill").classList.remove("hot"); $("results").hidden=true; $("go").textContent="Stop"; $("hear").disabled=true;
     arcBar(); splash(arc.ramp?"CHALLENGE MODE":"CHALLENGE MODE · STEADY TEMPO","ROUND 1",arc.ramp?trange(arc.start,arc.cap):tl(arc.bpm),arc.ramp?"Warm-up: no target, just play. Play well and the tempo climbs. Then every round has a fresh points target. One try per rhythm.":"Warm-up: no target, just play. Then every round has a fresh points target, all at this tempo. One try per rhythm.",2800,arcRound) }
@@ -1428,6 +1436,6 @@ class NoteFlux{
   if(document.fonts) document.fonts.ready.then(()=>{ if(!run) drawBar(curRes) });
 })();
 </script>
-<p class="appver" style="text-align:center;font-size:11px;opacity:.6;margin:18px 0 10px;font-family:ui-monospace,Menlo,monospace">Rhythm Trainer · Version 2026-11-20.7</p>
+<p class="appver" style="text-align:center;font-size:11px;opacity:.6;margin:18px 0 10px;font-family:ui-monospace,Menlo,monospace">Rhythm Trainer · Version 2026-11-20.8</p>
 </body>
 </html>
