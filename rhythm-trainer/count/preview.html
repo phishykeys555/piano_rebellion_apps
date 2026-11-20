@@ -1,0 +1,15 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Counting voices</title>
+<style>body{margin:0;padding:20px;font:16px/1.4 -apple-system,Segoe UI,Arial,sans-serif;background:#111318;color:#eceef2}h1{font-size:20px}button{display:block;width:100%;max-width:420px;margin:10px 0;padding:14px;border-radius:12px;border:1px solid #333;background:#22252c;color:#fff;font-size:17px;text-align:left;cursor:pointer}button b{color:#ff8a3d}</style></head><body>
+<h1>Rhythm Trainer counting voice: pick one</h1><p>Each plays "1 e &amp; a 2 e &amp; a 3 &amp; 4" at 84 BPM, on the beat, the way the app will use it.</p>
+<button data-v="">Current voice <b>(old)</b></button>
+<button data-v="af_heart/">Voice A: young woman, warm</button>
+<button data-v="af_bella/">Voice B: young woman, bright</button>
+<button data-v="am_puck/">Voice C: young man, upbeat</button>
+<button data-v="am_michael/">Voice D: young man, calm</button>
+<script>
+let ac;const W=["one","ee","and","uh","two","ee","and","uh","three",null,"and",null,"four"];
+async function buf(p){const r=await fetch(p);return await ac.decodeAudioData(await r.arrayBuffer())}
+document.querySelectorAll("button").forEach(b=>b.onclick=async()=>{ac=ac||new (window.AudioContext||window.webkitAudioContext)();await ac.resume();const v=b.dataset.v,c={};
+ for(const w of new Set(W.filter(Boolean)))c[w]=await buf(v+w+".wav");const s=60/84/4,t0=ac.currentTime+0.15;
+ W.forEach((w,i)=>{if(!w)return;const n=ac.createBufferSource();n.buffer=c[w];n.connect(ac.destination);n.start(t0+i*s-0.015);let j=i+1;while(j<W.length&&!W[j])j++;if(j<W.length)n.stop(t0+j*s-0.02)})});
+</script></body></html>
