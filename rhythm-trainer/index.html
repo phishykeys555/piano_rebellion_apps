@@ -642,12 +642,17 @@ details.how p{margin-top:6px}
     if(mode==="hear"&&opt&&opt.count){ const pts=new Set(bar.notes.map(n=>n.s)); for(let b=0;b<M.beats;b++) pts.add(b*M.beatU); const L=[...pts].filter(x=>x<M.units).sort((x,y)=>x-y);
       // smooth 16ths (2026-11-20, Derek: "clunky, herky jerky"): each syllable uses the full-length clip when it fits before the next one, else the quick clip
       // (spoken fast), nudged up to 12% faster if it still doesn't fit; it fades out over 30 ms into the next syllable instead of being cut off
-      const VG=Math.pow(VVOL/100,2)*1.1;
+      // flow (2026-11-20, Derek: "make the cadence and flow 100% better"): clips are spoken mid-count ("two," not "Two."), each starts early by its
+      // own consonant lead so the VOWEL lands on the beat, and the stress follows how people count: numbers strong, "and" lighter, "e" and "a" lightest
+      const VG=Math.pow(VVOL/100,2)*1.1, STRESS={"one":1.15,"two":1,"three":1,"four":1,"five":1,"six":1,"and":0.8,"ee":0.62,"uh":0.62};
+      const tk=L.map(u=>start+u*U);
       L.forEach((u,i)=>{ const w=CNTW[CNT(u)], nb=SBUF["#"+w], fb=SBUF["#fast/"+w]; if(!nb&&!fb) return;
-        const t=Math.max(a.currentTime,start+u*U-0.015), nx=i+1<L.length?start+L[i+1]*U-0.015:t+1, gap=nx-t;
-        let buf=nb&&nb.duration<=gap-0.01?nb:(fb||nb), rate=1; if(buf.duration>gap) rate=Math.min(1.12,buf.duration/gap);
-        const src=a.createBufferSource(), g=a.createGain(); src.buffer=buf; src.playbackRate.value=rate; src.connect(g).connect(bus()); track(src);
-        const end=Math.min(t+buf.duration/rate,nx); g.gain.setValueAtTime(VG,t); if(end<t+buf.duration/rate-0.005){ g.gain.setValueAtTime(VG,Math.max(t,end-0.03)); g.gain.linearRampToValueAtTime(0.0001,end) }
+        const beat=tk[i], nxBeat=i+1<L.length?tk[i+1]:beat+1, gap=nxBeat-beat;
+        const useN=nb&&(nb.duration-CLEAD.n[w])<=gap-0.02, buf=useN?nb:(fb||nb), lead=useN?CLEAD.n[w]:CLEAD.f[w];
+        let rate=1; const body=buf.duration-lead; if(body>gap) rate=Math.min(1.12,body/gap);
+        const t=Math.max(a.currentTime,beat-lead/rate), nxW=CNTW[CNT(L[i+1])], nxLead=i+1<L.length?(CLEAD.f[nxW]||0.02):0, cut=nxBeat-nxLead-0.005;
+        const src=a.createBufferSource(), g=a.createGain(), G=VG*(STRESS[w]||1); src.buffer=buf; src.playbackRate.value=rate; src.connect(g).connect(bus()); track(src);
+        const natural=t+buf.duration/rate, end=Math.min(natural,cut); g.gain.setValueAtTime(G,t); if(end<natural-0.005){ g.gain.setValueAtTime(G,Math.max(t,end-0.035)); g.gain.linearRampToValueAtTime(0.0001,end) }
         src.start(t); src.stop(end+0.01) }) }
     if(mode==="hear"||$("guide").checked) bar.notes.forEach(n=>(mode==="test"&&inMode==="clap"&&mic)?wood(start+n.s*U,n.d*U):hand(start+n.s*U));
     msg(null, mode==="hear"?"Listen…":"Count in: "+countWords(), mode==="hear"?"":loopOn&&loopRes?`Last time: ${loopRes.score}%. Again on beat 1.`:"Start tapping on beat 1 of the next bar.");
@@ -949,6 +954,8 @@ details.how p{margin-top:6px}
   fastPress($("hear"),()=>{ if(!bar) newBar(); play("hear") });
   // the counting voice (2026-11-20, Derek picked Voice A): Kokoro TTS "af_heart" (Apache-2.0), one short clip per syllable
   const CNTW={"1":"one","2":"two","3":"three","4":"four","5":"five","6":"six","e":"ee","&":"and","a":"uh"};
+  // seconds from each clip's start to its vowel (measured when the clips were made): the clip starts this much before the beat
+  const CLEAD={n:{and:.015,ee:.005,five:.045,four:.09,one:.02,six:.085,three:.05,two:.01,uh:.01},f:{and:.03,ee:.005,five:.01,four:.035,one:.01,six:.025,three:.04,two:.055,uh:.005}};
   function countLoad(){ ctx(); Object.values(CNTW).forEach(w=>{ loadSnd("#"+w); loadSnd("#fast/"+w) }); const t0=performance.now();
     return new Promise(r=>{ const k=()=>{ if(Object.values(CNTW).every(w=>SBUF["#"+w]&&SBUF["#fast/"+w])||performance.now()-t0>3000) r(); else setTimeout(k,40) }; k() }) }
   fastPress($("hearCount"),async()=>{ if(run||starting||calHook) return; if(!bar) newBar(); const a=ctx(); await a.resume(); await countLoad(); play("hear",null,{count:true}) });
@@ -1376,6 +1383,6 @@ class NoteFlux{
   if(document.fonts) document.fonts.ready.then(()=>{ if(!run) drawBar(curRes) });
 })();
 </script>
-<p class="appver" style="text-align:center;font-size:11px;opacity:.6;margin:18px 0 10px;font-family:ui-monospace,Menlo,monospace">Rhythm Trainer · Version 2026-11-20.3</p>
+<p class="appver" style="text-align:center;font-size:11px;opacity:.6;margin:18px 0 10px;font-family:ui-monospace,Menlo,monospace">Rhythm Trainer · Version 2026-11-20.4</p>
 </body>
 </html>
