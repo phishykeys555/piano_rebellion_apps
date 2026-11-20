@@ -395,7 +395,7 @@ details.how p{margin:0;padding:0 16px 12px;line-height:1.45;color:var(--muted)}
       </fieldset>
     </div>
   </details>
-  <p class="tip appverp" id="appVer"><span class="appver">Note Sprint · Version 2026-11-19.3</span></p>
+  <p class="tip appverp" id="appVer"><span class="appver">Note Sprint · Version 2026-11-19.4</span></p>
   </div>
   <div class="play">
 
@@ -488,10 +488,10 @@ details.how p{margin:0;padding:0 16px 12px;line-height:1.45;color:var(--muted)}
   // ids are stable keys (saved scores, ?level= links); the L-number shown is the position in this list. hidden = still opens from an old link, not shown.
   const TL=[-7,15], BL=[-5,15];
   const LEVELS=[
-    {id:"6", name:"Treble spaces",s:{staffMode:"treble",b:{treble:[1,7],bass:[1,7]},acc:false,ls:"spaces"}},
+    {id:"6", name:"Treble spaces",s:{staffMode:"treble",b:{treble:[-1,9],bass:[1,7]},acc:false,ls:"spaces"}},  // 2026-11-19 (Derek): plus D4 below the staff and G5 above it
     {id:"10",name:"Treble lines", s:{staffMode:"treble",b:{treble:[0,8],bass:[0,8]},acc:false,ls:"lines"}},
     {id:"1", name:"Treble all",   s:{staffMode:"treble",range:0,acc:false,ls:"all"}},
-    {id:"7", name:"Bass spaces",  s:{staffMode:"bass",b:{treble:[1,7],bass:[1,7]},acc:false,ls:"spaces"}},
+    {id:"7", name:"Bass spaces",  s:{staffMode:"bass",b:{treble:[1,7],bass:[-1,9]},acc:false,ls:"spaces"}},  // 2026-11-19 (Derek): plus F2 below the staff and B3 above it
     {id:"11",name:"Bass lines",   s:{staffMode:"bass",b:{treble:[0,8],bass:[0,8]},acc:false,ls:"lines"}},
     {id:"2", name:"Bass all",     s:{staffMode:"bass",range:0,acc:false,ls:"all"}},
     {id:"3", name:"Both hands",   s:{staffMode:"grand",range:0,acc:false,ls:"all"}},
