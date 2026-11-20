@@ -1,0 +1,1117 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>Changelog</title>
+<style>
+  body { font: 16px/1.55 system-ui, -apple-system, "Segoe UI", sans-serif; color: #1b1c1f; background: #fafaf8; max-width: 860px; margin: 0 auto; padding: 24px 16px 64px; }
+  h1 { font-size: 1.9em; margin: 0 0 .2em; }
+  h2 { font-size: 1.4em; margin: 2.2em 0 .4em; padding-top: .6em; border-top: 2px solid #d0cec7; }
+  h3 { font-size: 1.1em; margin: 1.4em 0 .3em; }
+  h4 { font-size: .95em; margin: .8em 0 .2em; color: #5c5e66; text-transform: uppercase; letter-spacing: .04em; }
+  ul { margin: .2em 0 .6em; padding-left: 1.4em; }
+  li { margin: .15em 0; }
+  code { font: .92em ui-monospace, Menlo, monospace; background: #ecebe6; padding: 0 .3em; border-radius: 4px; }
+  p.note { color: #5c5e66; }
+</style>
+</head>
+<body>
+
+<!--
+  DEVELOPER CHANGELOG for piano_rebellion_apps.
+  Not for students. Never link this file from the hub (index.html) or any page.
+  Written Markdown-style: # = h1, ## = app, ### = version, #### = Added / Changed / Fixed, - = li.
+-->
+
+<h1>Changelog</h1>
+<p class="note">Developer changelog for the studio app site (<code>piano_rebellion_apps</code>). For future Claude sessions and maintainers, not for students. Not linked from the hub or any page; <code>noindex</code>.</p>
+
+<h2>How to use this file</h2>
+<ul>
+  <li><strong>One entry per version bump.</strong> Every time an app's version string changes, add an entry here in the <strong>same commit</strong>.</li>
+  <li><strong>Where the version lives:</strong> each app's <code>&lt;folder&gt;/index.html</code> footer, as <code>App Name · Version YYYY-MM-DD.N</code> (for example <code>Modal Metronome · Version 2026-11-20.2</code>). The hub's version is in the root <code>index.html</code> footer. Shared scripts carry their own version in a header comment (for example <code>shared/voice-pitch.js</code>, <code>shared/hype.js</code>).</li>
+  <li><strong>Version format:</strong> <code>YYYY-MM-DD.N</code>, where N counts up within the day per app (<code>.1</code>, <code>.2</code>, ...). A hotfix on top of a version may add a third part (<code>2026-11-12.1.1</code>).</li>
+  <li><strong>Order:</strong> newest first. App sections are ordered by most recent update; versions inside an app are newest first.</li>
+  <li><strong>Entry format:</strong> <code>### Version YYYY-MM-DD.N</code>, then the headings <code>Added</code>, <code>Changed</code>, <code>Fixed</code> (leave out any heading with nothing under it), then plain-language bullets. Name the folder path of any page or folder added or changed.</li>
+  <li><strong>New app:</strong> add a new <code>## App Name — folder/</code> section. Say "not on the hub" if the hub does not link it.</li>
+  <li><strong>Privacy:</strong> no student or beta tester names (write "beta tester request" or "student feedback"), no emails, no access codes or gate hashes, no payment details. Say "instructor", not the other word. No emojis.</li>
+  <li><strong>Gaps:</strong> where a version number was never recorded, the change sits under the nearest known version or under "(version not recorded)". Do not invent numbers.</li>
+</ul>
+
+<!-- ============================================================ -->
+<h2>Modal Metronome — drum-machine/</h2>
+<p class="note">Started 2026-11-03 as "Groove Metronome"; renamed Modal Metronome 2026-11-05. Sound folders: <code>drum-machine/kits/</code>, <code>drum-machine/bass/</code>, <code>drum-machine/keys/</code>.</p>
+
+<h3>Version 2026-11-20.2</h3>
+<h4>Added</h4>
+<ul>
+  <li>Fixed-height info window showing the Verse / Chorus countdown and Tempo Trainer progress.</li>
+  <li>"How it works" dropdowns on every tab; Grid keyboard shortcuts in a dropdown.</li>
+  <li>Help on tab titles and on "Use the groove's own tempo".</li>
+  <li>"Reset this tab" on the Groove, Bass, Keys and Mix tabs.</li>
+  <li>Song tab grid; a Groove-tab link to the Song tab.</li>
+</ul>
+<h4>Changed</h4>
+<ul>
+  <li>BPM box keeps a steady size while typing.</li>
+  <li>Tempo Trainer on one line, worded "Increase by".</li>
+  <li>Swing and Pocket each on their own line.</li>
+  <li>Button names quoted in help text.</li>
+  <li>Bass / Keys Mix buttons renamed and moved.</li>
+  <li>Tab bar stays one row up to 899 px wide.</li>
+  <li>Student UI list from student feedback.</li>
+</ul>
+<h4>Fixed</h4>
+<ul>
+  <li>The VERSE / CHORUS tag never showed in the tabbed layout.</li>
+</ul>
+
+<h3>Version 2026-11-20.1</h3>
+<h4>Added</h4>
+<ul>
+  <li>Jazz changes section: ii-V-I major and minor, turnarounds, tritone sub, backdoor, Take the A Train, Autumn Leaves, Blue Bossa, jazz blues.</li>
+</ul>
+
+<h3>Version 2026-11-19.5</h3>
+<h4>Changed</h4>
+<ul>
+  <li>Chord progressions rebuilt from well-known songs, each with a why-it-works note.</li>
+</ul>
+
+<h3>Version 2026-11-19.4</h3>
+<h4>Added</h4>
+<ul>
+  <li>"Train while jammin'" why-it-works box for every progression.</li>
+</ul>
+<h4>Changed</h4>
+<ul>
+  <li>7th chords by default on modal progressions; the menu shows chords as they are played.</li>
+</ul>
+
+<h3>Version 2026-11-19.3</h3>
+<h4>Changed</h4>
+<ul>
+  <li>In Dorian, V plays as V6 (no tritone pull) unless typed V7.</li>
+</ul>
+
+<h3>Version 2026-11-19.2</h3>
+<h4>Changed</h4>
+<ul>
+  <li>Better Dorian progressions (Oye Como Va, Get Lucky, Mad World, Moondance, So What shapes).</li>
+</ul>
+
+<h3>Version 2026-11-19.1</h3>
+<h4>Fixed</h4>
+<ul>
+  <li>Manual bass or keys with an empty piano roll plays the auto part instead of silence.</li>
+</ul>
+
+<h3>Version 2026-11-13.5</h3>
+<h4>Added</h4>
+<ul>
+  <li>"Share current setup" link (full setup in the link, short link when available, copy embed link).</li>
+  <li>Choose which presets to export.</li>
+</ul>
+<h4>Changed</h4>
+<ul>
+  <li>Header shows "Share this app" instead of the version label; transport nudge buttons on one row.</li>
+</ul>
+<h4>Fixed</h4>
+<ul>
+  <li>iOS preset export no longer adds a stray text file.</li>
+</ul>
+
+<h3>Version 2026-11-13.4</h3>
+<h4>Changed</h4>
+<ul>
+  <li>Shared toast messages, steady status text, larger BPM slider thumb.</li>
+</ul>
+<h4>Fixed</h4>
+<ul>
+  <li>Preset import on iOS.</li>
+</ul>
+
+<h3>Version 2026-11-13.3</h3>
+<h4>Added</h4>
+<ul>
+  <li>Share button (<code>shared/share.js</code>).</li>
+</ul>
+<h4>Changed</h4>
+<ul>
+  <li>Bass is on at first run.</li>
+</ul>
+
+<h3>Version 2026-11-13.2</h3>
+<h4>Changed</h4>
+<ul>
+  <li>First run starts Basic Rock at 90 BPM (was 80). Saved settings and song links unchanged.</li>
+</ul>
+
+<h3>Version 2026-11-13.1</h3>
+<h4>Changed</h4>
+<ul>
+  <li>Custom chords read every standard chord symbol: letters, Roman numerals, slash chords, secondary dominants. Bass plays the slash bass.</li>
+</ul>
+
+<h3>Version 2026-11-12.5.1</h3>
+<h4>Changed</h4>
+<ul>
+  <li>Custom chords accept FM7, Maj7, triangle and ^7, D-7, mi7 and hyphen-separated lists; unrecognized chords are flagged.</li>
+</ul>
+
+<h3>Version 2026-11-12.5</h3>
+<h4>Added</h4>
+<ul>
+  <li>Pro Tools-style mix window: channel strips, insert plugins (EQ, compressor, saturation, transient shaper), master chain with loudness readout and presets; the chain goes into the MP3.</li>
+  <li>Keys arpeggio comping (several patterns, rates and octave ranges).</li>
+</ul>
+
+<h3>Version 2026-11-12.4</h3>
+<h4>Changed</h4>
+<ul>
+  <li>Roman numerals always count from the parent major key (studio rule locked 2026-11-13); mode-relative numerals removed everywhere.</li>
+  <li>Switching grooves keeps tempo, key, chords, bass/keys and mix, and lands on the next bar line; new opt-in "Use the groove's own tempo".</li>
+  <li>Mixer added to the Mix tab; keys timing matched to the bass; one-screen desktop layout.</li>
+</ul>
+
+<h3>Version 2026-11-12.3</h3>
+<h4>Fixed</h4>
+<ul>
+  <li>Every ghost note is written in the grid and audible.</li>
+</ul>
+
+<h3>Version 2026-11-12.2.1</h3>
+<h4>Changed</h4>
+<ul>
+  <li>Two odd-meter (7/4, 7/8) grooves renamed to drop a song title.</li>
+</ul>
+
+<h3>Version 2026-11-12.2</h3>
+<h4>Changed</h4>
+<ul>
+  <li>Tighter, funkier, more human bass.</li>
+</ul>
+
+<h3>Version 2026-11-12.1.1</h3>
+<h4>Changed</h4>
+<ul>
+  <li>Custom chords read "A m", "A minor" and lowercase as minor; chords outside the key say so.</li>
+</ul>
+
+<h3>Version 2026-11-12.1</h3>
+<h4>Added</h4>
+<ul>
+  <li>Piano roll for bass and keys (Auto / Manual, copy auto to roll, chord stamp).</li>
+  <li>MP3 export by number of times through.</li>
+</ul>
+
+<h3>Version 2026-11-11.25</h3>
+<p class="note">Numbering jumped from 11.18.1 to 11.25; 11.19 through 11.24 not recorded.</p>
+<h4>Added</h4>
+<ul>
+  <li>Real keys: grand piano, tine electric piano, Wurli, tonewheel organ.</li>
+  <li>Drum rolls, brushes, grid velocity levels, groove dynamics, song grooves.</li>
+</ul>
+<h4>Changed</h4>
+<ul>
+  <li>Mode-aware chords; old key samples removed.</li>
+</ul>
+
+<h3>Version 2026-11-11.18.1</h3>
+<h4>Changed</h4>
+<ul>
+  <li>Real side stick and snares.</li>
+</ul>
+
+<h3>Version 2026-11-11.18</h3>
+<h4>Changed</h4>
+<ul>
+  <li>Deleting a preset asks in a modal dialog (beta tester request).</li>
+</ul>
+
+<h3>Version 2026-11-11.17</h3>
+<h4>Fixed</h4>
+<ul>
+  <li>Tab bar sticks in full screen on phones; Notion embed unchanged.</li>
+</ul>
+
+<h3>Version 2026-11-11.16</h3>
+<h4>Changed</h4>
+<ul>
+  <li>SVG icons replace emojis; numbered medals (beta tester request).</li>
+</ul>
+
+<h3>Version 2026-11-11.15</h3>
+<h4>Added</h4>
+<ul>
+  <li><code>.metronome</code> preset file export and import.</li>
+</ul>
+<h4>Changed</h4>
+<ul>
+  <li>Presets save time signature and exact settings; stored data is forward-compatible.</li>
+</ul>
+
+<h3>Version 2026-11-11.14</h3>
+<h4>Changed</h4>
+<ul>
+  <li>Reset in the Groove tab, no sticky header on small screens, no vertical tab scroll, typed BPM entry (beta tester request).</li>
+</ul>
+
+<h3>Version 2026-11-11.13</h3>
+<h4>Changed</h4>
+<ul>
+  <li>Tabs grouped by what they control (drums, band, song, tools).</li>
+</ul>
+
+<h3>Version 2026-11-11.12</h3>
+<h4>Added</h4>
+<ul>
+  <li>"Back to this song's settings" button when this device's saved settings differ from the song page link.</li>
+</ul>
+
+<h3>Version 2026-11-11.11</h3>
+<h4>Changed</h4>
+<ul>
+  <li>Tabs in full screen; Simple / Advanced switch removed; Song tab second with a Verse / Chorus signpost.</li>
+</ul>
+
+<h3>Version 2026-11-11.10</h3>
+<h4>Fixed</h4>
+<ul>
+  <li>Picking a groove by hand turns Verse / Chorus off (it kept switching back to the Verse groove every bar).</li>
+</ul>
+
+<h3>Versions 2026-11-11.5 to 2026-11-11.9</h3>
+<h4>Fixed</h4>
+<ul>
+  <li>11.9: stuck "Loading sounds" when audio resume never settles; backup scheduler under load.</li>
+  <li>11.8: Play during export, swing calculation error, preset name validation, grid clamp, single sample load and animation loop.</li>
+  <li>11.7: damaged practice log, preset validation, streak rule, duplicate bass style, tap targets.</li>
+  <li>11.6: Space key double action, keyboard-only use, corrupt saved state, export errors, loading state.</li>
+  <li>11.5: stall-safe scheduling, iOS interruption and ringer-switch recovery, single start.</li>
+</ul>
+
+<h3>Versions 2026-11-11.1 to 2026-11-11.4</h3>
+<h4>Added</h4>
+<ul>
+  <li>11.1: Time signature menu replaces Beats / Notes; Blue Rondo preset.</li>
+  <li>11.2: hover / tap help on every setting; Reset settings keeps the log and presets; collapsible credits (beta tester request).</li>
+</ul>
+<h4>Changed</h4>
+<ul>
+  <li>11.3: restyled to the shared CHMA design system (<code>shared/chma.css</code>).</li>
+  <li>11.4: audit round (no separate notes recorded).</li>
+</ul>
+
+<h3>Versions 2026-11-10.1 to 2026-11-10.7</h3>
+<h4>Added</h4>
+<ul>
+  <li>10.4: auto-update (an old cached copy checks the live version and reloads once, keeping settings).</li>
+</ul>
+<h4>Changed</h4>
+<ul>
+  <li>10.5 / 10.7: inside Notion the transport stays pinned on top, sections become tabs, and the Simple / Advanced switch is gone.</li>
+  <li>10.6: Sound tab renamed "Drum sounds".</li>
+</ul>
+<h4>Fixed</h4>
+<ul>
+  <li>10.1 to 10.3: no audio glitches or stutter when switching screens on iPad or in a background Safari tab; bigger audio buffer; Stop silences instantly.</li>
+</ul>
+
+<h3>Versions 2026-11-06.1 to 2026-11-06.17</h3>
+<p class="note">06.5 and 06.8 not recorded.</p>
+<h4>Added</h4>
+<ul>
+  <li>06.2: Keys section with Rhodes chord comping.</li>
+  <li>06.4: three real acoustic basses (upright, gut-string upright, bowed).</li>
+  <li>06.7: export ends with a Save MP3 button.</li>
+  <li>06.9: comping phrase library.</li>
+  <li>06.10 / 06.11: grand piano and synth pads for Keys.</li>
+  <li>06.13: Harmony section (parent key, mode, chords, custom chords, chord speed).</li>
+  <li>06.14: display shows the mode of each chord as it plays.</li>
+  <li>06.15: six new Keys sounds.</li>
+  <li>06.16 / 06.17: two real jazz drum kits with ride and hi-hats.</li>
+</ul>
+<h4>Changed</h4>
+<ul>
+  <li>06.1: real studio slap bass.</li>
+  <li>06.3: tempo trainer only ever speeds up.</li>
+  <li>06.6: chord-tone guard (bass never plays a wrong 3rd or 7th for the chord).</li>
+  <li>06.12: automatic extensions follow function (V is dominant 7 only when it resolves).</li>
+</ul>
+<h4>Fixed</h4>
+<ul>
+  <li>06.15: hotfix, the page would not load in 06.14.</li>
+</ul>
+
+<h3>(version not recorded) 2026-11-03 to 2026-11-05</h3>
+<h4>Added</h4>
+<ul>
+  <li>First release as Groove Metronome (drum machine + bass) from the Notion embed; song settings from the link.</li>
+  <li>Chord quality follows the chosen mode; parent-key theory (key = parent major, mode = the degree you start on).</li>
+  <li>Studio basses, hi-hats and rides, acoustic kits; bass variation layer; "Change it up".</li>
+  <li>Funk, Latin, World, Modern Jazz and Traditional Jazz groove sections; pocket engine and idiomatic bass engine.</li>
+  <li>Export loop to MP3.</li>
+</ul>
+<h4>Changed</h4>
+<ul>
+  <li>Renamed Groove Metronome to Modal Metronome (2026-11-05).</li>
+  <li>Volume on a fader taper; bass lines kept in real bass range.</li>
+</ul>
+
+<!-- ============================================================ -->
+<h2>Rhythm Trainer — rhythm-trainer/</h2>
+<p class="note">Counting voice clips live in <code>rhythm-trainer/count/</code>; <code>rhythm-trainer/count/preview.html</code> is a voice preview page (not on the hub).</p>
+
+<h3>Version 2026-11-20.9</h3>
+<h4>Added</h4>
+<ul>
+  <li>Pattern-based counting voice ships: one clip per beat pattern, full sets 60 to 132 BPM (20.8 was the work-in-progress step).</li>
+</ul>
+<h4>Changed</h4>
+<ul>
+  <li>Full-panel count-in flash; 0.9 s of quiet after Challenge round music.</li>
+</ul>
+<h4>Fixed</h4>
+<ul>
+  <li>Re-made voice clips that stretched too hard.</li>
+</ul>
+
+<h3>Version 2026-11-20.7</h3>
+<h4>Changed</h4>
+<ul>
+  <li>Drummer click plays the shaker on 8th-note ticks.</li>
+</ul>
+
+<h3>Version 2026-11-20.6</h3>
+<h4>Added</h4>
+<ul>
+  <li>One note mode grades how long each note is held.</li>
+</ul>
+
+<h3>Version 2026-11-20.5</h3>
+<h4>Changed</h4>
+<ul>
+  <li>Even gain structure: samples peak-normalized, master trimmed, woodblock and cowbell balanced.</li>
+</ul>
+
+<h3>Versions 2026-11-20.1 to 2026-11-20.4</h3>
+<h4>Added</h4>
+<ul>
+  <li>20.2: counting voice A (warm young voice), chosen from four candidate voices; preview page at <code>rhythm-trainer/count/preview.html</code> (not on the hub).</li>
+  <li>20.3: separate Voice volume.</li>
+</ul>
+<h4>Changed</h4>
+<ul>
+  <li>20.1: clearer spoken "and".</li>
+  <li>20.3: smooth spoken 16ths (quick clips, fades instead of cuts).</li>
+  <li>20.4: counting voice flow (natural stress, vowel on the beat).</li>
+</ul>
+
+<h3>Version 2026-11-19.10</h3>
+<h4>Added</h4>
+<ul>
+  <li>"Hear it + count": claps with a spoken count.</li>
+</ul>
+
+<h3>Versions 2026-11-19.1 to 2026-11-19.9</h3>
+<h4>Added</h4>
+<ul>
+  <li>19.2: volume slider.</li>
+  <li>19.4: practice loop (count, play, count, play until Stop).</li>
+  <li>19.6: Challenge flashes each rhythm's accuracy over the staff.</li>
+</ul>
+<h4>Changed</h4>
+<ul>
+  <li>19.1: more forgiving hold grading, lift allowance before the next note.</li>
+  <li>19.3: built-in 40 ms lead for Tap and MIDI so students rarely need to calibrate.</li>
+  <li>19.4: looser hit windows.</li>
+  <li>19.5: Kick + hat click = kick on 1, hi-hat on every quarter.</li>
+  <li>19.7: louder, brighter click.</li>
+  <li>19.8: volume back to 100% default, max 200%; quieter low end on the slider.</li>
+  <li>19.9: "More cowbell" uses a real recorded cowbell.</li>
+</ul>
+
+<h3>Version 2026-11-18.1</h3>
+<h4>Added</h4>
+<ul>
+  <li>MIDI activity light.</li>
+</ul>
+<h4>Fixed</h4>
+<ul>
+  <li>One note mode ignores claps.</li>
+</ul>
+
+<h3>Version 2026-11-13.4</h3>
+<h4>Fixed</h4>
+<ul>
+  <li>Clean rapid taps on phones; tap pad shows in Tap mode only.</li>
+</ul>
+
+<h3>Version 2026-11-13.3</h3>
+<h4>Added</h4>
+<ul>
+  <li>Share result button (<code>shared/share.js</code>); hidden during beta since 2026-11-19 (see Shared and site).</li>
+</ul>
+
+<h3>Version 2026-11-13.2</h3>
+<h4>Fixed</h4>
+<ul>
+  <li>MIDI keys count once on dual-port keyboards; bad timestamps fall back to arrival time; keyboard-delay hint until calibrated.</li>
+</ul>
+
+<h3>Version 2026-11-13.1</h3>
+<h4>Added</h4>
+<ul>
+  <li>Challenge complexity climbs across and inside rounds; click sound choices (including More cowbell); MIDI input.</li>
+</ul>
+
+<h3>Version 2026-11-12.2</h3>
+<h4>Fixed</h4>
+<ul>
+  <li>Hotfix: accuracy scores timing quality, not just catching the note.</li>
+</ul>
+
+<h3>Version 2026-11-12.1</h3>
+<h4>Added</h4>
+<ul>
+  <li>8th-note subdivision; two-column layout.</li>
+</ul>
+<h4>Changed</h4>
+<ul>
+  <li>One note mic detection rebuilt (onsets over sustain, click templates).</li>
+</ul>
+
+<h3>Versions 2026-11-11.20 to 2026-11-11.23</h3>
+<h4>Added</h4>
+<ul>
+  <li>11.21: time signatures 2/4, 3/4, 4/4 (default), 6/8.</li>
+  <li>11.23: hold grading in Tap mode.</li>
+</ul>
+<h4>Fixed</h4>
+<ul>
+  <li>11.22: One note mode catches fast re-strikes.</li>
+  <li>11.20: published with no separate notes recorded.</li>
+</ul>
+
+<h3>Versions 2026-11-11.17 to 2026-11-11.19</h3>
+<h4>Changed</h4>
+<ul>
+  <li>11.17: round targets softened from 1.1x to 1.05x (Derek's call).</li>
+  <li>11.18: 60-second sprint removed; Challenge only.</li>
+  <li>11.19: Challenge faster plus accuracy (8% per round, toggle), no Retry round, per-mode calibration, readable round screens.</li>
+</ul>
+<h4>Fixed</h4>
+<ul>
+  <li>11.19: Note / Clap beat-1 and late-onset fixes; echo cancellation off.</li>
+</ul>
+
+<h3>Versions 2026-11-11.3 to 2026-11-11.16</h3>
+<h4>Added</h4>
+<ul>
+  <li>11.4: warm woodblock click instead of beeps.</li>
+  <li>11.5: Single tries (default) and Challenge mode (warm-up sets targets, 5 rounds + bonus).</li>
+  <li>11.6: no-cursor option; notes light up when they should be hit.</li>
+  <li>11.7: sample-accurate snap / clap detector.</li>
+</ul>
+<h4>Changed</h4>
+<ul>
+  <li>11.3: mic ignores the app's own clicks; "Hear it" plays handclaps.</li>
+  <li>11.8: restyled to the shared CHMA design system.</li>
+  <li>11.9: engraving by the book (16th rest glyph, half rests, wider 16th spacing).</li>
+</ul>
+<h4>Fixed</h4>
+<ul>
+  <li>11.10 to 11.16: audit and fuzz rounds (double-counted claps, fair windows next to rests, corrupt saved state, Notion mic handling with "Open full screen", timer races, Stop silences the bar, engraved rests, calibration isolation).</li>
+</ul>
+
+<h3>(version not recorded) 2026-11-04</h3>
+<h4>Added</h4>
+<ul>
+  <li>First release: 8 levels (including 3 syncopation), notation over a tap timeline, timing grades, calibration.</li>
+  <li>Clap or snap mic mode.</li>
+</ul>
+
+<!-- ============================================================ -->
+<h2>Note Sprint — note-sprint/</h2>
+
+<h3>Version 2026-11-19.4</h3>
+<h4>Changed</h4>
+<ul>
+  <li>Space levels include the spaces just below and above the staff (committed 2026-11-20).</li>
+</ul>
+
+<h3>Versions 2026-11-19.1 to 2026-11-19.3</h3>
+<h4>Added</h4>
+<ul>
+  <li>19.2: preset levels (treble / bass spaces, lines, all; upper / lower ledgers; all + ledgers).</li>
+  <li>19.3: Middle C zone level; Both hands at level 7.</li>
+</ul>
+<h4>Changed</h4>
+<ul>
+  <li>19.1: Challenge rebuilt as an arcade ladder (fixed running-total targets, points carry over, no warm-up baseline).</li>
+  <li>19.3: ledger levels capped at 2 lines.</li>
+</ul>
+
+<h3>Versions 2026-11-18.1 to 2026-11-18.3</h3>
+<h4>Added</h4>
+<ul>
+  <li>18.1: MIDI activity light.</li>
+</ul>
+<h4>Changed</h4>
+<ul>
+  <li>18.2: Custom settings in one clean column.</li>
+  <li>18.3: no note sounds in MIDI mode.</li>
+</ul>
+
+<h3>Versions 2026-11-13.1 to 2026-11-13.4</h3>
+<h4>Added</h4>
+<ul>
+  <li>13.1: levels Treble spaces, Bass spaces, Treble ledgers, Bass ledgers; Ledger-lines-only option in Custom.</li>
+  <li>13.2 / 13.3: MIDI input (shared MIDI block v1.1).</li>
+  <li>13.4: Share result button (hidden during beta since 2026-11-19).</li>
+</ul>
+
+<h3>Versions 2026-11-11.12 and 2026-11-12.1 (mic rebuild)</h3>
+<h4>Added</h4>
+<ul>
+  <li>11.12: music on round screens (<code>shared/hype.js</code>); the mic ignores it while it plays.</li>
+</ul>
+<h4>Changed</h4>
+<ul>
+  <li>Mic recognition rebuilt for digital pianos (tail-aware pitch, clipped strikes, low bass, F5 / G5); two-column layout. Published as 2026-11-12.1; the 11.13 build was the in-progress step.</li>
+</ul>
+
+<h3>Versions 2026-11-11.1 to 2026-11-11.11</h3>
+<h4>Changed</h4>
+<ul>
+  <li>11.1: restyled to the shared CHMA design system.</li>
+  <li>11.8: round targets softened to 1.05x (Derek's call).</li>
+  <li>11.9: 60-second sprint removed; Challenge only.</li>
+  <li>11.10: Retry round removed from challenge results (Derek).</li>
+  <li>11.11: round screens stay up long enough to read; second try off by default.</li>
+</ul>
+<h4>Fixed</h4>
+<ul>
+  <li>11.2 to 11.7: audit and fuzz rounds (accidental collisions, enharmonic feedback, iOS resize, Notion mic with "Open full screen", timer races, challenge score leaking into the practice board).</li>
+</ul>
+
+<h3>Versions 2026-11-10.1 to 2026-11-10.3</h3>
+<h4>Changed</h4>
+<ul>
+  <li>10.1: name field removed and any stored name cleared (privacy).</li>
+  <li>10.2: talking never counts as a note.</li>
+  <li>10.3: faster, steadier mic.</li>
+</ul>
+
+<h3>Versions 2026-11-05.4 to 2026-11-05.10</h3>
+<h4>Added</h4>
+<ul>
+  <li>05.4: visible version tag.</li>
+  <li>05.9: Lines only / Spaces only setting; fireworks at 90%+ accuracy.</li>
+</ul>
+<h4>Changed</h4>
+<ul>
+  <li>05.5: academy name linked to the studio website.</li>
+  <li>05.6 / 05.7: challenge targets ramp round to round.</li>
+  <li>05.10: mic status messages in a calm, readable card.</li>
+</ul>
+
+<h3>(version not recorded) 2026-11-03 to 2026-11-05</h3>
+<h4>Added</h4>
+<ul>
+  <li>First release on GitHub Pages: stopwatch countdown, register-exact keyboard, key signatures, mic mode, Intervals level.</li>
+  <li>Challenge mode (arcade rounds, rising pace), per-clef note ranges, landmark notes, Try again / Show me.</li>
+  <li>Mic pitch detection (YIN) that learns the piano's tuning; keyboard at finger size centred on the notes in play.</li>
+</ul>
+
+<!-- ============================================================ -->
+<h2>Match Point — match-point/</h2>
+<h3>Version 2026-11-20.1</h3>
+<h4>Added</h4>
+<ul>
+  <li>New singing app (one of three "Sing apps"); uses <code>shared/voice-pitch.js</code> and <code>shared/voice-apps.css</code>. Listed on the hub.</li>
+</ul>
+
+<h2>Hold Steady — hold-steady/</h2>
+<h3>Version 2026-11-20.1</h3>
+<h4>Added</h4>
+<ul>
+  <li>New singing app (Sing apps); shared voice pitch engine. Listed on the hub.</li>
+</ul>
+
+<h2>Scale Climber — scale-climber/</h2>
+<h3>Version 2026-11-20.1</h3>
+<h4>Added</h4>
+<ul>
+  <li>New singing app (Sing apps); shared voice pitch engine. Listed on the hub.</li>
+</ul>
+
+<!-- ============================================================ -->
+<h2>Simple Metronome — simple-metronome/</h2>
+<h3>Version 2026-11-19.2</h3>
+<h4>Added</h4>
+<ul>
+  <li>Keeps playing in the background on iPad / iPhone, with lock-screen controls.</li>
+</ul>
+<h3>Version 2026-11-19.1</h3>
+<h4>Added</h4>
+<ul>
+  <li>Shaker and Side stick options for the Drum beat.</li>
+</ul>
+<h3>Versions 2026-11-18.1 to 2026-11-18.7</h3>
+<p class="note">18.6 not recorded.</p>
+<h4>Added</h4>
+<ul>
+  <li>18.1: first release, a one-screen metronome for song pages.</li>
+  <li>18.2: time signatures, subdivisions, drum sounds.</li>
+  <li>18.3: song pages keep their Modal Metronome feel.</li>
+  <li>18.4: real cowbell; button renamed "More Cowbell".</li>
+</ul>
+<h4>Changed</h4>
+<ul>
+  <li>18.5: fits a Notion embed box with no scrolling.</li>
+  <li>18.7: title with logo, recorded cowbell, Kick on 1.</li>
+</ul>
+
+<!-- ============================================================ -->
+<h2>Fab Fours — fab-fours/</h2>
+<p class="note">Renamed from Groupies; the old folder <code>groupies/</code> is now a redirect (not on the hub) so old links and Notion embeds keep working.</p>
+<h3>Version 2026-11-19.1</h3>
+<h4>Added</h4>
+<ul>
+  <li>Musicals topic with 7 new puzzles.</li>
+</ul>
+<h3>Version 2026-11-13.7</h3>
+<h4>Added</h4>
+<ul>
+  <li>Share result button (hidden during beta since 2026-11-19).</li>
+</ul>
+<h3>Version 2026-11-13.6</h3>
+<h4>Changed</h4>
+<ul>
+  <li>Renamed Groupies to Fab Fours; <code>groupies/</code> redirects.</li>
+</ul>
+<h3>Versions 2026-11-12.1 to 2026-11-13.5 (as Groupies, groupies/)</h3>
+<h4>Added</h4>
+<ul>
+  <li>12.1: original find-four-groups music word puzzle (40 puzzles, daily + practice).</li>
+</ul>
+<h4>Changed</h4>
+<ul>
+  <li>13.1: parent-key numerals.</li>
+  <li>13.2 to 13.4: every group about music, design pass, honest overlaps and wordplay purples in all 40 puzzles.</li>
+</ul>
+<h4>Fixed</h4>
+<ul>
+  <li>13.5: share result works everywhere.</li>
+</ul>
+
+<!-- ============================================================ -->
+<h2>Meter Master — meter-master/</h2>
+<h3>Version 2026-11-19.1</h3>
+<h4>Changed</h4>
+<ul>
+  <li>Real recorded cowbell.</li>
+</ul>
+<h3>Version 2026-11-18.1</h3>
+<h4>Added</h4>
+<ul>
+  <li>MIDI activity light.</li>
+</ul>
+<h3>Versions 2026-11-13.1 to 2026-11-13.4</h3>
+<h4>Added</h4>
+<ul>
+  <li>13.1: Clap or snap and One note mic modes.</li>
+  <li>13.3: Share result button (hidden during beta since 2026-11-19).</li>
+</ul>
+<h4>Fixed</h4>
+<ul>
+  <li>13.2: MIDI field fix, automatic latency.</li>
+  <li>13.4: clean rapid taps on phones.</li>
+</ul>
+<h3>Version 2026-11-12.1</h3>
+<h4>Added</h4>
+<ul>
+  <li>First release: internal-clock trainer (keep quarter notes through silent gaps, graded against the audio clock).</li>
+</ul>
+
+<!-- ============================================================ -->
+<h2>Symbol Memory — symbol-memory/</h2>
+<p class="note">Fonts in <code>symbol-memory/fonts/</code>.</p>
+<h3>Version 2026-11-19.1</h3>
+<h4>Added</h4>
+<ul>
+  <li>The symbol's meaning pops up and is read aloud after every match.</li>
+</ul>
+<h3>Version 2026-11-13.5</h3>
+<h4>Added</h4>
+<ul>
+  <li>Classic pairs mode; Share button.</li>
+</ul>
+<h3>Versions 2026-11-13.1 to 2026-11-13.3</h3>
+<p class="note">13.4 not recorded.</p>
+<h4>Changed</h4>
+<ul>
+  <li>13.1: matched pairs show the symbol and its name on both cards.</li>
+  <li>13.2: most natural voice on the device (with a Voice picker); music terms said the way an instructor says them.</li>
+</ul>
+<h4>Fixed</h4>
+<ul>
+  <li>13.3: phone layout fits the real visible screen in in-app browsers.</li>
+</ul>
+<h3>Version 2026-11-12.1</h3>
+<h4>Added</h4>
+<ul>
+  <li>First release: memory card game matching 53 music symbols to their names (Learn, Play, Challenge).</li>
+</ul>
+
+<!-- ============================================================ -->
+<h2>Song Dissector — song-player/</h2>
+<p class="note">Named Song Player until 2026-11-11.12; URL unchanged. Audio in <code>song-player/audio/</code>, stem models in <code>song-player/models/</code>, libraries in <code>song-player/vendor/</code>.</p>
+<h3>Version 2026-11-19.1</h3>
+<h4>Added</h4>
+<ul>
+  <li>Sunday Afternoon bossa groove (120 BPM).</li>
+</ul>
+<h3>Version 2026-11-18.2</h3>
+<h4>Added</h4>
+<ul>
+  <li>Save Your Tears.</li>
+</ul>
+<h3>Version 2026-11-18.1</h3>
+<h4>Added</h4>
+<ul>
+  <li>A message for phone users.</li>
+</ul>
+<h3>Version 2026-11-13.15</h3>
+<h4>Added</h4>
+<ul>
+  <li>6-part split (adds guitar and piano) with a Classic 4-part choice; "Share this app".</li>
+</ul>
+<h3>Versions 2026-11-11.13 and 2026-11-11.14</h3>
+<h4>Added</h4>
+<ul>
+  <li>11.14: in-app stem splitter, on the device (Demucs via ONNX Runtime Web).</li>
+</ul>
+<h4>Fixed</h4>
+<ul>
+  <li>11.13: no stalls while splitting.</li>
+</ul>
+<h3>Version 2026-11-11.12</h3>
+<h4>Changed</h4>
+<ul>
+  <li>Renamed Song Player to Song Dissector (Derek's pick); URL unchanged.</li>
+</ul>
+<h3>Versions 2026-11-11.1 to 2026-11-11.11 (as Song Player)</h3>
+<h4>Added</h4>
+<ul>
+  <li>11.1: All New Kicks.</li>
+  <li>11.2: load your own MP3 (plays from the device, never uploaded).</li>
+  <li>11.3: studio stretch engine (Signalsmith); split parts mixer.</li>
+  <li>11.5: Export MP3 (speed, key, parts, A-B section with repeats).</li>
+</ul>
+<h4>Changed</h4>
+<ul>
+  <li>11.4: restyled to the shared CHMA design system.</li>
+</ul>
+<h4>Fixed</h4>
+<ul>
+  <li>11.6 to 11.11: audit and fuzz rounds (export start silence, A-only loop, lock / call recovery, iOS sound unlock, memory on export, broken-file recovery).</li>
+</ul>
+<h3>Version 2026-11-10.1</h3>
+<h4>Added</h4>
+<ul>
+  <li>First release: play-along with speed without pitch change, key shift, A-B loop and speed-up trainer; one pilot song.</li>
+</ul>
+
+<!-- ============================================================ -->
+<h2>Ear Trainer — ear-trainer/</h2>
+<h3>Version 2026-11-18.1</h3>
+<h4>Added</h4>
+<ul>
+  <li>MIDI activity light.</li>
+</ul>
+<h3>Versions 2026-11-13.1 to 2026-11-13.4</h3>
+<h4>Added</h4>
+<ul>
+  <li>13.2 / 13.3: MIDI input (shared MIDI block v1.1).</li>
+  <li>13.4: Share button.</li>
+</ul>
+<h4>Changed</h4>
+<ul>
+  <li>13.1: parent-key numerals.</li>
+</ul>
+<h3>Version 2026-11-12.1</h3>
+<h4>Added</h4>
+<ul>
+  <li>First release: relative pitch with reference notes (mystery note, scale degree, interval).</li>
+</ul>
+
+<!-- ============================================================ -->
+<h2>Key Finder — key-finder/</h2>
+<h3>Version 2026-11-18.1</h3>
+<h4>Added</h4>
+<ul>
+  <li>MIDI activity light.</li>
+</ul>
+<h3>Versions 2026-11-13.1 to 2026-11-13.3</h3>
+<h4>Added</h4>
+<ul>
+  <li>13.1: MIDI input; "Play my piano".</li>
+  <li>13.3: Share result button (hidden during beta since 2026-11-19).</li>
+</ul>
+<h4>Fixed</h4>
+<ul>
+  <li>13.2: shared MIDI block v1.1.</li>
+</ul>
+<h3>Version 2026-11-12.1</h3>
+<h4>Changed</h4>
+<ul>
+  <li>Layout pass: main button always on screen.</li>
+</ul>
+<h3>Versions 2026-11-11.1 to 2026-11-11.11</h3>
+<h4>Added</h4>
+<ul>
+  <li>11.8: Challenge mode (replaces the 60-second sprint).</li>
+  <li>11.11: music on round screens (<code>shared/hype.js</code>), on by default.</li>
+</ul>
+<h4>Changed</h4>
+<ul>
+  <li>11.1: restyled to the shared CHMA design system.</li>
+  <li>11.9: Retry round removed (Derek).</li>
+  <li>11.10: round screens stay up long enough to read.</li>
+</ul>
+<h4>Fixed</h4>
+<ul>
+  <li>11.2 to 11.7: audit and fuzz rounds (glowing key always in view, black-key labels with octave, iOS resize, timer races).</li>
+</ul>
+<h3>Version 2026-11-05.1</h3>
+<h4>Added</h4>
+<ul>
+  <li>First release: piano key identification game (no staff); name the glowing key or find the named key; 5 levels.</li>
+</ul>
+
+<!-- ============================================================ -->
+<h2>Riff Simon Says — riff-says/</h2>
+<p class="note">Test files in <code>riff-says/tests/</code>.</p>
+<h3>Version 2026-11-18.1</h3>
+<h4>Added</h4>
+<ul>
+  <li>MIDI activity light.</li>
+</ul>
+<h3>Versions 2026-11-13.1 to 2026-11-13.5</h3>
+<h4>Added</h4>
+<ul>
+  <li>13.2 / 13.3: MIDI input (shared MIDI block v1.1).</li>
+  <li>13.4: a real rhythm section in every style with the call on top; automatic latency; octave feedback.</li>
+  <li>13.5: Share result button (hidden during beta since 2026-11-19).</li>
+</ul>
+<h4>Changed</h4>
+<ul>
+  <li>13.1: parent-key numerals.</li>
+</ul>
+<h3>Version 2026-11-12.1</h3>
+<h4>Added</h4>
+<ul>
+  <li>First release: call-and-response improv trainer.</li>
+</ul>
+
+<!-- ============================================================ -->
+<h2>Moonbeam Cartridge Club — arcade/ (not on the hub)</h2>
+<p class="note">Personal retro arcade, unlisted and noindex. No version string in the page.</p>
+<h3>(version not recorded) 2026-11-18</h3>
+<h4>Added</h4>
+<ul>
+  <li>Comet Corsair: rocket launcher, rift forks with a high-reward path, icon touch buttons, mouse fire, breakable shields, nebula backdrop.</li>
+</ul>
+<h4>Changed</h4>
+<ul>
+  <li>Comet Corsair: wider rift paths, fuel only from the rift, smaller stars, bigger bullets, no enemy fire from behind.</li>
+</ul>
+<h3>(version not recorded) 2026-11-15</h3>
+<h4>Added</h4>
+<ul>
+  <li>Named high scores in every cartridge; laptop mode and key commands.</li>
+  <li>Comet Corsair: speed modes, ship computer voice, fuel rift, wormhole obstacle run.</li>
+  <li>Paint Patrol: power-ups and hidden gifts; refreshed look.</li>
+</ul>
+<h4>Fixed</h4>
+<ul>
+  <li>Voice crackle and audio unlock on tap.</li>
+</ul>
+<h3>(version not recorded) 2026-11-14</h3>
+<h4>Added</h4>
+<ul>
+  <li>First release (unlisted, noindex, not linked from the hub).</li>
+</ul>
+
+<!-- ============================================================ -->
+<h2>Guitar Revolution Strobe Tuner — guitar-tuner/</h2>
+<h3>Version 2026-11-13.1</h3>
+<h4>Added</h4>
+<ul>
+  <li>Share button.</li>
+</ul>
+<h3>Version 2026-11-12.1</h3>
+<h4>Changed</h4>
+<ul>
+  <li>One screen, always on, always auto (no power switch, no string picking, no reference tone).</li>
+</ul>
+<h3>Versions 2026-11-11.2 to 2026-11-11.6</h3>
+<h4>Added</h4>
+<ul>
+  <li>11.2: first release, true strobe display.</li>
+</ul>
+<h4>Fixed</h4>
+<ul>
+  <li>11.5: hum rejection, inharmonicity correction, quiet input, sympathetic strings.</li>
+  <li>11.6: wake lock release, mic cancel and resume on tap.</li>
+</ul>
+
+<!-- ============================================================ -->
+<h2>Hanon Speed Trainer — hanon-player/</h2>
+<p class="note">Tracks in <code>hanon-player/ex1/</code> and <code>hanon-player/ex2/</code>.</p>
+<h3>Version 2026-11-13.1</h3>
+<h4>Added</h4>
+<ul>
+  <li>Share button.</li>
+</ul>
+<h3>Versions 2026-11-11.1 to 2026-11-11.7</h3>
+<h4>Added</h4>
+<ul>
+  <li>11.1: first release, one player per exercise, 24 tempos, age-level goals.</li>
+</ul>
+<h4>Changed</h4>
+<ul>
+  <li>11.2: restyled to the shared CHMA design system.</li>
+</ul>
+<h4>Fixed</h4>
+<ul>
+  <li>11.3 to 11.7: audit rounds (tempo steps, lock / call recovery, 320 px level row, tap targets, fractional level crash).</li>
+</ul>
+
+<!-- ============================================================ -->
+<h2>Couch Tour — couch-tour/ (not on the hub)</h2>
+<p class="note">Personal Phish and Grateful Dead connections puzzle; unlisted, noindex.</p>
+<h3>Version 2026-11-13.4</h3>
+<h4>Changed</h4>
+<ul>
+  <li>Donut-dress look (red rings on blue), dress band header.</li>
+</ul>
+<h3>Version 2026-11-13.3</h3>
+<h4>Changed</h4>
+<ul>
+  <li>First donut-dress look.</li>
+</ul>
+<h3>Version 2026-11-13.2</h3>
+<h4>Added</h4>
+<ul>
+  <li>First release (unlisted, noindex, not linked from the hub).</li>
+</ul>
+
+<!-- ============================================================ -->
+<h2>Pop Quiz — trivia/</h2>
+<p class="note">Question bank in <code>trivia/questions.json</code>.</p>
+<h3>Version 2026-11-13.2</h3>
+<h4>Changed</h4>
+<ul>
+  <li>Renamed Music Trivia to Pop Quiz (owner's pick); listed on the hub.</li>
+</ul>
+<h3>Version 2026-11-13.1</h3>
+<h4>Added</h4>
+<ul>
+  <li>First release as Music Trivia: Daily 10, Quick Play, Streak Run, Party; 540-question bank.</li>
+</ul>
+
+<!-- ============================================================ -->
+<h2>Major 7th Play-Along — practice-player/major-7th/ (not on the hub)</h2>
+<h3>Version 2026-11-11.8</h3>
+<h4>Fixed</h4>
+<ul>
+  <li>Round 6 fuzz fixes.</li>
+</ul>
+<h3>Versions 2026-11-11.1 to 2026-11-11.7</h3>
+<h4>Changed</h4>
+<ul>
+  <li>11.1: restyled to the shared CHMA design system.</li>
+  <li>11.2: Signalsmith Stretch engine (no more shudder).</li>
+</ul>
+<h4>Fixed</h4>
+<ul>
+  <li>11.3 to 11.7: track switching, tritone spelling, lock / call recovery, section replay, tap targets.</li>
+</ul>
+<h3>(version not recorded) 2026-11-05</h3>
+<h4>Added</h4>
+<ul>
+  <li>First release: hosted tracks (60 / 70 / 90 BPM), pitch-preserving speed, loop, key shifter, volume, A-B loop, speed-up trainer, keyboard shortcuts, saved settings.</li>
+</ul>
+
+<!-- ============================================================ -->
+<h2>Shared and site</h2>
+
+<h3>Hub — index.html (Version 2026-11-20.1)</h3>
+<h4>Added</h4>
+<ul>
+  <li>Sing apps (Match Point, Hold Steady, Scale Climber) listed.</li>
+</ul>
+
+<h3>Hub — index.html (Version 2026-11-19.1)</h3>
+<h4>Changed</h4>
+<ul>
+  <li>The studio access code is shown on the app home and the unlock screen.</li>
+</ul>
+
+<h3>Hub — index.html (Version 2026-11-13.1)</h3>
+<h4>Added</h4>
+<ul>
+  <li>Pop Quiz listed; Share button.</li>
+</ul>
+
+<h3>Hub — index.html (Versions 2026-11-11.3 to 2026-11-12.2)</h3>
+<h4>Added</h4>
+<ul>
+  <li>11.3: Song Player listed; 11.6: Strobe Tuner listed.</li>
+  <li>12.2 ("Music Games"): Groupies, Ear Trainer, Riff Simon Says, Symbol Memory, Meter Master added; the apps grouped.</li>
+</ul>
+<h4>Changed</h4>
+<ul>
+  <li>11.3: restyled; 12.1: layout pass.</li>
+</ul>
+
+<h3>shared/ (no single version; dated changes)</h3>
+<h4>Added</h4>
+<ul>
+  <li>2026-11-20: <code>shared/voice-pitch.js</code> (Version 2026-11-20.1) and <code>shared/voice-apps.css</code> for the Sing apps.</li>
+  <li>2026-11-15: studio-code access gate in <code>shared/brand.js</code> (quarterly code, hash only, request form link). Code rotated 2026-11-18.</li>
+  <li>2026-11-13: <code>shared/share.js</code>, one share flow for every game (share sheet, clipboard, copy box, short play links).</li>
+  <li>2026-11-12: <code>shared/hype.js</code> (Version 2026-11-12.1), music on Challenge round screens, a different original song each round.</li>
+  <li>2026-11-11: shared CHMA design system <code>shared/chma.css</code> (dark and light themes) and logo header (<code>shared/brand.js</code>, logos).</li>
+</ul>
+<h4>Changed</h4>
+<ul>
+  <li>2026-11-20: footer on every app reads "App · Clarendon Hills Music Academy (linked) · Version" (<code>shared/brand.js</code>).</li>
+  <li>2026-11-20: CHMA logo about 20% bigger on every app (<code>shared/chma.css</code>).</li>
+  <li>2026-11-19: Share result buttons hidden in every game during beta (<code>shared/brand.js</code>).</li>
+  <li>2026-11-19: Note Sprint, Rhythm Trainer, Meter Master and Ear Trainer open without the studio code (for now).</li>
+</ul>
+
+<h3>cards/ and share/ (not on the hub)</h3>
+<h4>Added</h4>
+<ul>
+  <li><code>cards/</code>: clickable game cards for Notion embeds (Note Sprint 2026-11-04; Key Finder, Rhythm Trainer, Modal Metronome image; Simple Metronome 2026-11-19).</li>
+  <li><code>share/</code>: link preview images and Open Graph tags for every app (2026-11-05).</li>
+</ul>
+
+<h3>Repo files</h3>
+<h4>Added</h4>
+<ul>
+  <li>2026-11-20: <code>CHANGELOG.html</code> (this file) and the changelog rule in <code>CLAUDE.md</code>.</li>
+  <li>2026-11-17: check-before-you-ask rule in <code>CLAUDE.md</code>.</li>
+  <li>2026-11-13: <code>CLAUDE.md</code> with the no-names rule; a tester's name removed from code comments.</li>
+</ul>
+
+</body>
+</html>
