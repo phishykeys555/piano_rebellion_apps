@@ -981,7 +981,7 @@ details.how p{margin-top:6px}
   const CLEAD={n:{and:.015,ee:.005,five:.045,four:.09,one:.02,six:.085,three:.05,two:.01,uh:.01},f:{and:.03,ee:.005,five:.01,four:.035,one:.01,six:.025,three:.04,two:.055,uh:.005}};
   // beat-pattern clips (count/pat/<tempo>/<beat>_<mask>.wav, mask: e=1, &=2, a=4; 6/8: <eighth>_c0, or _c2 with its "&"), made at these tempos
   // (quarter-note BPM; 6/8 uses 1.5 x the dotted-quarter tempo, the same 16th speed). Every clip's first vowel is exactly PLEAD seconds in.
-  const PREFS=[60,72,84,96,108,120,132,144], PLEAD=0.15; // every app tempo plays its own set at rate 1; others stay within 10%
+  const PREFS=[60,72,84,96,108,120,132], PLEAD=0.15; // every app tempo plays its own set at rate 1; 54-138 BPM stay within 10%
   function patSet(U){ const q=15/U; let ref=PREFS[0]; PREFS.forEach(x=>{ if(Math.abs(Math.log(q/x))<Math.abs(Math.log(q/ref))) ref=x }); return {ref,rate:q/ref,dir:"%"+ref+"/"} }
   function patNames(M){ const o=[]; for(let n=1;n<=M.beats*(M.compound?3:1);n++){ if(M.compound) o.push(n+"_c0",n+"_c2"); else for(let m=0;m<8;m++) o.push(n+"_"+m) } return o }
   function countLoad(){ ctx(); Object.values(CNTW).forEach(w=>{ loadSnd("#"+w); loadSnd("#fast/"+w) }); const t0=performance.now(), M=MT(), PS=patSet(spb()/M.beatU);
