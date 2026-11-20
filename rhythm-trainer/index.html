@@ -572,7 +572,7 @@ details.how p{margin-top:6px}
   // where the clicks sit in the spectrum (beat at the base, subdivision an octave up), for the One note detector's mask; null = the classic click
   function clkRanges(){ const k=clkSound(); if(k==="classic") return null; const S=CLK[k], f=clkBase(k), out=[]; for(const m of [1,2]) for(const [r] of S.p) out.push([f*r*m*0.97,f*r*m*1.03]); return out }
   const SBUF={}; function loadSnd(path){ if(SBUF[path]!==undefined||!audio) return; SBUF[path]=null; const a=audio;
-    fetch(path[0]==="@"?"../simple-metronome/sounds/"+path.slice(1)+".mp3":path[0]==="#"?"count/af_heart/"+path.slice(1)+".wav":"../drum-machine/kits/"+path+".mp3").then(r=>r.arrayBuffer()).then(b=>a.decodeAudioData(b)).then(buf=>{ SBUF[path]=buf }).catch(()=>{ delete SBUF[path] }) }
+    fetch(path[0]==="@"?"../simple-metronome/sounds/"+path.slice(1)+".mp3":path[0]==="#"?"count/af_heart/"+path.slice(1)+".wav":path[0]==="%"?"count/pat/"+path.slice(1)+".wav":"../drum-machine/kits/"+path+".mp3").then(r=>r.arrayBuffer()).then(b=>a.decodeAudioData(b)).then(buf=>{ SBUF[path]=buf }).catch(()=>{ delete SBUF[path] }) }
   function prepSnd(){ const k=$("clkSel").value, S=CLK[k]; if(!S||!S.s) return; for(const v of S.sv){ loadSnd(S.s+v); if(S.sub) loadSnd(S.subFix?S.sub:S.sub+v); if(k==="kick") loadSnd("bb/hat_"+v) } }
   // play one tick of the chosen sound: kind a = accent (beat 1), n = beat, s = subdivision (about 9 dB under the beat)
   // Gain structure (2026-11-20, Derek: "drum kit way too loud, check ratio and gain structure"): every sample is scaled by its own measured peak so it
@@ -654,15 +654,28 @@ details.how p{margin-top:6px}
       // flow (2026-11-20, Derek: "make the cadence and flow 100% better"): clips are spoken mid-count ("two," not "Two."), each starts early by its
       // own consonant lead so the VOWEL lands on the beat, and the stress follows how people count: numbers strong, "and" lighter, "e" and "a" lightest
       const VG=Math.pow(VVOL/100,2)*1.1, STRESS={"one":1.15,"two":1,"three":1,"four":1,"five":1,"six":1,"and":0.8,"ee":0.62,"uh":0.62};
-      const tk=L.map(u=>start+u*U);
-      L.forEach((u,i)=>{ const w=CNTW[CNT(u)], nb=SBUF["#"+w], fb=SBUF["#fast/"+w]; if(!nb&&!fb) return;
+      const tk=L.map(u=>start+u*U), plan=[], done=new Set();
+      // smooth 16ths v2 (2026-11-20, studio owner: "one clip for every possible combination of 16th-note syncopation"): each beat (each eighth in 6/8)
+      // is ONE continuous utterance ("two ee and uh", "two uh", ...) whose vowels were placed on the 16th grid when it was made (count/pat/<tempo>/).
+      // The set nearest this tempo plays a few % faster or slower; its first vowel lands on the beat; it fades in and out over 20 ms at the joins.
+      // A clip that is not loaded yet falls back to the single-syllable clips below.
+      const PS=patSet(U), step=M.compound?2:4;
+      if(PS) for(let s0=0;s0<M.units;s0+=step){ if(!pts.has(s0)) continue; const num=s0/step+1;
+        const name=M.compound?num+"_c"+(pts.has(s0+1)?2:0):num+"_"+((pts.has(s0+1)?1:0)+(pts.has(s0+2)?2:0)+(pts.has(s0+3)?4:0)), buf=SBUF[PS.dir+name]; if(!buf) continue;
+        for(let k=0;k<step;k++) if(pts.has(s0+k)) done.add(s0+k);
+        const r=PS.rate, beat=start+s0*U, t=beat-PLEAD/r, now=a.currentTime, off=Math.max(0,(now+0.005-t)*r); if(off>=buf.duration-0.05) continue;
+        const t1=t+off/r, end=t+buf.duration/r, G=VG*(num===1?1.15:1), src=a.createBufferSource(), g=a.createGain(); src.buffer=buf; src.playbackRate.value=r; src.connect(g).connect(bus()); track(src);
+        g.gain.setValueAtTime(0.0001,t1); g.gain.linearRampToValueAtTime(G,t1+0.02); g.gain.setValueAtTime(G,Math.max(t1+0.02,end-0.02)); g.gain.linearRampToValueAtTime(0.0001,end);
+        src.start(t1,off); src.stop(end+0.01); plan.push({name,ref:PS.ref,rate:r,beat,start:t1,u:s0}) }
+      window.__rtCount=plan;
+      L.forEach((u,i)=>{ if(done.has(u)) return; const w=CNTW[CNT(u)], nb=SBUF["#"+w], fb=SBUF["#fast/"+w]; if(!nb&&!fb) return;
         const beat=tk[i], nxBeat=i+1<L.length?tk[i+1]:beat+1, gap=nxBeat-beat;
         const useN=nb&&(nb.duration-CLEAD.n[w])<=gap-0.02, buf=useN?nb:(fb||nb), lead=useN?CLEAD.n[w]:CLEAD.f[w];
         let rate=1; const body=buf.duration-lead; if(body>gap) rate=Math.min(1.12,body/gap);
         const t=Math.max(a.currentTime,beat-lead/rate), nxW=CNTW[CNT(L[i+1])], nxLead=i+1<L.length?(CLEAD.f[nxW]||0.02):0, cut=nxBeat-nxLead-0.005;
         const src=a.createBufferSource(), g=a.createGain(), G=VG*(STRESS[w]||1); src.buffer=buf; src.playbackRate.value=rate; src.connect(g).connect(bus()); track(src);
         const natural=t+buf.duration/rate, end=Math.min(natural,cut); g.gain.setValueAtTime(G,t); if(end<natural-0.005){ g.gain.setValueAtTime(G,Math.max(t,end-0.035)); g.gain.linearRampToValueAtTime(0.0001,end) }
-        src.start(t); src.stop(end+0.01) }) }
+        src.start(t); src.stop(end+0.01); plan.push({name:"#"+w,beat,start:t,u}) }) }
     if(mode==="hear"||$("guide").checked) bar.notes.forEach(n=>(mode==="test"&&inMode==="clap"&&mic)?wood(start+n.s*U,n.d*U):hand(start+n.s*U));
     msg(null, mode==="hear"?"Listen…":"Count in: "+countWords(), mode==="hear"?"":loopOn&&loopRes?`Last time: ${loopRes.score}%. Again on beat 1.`:"Start tapping on beat 1 of the next bar.");
     // Tap with "Grade how long I hold" on: releases are graded too. A note that ends with the bar may be let go after the bar ends,
@@ -974,8 +987,17 @@ details.how p{margin-top:6px}
   const CNTW={"1":"one","2":"two","3":"three","4":"four","5":"five","6":"six","e":"ee","&":"and","a":"uh"};
   // seconds from each clip's start to its vowel (measured when the clips were made): the clip starts this much before the beat
   const CLEAD={n:{and:.015,ee:.005,five:.045,four:.09,one:.02,six:.085,three:.05,two:.01,uh:.01},f:{and:.03,ee:.005,five:.01,four:.035,one:.01,six:.025,three:.04,two:.055,uh:.005}};
-  function countLoad(){ ctx(); Object.values(CNTW).forEach(w=>{ loadSnd("#"+w); loadSnd("#fast/"+w) }); const t0=performance.now();
-    return new Promise(r=>{ const k=()=>{ if(Object.values(CNTW).every(w=>SBUF["#"+w]&&SBUF["#fast/"+w])||performance.now()-t0>3000) r(); else setTimeout(k,40) }; k() }) }
+  // beat-pattern clips (count/pat/<tempo>/<beat>_<mask>.wav, mask: e=1, &=2, a=4; 6/8: <eighth>_c0, or _c2 with its "&"), made at these tempos
+  // (quarter-note BPM; 6/8 uses 1.5 x the dotted-quarter tempo, the same 16th speed). Every clip's first vowel is exactly PLEAD seconds in.
+  const PREFS=[60,72,84,96,108,120,132], PLEAD=0.15; // every app tempo plays its own set at rate 1; 54-138 BPM stay within 10%
+  function patSet(U){ const q=15/U; let ref=PREFS[0]; PREFS.forEach(x=>{ if(Math.abs(Math.log(q/x))<Math.abs(Math.log(q/ref))) ref=x }); return {ref,rate:q/ref,dir:"%"+ref+"/"} }
+  function patNames(M){ const o=[]; for(let n=1;n<=M.beats*(M.compound?3:1);n++){ if(M.compound) o.push(n+"_c0",n+"_c2"); else for(let m=0;m<8;m++) o.push(n+"_"+m) } return o }
+  function countLoad(){ ctx(); Object.values(CNTW).forEach(w=>{ loadSnd("#"+w); loadSnd("#fast/"+w) }); const t0=performance.now(), M=MT(), PS=patSet(spb()/M.beatU);
+    // this bar's clips first (the page waits for them), then the rest of this tempo's set in the background
+    const pts=new Set(bar?bar.notes.map(n=>n.s):[]); for(let b=0;b<M.beats;b++) pts.add(b*M.beatU); const step=M.compound?2:4, need=[];
+    for(let s0=0;s0<M.units;s0+=step) if(pts.has(s0)){ const num=s0/step+1; need.push(PS.dir+(M.compound?num+"_c"+(pts.has(s0+1)?2:0):num+"_"+((pts.has(s0+1)?1:0)+(pts.has(s0+2)?2:0)+(pts.has(s0+3)?4:0)))) }
+    need.forEach(loadSnd); setTimeout(()=>patNames(M).forEach(n=>loadSnd(PS.dir+n)),600);
+    return new Promise(r=>{ const k=()=>{ if((need.every(p=>SBUF[p]!==null)&&Object.values(CNTW).every(w=>SBUF["#"+w]&&SBUF["#fast/"+w]))||performance.now()-t0>3000) r(); else setTimeout(k,40) }; k() }) }
   fastPress($("hearCount"),async()=>{ if(run||starting||calHook) return; if(!bar) newBar(); const a=ctx(); await a.resume(); await countLoad(); play("hear",null,{count:true}) });
   new MutationObserver(()=>{ $("hearCount").disabled=$("hear").disabled }).observe($("hear"),{attributes:true,attributeFilter:["disabled"]});
   // phones: when a try starts, scroll so the staff, the pad and the Start bar share the screen
@@ -1436,6 +1458,6 @@ class NoteFlux{
   if(document.fonts) document.fonts.ready.then(()=>{ if(!run) drawBar(curRes) });
 })();
 </script>
-<p class="appver" style="text-align:center;font-size:11px;opacity:.6;margin:18px 0 10px;font-family:ui-monospace,Menlo,monospace">Rhythm Trainer · Version 2026-11-20.8</p>
+<p class="appver" style="text-align:center;font-size:11px;opacity:.6;margin:18px 0 10px;font-family:ui-monospace,Menlo,monospace">Rhythm Trainer · Version 2026-11-20.9</p>
 </body>
 </html>
