@@ -532,7 +532,7 @@ details.how p{margin-top:6px}
   // Volume (2026-11-19, Derek): every app sound goes through one gain (0–300%) and a limiter, so turning it up gets louder without crackling
   let VVOL=+store.get("vvol","100"); if(!(VVOL>=0&&VVOL<=200)) VVOL=100;
   let BUS=null, VOL=+store.get("vol2","100"); if(!(VOL>=0&&VOL<=200)) VOL=100; /* 2026-11-19 (Derek: "way too loud now"): default back to 100%, max 200%; a fresh key so the old 180% saves reset */
-  const volG=()=>Math.pow(VOL/100,2); // squared: the bottom of the slider is truly quiet (20% = 4% gain, about -28 dB)
+  const volG=()=>0.45*Math.pow(VOL/100,2); // 0.6 (about -4.5 dB, 2026-11-20): 100% now peaks well under full scale instead of leaning on the limiter // squared: the bottom of the slider is truly quiet (20% = 4% gain, about -28 dB)
   function bus(){ const a=ctx(); if(!BUS||BUS.context!==a){ const g=a.createGain(), lim=a.createDynamicsCompressor(); lim.threshold.value=-6; lim.knee.value=0; lim.ratio.value=20; lim.attack.value=0.001; lim.release.value=0.08; g.gain.value=volG(); g.connect(lim).connect(a.destination); BUS=g } return BUS }
   function abortRun(){ hypeStop(120); if(!run&&!sess&&!arc&&!calHook) return; calHook=null; run=null; hush(); if(sess||arc) stopSession(true); $("go").disabled=false; $("hear").disabled=false; $("arcSplash").hidden=true; lockUI(); drawBar(null);
     msg(null,"Paused","The app was in the background, so this try stopped. Press Start to go again.") }
@@ -551,11 +551,11 @@ details.how p{margin-top:6px}
   // noise-like, so in Clap or snap and One note the app plays the classic click instead and says so ("mic-safe click used").
   // The cowbell (long ring) and the beep (hard edges) trip One note at fast tempos with loud speakers (bench: false hits), so One note swaps them too.
   const CLK={classic:{n:"Classic click"},
-    cow:{n:"🐄 More cowbell",noNote:1,s:"@cowbell",sv:["","","-soft"],g:0.55,p:[[1,1,0.16],[1.48,0.8,0.12],[2,0.1,0.06],[2.96,0.07,0.05]],b:[540,505,580,620,470,660]}, /* 2026-11-19: a real recorded cowbell (VCSL, CC0, shared with Simple Metronome); the synth only plays until it loads */
-    wood:{n:"Woodblock",p:[[1,1,0.04],[2.3,0.32,0.022],[3.9,0.1,0.012]],b:[880,820,950,1020,760]},
+    cow:{n:"🐄 More cowbell",noNote:1,s:"@cowbell",sv:["","","-soft"],mix:1.25,p:[[1,1,0.16],[1.48,0.8,0.12],[2,0.1,0.06],[2.96,0.07,0.05]],b:[540,505,580,620,470,660]}, /* 2026-11-19: a real recorded cowbell (VCSL, CC0, shared with Simple Metronome); the synth only plays until it loads */
+    wood:{n:"Woodblock",mix:0.6,p:[[1,1,0.04],[2.3,0.32,0.022],[3.9,0.1,0.012]],b:[880,820,950,1020,760]},
     clave:{n:"Clave",p:[[1,1,0.075],[1.62,0.1,0.03]],b:[2500,2350,2650,2220]},
     beep:{n:"Beep (electronic)",noNote:1,p:[[1,1,0.05,1],[3,0.12,0.05,1]],b:[1000,940,1060,880,1120]},
-    rim:{n:"Side stick",s:"ss/stick_",sv:[3,5,2]}, hat:{n:"Hi-hat",s:"bb/hat_",sv:[3,5,2]}, kick:{n:"Kick on 1 + hi-hat (drummer)",s:"bp/kick_",sv:[3,5,2],sub:"bb/hat_"}};
+    rim:{n:"Side stick",s:"ss/stick_",sv:[3,5,2]}, hat:{n:"Hi-hat",s:"bb/hat_",sv:[3,5,2]}, kick:{n:"Kick on 1 + hi-hat (drummer)",s:"bp/kick_",sv:[3,5,2],sub:"bb/hat_",mix:0.9}};
   const micMode=()=>inMode==="clap"||inMode==="note";
   // the sound actually played: a sampled (noise-like) sound is swapped for the classic click while a mic mode listens
   const clkSafe=k=>!(micMode()&&CLK[k].s)&&!(inMode==="note"&&CLK[k].noNote);
@@ -570,14 +570,18 @@ details.how p{margin-top:6px}
     fetch(path[0]==="@"?"../simple-metronome/sounds/"+path.slice(1)+".mp3":path[0]==="#"?"count/af_heart/"+path.slice(1)+".wav":"../drum-machine/kits/"+path+".mp3").then(r=>r.arrayBuffer()).then(b=>a.decodeAudioData(b)).then(buf=>{ SBUF[path]=buf }).catch(()=>{ delete SBUF[path] }) }
   function prepSnd(){ const k=$("clkSel").value, S=CLK[k]; if(!S||!S.s) return; for(const v of S.sv){ loadSnd(S.s+v); if(S.sub) loadSnd(S.sub+v) } }
   // play one tick of the chosen sound: kind a = accent (beat 1), n = beat, s = subdivision (about 9 dB under the beat)
+  // Gain structure (2026-11-20, Derek: "drum kit way too loud, check ratio and gain structure"): every sample is scaled by its own measured peak so it
+  // peaks at 0.9 x G, the same level the synth clicks reach. The samples were recorded at very different levels (kick ~0 dBFS, hi-hat and cowbell 5-9 dB
+  // under), and a flat 2.4x boost pushed the kick deep into the limiter. mix = small taste trims per sound family.
+  const PK=new WeakMap(); function pkN(buf){ let n=PK.get(buf); if(n==null){ let m=1e-4; for(let c=0;c<buf.numberOfChannels;c++){ const d=buf.getChannelData(c); for(let i=0;i<d.length;i+=2){ const v=Math.abs(d[i]); if(v>m) m=v } } n=0.9/m; PK.set(buf,n) } return n }
   function sndPlay(k,t,kind,G){ const a=ctx(), S=CLK[k], out=a.createGain(); out.gain.value=1; out.connect(bus());
     // Kick + hat (2026-11-19, Derek): kick on the downbeat only, hi-hat on every quarter (soft hat on the 8th ticks)
-    if(k==="kick"&&kind==="n"){ const hb=SBUF["bb/hat_"+S.sv[1]]; if(!hb) return false; const h=a.createBufferSource(); h.buffer=hb; const hg=a.createGain(); hg.gain.value=Math.min(2.2,G*2.6); h.connect(hg).connect(out); track(h); h.start(t); return true }
+    if(k==="kick"&&kind==="n"){ const hb=SBUF["bb/hat_"+S.sv[1]]; if(!hb) return false; const h=a.createBufferSource(); h.buffer=hb; const hg=a.createGain(); hg.gain.value=G*pkN(hb)*0.85; h.connect(hg).connect(out); track(h); h.start(t); return true }
     if(S.s){ const v=S.sv[kind==="a"?1:kind==="s"?2:0], path=(kind==="s"&&S.sub?S.sub:S.s)+v, buf=SBUF[path]; if(!buf) return false;
-      const src=a.createBufferSource(); src.buffer=buf; const g=a.createGain(); g.gain.value=Math.min(2.2,G*2.4*(S.g||1)); src.connect(g).connect(out); track(src); src.start(t);
-      if(k==="kick"&&kind!=="s"){ const hb=SBUF["bb/hat_"+S.sv[0]]; if(hb){ const h=a.createBufferSource(); h.buffer=hb; const hg=a.createGain(); hg.gain.value=G*1.2; h.connect(hg).connect(out); track(h); h.start(t) } } return true }
+      const src=a.createBufferSource(); src.buffer=buf; const g=a.createGain(); g.gain.value=G*pkN(buf)*(S.mix||1); src.connect(g).connect(out); track(src); src.start(t);
+      if(k==="kick"&&kind!=="s"){ const hb=SBUF["bb/hat_"+S.sv[0]]; if(hb){ const h=a.createBufferSource(); h.buffer=hb; const hg=a.createGain(); hg.gain.value=G*pkN(hb)*0.5; h.connect(hg).connect(out); track(h); h.start(t) } } return true }
     const f=clkBase(k)*(kind==="s"?2:1), nm=inMode==="note"&&mic, atk=nm?0.006:0.0015;
-    for(const [r,lv,dc,flat] of S.p){ const o=a.createOscillator(), g=a.createGain(); o.type="sine"; o.frequency.setValueAtTime(f*r,t); const A=G*lv*1.6;
+    for(const [r,lv,dc,flat] of S.p){ const o=a.createOscillator(), g=a.createGain(); o.type="sine"; o.frequency.setValueAtTime(f*r,t); const A=G*lv*1.6*(S.mix||1);
       g.gain.setValueAtTime(0.0001,t); g.gain.linearRampToValueAtTime(A,t+atk); if(flat){ g.gain.setValueAtTime(A,t+dc); g.gain.exponentialRampToValueAtTime(0.0001,t+dc+0.012) } else g.gain.exponentialRampToValueAtTime(0.0001,t+atk+dc*4);
       o.connect(g).connect(out); track(o); o.start(t); o.stop(t+atk+dc*4+0.05) } return true }
   // amp: 1 = a normal beat; 6/8 uses 1.3 for beat 4 (the secondary accent) and 0.7 for the eighths between the beats
@@ -610,7 +614,7 @@ details.how p{margin-top:6px}
     const s=a.createBufferSource(), bp=a.createBiquadFilter(), g=a.createGain(); s.buffer=nb; bp.type="bandpass"; bp.frequency.value=1200; bp.Q.value=0.9; g.gain.value=0.9;
     s.connect(bp).connect(g).connect(bus()); track(s); s.start(t) }
   function wood(t,dur){ outT.push(t); if(outT.length>64) outT.shift(); const a=ctx(), o=a.createOscillator(), g=a.createGain(); o.type="triangle"; o.frequency.value=880;
-    g.gain.setValueAtTime(0.0001,t); g.gain.exponentialRampToValueAtTime(0.42,t+0.003); g.gain.exponentialRampToValueAtTime(0.0001,t+Math.min(0.25,dur)); o.connect(g).connect(bus()); track(o); o.start(t); o.stop(t+0.3) }
+    g.gain.setValueAtTime(0.0001,t); g.gain.exponentialRampToValueAtTime(0.3,t+0.003); g.gain.exponentialRampToValueAtTime(0.0001,t+Math.min(0.25,dur)); o.connect(g).connect(bus()); track(o); o.start(t); o.stop(t+0.3) }
 
   // ---------- run a bar: 1 count-in bar of clicks, then the rhythm bar ----------
   // In a challenge each round has its own tempo (arc.bpm); the selected tempo (bpm) is never changed by it.
@@ -1383,6 +1387,6 @@ class NoteFlux{
   if(document.fonts) document.fonts.ready.then(()=>{ if(!run) drawBar(curRes) });
 })();
 </script>
-<p class="appver" style="text-align:center;font-size:11px;opacity:.6;margin:18px 0 10px;font-family:ui-monospace,Menlo,monospace">Rhythm Trainer · Version 2026-11-20.4</p>
+<p class="appver" style="text-align:center;font-size:11px;opacity:.6;margin:18px 0 10px;font-family:ui-monospace,Menlo,monospace">Rhythm Trainer · Version 2026-11-20.5</p>
 </body>
 </html>
