@@ -225,8 +225,8 @@ details.how p{margin-top:6px}
       <label><input type="checkbox" id="mixHard"> Single tries: mix harder ones in (some from the next level)</label>
       <label><input type="checkbox" id="hypeOn" checked> Music on round screens</label>
       <span class="stamp">On: every rhythm you play well nudges the tempo up (95%+: +2 BPM, 80%+: +1, under 60%: −2), up to 8% faster each round, never below where the round started. Off: one steady tempo. A change applies from the next Start.</span>
-      <label><input type="checkbox" id="holds" checked> Grade how long I hold (Tap, MIDI)</label>
-      <span class="stamp">Tap only: quarter notes and longer, dotted and tied notes, and notes right before a rest are also graded on when you let go (the bar under each note shows how long you held it; the tick is where it ends). Clap or snap and One note grade only when each note starts.</span>
+      <label><input type="checkbox" id="holds" checked> Grade how long I hold (Tap, MIDI, One note)</label>
+      <span class="stamp">Tap, MIDI and One note: quarter notes and longer, dotted and tied notes, and notes right before a rest are also graded on when you let go (the bar under each note shows how long you held it; the tick is where it ends). In One note the mic hears you let go (the damper stops the sound), so the hold windows are a little wider. Clap or snap grades only when each note starts.</span>
       <div class="row"><button class="ghost" id="cal">Calibrate timing</button><span class="stamp" id="calTxt" role="status" aria-live="polite"></span></div>
       <span class="stamp">Optional: Tap and MIDI come set up for most devices. Calibrate if notes you know are on time still read early or late, and again with Bluetooth headphones: tap (or clap, or play your note) along with 12 clicks. Tap, Clap and One note each keep their own setting.</span>
     </div>
@@ -260,7 +260,7 @@ details.how p{margin-top:6px}
       <p class="tip" id="micStat" role="status" aria-live="polite" style="margin-top:6px">Clap or snap once: the Level bar should jump past the line.</p>
       <p class="tip noteonly" style="margin-top:2px"><a href="#" id="diagLink">Mic not catching hits? Show details</a></p>
       <div id="diag" class="diag" hidden><div class="row" style="justify-content:space-between"><b>What the mic decided (newest first)</b><button class="ghost" id="diagCopy">Copy log</button></div><pre id="diagRows"></pre></div>
-      <p class="tip" style="margin-top:4px">Clap or snap and One note grade when each note starts, not how long you hold it. To grade your holds, use Tap.</p>
+      <p class="tip" style="margin-top:4px">Clap or snap grades when each note starts (a clap can't be held). One note also grades how long you hold each long note: let the key up on time.</p>
     </div>
     <button class="pad" id="pad">TAP</button>
     <div class="row actions">
@@ -409,7 +409,7 @@ details.how p{margin-top:6px}
   const FEATN={s16:"16th notes",e8:"8th notes",ea:"notes on the e and a",and:"notes on the &",tie:"ties across the beat",dot:"dotted rhythms",rest1:"rests on the strong beat",rest:"rests on the beat",mix:"three or more note values in a bar"};
   // every level's pool: the different bars its generator makes, ranked by difficulty (built once per level and time signature)
   const POOLS={}; const sig=b=>b.ev.map(e=>e.s+":"+e.d+(e.r?"r":"")+(e.tie?"t":"")).join(",");
-  function poolOf(lv){ const M=MT(), H=keyIn()&&$("holds").checked, k=lv+"|"+M.id+"|"+(H?1:0); if(POOLS[k]) return POOLS[k];
+  function poolOf(lv){ const M=MT(), H=holdIn(), k=lv+"|"+M.id+"|"+(H?1:0); if(POOLS[k]) return POOLS[k];
     const seen=new Map(); for(let i=0;i<700;i++){ const b=makeBar(lv), g=sig(b); if(!seen.has(g)){ const q=diffOf(b,M,H); seen.set(g,{...b,diff:q.d,feat:q.f,lv}) } }
     const L=[...seen.values()].sort((a,b)=>a.diff-b.diff); return POOLS[k]=L }
   // a band of a pool: [from, to) as fractions of the ranked list (at least 3 bars wide)
@@ -426,7 +426,7 @@ details.how p{margin-top:6px}
   // bars above that average from this level and the next one fill in, so every round's average is above the last one's (as long as the
   // three levels hold a harder bar at all). Built once per level, time signature and holds setting.
   const RLISTS={};
-  function roundLists(lv){ const M=MT(), H=keyIn()&&$("holds").checked, key=lv+"|"+M.id+"|"+(H?1:0); if(RLISTS[key]) return RLISTS[key];
+  function roundLists(lv){ const M=MT(), H=holdIn(), key=lv+"|"+M.id+"|"+(H?1:0); if(RLISTS[key]) return RLISTS[key];
     const nx=nextLv(lv), nx2=nx&&nextLv(nx), U=poolOf(lv).concat(nx?poolOf(nx):[],nx2?poolOf(nx2):[]).sort((a,b)=>a.diff-b.diff), out=[null]; let floor=-1; // (the level after next only fills in when both run out)
     const mean=L=>L.reduce((a,x)=>a+x.diff,0)/L.length;
     for(let r=1;r<=6;r++){ let L=[]; for(const [l,x,z] of roundBands(r,lv)) L=L.concat(band(l,x,z)); L=L.filter(b=>b.diff>floor+1e-9);
@@ -662,18 +662,18 @@ details.how p{margin-top:6px}
     msg(null, mode==="hear"?"Listen…":"Count in: "+countWords(), mode==="hear"?"":loopOn&&loopRes?`Last time: ${loopRes.score}%. Again on beat 1.`:"Start tapping on beat 1 of the next bar.");
     // Tap with "Grade how long I hold" on: releases are graded too. A note that ends with the bar may be let go after the bar ends,
     // so grading waits (only while it is still held) until that note's Good window has passed.
-    const holds=mode==="test"&&keyIn()&&$("holds").checked, endL=holds?Math.max(0,...holdSpec(bar.ev).filter(h=>h.graded&&h.end===M.units).map(h=>h.len)):0;
+    const holds=mode==="test"&&holdIn()&&(inMode!=="note"||!!(mic&&mic.fx)), endL=holds?Math.max(0,...holdSpec(bar.ev).filter(h=>h.graded&&h.end===M.units).map(h=>h.len)):0;
     // mic modes: the take stays open past the bar for the late window (250 ms) + the mic lag + the detector's confirm time (~200 ms),
     // so a last note played late (or loud and long) is always heard before grading
     const mlag=!micMode()?0:(manLag("mic")!=null?manLag("mic")/1000:autoLag("mic")), tail=!micMode()?0.35:Math.max(0.35,0.25+mlag+0.22);
-    const R=run={mode,start,end,t0,u:U,holds,tail,grace:Math.min(2,0.35+(endL?holdWin(endL*U,SP).g+0.05:0))};
-    if(mode==="test"&&inMode==="note") fxWins(bar.notes.map(n=>start+n.s*U),null,U,mlag); if(mode==="test"){ lastStart=start; lastU=U; lastHolds=holds } lockUI();
+    const hX=inMode==="note"?NOTE_HOLD_X:1, R=run={mode,start,end,t0,u:U,holds,tail,grace:Math.min(2,0.35+(endL?hX*holdWin(endL*U,SP).g+0.05+(inMode==="note"?REL_LATE:0):0))};
+    if(mode==="test"&&inMode==="note") fxWins(bar.notes.map(n=>start+n.s*U),null,U,mlag); if(mode==="test"){ lastStart=start; lastU=U; lastHolds=holds; lastHoldX=hX } lockUI();
     const tick=()=>{ if(run!==R) return; /* this bar was stopped (or replaced): its frame loop ends here */ const now=a.currentTime; let px=null, pos=null;
       if(now>=start&&now<=end){ pos=(now-start)/U; px=$("cursor").checked?xOf(pos):null; if(mode==="test"&&!run.go){ run.go=true; msg(null,"Go!",inMode==="clap"?"Clap or snap every note.":inMode==="note"?"Play your note for every note.":"Tap every note.") } }
       if(loopOn&&mode==="test"&&gmode==="practice"&&!R.q&&now>=end-0.3){ R.q=true; loopAt=end; countClicks(end,M,SP) }
       if(now<start&&mode==="test"){ const n=M.compound?6:M.beats, left=Math.ceil((start-now)/(M.compound?SP/3:SP)); $("msg").querySelector(".v").textContent=left<=n?"Count in: "+(n+1-left):"Get ready"; }
       if(loopOn&&loopRes&&mode==="test"&&now<start) drawBar(loopRes.res); else drawBar(null,px,pos);
-      if(now>end+R.tail&&!(R.holds&&now<end+R.grace&&[...held.values()].some(h=>h.arr===taps&&h.i>=0))){ const m=run.mode; run=null; $("go").disabled=false; lockUI(); $("hear").disabled=!!sess; if(m==="test") grade(); else { drawBar(null); msg(null,"Your turn","Press Start, count in, then tap it.") } return }
+      if(now>end+R.tail&&!(R.holds&&now<end+R.grace&&([...held.values()].some(h=>h.arr===taps&&h.i>=0)||nHeld()))){ const m=run.mode; run=null; $("go").disabled=false; lockUI(); $("hear").disabled=!!sess; if(m==="test") grade(); else { drawBar(null); msg(null,"Your turn","Press Start, count in, then tap it.") } return }
       requestAnimationFrame(tick) };
     tick() }
 
@@ -697,6 +697,9 @@ details.how p{margin-top:6px}
   const padDown=()=>$("pad").classList.toggle("down",[...held.values()].some(h=>h.arr===taps&&h.i>=0));
   function pressAt(t,id,src){ src=src||"tap"; if(held.has(id)) releaseAt(t,id); const man=manLag(src), lag=man!=null?man/1000:autoLag(src), i=tapAt(t,src==="tap"?undefined:src); held.set(id,{arr:taps,i,lag}); padDown(); return i }
   function releaseAt(t,id){ const h=held.get(id); if(!h) return; held.delete(id); if(h.i>=0&&h.arr===taps&&rels[h.i]==null) rels[h.i]=t-h.lag; padDown() }
+  // One note: the last hit that can still be let go (the worklet posts {rel} for it: damper, fade-out or a re-strike); same lag as its attack
+  let nHold=null; const nHeld=()=>inMode==="note"&&!!nHold&&nHold.arr===taps&&nHold.i>=0&&rels[nHold.i]==null;
+  function relN(t){ if(nHeld()){ const man=manLag("mic"), lag=man!=null?man/1000:autoLag("mic"); rels[nHold.i]=Math.max(taps[nHold.i]+0.01,t-lag) } nHold=null }
   function releaseAll(){ const t=audio?audio.currentTime:0; [...held.keys()].forEach(id=>releaseAt(t,id)) }
   // pointerdown is the pad's only input path (no click, touchstart or mousedown handler), so each physical tap is one hit; preventDefault stops the
   // synthetic mouse events, and the long-press menu and selection are blocked (2026-11-13.4)
@@ -726,6 +729,9 @@ details.how p{margin-top:6px}
   // Lifting a little early to play the next note is normal playing, so when another note follows right away the early side gets a lift allowance.
   const holdWin=(L,beat)=>({p:Math.max(0.1,Math.min(0.25*L,0.4*beat)),g:Math.max(0.2,Math.min(0.5*L,0.75*beat))});
   const liftOf=L=>0.08+0.1*L; // seconds forgiven on an early let-go when the next note starts where this one ends
+  // One note (2026-11-20): a mic hears a let-go less sharply than a key-up (the damper takes a few ms to silence the string, the room rings on,
+  // the mic adds its lag), so its Perfect and Good windows are 1.4x wider; REL_LATE = extra wait after the bar for a let-go to be heard
+  const NOTE_HOLD_X=1.4, REL_LATE=0.15;
   const HOLD_PEN={perfect:0,good:0.05,early:0.3,late:0.3,held:0.35}; // taken off that note's attack score (never below 0)
   const HCOL={perfect:"#1f8a4c",good:"#c98a06",early:"#c2352b",late:"#c2352b",held:"#c2352b"};
   // ---------- grading ----------
@@ -760,9 +766,9 @@ details.how p{margin-top:6px}
       if(bi<0){ missed.push(n.s); byNote.set(idx,{col:"#c2352b"}); return }
       used.add(bi); const ms=bd*1000, ad=Math.abs(ms); errs.push(ms);
       const a=ad/1000; let sc=tScore(a,TW), col; if(a<=TW.P){col="#1f8a4c";perfect++} else if(a<=TW.G){col="#c98a06";okN++} else if(a<=TW.O) col="#e0702c"; else col="#b0413e";
-      // the release (Tap, graded notes only). Not double-punished: a late start held for the right length is a good release too,
+      // the release (Tap, MIDI, One note; graded notes only). Not double-punished: a late start held for the right length is a good release too,
       // so the release is judged by whichever is closer, the written end or the written length from where you started.
-      let hold=null; if(HS&&HS[ni].graded){ const hs=HS[ni], L=hs.len*u, w=holdWin(L,u*MT().beatU), r=rels[bi]; let err=null, g="held";
+      let hold=null; if(HS&&HS[ni].graded){ const hs=HS[ni], L=hs.len*u, w0=holdWin(L,u*MT().beatU), w={p:w0.p*lastHoldX,g:w0.g*lastHoldX}, r=rels[bi]; let err=null, g="held";
         if(r!=null){ const e1=r-(st+hs.end*u), e2=(r-taps[bi])-L; err=Math.abs(e2)<Math.abs(e1)?e2:e1; const a=err<0&&!hs.beforeRest&&hs.end<MT().units?Math.max(0,-err-liftOf(L)):Math.abs(err); g=a<=w.p?"perfect":a<=w.g?"good":err<0?"early":"late" }
         sc=Math.max(0,sc-HOLD_PEN[g]); hold={...hs,a:(taps[bi]-st)/u,r:r==null?null:(r-st)/u,err,g,col:HCOL[g]}; holds.push(hold) }
       // Challenge points: 1 perfect start, ½ good start, then −½ for a long note let go early or held too long (never below 0 for the note)
@@ -805,7 +811,7 @@ details.how p{margin-top:6px}
     const a16=Math.abs(h.err)/u, unit=M.compound?2:4, q=Math.round(2*a16/unit)/2, word=M.compound?"eighth":"beat";
     const by=q>=1?`${half(q)} ${word}${q>1?"s":""}`:q===0.5?(M.compound?"a 16th":"half a beat"):`${Math.round(Math.abs(h.err)*1000)} ms`;
     return h.g==="early"?`${on}: let go early by ${by}. ${h.tied?"Hold it through the tie":"Hold it"} to ${endW}.`:`${on}: held too long by ${by}. Let go ${h.beforeRest?"on the rest":"at "+endW}${h.beforeRest?` (${endW})`:""}.` }
-  let lastStart=0, lastU=0.25*60/72, lastHolds=false, lastGrade=null;
+  let lastStart=0, lastU=0.25*60/72, lastHolds=false, lastHoldX=1, lastGrade=null;
   function msg(cls,v,c){ const el=$("msg"); el.className="msg"+(cls?" "+cls:""); el.querySelector(".v").textContent=v; el.querySelector(".c").textContent=c||"" }
   // ---------- modes: Single tries (default) · Challenge (same shape as Note Sprint) ----------
   // Points per rhythm: 1 for every perfect note (within 21 ms at 72 BPM, see tWin), ½ for a good one (within ~56 ms), −½ for an extra tap,
@@ -1075,6 +1081,15 @@ details.how p{margin-top:6px}
   // taken out: their partials are masked, and what each click adds to every other bin is learned on the count-in and subtracted.
   // Near a written note a smaller jump counts (a soft re-strike); away from the written notes (an extra) it takes a full strike of your pitch.
   // Every hit is stamped on the audio clock (sample-exact); one strike gives one hit (two jumps closer than 110 ms for the same written note are one).
+  // One note holds (2026-11-20): how long each note is held, from the level of your note's own harmonics (one FFT frame every 2.7 ms).
+  // A note is let go when (a) the level falls REL_DROP dB or more within REL_WIN (a piano damper kills the string that fast; a held key's
+  // natural decay is only a few dB per 100 ms), or (b) it fades below REL_FADE dB under that note's attack peak, or to within REL_FLOOR dB of
+  // the room's quiet level (a note that rings out counts as let go there), or (c) the same note is struck again (legato: let go at the new strike).
+  // The time is where the fall starts (the first frame REL_EDGE dB under the level just before it), stamped on the audio clock like the attacks.
+  const REL_DROP=25, REL_WIN=0.12, REL_FADE=35, REL_FLOOR=6, REL_EDGE=6, REL_STEEP=12, REL_PK=0.15, REL_MIN=0.03, REL_HOLD=0.02, REL_OFF=0.018, REL_LIFT=7;
+  // REL_LIFT: before a re-strike, a fall this big (natural decay is ~1 dB in 120 ms) means the key came up first; REL_STEEP: a fall at least this big inside REL_WIN is a damper fall, so its start is walked back to; REL_PK: the attack peak is the loudest
+  // frame in the first 150 ms; REL_MIN: no release is looked for in the first 30 ms of the attack; REL_HOLD: a fade must stay under its line 20 ms;
+  // REL_OFF: the stamp lands this much after the key comes up (the string needs ~20 ms to fall REL_EDGE dB under a -300 dB/s damper), measured on synthetic piano tones.
 class NoteFlux{
    constructor(sr,post){ this.sr=sr; this.post=post; const N=this.N=sr>66000?2048:1024; this.HL=18; this.H=N/8; this.x=new Float32Array(N); this.xi=0; this.cnt=0; const PN=this.PN=2*N; this.px=new Float32Array(PN); this.pi=0; this.pre=new Float64Array(PN); this.pim=new Float64Array(PN); this.prev2=new Uint32Array(PN); for(let i=0,j=0;i<PN;i++){ this.prev2[i]=j; let b=PN>>1; while(j&b){ j^=b; b>>=1 } j|=b } this.phw=new Float32Array(PN); for(let i=0;i<PN;i++) this.phw[i]=0.5-0.5*Math.cos(2*Math.PI*i/PN); this.pend=[]; this.now=0;
     this.hw=new Float32Array(N); for(let i=0;i<N;i++) this.hw[i]=0.5-0.5*Math.cos(2*Math.PI*i/N);
@@ -1084,11 +1099,13 @@ class NoteFlux{
     this.M=[]; for(let i=0;i<this.HL;i++) this.M.push(new Float32Array(N/2)); this.Mx=this.M.map(()=>new Float32Array(N/2)); this.mi=0; this.fr=0;
     this.D=new Float32Array(16); this.Ev=new Float32Array(16); this.Rr=new Float32Array(16); this.T=new Float64Array(16); this.di=0;
     this.g=3; this.midi=60; this.refr=0.05; this.clicks=[]; this.ckLat=null; this.tmpl={}; this.last=-1; this.nf=1e-5; this.log=0; this.mask(); }
-   set(o){ if(o.click){ this.clicks=this.clicks.filter(c=>c.t>this.now-2).slice(-80); this.clicks.push(o.click); return } if(o.reset){ this.pend=[]; this.hold=null; this.last=-1; this.eRef=0; return } const m=this.midi; Object.assign(this,o); if(o.midi!=null&&o.midi!==m) this.mask(); if(o.clickF!=null||o.ckRanges!==undefined) this.mask() }
+   set(o){ if(o.click){ this.clicks=this.clicks.filter(c=>c.t>this.now-2).slice(-80); this.clicks.push(o.click); return } if(o.reset){ this.pend=[]; this.hold=null; this.last=-1; this.eRef=0; this.rt=null; this.rh=[]; return } const m=this.midi; Object.assign(this,o); if(o.midi!=null&&o.midi!==m) this.mask(); if(o.clickF!=null||o.ckRanges!==undefined) this.mask() }
    // the frequency ranges the app's own clicks occupy: sent by the page for the chosen click sound (ckR), else the classic click's
    ranges(w){ w=w||0; if(this.ckRanges) return this.ckRanges.map(([a,b])=>[a*(1-w),b*(1+w)]); const cf=this.clickF, out=[]; if(cf) for(const f of [cf,cf*1.335]) out.push([f*0.97,f*1.37],[2.7*f,2.82*f],[1.96*f,2.04*f]); return out.map(([a,b])=>[a*(1-w),b*(1+w)]) }
    mask(){ const N=this.N, bw=this.bw, f0=440*Math.pow(2,(this.midi-69)/12); const hm=new Uint8Array(N/2);
     for(let h=1;h*f0<8000;h++){ const f=h*f0*Math.sqrt(1+0.0003*h*h), k=f/bw, w=Math.max(1,Math.round(0.012*h*f0/bw)); for(let j=Math.floor(k-w);j<=Math.ceil(k+w);j++) if(j>=this.kLo&&j<=this.kHi) hm[j]=1 }
+    const hh=hm.slice(); for(const [a,b] of this.ranges()) for(let j=Math.floor(a/bw)-1;j<=Math.ceil(b/bw)+1;j++) if(j>=0&&j<N/2) hh[j]=0;
+    this.hbins=[]; for(let k=this.kLo;k<=this.kHi;k++) if(hh[k]&&k*bw<5000) this.hbins.push(k); this.hbins=Int32Array.from(this.hbins); // your note's harmonics only (the hold level)
     if(this.allBins) for(let k=this.kLo;k<=this.kHi;k++) hm[k]=1;
     for(const [a,b] of this.ranges()) for(let j=Math.floor(a/bw)-1;j<=Math.ceil(b/bw)+1;j++) if(j>=0&&j<N/2) hm[j]=0;
     this.bins=[]; for(let k=this.kLo;k<=this.kHi;k++) if(hm[k]) this.bins.push(k); this.bins=Int32Array.from(this.bins) }
@@ -1097,7 +1114,7 @@ class NoteFlux{
     for(let L=2;L<=N;L<<=1){ const h=L>>1, st=N/L; for(let i=0;i<N;i+=L) for(let k=0;k<h;k++){ const c=this.cs[k*st], s=this.sn[k*st], p=i+k, q=p+h, tr=re[q]*c-im[q]*s, ti=re[q]*s+im[q]*c; re[q]=re[p]-tr; im[q]=im[p]-ti; re[p]+=tr; im[p]+=ti } } }
    push(x,t0){ const N=this.N; for(let i=0;i<x.length;i++){ this.x[this.xi]=x[i]; this.xi=(this.xi+1)%N; this.px[this.pi]=x[i]; this.pi=(this.pi+1)%this.PN; if(++this.cnt>=this.H){ this.cnt=0; this.now=t0+(i+1)/this.sr; this.frame(this.now); this.due() } } }
    // pitch check, 45 ms after the onset (the window then holds the new sound): is this your note? (not needed for a strike on your ringing note)
-   due(){ if(this.hold&&this.now>this.hold.t+this.sat+0.06) this.flush(); while(this.pend.length&&this.now>=this.pend[0].t+this.pdel){ const p=this.pend.shift(); const pc=this.pitchOK(); p.pf=pc.f; p.pr=pc.r; p.pc=pc.c; const rz=this.riseOK(p); p.hr=rz.h; p.P0=null; if(!pc.ok&&!p.inW){ p.why="pitch"; if(this.log) this.post({rej:1,...p}); continue } if(!rz.ok){ p.why="clap"; if(this.log) this.post({rej:1,...p}); continue } this.emit(p) } }
+   due(){ if(this.hold&&this.now>this.hold.t+this.sat+0.06) this.flush(); while(this.pend.length&&this.now>=this.pend[0].t+this.pdel){ const p=this.pend.shift(); const pc=this.pitchOK(); p.pf=pc.f; p.pr=pc.r; p.pc=pc.c; const rz=this.riseOK(p); p.hr=rz.h; p.P0=null; if(!pc.ok&&!p.inW){ p.why="pitch"; if(this.log){ this.relStart(p); this.post({rej:1,...p}) } continue } if(!rz.ok){ p.why="clap"; if(this.log){ this.relStart(p); this.post({rej:1,...p}) } continue } this.emit(p) } }
    comb(P,f0){ const PN=this.PN, bw=this.sr/PN; let s=0, nb=0; for(let h=1;h*f0<4500;h++){ const f=h*f0*Math.sqrt(1+0.0003*h*h), k=Math.round(f/bw), w=Math.max(1,Math.round(0.012*h*f0/bw)); let m=0; for(let j=k-w;j<=k+w;j++) if(j>0&&j<PN/2&&P[j]>m) m=P[j]; s+=m; nb+=2*w+1 } return {s,nb} }
    // power spectrum of the last 43 ms (the pitch window) into P
    pspec(P){ const PN=this.PN, re=this.pre, im=this.pim, rv=this.prev2; for(let i=0;i<PN;i++){ re[i]=this.px[(this.pi+i)%PN]*this.phw[i]; im[i]=0 }
@@ -1121,6 +1138,7 @@ class NoteFlux{
     return {ok:fr>=Math.min(this.pCap,this.pMin*dens)&&fr>=this.pRel*best,f:fr,r:fr/(best+1e-9),c:dens} }
    frame(t){ const N=this.N, re=this.re, im=this.im; for(let i=0;i<N;i++){ re[i]=this.x[(this.xi+i)%N]*this.hw[i]; im[i]=0 } this.fft();
     const M=this.M[this.mi]; const sc=4/N; for(let k=this.kLo;k<=this.kHi+1;k++) M[k]=Math.sqrt(re[k]*re[k]+im[k]*im[k])*sc;
+    this.relFrame(t,M);
     const fr=++this.fr; const HL=this.HL, Mx=this.Mx[this.mi]; for(let k=this.kLo;k<=this.kHi;k++) Mx[k]=this.fmax?Math.max(M[k-1],M[k],M[k+1]):M[k];
     // the reference: the loudest each bin has been 13-43 ms ago (a strike jumps above all of it; a beating or swelling ring does not)
     const Rf=this.Rf||(this.Rf=new Float32Array(N/2)); Rf.fill(0); for(let l=this.l0;l<=this.l1;l++){ const X=this.Mx[(this.mi+HL-l)%HL]; for(let k=this.kLo;k<=this.kHi;k++) if(X[k]>Rf[k]) Rf[k]=X[k] }
@@ -1163,7 +1181,28 @@ class NoteFlux{
    // second bump, a damper thud just before the key): the stronger one wins, decided 120 ms after the first
    emit(p){ const h=this.hold; if(h&&Math.abs(p.t-h.t)<this.sat&&!(p.wid>=0&&h.wid>=0&&p.wid!==h.wid)&&Math.min(p.E,h.E)<this.satR*Math.max(p.E,h.E)){ /* two strikes of similar strength are two hits: a flam or banging is graded as extras */ if(p.E>h.E){ p.over=h.t; this.hold=p } else if(this.log) this.post({rej:1,...p,why:"double"}); return }
     this.flush(); this.hold=p }
-   flush(){ if(this.hold){ this.post(this.hold); this.hold=null } }
+   flush(){ if(this.hold){ this.relStart(this.hold); this.post(this.hold); this.hold=null } }
+   // ---- holds: the level of your note's harmonics (dB), its quiet floor, and the last 0.6 s of it (a hit is posted ~165 ms after it starts,
+   // so its hold is replayed from the hit's own start) ----
+   relFrame(t,M){ const hb=this.hbins; if(!hb) return; let p=0; for(let j=0;j<hb.length;j++){ const v=M[hb[j]]; p+=v*v } const L=10*Math.log10(p+1e-20), tc=t-this.N/(2*this.sr);
+    this.rFl=this.rFl==null?L:Math.min(L,this.rFl+1.6*this.H/this.sr); // the quietest level lately, creeping up 1.6 dB/s
+    const rh=this.rh||(this.rh=[]); rh.push([tc,L]); while(rh.length&&rh[0][0]<tc-0.6) rh.shift(); if(this.rt) this.relStep(tc,L) }
+   // every hit the page counts starts a hold (the page also counts a candidate posted as rejected for pitch or clap: those carry on:1;
+   // a "double" is never tracked, its strike's own hit is)
+   relStart(h){ const r=this.rt; if(r&&!r.done&&h.t>r.t0+REL_MIN){ // (c) the same note again: the last one is let go at the new strike,
+     // or where its sound started falling just before it (a key let up 30-100 ms early: a fall of REL_LIFT dB or more in the frames before the strike)
+     const w0=this.N/(2*this.sr), pre=(this.rh||[]).filter(([t])=>t>=Math.max(r.t0+REL_MIN,h.t-REL_WIN-0.03)&&t<h.t-w0); let tr=h.t;
+     if(pre.length>2){ let mx=-1e9, mt=0; for(const [t,l] of pre) if(l>mx){ mx=l; mt=t } if(mx-pre[pre.length-1][1]>=REL_LIFT) for(const [t,l] of pre) if(t>mt&&l<mx-REL_EDGE){ tr=Math.min(h.t,t-REL_OFF); break } }
+     this.post({rel:1,t:tr,why:tr<h.t?"damper":"restrike"}) }
+    this.rt={t0:h.t,pk:-1e9,buf:[],below:null,done:false}; for(const [t,l] of (this.rh||[])) if(t>=h.t-0.002) this.relStep(t,l) }
+   relStep(tc,L){ const r=this.rt; if(r.done||tc<r.t0-0.002) return; if(tc<=r.t0+REL_PK) r.pk=Math.max(r.pk,L);
+    r.buf.push([tc,L]); while(r.buf.length&&r.buf[0][0]<tc-REL_WIN-0.02) r.buf.shift(); if(tc<r.t0+REL_MIN) return;
+    let mx=-1e9, mt=tc; for(const [t,l] of r.buf) if(t>=tc-REL_WIN&&l>mx){ mx=l; mt=t }
+    const steep=mx-L>=REL_DROP, thr=Math.max(r.pk-REL_FADE,this.rFl+REL_FLOOR);
+    if(!steep){ if(L<thr){ if(r.below==null) r.below=tc; if(tc-r.below<REL_HOLD) return } else { r.below=null; return } }
+    // where the fall started: after the loudest frame of the last 120 ms, the first frame REL_EDGE dB under it (a damper); a slow fade is let go where it crossed its line
+    let tr=steep?tc:r.below; if(mx-L>=REL_STEEP) for(const [t,l] of r.buf) if(t>mt&&l<mx-REL_EDGE){ tr=t; break }
+    r.done=true; this.post({rel:1,t:tr-REL_OFF,why:steep?"damper":"fade",drop:+(mx-L).toFixed(1)}) }
   }
   class NoteFluxP extends AudioWorkletProcessor{constructor(){super();const d=this.d=new NoteFlux(sampleRate,m=>this.port.postMessage(m));
     Object.assign(d,{allBins:1,fr0:0.41,useF:1,thIn:0.08,thOut:0.3,wins:[],fmax:0,l0:5,l1:16,pdel:0.045,pMin:1.5,pCap:0.3,pRel:0.8,hMin:0.9,eOut:0.3,ckR:1.6,nzKin:1.5,sat:0.11,satR:0.35,off:0.008,kap:1,nfl:0.00003,gAbs:0.000005,nzK:3,refr:0.03,log:2});
@@ -1196,9 +1235,9 @@ class NoteFlux{
     fxPost({wins:s.map((t,i)=>{ const gp=Math.min(i?t-s[i-1]:9,i<s.length-1?s[i+1]-t:9), w=W!=null?W:Math.min(0.08,Math.max(0.03,0.45*gp)); return [t+lag-w,t+lag+w] })}) }
   const subOn=()=>!!$("subdiv").checked&&!MT().compound;
   // Diagnostics (?debug=1 or "Mic not catching hits?"): the last 30 things the One note detector decided, with the numbers
-  const fxLog=[]; function fxNote(m){ if(!(m.on||m.cand||m.rej||m.lat)) return; const st=run&&run.mode==="test"?run.start:lastStart, u=run?run.u:lastU;
+  const fxLog=[]; function fxNote(m){ if(!(m.on||m.cand||m.rej||m.lat||m.rel)) return; const st=run&&run.mode==="test"?run.start:lastStart, u=run?run.u:lastU;
     const pos=st!=null&&u?((m.t-(latNote!=null?latNote/1000:autoLag("mic"))-st)/u/MT().beatU):null;
-    fxLog.push({t:+m.t.toFixed(4),beat:pos==null?null:+(pos+1).toFixed(2),F:m.F!=null?+m.F.toFixed(3):null,E:m.E!=null?+m.E.toExponential(2):null,dec:m.on?"HIT":m.lat?"click lag "+Math.round(m.v*1000)+" ms":"no",why:m.why||(m.on?(m.inW?"near a written note":"extra (away from the notes)"):""),click:!!m.ck,pitch:m.pf!=null?+m.pf.toFixed(2):null});
+    fxLog.push({t:+m.t.toFixed(4),beat:pos==null?null:+(pos+1).toFixed(2),F:m.F!=null?+m.F.toFixed(3):null,E:m.E!=null?+m.E.toExponential(2):null,dec:m.on?"HIT":m.rel?"LET GO":m.lat?"click lag "+Math.round(m.v*1000)+" ms":"no",why:m.rel?(m.why==="damper"?"let go (sound stopped)":m.why==="fade"?"faded out":"struck again"):m.why||(m.on?(m.inW?"near a written note":"extra (away from the notes)"):""),click:!!m.ck,pitch:m.pf!=null?+m.pf.toFixed(2):null});
     if(fxLog.length>30) fxLog.shift(); if(!$("diag").hidden) drawDiag() }
   function drawDiag(){ $("diagRows").textContent=fxLog.slice().reverse().map(r=>`${r.beat==null?"–":("beat "+r.beat).padEnd(10)} ${r.dec.padEnd(4)} jump ${r.F==null?"–":r.F.toFixed(2)}  level ${r.E==null?"–":r.E.toExponential(1)}${r.click?"  on a click":""}  ${r.why}`).join("\n")||"Nothing heard yet. Play your note." }
   let micBusy=false, micTries=0;
@@ -1302,8 +1341,8 @@ class NoteFlux{
       mic.reset=()=>{ if(fx) try{ fx.port.postMessage({reset:1}) }catch(e){} prev=0; last=a.currentTime; pend=null; ckR=0; ckN=0; hbBase=0; noteHist.length=0; accN.length=0; ckS=0; if(det) try{ det.port.postMessage({sl:0,mn:0,hold:0,hp:0,cap:null,warm:Math.round(0.15*a.sampleRate)}) }catch(e){} };
       // re-strikes: a hammer strike on your note while it is still ringing counts at once (no fresh 110 ms pitch check: the pitch is already yours).
       // Score needed: 8 (and louder after than before) anywhere, 1.8 within a written note's window. Never on a click unless clearly louder than the click; a fresh note is left to the level path.
-      if(fx){ mic.fx=fx; fxSync(); fx.port.onmessage=e=>{ const m=e.data; fxNote(m); if(!m.on||inMode!=="note") return;
-          tapAt(m.t,"mic",{via:"flux"}); $("pad").classList.add("hit"); setTimeout(()=>$("pad").classList.remove("hit"),90) } }
+      if(fx){ mic.fx=fx; fxSync(); fx.port.onmessage=e=>{ const m=e.data; fxNote(m); if(m.rel){ if(inMode==="note") relN(m.t); return } if(!m.on||inMode!=="note") return;
+          const i=tapAt(m.t,"mic",{via:"flux"}); if(m.why!=="double") nHold={arr:taps,i:i==null?-1:i}; $("pad").classList.add("hit"); setTimeout(()=>$("pad").classList.remove("hit"),90) } }
       if(nd){ mic.nd=nd; nd.port.postMessage({refr:Math.max(0.03,noteRefr()-0.01)}); nd.port.onmessage=e=>{ const m=e.data; if(inMode!=="note"||calHook||hypeWait()>0) return; const t=m.t, near=outT.some(o=>Math.abs(t-o)<0.03);
         const ck=outT.filter(o=>Math.abs(t-o)<0.03).sort((x,y)=>Math.abs(t-x)-Math.abs(t-y))[0], cg=ck==null?0:(outG.get(ck)||0.6);
         // count-in: how loud a click looks to this detector, per unit of click volume (the quietest one, so one stray sound can't raise it)
@@ -1353,6 +1392,8 @@ class NoteFlux{
   // ---------- MIDI input (Chrome, Edge, Opera; not Safari) ----------
   // note-on (velocity > 0) = a press, note-off = a release, each on the audio clock of what you heard (getOutputTimestamp), so holds are exact
   let midiAcc=null, midiAsk=null; const keyIn=()=>inMode==="tap"||inMode==="midi";
+  // holds are graded in Tap, MIDI and One note (2026-11-20: the mic hears a piano key let go); Clap or snap is attack-only
+  const holdIn=()=>(keyIn()||inMode==="note")&&$("holds").checked;
   function midiT(ts){ const a=audio; if(!a) return 0; try{ const o=a.getOutputTimestamp&&a.getOutputTimestamp(); if(o&&o.performanceTime>0) return o.contextTime+(ts-o.performanceTime)/1000 }catch(e){}
     return a.currentTime-(performance.now()-ts)/1000-((a.outputLatency||0)+(a.baseLatency||0)) }
   const midiLast={};
