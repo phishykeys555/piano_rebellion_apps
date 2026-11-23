@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""make_beta.py v1.0.0 (2026-11-20). Build the beta copy of one app for the beta lane.
+"""make_beta.py v1.1.0 (2026-11-23; v1.0.0 2026-11-20). v1.1.0: BETA ribbon moved to the top-left corner (beta tester request, approved by Derek) so it never covers bottom controls. Build the beta copy of one app for the beta lane.
 
 Usage: python3 tools/make_beta.py <folder> <site_root>
   <folder>     the app folder on main, e.g. simple-metronome (nested ok: practice-player/major-7th)
@@ -28,7 +28,7 @@ def main():
     if not m:
         sys.exit('no <head> in ' + src)
     html = html[:m.end()] + '\n' + head + html[m.end():]
-    ribbon = ('<div id="chma-beta" style="position:fixed;left:8px;bottom:8px;z-index:2147483647;'
+    ribbon = ('<div id="chma-beta" style="position:fixed;left:calc(8px + env(safe-area-inset-left,0px));top:calc(8px + env(safe-area-inset-top,0px));z-index:2147483647;'
               'background:#c4302b;color:#fff;font:700 12px/1 -apple-system,Helvetica,Arial,sans-serif;'
               'letter-spacing:.08em;padding:6px 9px;border-radius:6px;pointer-events:none;opacity:.92">BETA</div>')
     i = html.lower().rfind('</body>')
