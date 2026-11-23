@@ -1186,6 +1186,6 @@ async function renderOffline(o){ o=o||{}; await loadSounds(); const sv={ac,maste
 Object.assign(window.RiffSays,{midi:()=>MIDI,state:()=>({T,st,loaded,inLog,micLog}),noteIn,perfToCtx,lag,latKey,start:()=>start(false),grade,load:()=>loadSounds(),ac:()=>ac,midiMsg,endOfRun,renderOffline,bandBar:(s,b,ctx)=>{ const keep=T; if(ctx) T=ctx; try{ return bandBar(s,b) } finally{ if(ctx) T=keep } },countTip,keyShort,autoState:()=>T&&{auto:T.autoOffs,done:T.autoDone,msg:T.autoMsg}});
 })();
 </script>
-<div id="chma-beta" style="position:fixed;left:8px;bottom:8px;z-index:2147483647;background:#c4302b;color:#fff;font:700 12px/1 -apple-system,Helvetica,Arial,sans-serif;letter-spacing:.08em;padding:6px 9px;border-radius:6px;pointer-events:none;opacity:.92">BETA</div>
+<div id="chma-beta" style="position:fixed;left:calc(8px + env(safe-area-inset-left,0px));top:calc(8px + env(safe-area-inset-top,0px));z-index:2147483647;background:#c4302b;color:#fff;font:700 12px/1 -apple-system,Helvetica,Arial,sans-serif;letter-spacing:.08em;padding:6px 9px;border-radius:6px;pointer-events:none;opacity:.92">BETA</div>
 </body>
 </html>
