@@ -177,6 +177,10 @@ input[type=range]{accent-color:var(--c-act)}
 }
 .card,.card *{-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}html{overscroll-behavior-y:none}
 </style>
+<style>/* 2026-11-21.1 (beta tester request): nothing on this page selects as text, however fast you tap. Typing boxes still work. */
+html,body,body *{-webkit-user-select:none!important;user-select:none!important;-webkit-touch-callout:none}
+input,textarea,select,[contenteditable]{-webkit-user-select:text!important;user-select:text!important}
+</style>
 </head>
 <body class="chma-page">
 <div class="wrap">
@@ -235,7 +239,7 @@ input[type=range]{accent-color:var(--c-act)}
         <details id="dbgBox" style="margin-top:8px"><summary>Show details</summary><div class="dbg" id="dbg">No mic events yet.</div></details>
       </div>
     </details>
-    <p class="appver" id="appVer">Meter Master · Version 2026-11-20.2</p>
+    <p class="appver" id="appVer">Meter Master · Version 2026-11-21.1</p>
   </section>
 
   <section class="play">
@@ -291,7 +295,7 @@ input[type=range]{accent-color:var(--c-act)}
 <script>
 (()=>{
 'use strict';
-const VER="2026-11-20.2";
+const VER="2026-11-21.1";
 const $=id=>document.getElementById(id);
 const store={get(k,d){try{const v=localStorage.getItem("mm-"+k);return v==null?d:JSON.parse(v)}catch(e){return d}},set(k,v){try{localStorage.setItem("mm-"+k,JSON.stringify(v))}catch(e){}}};
 const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
