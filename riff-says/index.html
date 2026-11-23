@@ -163,10 +163,14 @@ summary{cursor:pointer;padding:0 14px;min-height:44px;display:flex;align-items:c
 @media (max-width:400px){ .beats i{width:13px;height:13px} .beats{gap:4px} }
 @media (prefers-reduced-motion:reduce){.arcsplash.go b,.hitstamp.go{animation-duration:.01s!important;animation-delay:0s!important}.arcmeter i{transition:none}}
 </style>
+<style>/* 2026-11-23.1 (beta tester request): nothing on this page selects as text, however fast you play the keys. Typing boxes still work. */
+html,body,body *{-webkit-user-select:none!important;user-select:none!important;-webkit-touch-callout:none}
+input,textarea,select,[contenteditable]{-webkit-user-select:text!important;user-select:text!important}
+</style>
 </head>
 <body>
 <div class="wrap">
-  <div data-chma-head data-ver="Riff Simon Says · v2026-11-20.1"></div>
+  <div data-chma-head data-ver="Riff Simon Says · v2026-11-23.1"></div>
   <div class="cols">
   <section class="setup">
     <header>
@@ -223,7 +227,7 @@ summary{cursor:pointer;padding:0 14px;min-height:44px;display:flex;align-items:c
       <h3>Credits</h3>
       <p class="tip">Grand piano: Salamander Grand Piano V3 by Alexander Holm (CC BY 3.0), via sfzinstruments. Drums: AVL Drumkits by Glen MacArthur (CC BY-SA 4.0): Black Pearl kick, snare and cross-stick; Blonde Bop hi-hats and ride. Basses (shared with the Modal Metronome): fingered and picked electric, GeneralUser GS by S. Christian Collins (free for any use); upright, FluidR3 GM by Frank Wen (MIT); fingerstyle funk with ghost notes, Black And Blue Basses by Karoryfer Samples (CC0). Rhodes: GeneralUser GS 2.0.3. String pad: FreePats (CC0). Claves: synthesized in the app. Round music: original, synthesized live (CHMA). Riffs are generated from style vocabulary, never copied from records.</p>
     </div></details>
-    <p class="appver">Riff Simon Says · Version 2026-11-20.1</p>
+    <p class="appver">Riff Simon Says · Version 2026-11-23.1</p>
   </section>
 
   <section class="play">
