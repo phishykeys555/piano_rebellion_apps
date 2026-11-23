@@ -197,6 +197,10 @@ details.how p{margin-top:6px}
 .card,.card *{-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}.card pre,.card input[type=text],.card textarea{-webkit-user-select:text;user-select:text}
 #pad{touch-action:none}html{overscroll-behavior-y:none}
 </style>
+<style>/* 2026-11-21.1 (beta tester request): nothing on this page selects as text, however fast you tap. Typing boxes still work. */
+html,body,body *{-webkit-user-select:none!important;user-select:none!important;-webkit-touch-callout:none}
+input,textarea,select,[contenteditable]{-webkit-user-select:text!important;user-select:text!important}
+</style>
 </head>
 <body>
 <div class="wrap">
@@ -1464,6 +1468,6 @@ class NoteFlux{
   if(document.fonts) document.fonts.ready.then(()=>{ if(!run) drawBar(curRes) });
 })();
 </script>
-<p class="appver" style="text-align:center;font-size:11px;opacity:.6;margin:18px 0 10px;font-family:ui-monospace,Menlo,monospace">Rhythm Trainer · Version 2026-11-20.11</p>
+<p class="appver" style="text-align:center;font-size:11px;opacity:.6;margin:18px 0 10px;font-family:ui-monospace,Menlo,monospace">Rhythm Trainer · Version 2026-11-21.1</p>
 </body>
 </html>
