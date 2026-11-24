@@ -214,6 +214,7 @@ input,textarea,select,[contenteditable]{-webkit-user-select:text!important;user-
 .actions>button{white-space:nowrap;padding-left:6px;padding-right:6px}
 @media (max-width:520px){.actions{gap:8px}.actions>button{font-size:14px}.actions>button>span[aria-hidden]{display:none}}
 </style>
+<link rel="icon" type="image/svg+xml" href="../shared/icons/rhythm-trainer.svg"><link rel="icon" type="image/png" sizes="32x32" href="../shared/icons/rhythm-trainer-32.png"><link rel="apple-touch-icon" href="../shared/icons/rhythm-trainer-180.png">
 </head>
 <body>
 <div class="wrap">
@@ -657,7 +658,7 @@ input,textarea,select,[contenteditable]{-webkit-user-select:text!important;user-
     } finally{ starting=false }
     if(run||calHook||sess!==S0||(S0&&S0.stopped)) return;
     if(document.hidden){ if(sess||arc) abortRun(); return } // a page hidden while waiting never starts a bar it can't draw (a challenge stops, as it does when hidden mid-bar)
-    taps=[]; rels=[]; padDown(); if(mic&&mic.nd) try{ mic.nd.port.postMessage({refr:Math.max(0.03,noteRefr()-0.01)}) }catch(e){} $("results").hidden=true; $("again").hidden=true; $("go").disabled=!sess; $("hear").disabled=true;
+    taps=[]; rels=[]; padDown(); if(mic&&mic.nd) try{ mic.nd.port.postMessage({refr:Math.max(0.03,noteRefr()-0.01)}) }catch(e){} $("results").hidden=true; if(mode==="test") $("again").hidden=true; $("go").disabled=!sess; $("hear").disabled=true; // Hear it after a try keeps "Retry" (2026-11-24.1)
     const M=MT(), SP=spb(), U=SP/M.beatU; // this bar's tempo, fixed for the whole bar (count-in, clicks, cursor and grading)
     const pre=at!=null&&at+M.beats*SP>a.currentTime+0.05, t0=pre?at:a.currentTime+0.15-(mode==="hear"?M.beats*SP:0), start=t0+M.beats*SP, end=start+M.units*U; // Hear it starts right away (no silent bar)
     // while you play into the mic, the clicks in your bar are softer so the mic hears you, not them
@@ -713,7 +714,7 @@ input,textarea,select,[contenteditable]{-webkit-user-select:text!important;user-
         const c=n+1-left; if(left<=n&&R.cf!==c){ R.cf=c; const f=$("cntFlash"); f.textContent=c; f.classList.toggle("one",c===1); f.style.setProperty("--cntd",Math.max(0.25,Math.min(0.7,step*0.85))+"s"); f.classList.remove("go"); void f.offsetWidth; f.classList.add("go") } }
       else if(R.cf){ R.cf=0; $("cntFlash").classList.remove("go") }
       if(loopOn&&loopRes&&mode==="test"&&now<start) drawBar(loopRes.res); else drawBar(null,px,pos);
-      if(now>end+R.tail&&!(R.holds&&now<end+R.grace&&([...held.values()].some(h=>h.arr===taps&&h.i>=0)||nHeld()))){ const m=run.mode; run=null; $("go").disabled=false; lockUI(); $("hear").disabled=!!sess; if(m==="test") grade(); else { drawBar(null); msg(null,"Your turn","Press \"Start\", count in, then tap it.") } return }
+      if(now>end+R.tail&&!(R.holds&&now<end+R.grace&&([...held.values()].some(h=>h.arr===taps&&h.i>=0)||nHeld()))){ const m=run.mode; run=null; $("go").disabled=false; lockUI(); $("hear").disabled=!!sess; if(m==="test") grade(); else { drawBar(null); msg(null,"Your turn",$("again").hidden?"Press \"Start\", count in, then tap it.":"Press \"Retry\" to try this rhythm again, or \"Next\" for a new one.") } return }
       requestAnimationFrame(tick) };
     tick() }
 
@@ -1481,6 +1482,6 @@ class NoteFlux{
   if(document.fonts) document.fonts.ready.then(()=>{ if(!run) drawBar(curRes) });
 })();
 </script>
-<p class="appver" style="text-align:center;font-size:11px;opacity:.6;margin:18px 0 10px;font-family:ui-monospace,Menlo,monospace">Rhythm Trainer · Version 2026-11-23.1</p>
+<p class="appver" style="text-align:center;font-size:11px;opacity:.6;margin:18px 0 10px;font-family:ui-monospace,Menlo,monospace">Rhythm Trainer · Version 2026-11-24.1</p>
 </body>
 </html>

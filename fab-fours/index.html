@@ -101,8 +101,9 @@ kbd{font:600 11px var(--f-num);background:var(--c-key);border:1px solid var(--c-
  :root{--th:clamp(64px,calc((100dvh - 350px) / 4),92px)}
 }
 @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
-</style></head><body><main>
-<div data-chma-head data-ver="v2026-11-20.1"></div>
+</style><link rel="icon" type="image/svg+xml" href="../shared/icons/fab-fours.svg"><link rel="icon" type="image/png" sizes="32x32" href="../shared/icons/fab-fours-32.png"><link rel="apple-touch-icon" href="../shared/icons/fab-fours-180.png">
+</head><body><main>
+<div data-chma-head data-ver="v2026-11-24.1"></div>
 <div class="top">
  <div class="ttl"><h1>Fab <em>Fours</em></h1><p class="tag">Find the four bands of four.</p></div>
  <button class="ib" id="helpB" aria-label="How to play" title="How to play">?</button>
@@ -110,7 +111,7 @@ kbd{font:600 11px var(--f-num);background:var(--c-key);border:1px solid var(--c-
  <button class="ib" id="muteB" aria-label="Sound on" aria-pressed="false" title="Sound">&#9835;</button>
 </div>
 <div class="bar">
- <div class="seg" role="group" aria-label="Mode"><button id="mDaily" aria-pressed="true">Daily</button><button id="mPrac" aria-pressed="false">Practice</button></div>
+ <div class="seg" role="group" aria-label="Mode"><button id="mDaily" aria-pressed="true">Daily</button><button id="mPrac" aria-pressed="false">Archive</button></div>
  <select id="topic" aria-label="Topic"><option value="all">All topics</option><option value="theory">Theory</option><option value="history">History</option><option value="pop">Pop Culture</option><option value="musicals">Musicals</option></select>
 </div>
 <div class="info"><span id="pLabel">&nbsp;</span><span id="pHint">Pick 4 that belong together</span></div>
@@ -121,7 +122,7 @@ kbd{font:600 11px var(--f-num);background:var(--c-key);border:1px solid var(--c-
  <button id="deselect">Deselect all</button>
  <button id="submit">Submit</button>
 </div>
-<p class="appver">Fab Fours · Version 2026-11-20.1</p>
+<p class="appver">Fab Fours · Version 2026-11-24.1</p>
 </main>
 <div id="toast" role="status" aria-live="assertive"></div>
 <div class="sr" id="live" aria-live="polite"></div>
@@ -130,7 +131,7 @@ kbd{font:600 11px var(--f-num);background:var(--c-key);border:1px solid var(--c-
  <div class="dhead"><h2 id="endT">Nice.</h2><button class="ib" data-close aria-label="Close">&times;</button></div>
  <p class="result" id="endSub"></p>
  <div class="rev" id="endRev"></div>
- <div class="btnrow"><button class="prim" id="shareB">Share result</button><button id="nextB">Practice another</button></div>
+ <div class="btnrow"><button class="prim" id="shareB">Share result</button><button id="nextB">Play the archive</button></div>
  <h3>Your stats</h3><div class="stats" id="endStats"></div>
 </div></dialog>
 
@@ -141,7 +142,7 @@ kbd{font:600 11px var(--f-num);background:var(--c-key);border:1px solid var(--c-
 </div></dialog>
 
 <dialog id="dArch" aria-labelledby="arT"><div class="dlg">
- <div class="dhead"><h2 id="arT">Practice archive</h2><button class="ib" data-close aria-label="Close">&times;</button></div>
+ <div class="dhead"><h2 id="arT">Archive</h2><button class="ib" data-close aria-label="Close">&times;</button></div>
  <p style="font-size:13px;color:var(--c-mut)" id="arSub"></p>
  <div class="arch" id="archList"></div>
 </div></dialog>
@@ -154,7 +155,7 @@ kbd{font:600 11px var(--f-num);background:var(--c-key);border:1px solid var(--c-
  <h3>Difficulty tiers</h3>
  <div class="tiers" id="tierKey"></div>
  <h3>Modes</h3>
- <p><b>Daily</b>: one puzzle a day, the same for everyone in the studio. <b>Practice</b>: pick any puzzle from the archive. The topic menu works in both.</p>
+ <p><b>Daily</b>: one puzzle a day, the same for everyone in the studio. <b>Archive</b>: replay any past Daily puzzle. New puzzles only show up there once their day has passed. The topic menu works in both.</p>
  <h3>Keyboard</h3>
  <p><kbd>Arrows</kbd> move between tiles, <kbd>Enter</kbd> or <kbd>Space</kbd> selects. <kbd>Tab</kbd> reaches "Shuffle", "Deselect" and "Submit".</p>
  <p style="font-size:12px;color:var(--c-mut)">An original Clarendon Hills Music Academy game.</p>
@@ -167,6 +168,8 @@ const TIERS={1:{name:"Warm-up",ico:"♩",emo:"🎹"},2:{name:"Groove",ico:"♫",
 const TOPIC_NAME={all:"All topics",theory:"Theory",history:"History",pop:"Pop Culture",musicals:"Musicals"};
 const EPOCH=Date.UTC(2026,10,12); /* Daily #1 = 2026-11-12 */
 let PUZ=[];
+/* Archive (2026-11-24.1, beta tester request): replaces Practice. Only past Daily puzzles (before today), so nobody can play a Daily early. arc = {key, num} of the Daily being replayed. */
+let arc=null;
 
 /* ---------- storage (always guarded) ---------- */
 /* Storage and daily-seed keys keep the old "groupies" prefix on purpose: renaming them would wipe players' stats and change every Daily puzzle. */
@@ -181,6 +184,8 @@ function shuffled(arr,r){const a=arr.slice();for(let i=a.length-1;i>0;i--){const
 /* ---------- dates ---------- */
 function todayKey(d){d=d||new Date();const y=d.getFullYear(),m=d.getMonth()+1,dd=d.getDate();return y+"-"+String(m).padStart(2,"0")+"-"+String(dd).padStart(2,"0")}
 function dayNum(key){const[y,m,d]=key.split("-").map(Number);return Math.round((Date.UTC(y,m-1,d)-EPOCH)/86400000)}
+function keyOfDay(i){const d=new Date(EPOCH+i*86400000);return d.getUTCFullYear()+"-"+String(d.getUTCMonth()+1).padStart(2,"0")+"-"+String(d.getUTCDate()).padStart(2,"0")}
+function pastDailies(topic){const out=[],n=dayNum(todayKey());for(let i=n-1;i>=0;i--){const key=keyOfDay(i);out.push({key,num:i+1,p:dailyPuzzle(key,topic)})}return out}
 function pool(topic){return PUZ.filter(p=>topic==="all"||p.topic===topic)}
 /* Daily: a fixed shuffled order per topic, walked one per day. Same date + topic = same puzzle, same tile order. */
 function dailyPuzzle(key,topic){const list=pool(topic);const order=shuffled(list,rng(hash("groupies-order-"+topic)));const n=dayNum(key);return order[((n%order.length)+order.length)%order.length]}
@@ -193,10 +198,12 @@ if(!TOPIC_NAME[topic])topic="all";
 function tierOf(word){return cur.groups.find(g=>g.items.includes(word))}
 function start(p,opts){
  cur=p;opts=opts||{};sel=[];solved=[];mistakes=0;guesses=[];over=false;won=false;focusIdx=0;guessSet=new Set();
- const seed=mode==="daily"?hash("groupies-"+dateKey+"-"+p.id):(Date.now()>>>0);
+ if(mode!=="daily"&&!(opts.arc||arc))return; /* the archive only ever opens a past Daily */
+ if(mode!=="daily")arc=opts.arc||arc;
+ const seed=hash("groupies-"+(mode==="daily"?dateKey:arc.key)+"-"+p.id);
  tiles=shuffled(p.groups.flatMap(g=>g.items),rng(seed));
- const lab=mode==="daily"?("Daily #"+(dayNum(dateKey)+1)+" · "+dateKey+" · "+TOPIC_NAME[topic]):("Practice #"+p.id+" · "+p.title);
- $("pLabel").innerHTML=mode==="daily"?("<b>Daily #"+(dayNum(dateKey)+1)+"</b> · "+esc(p.title)+" · "+TOPIC_NAME[topic]):("<b>Practice #"+p.id+"</b> · "+esc(p.title));
+ const lab=mode==="daily"?("Daily #"+(dayNum(dateKey)+1)+" · "+dateKey+" · "+TOPIC_NAME[topic]):("Archive · Daily #"+arc.num+" · "+arc.key+" · "+p.title);
+ $("pLabel").innerHTML=mode==="daily"?("<b>Daily #"+(dayNum(dateKey)+1)+"</b> · "+esc(p.title)+" · "+TOPIC_NAME[topic]):("<b>Archive #"+arc.num+"</b> · "+esc(p.title)+" · "+TOPIC_NAME[topic]);
  $("pLabel").title=lab;
  /* restore a finished or in-progress daily */
  if(mode==="daily"){const sv=store.get("daily."+dateKey+"."+topic,null);if(sv&&sv.id===p.id){restore(sv)}}
@@ -288,11 +295,11 @@ function showEnd(fresh){
  $("endSub").textContent=won?("Solved with "+mistakes+" mistake"+(mistakes===1?"":"s")+"."):"Out of mistakes. Here is how it breaks down:";
  $("endRev").innerHTML=cur.groups.slice().sort((a,b)=>a.tier-b.tier).map(g=>'<div class="rg ti'+g.tier+'"><div class="cat"><span class="ico" aria-hidden="true">'+TIERS[g.tier].ico+'</span>'+esc(g.name)+'<span class="tn">'+TIERS[g.tier].name+'</span></div><div class="its">'+g.items.map(esc).join(" · ")+'</div><div class="why">'+esc(g.why)+'</div></div>').join("");
  $("endStats").innerHTML=statsHTML();
- $("nextB").textContent=mode==="daily"?"Play practice":"Next puzzle";
+ $("nextB").textContent=mode==="daily"?"Play the archive":"Older puzzle";
  openD("dEnd");
 }
 function shareText(){
- const head=mode==="daily"?("Fab Fours · Daily #"+(dayNum(dateKey)+1)+" ("+TOPIC_NAME[topic]+")"):("Fab Fours · Practice #"+cur.id);
+ const head=mode==="daily"?("Fab Fours · Daily #"+(dayNum(dateKey)+1)+" ("+TOPIC_NAME[topic]+")"):("Fab Fours · Archive Daily #"+arc.num+" ("+TOPIC_NAME[topic]+")");
  const rows=guesses.map(gs=>gs.map(w=>TIERS[tierOf(w).tier].emo).join(""));
  return head+"\n"+rows.join("\n")+"\n"+(won?"Solved, "+mistakes+" mistake"+(mistakes===1?"":"s"):"Ran out of mistakes");
 }
@@ -315,17 +322,19 @@ $("submit").onclick=submit;
 $("deselect").onclick=()=>{sel=[];snd("off");render();setHint()};
 $("shuffle").onclick=()=>{tiles=shuffled(tiles,rng(Date.now()>>>0));snd("shuf");render();setHint()};
 $("shareB").onclick=share;
-$("nextB").onclick=()=>{$("dEnd").close();if(mode==="daily"){setMode("practice")}else{const l=pool(topic);const i=l.indexOf(cur);start(l[(i+1)%l.length])}};
+$("nextB").onclick=()=>{$("dEnd").close();if(mode==="daily"){setMode("practice")}else{const l=pastDailies(topic);const i=l.findIndex(x=>arc&&x.num===arc.num);const e=l[(i+1)%l.length];if(e)start(e.p,{arc:e})}};
 $("statsB").onclick=()=>{$("statsBox").innerHTML=statsHTML();openD("dStats")};
 $("helpB").onclick=()=>openD("dHelp");
 $("tierKey").innerHTML=[1,2,3,4].map(t=>'<div class="ti'+t+'"><span class="ico" aria-hidden="true">'+TIERS[t].ico+'</span>'+TIERS[t].name+'</div>').join("");
 function setMode(m){mode=m;$("mDaily").setAttribute("aria-pressed",m==="daily");$("mPrac").setAttribute("aria-pressed",m==="practice");
  if(m==="daily"){dateKey=todayKey();start(dailyPuzzle(dateKey,topic))}else{openArchive()}}
-function openArchive(){const done=store.get("done",{});const l=pool(topic);$("arSub").textContent=l.length+" puzzles · "+TOPIC_NAME[topic];
- $("archList").innerHTML=l.map(p=>'<button data-id="'+p.id+'" class="'+(done[p.id]?"done":"")+'">#'+p.id+" "+esc(p.title)+"<small>"+TOPIC_NAME[p.topic]+"</small></button>").join("");
- $("archList").querySelectorAll("button").forEach(b=>b.onclick=()=>{$("dArch").close();mode="practice";$("mDaily").setAttribute("aria-pressed",false);$("mPrac").setAttribute("aria-pressed",true);start(PUZ.find(p=>p.id===+b.dataset.id))});
+function openArchive(){const done=store.get("done",{});const l=pastDailies(topic);
+ $("arSub").textContent=l.length?(l.length+" past Daily puzzle"+(l.length===1?"":"s")+" · "+TOPIC_NAME[topic]):"No past puzzles yet. Today's Daily joins the archive tomorrow.";
+ $("archList").innerHTML=l.map((e,i)=>'<button data-i="'+i+'" class="'+(done[e.p.id]?"done":"")+'">Daily #'+e.num+" "+esc(e.p.title)+"<small>"+e.key+"</small></button>").join("");
+ $("archList").querySelectorAll("button").forEach(b=>b.onclick=()=>{const e=l[+b.dataset.i];$("dArch").close();mode="practice";$("mDaily").setAttribute("aria-pressed",false);$("mPrac").setAttribute("aria-pressed",true);start(e.p,{arc:e})});
  openD("dArch");
- if(mode==="practice"&&(!cur||(topic!=="all"&&cur.topic!==topic)))start(l[0],{quiet:true});}
+ if(!l.length){if(mode!=="daily")setMode("daily");return}
+ if(mode==="practice"&&(!cur||!arc||!l.some(e=>e.num===arc.num&&e.p===cur)))start(l[0].p,{arc:l[0],quiet:true});}
 $("mDaily").onclick=()=>setMode("daily");$("mPrac").onclick=()=>setMode("practice");
 $("topic").value=topic;
 $("topic").onchange=e=>{topic=e.target.value;store.set("topic",topic);if(mode==="daily")start(dailyPuzzle(dateKey,topic));else openArchive()};
@@ -354,8 +363,9 @@ $("muteB").onclick=()=>{muted=!muted;store.set("muted",muted);setMuteUI();if(!mu
 /* ---------- boot ---------- */
 fetch("puzzles.json",{cache:"no-cache"}).then(r=>r.json()).then(p=>{PUZ=p;window.__G={get cur(){return cur},get tiles(){return tiles},dailyPuzzle,todayKey,shareText,get over(){return over},get won(){return won}};
  const q=new URLSearchParams(location.search);
- if(q.get("date")&&/^\d{4}-\d{2}-\d{2}$/.test(q.get("date")))dateKey=q.get("date");
- if(q.get("p")){mode="practice";$("mDaily").setAttribute("aria-pressed",false);$("mPrac").setAttribute("aria-pressed",true);start(PUZ.find(x=>x.id===+q.get("p"))||PUZ[0])}
+ if(q.get("date")&&/^\d{4}-\d{2}-\d{2}$/.test(q.get("date"))&&q.get("date")<=todayKey())dateKey=q.get("date"); /* never a future Daily */
+ const pe=q.get("p")?pastDailies(topic).find(e=>e.p.id===+q.get("p")):null; /* an old practice link opens that puzzle only if it was already a Daily */
+ if(pe){mode="practice";$("mDaily").setAttribute("aria-pressed",false);$("mPrac").setAttribute("aria-pressed",true);start(pe.p,{arc:pe})}
  else start(dailyPuzzle(dateKey,topic));
  if(!store.get("seenHelp",false)&&!q.get("nohelp")){store.set("seenHelp",true);openD("dHelp")}
 }).catch(e=>{$("pLabel").textContent="Could not load puzzles. Refresh to try again."});

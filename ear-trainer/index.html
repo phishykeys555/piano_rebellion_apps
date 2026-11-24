@@ -193,7 +193,7 @@ details.how p{margin:10px 0 0}
   h1{font-size:24px;line-height:1}
   .chma-ver,.sub,.lbl{display:none}
   body.running .s-level,body.running .s-game{display:none}
-  .pick{flex-wrap:nowrap;overflow-x:auto;gap:8px;margin:0 -12px;padding:2px 12px 6px;scroll-snap-type:x proximity;scrollbar-width:none;-webkit-overflow-scrolling:touch}
+  .pick{flex-wrap:nowrap;overflow-x:auto;gap:8px;margin:0 -12px;padding:2px 12px 6px 16px;scroll-padding-inline:16px;scroll-snap-type:x proximity;scrollbar-width:none;-webkit-overflow-scrolling:touch}
   .pick::-webkit-scrollbar{display:none}
   .pick button{flex:0 0 auto;min-width:0;width:auto;min-height:48px;padding:5px 14px;scroll-snap-align:start;gap:0;font-size:14px;line-height:1.25;display:block;text-align:left}
   .pick button b{font-size:14px;display:inline;margin-right:6px}.pick button span{display:block}
@@ -282,7 +282,8 @@ details .note{font-size:14px;color:var(--c-mut);margin:8px 0 0}
   .stats{padding:6px 10px}.stats b{font-size:17px}
   .prompt b.nm{font-size:20px}
 }
-</style></head>
+</style><link rel="icon" type="image/svg+xml" href="../shared/icons/ear-trainer.svg"><link rel="icon" type="image/png" sizes="32x32" href="../shared/icons/ear-trainer-32.png"><link rel="apple-touch-icon" href="../shared/icons/ear-trainer-180.png">
+</head>
 <body>
 <div class="wrap">
   <div data-chma-head></div>
@@ -330,7 +331,7 @@ details .note{font-size:14px;color:var(--c-mut);margin:8px 0 0}
     <label><input type="checkbox" id="hypeOn" checked> Music on round screens</label>
     <p class="note">MIDI keyboard (Chrome or Edge on a computer): press a key to answer. Mystery note = that key; Scale degree and Interval = its distance from the reference, the same as on the keyboard here. Play-it-on-your-piano (microphone) answers are not in this version.</p>
   </details>
-  <p class="appver" id="appVer">Ear Trainer · Version 2026-11-20.1</p>
+  <p class="appver" id="appVer">Ear Trainer · Version 2026-11-24.1</p>
   <p class="credit">Piano: Salamander Grand Piano V3 by Alexander Holm (<a href="https://creativecommons.org/licenses/by/3.0/" target="_blank" rel="noopener">CC BY 3.0</a>), retuned by Markus Fiedler, via sfzinstruments. Song cues name public-domain or traditional tunes; no recordings are used.</p>
   </section>
 

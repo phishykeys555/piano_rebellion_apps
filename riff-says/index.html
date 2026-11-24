@@ -167,10 +167,11 @@ summary{cursor:pointer;padding:0 14px;min-height:44px;display:flex;align-items:c
 html,body,body *{-webkit-user-select:none!important;user-select:none!important;-webkit-touch-callout:none}
 input,textarea,select,[contenteditable]{-webkit-user-select:text!important;user-select:text!important}
 </style>
+<link rel="icon" type="image/svg+xml" href="../shared/icons/riff-says.svg"><link rel="icon" type="image/png" sizes="32x32" href="../shared/icons/riff-says-32.png"><link rel="apple-touch-icon" href="../shared/icons/riff-says-180.png">
 </head>
 <body>
 <div class="wrap">
-  <div data-chma-head data-ver="Riff Simon Says · v2026-11-23.1"></div>
+  <div data-chma-head data-ver="Riff Simon Says · v2026-11-24.1"></div>
   <div class="cols">
   <section class="setup">
     <header>
@@ -227,7 +228,7 @@ input,textarea,select,[contenteditable]{-webkit-user-select:text!important;user-
       <h3>Credits</h3>
       <p class="tip">Grand piano: Salamander Grand Piano V3 by Alexander Holm (CC BY 3.0), via sfzinstruments. Drums: AVL Drumkits by Glen MacArthur (CC BY-SA 4.0): Black Pearl kick, snare and cross-stick; Blonde Bop hi-hats and ride. Basses (shared with the Modal Metronome): fingered and picked electric, GeneralUser GS by S. Christian Collins (free for any use); upright, FluidR3 GM by Frank Wen (MIT); fingerstyle funk with ghost notes, Black And Blue Basses by Karoryfer Samples (CC0). Rhodes: GeneralUser GS 2.0.3. String pad: FreePats (CC0). Claves: synthesized in the app. Round music: original, synthesized live (CHMA). Riffs are generated from style vocabulary, never copied from records.</p>
     </div></details>
-    <p class="appver">Riff Simon Says · Version 2026-11-23.1</p>
+    <p class="appver">Riff Simon Says · Version 2026-11-24.1</p>
   </section>
 
   <section class="play">
@@ -772,6 +773,9 @@ function buildKb(){ const el=$('kb'); el.innerHTML=''; const whites=[]; for(let 
   const w=100/whites.length; el.style.minWidth=(whites.length*44)+'px';
   whites.forEach((m,i)=>{ const b=document.createElement('button'); b.className='w'; b.dataset.m=m; b.tabIndex=-1; b.setAttribute('aria-label',SHARPN[m%12]+(Math.floor(m/12)-1)); b.innerHTML=(m%12===0?'C'+(Math.floor(m/12)-1):'')+'<span class="hk"></span>'; el.appendChild(b);
     if(BLK.includes((m+1)%12)&&m+1<=KB_HI){ const k=document.createElement('button'); k.className='b'; k.dataset.m=m+1; k.tabIndex=-1; k.style.width=(w*0.62)+'%'; k.style.left=((i+1)*w-w*0.31)+'%'; k.setAttribute('aria-label',SHARPN[(m+1)%12]+(Math.floor(m/12)-1)); el.appendChild(k) } });
+  // 2026-11-24.1 (beta tester follow-up): on iPhone a held key could still bring up the text magnifier. Cancel touchstart and the long-press menu on the keys,
+  // as the tap pads do; the note still comes from pointerdown.
+  el.addEventListener('touchstart',e=>{ if(e.cancelable) e.preventDefault() },{passive:false}); ['contextmenu','selectstart','dragstart'].forEach(k=>el.addEventListener(k,e=>e.preventDefault()));
   el.addEventListener('pointerdown',e=>{ const b=e.target.closest('button[data-m]'); if(!b) return; e.preventDefault(); AC(); noteIn(+b.dataset.m,perfToCtx(e.timeStamp),0.75,'screen') });
   hkLabels() }
 const KEYMAP={a:0,w:1,s:2,e:3,d:4,f:5,t:6,g:7,y:8,h:9,u:10,j:11,k:12};

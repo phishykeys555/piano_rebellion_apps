@@ -219,7 +219,7 @@ details.how p{margin:10px 0 0}
   h1{font-size:24px;line-height:1}
   .chma-ver,.sub,.lbl{display:none}
   body.running .s-level,body.running .s-game{display:none}
-  .pick{flex-wrap:nowrap;overflow-x:auto;gap:8px;margin:0 -12px;padding:2px 12px 6px;scroll-snap-type:x proximity;scrollbar-width:none;-webkit-overflow-scrolling:touch}
+  .pick{flex-wrap:nowrap;overflow-x:auto;gap:8px;margin:0 -12px;padding:2px 12px 6px 16px;scroll-padding-inline:16px;scroll-snap-type:x proximity;scrollbar-width:none;-webkit-overflow-scrolling:touch}
   .pick::-webkit-scrollbar{display:none}
   .pick button{flex:0 0 auto;min-width:0;width:auto;min-height:48px;padding:5px 14px;scroll-snap-align:start;gap:0;font-size:14px;line-height:1.25;display:block;text-align:left}
   .pick button b{font-size:14px;display:inline;margin-right:6px}.pick button span{display:block}
@@ -239,7 +239,8 @@ details.how p{margin:10px 0 0}
   .actbar .btn{min-height:46px}
   .actbar .actions{max-width:640px;margin:0 auto}
 }
-</style></head>
+</style><link rel="icon" type="image/svg+xml" href="../shared/icons/key-finder.svg"><link rel="icon" type="image/png" sizes="32x32" href="../shared/icons/key-finder-32.png"><link rel="apple-touch-icon" href="../shared/icons/key-finder-180.png">
+</head>
 <body>
 <div class="wrap">
   <div data-chma-head></div>
@@ -274,7 +275,7 @@ details.how p{margin:10px 0 0}
     <label><input type="checkbox" id="retryOn"> Second try on a miss (practice only)</label>
     <label><input type="checkbox" id="flatsOn"> Call black keys by their flat name (D♭) in Find the key</label>
   </details>
-  <p class="appver" id="appVer">Key Finder · Version 2026-11-20.1</p>
+  <p class="appver" id="appVer">Key Finder · Version 2026-11-24.1</p>
   </section>
 
   <section class="play">

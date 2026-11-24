@@ -144,11 +144,11 @@ input[type=range]{accent-color:var(--c-act)}
   .s-level{order:1}.s-tempo{order:2}.s-game{order:3}.play{order:4}.how{order:5}#settingsBox{order:6}.setup .appver{order:7}
   body.running .s-level,body.running .s-tempo,body.running .s-game{display:none}
   body.in-tap .inStat{display:none}
-  .pick{display:flex;overflow-x:auto;gap:6px;margin:0 -12px;padding:2px 12px 6px;scrollbar-width:none;scroll-snap-type:x proximity}
+  .pick{display:flex;overflow-x:auto;gap:6px;margin:0 -12px;padding:2px 12px 6px 18px;scroll-padding-inline:18px;scrollbar-width:none;scroll-snap-type:x proximity}
   .pick::-webkit-scrollbar{display:none}
   .pick button{flex:0 0 auto;display:block;padding:4px 12px;scroll-snap-align:start;line-height:1.2}
   .pick button b{display:inline;margin-right:4px;font-size:14px}.pick button span{display:inline}
-  .chips{flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none;margin:0 -12px;padding:2px 12px 6px}
+  .chips{flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none;margin:0 -12px;padding:2px 12px 6px 18px}
   .chips::-webkit-scrollbar{display:none}
   .chips button{flex:0 0 auto}
   .trow{flex-wrap:nowrap}
@@ -181,6 +181,7 @@ input[type=range]{accent-color:var(--c-act)}
 html,body,body *{-webkit-user-select:none!important;user-select:none!important;-webkit-touch-callout:none}
 input,textarea,select,[contenteditable]{-webkit-user-select:text!important;user-select:text!important}
 </style>
+<link rel="icon" type="image/svg+xml" href="../shared/icons/meter-master.svg"><link rel="icon" type="image/png" sizes="32x32" href="../shared/icons/meter-master-32.png"><link rel="apple-touch-icon" href="../shared/icons/meter-master-180.png">
 </head>
 <body class="chma-page">
 <div class="wrap">
@@ -239,7 +240,7 @@ input,textarea,select,[contenteditable]{-webkit-user-select:text!important;user-
         <details id="dbgBox" style="margin-top:8px"><summary>Show details</summary><div class="dbg" id="dbg">No mic events yet.</div></details>
       </div>
     </details>
-    <p class="appver" id="appVer">Meter Master · Version 2026-11-21.1</p>
+    <p class="appver" id="appVer">Meter Master · Version 2026-11-24.1</p>
   </section>
 
   <section class="play">
@@ -295,7 +296,7 @@ input,textarea,select,[contenteditable]{-webkit-user-select:text!important;user-
 <script>
 (()=>{
 'use strict';
-const VER="2026-11-21.1";
+const VER="2026-11-24.1";
 const $=id=>document.getElementById(id);
 const store={get(k,d){try{const v=localStorage.getItem("mm-"+k);return v==null?d:JSON.parse(v)}catch(e){return d}},set(k,v){try{localStorage.setItem("mm-"+k,JSON.stringify(v))}catch(e){}}};
 const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
