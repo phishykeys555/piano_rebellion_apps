@@ -226,7 +226,7 @@ h2[tabindex]:focus{outline:none}
       <label><input type="checkbox" id="speakOn" checked> Read each meaning aloud after a match</label>
       <label class="selrow">Voice <select id="voiceSel"><option value="">Most natural on this device</option></select></label>
     </details>
-    <p class="appver" id="appVer">Symbol Memory · Version 2026-11-20.1</p>
+    <p class="appver" id="appVer">Symbol Memory · Version 2026-11-23.1</p>
     <p class="credit">Music symbols: <a href="https://github.com/steinbergmedia/bravura" target="_blank" rel="noopener">Bravura</a> by Steinberg, <a href="fonts/OFL.txt" target="_blank" rel="noopener">SIL Open Font License</a>.</p>
   </aside>
 
@@ -492,7 +492,7 @@ function peek(){ if(mode!=="learn"||peeked||busy||gameOver) return; peeked=true;
 function layout(){ const wrap=$("boardWrap"), b=$("board"); if(!deck.length||b.hidden) return; const n=deck.length, W=wrap.clientWidth; let H=wrap.clientHeight; if(!W||!H) return;
   { /* iPhone in-app browsers (Notion, Instagram) change the visible height after load: cap the board by what is really on screen above the action bar */
     const vh=window.visualViewport?window.visualViewport.height:window.innerHeight, top=wrap.getBoundingClientRect().top, ab=document.querySelector(".actbar"), abH=ab&&getComputedStyle(ab).position!=="static"?ab.getBoundingClientRect().height:0, bot=ab?ab.getBoundingClientRect().top:vh;
-    H=Math.max(120,Math.min(H,vh-top-abH-8,bot-top-8)) }
+    H=Math.max(120,Math.min(H,vh-top-abH-8,bot-top-8)-10) /* 2026-11-23.1 (beta tester request): 10 px more room so the bottom row and its shadow never tuck under the buttons */ }
   const g=W<520?6:8, opts={12:[3,4,6],16:[4,8],20:[4,5],24:[4,6,8]}[n]||[4];
   let best=null; opts.forEach(c=>{ const r=Math.ceil(n/c); let w=(W-(c-1)*g)/c, h=(H-(r-1)*g)/r; if(w/h>1.4) w=h*1.4; if(h/w>1/0.72) h=w/0.72; const area=w*h; if(!best||area>best.area) best={c,r,w,h,area} });
   let {c,w,h}=best; const scroll=w<60||h<52; if(scroll){ w=Math.max(60,w); h=Math.max(52,h) } cols=c;
