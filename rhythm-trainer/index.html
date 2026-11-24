@@ -201,6 +201,19 @@ details.how p{margin-top:6px}
 html,body,body *{-webkit-user-select:none!important;user-select:none!important;-webkit-touch-callout:none}
 input,textarea,select,[contenteditable]{-webkit-user-select:text!important;user-select:text!important}
 </style>
+<style>/* 2026-11-23.1 (beta tester requests): the Click, Volume and Voice controls line up in a tidy grid
+   (Click on its own line, Volume and Voice side by side with equal sliders, Loop and 8th-note ticks side by side),
+   and the play buttons never wrap onto several lines (shorter names, one line each). */
+.subrow{display:grid;grid-template-columns:1fr 1fr;gap:8px 14px;align-items:center;justify-content:stretch}
+.subrow>.clkpick:first-child{grid-column:1/-1;margin-right:0}
+.subrow .clkpick:first-child select{flex:1;max-width:240px}
+.subrow .volpick{margin-right:0;display:flex;align-items:center;gap:8px;min-width:0}
+.subrow .volpick input{flex:1 1 auto;width:auto;min-width:0}
+.subrow .clksafe{grid-column:1/-1}
+.subrow .chip{justify-self:stretch;white-space:nowrap}
+.actions>button{white-space:nowrap;padding-left:6px;padding-right:6px}
+@media (max-width:520px){.actions{gap:8px}.actions>button{font-size:14px}.actions>button>span[aria-hidden]{display:none}}
+</style>
 </head>
 <body>
 <div class="wrap">
@@ -275,8 +288,8 @@ input,textarea,select,[contenteditable]{-webkit-user-select:text!important;user-
     </div>
     <button class="pad" id="pad">TAP</button>
     <div class="row actions">
-      <button class="ghost" id="hear"><span aria-hidden="true">▶</span> Hear it</button><button class="ghost" id="hearCount" title="Claps plus a voice counting every note: 1, e, &amp;, a"><span aria-hidden="true">🗣</span> Hear it + count</button>
-      <button class="ghost" id="again" hidden><span aria-hidden="true">↺</span> Try this one again</button>
+      <button class="ghost" id="hear"><span aria-hidden="true">▶</span> Hear it</button><button class="ghost" id="hearCount" title="Claps plus a voice counting every note: 1, e, &amp;, a"><span aria-hidden="true">🗣</span> Hear + count</button>
+      <button class="ghost" id="again" hidden><span aria-hidden="true">↺</span> Retry</button>
       <button class="primary" id="go">Start</button>
     </div>
     <details class="how"><summary>How it works</summary><p class="tip">Tap the pad or the space bar, or switch to "Clap or snap". Rests are silent: don't tap them. In "Tap", hold long notes down for their full length and let go on time. Clapping or playing with speakers? Headphones are best: the mic never hears the clicks at all.</p></details>
@@ -898,7 +911,7 @@ function lockUI(){ const on=!!(run||sess||arc); document.body.classList.toggle("
   function chime(){ const a=ctx(),t=a.currentTime; [784,1047,1319].forEach((f,i)=>{ const o=a.createOscillator(),g=a.createGain(); o.type="triangle"; o.frequency.value=f; g.gain.setValueAtTime(0.0001,t+i*0.08); g.gain.exponentialRampToValueAtTime(0.25,t+i*0.08+0.01); g.gain.exponentialRampToValueAtTime(0.0001,t+i*0.08+0.35); o.connect(g).connect(bus()); o.start(t+i*0.08); o.stop(t+i*0.08+0.4) }) }
   function scoreFlash(v){ const f=$("scoreFlash"); f.textContent=v+"%"; f.className="scoreflash"+(v>=90?"":v>=70?" ok":" bad"); void f.offsetWidth; f.classList.add("go") }
   function afterGrade(r){ const pts=r.cpts!=null?r.cpts:Math.max(0,r.perfect+0.5*r.ok-0.5*r.extras);
-    if(gmode==="practice"){ round.push(r); const hs=bestNum(bestKey()); if(hs==null||r.score>hs) store.set(bestKey(),r.score); $("go").textContent="Next rhythm"; $("again").hidden=false; stats(); if(loopOn&&loopAt!=null){ const t=loopAt; loopAt=null; loopRes={score:r.score,res:curRes}; $("results").hidden=true; $("again").hidden=true; play("test",t).then(loopBtn) } return }
+    if(gmode==="practice"){ round.push(r); const hs=bestNum(bestKey()); if(hs==null||r.score>hs) store.set(bestKey(),r.score); $("go").textContent="Next"; $("again").hidden=false; stats(); if(loopOn&&loopAt!=null){ const t=loopAt; loopAt=null; loopRes={score:r.score,res:curRes}; $("results").hidden=true; $("again").hidden=true; play("test",t).then(loopBtn) } return }
     const S=sess; if(!S) return; S.points+=pts; S.bars.push(r); scoreFlash(r.score);
     if(arc){ arc.rp=(arc.rp||0)+pts; if(arc.ramp){ const nxb=arc.deck&&arc.deck[arc.bi], step=!!(nxb&&bar&&bar.diff!=null&&nxb.diff-bar.diff>Math.max(0.75,0.1*bar.diff)); /* the next rhythm is a clear step harder: hold the tempo for it (never both at once) */ const d0=r.score>=95?2:r.score>=80?1:r.score>=60?0:-2, d=step?Math.min(0,d0):d0; nb=Math.max(arc.start,Math.min(arc.cap,arc.bpm+d)); arc.dir=Math.sign(nb-arc.bpm); arc.bpm=nb; arc.top=Math.max(arc.top,nb) } }
     stats(); if(arc) arcBar();
@@ -982,7 +995,7 @@ function lockUI(){ const on=!!(run||sess||arc); document.body.classList.toggle("
     el.addEventListener("pointerdown",e=>{ if(e.button>0||el.disabled) return; if(e.pointerType!=="mouse"&&!(audio&&audio.state==="running")) return; e.preventDefault(); at=performance.now(); fn() });
     el.addEventListener("click",e=>{ if(e.detail>0&&performance.now()-at<1500){ at=-1e9; return } fn() }) }
   fastPress($("go"),async()=>{ if(loopOn&&gmode==="practice"&&(run||loopAt!=null)){ loopStop(); return } if(gmode!=="practice"&&(sess||arc)){ stopSession(); return } if(run||starting) return; if(calHook){ msg(null,"Calibrating…","Finish the 8 clicks first (Settings), then press Start."); return }
-    if(gmode!=="practice") return arcStart(); if($("go").textContent==="Next rhythm"||!bar) newBar(); $("go").textContent="Start"; $("again").hidden=true; loopRes=null; await startTest(); loopBtn() });
+    if(gmode!=="practice") return arcStart(); if($("go").textContent==="Next"||!bar) newBar(); $("go").textContent="Start"; $("again").hidden=true; loopRes=null; await startTest(); loopBtn() });
   // ---------- practice loop (2026-11-19, Derek): count bar, play bar, count bar, play bar… on one rhythm, in time, until Stop ----------
   let loopOn=!!store.get("loop",false), loopAt=null, loopRes=null;
   function countClicks(t0,M,SP){ if(!M.compound) for(let b=0;b<M.beats;b++) click(t0+b*SP,b===0,false,1);
@@ -1468,6 +1481,6 @@ class NoteFlux{
   if(document.fonts) document.fonts.ready.then(()=>{ if(!run) drawBar(curRes) });
 })();
 </script>
-<p class="appver" style="text-align:center;font-size:11px;opacity:.6;margin:18px 0 10px;font-family:ui-monospace,Menlo,monospace">Rhythm Trainer · Version 2026-11-21.1</p>
+<p class="appver" style="text-align:center;font-size:11px;opacity:.6;margin:18px 0 10px;font-family:ui-monospace,Menlo,monospace">Rhythm Trainer · Version 2026-11-23.1</p>
 </body>
 </html>
