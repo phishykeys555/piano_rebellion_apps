@@ -197,6 +197,10 @@ button{touch-action:manipulation;cursor:pointer}
 .reftone.playing{background:radial-gradient(ellipse at 50% 40%,#ffe3a6,#ffb54a 60%,#d9821f)}
 .reftone svg{width:20px;height:20px}
 .accset{display:none}
+.micset{grid-column:1/-1}
+.micset select{min-height:44px;width:100%;border:1px solid #b89a62;border-radius:10px;background:linear-gradient(180deg,#fffaf0,#e9dcbc);font:600 14px/1.2 var(--f-mono);color:var(--ink,#2a1d0c);padding:0 10px}
+.lvbar{flex:none;width:54px;height:8px;border-radius:4px;background:#2a1606;box-shadow:inset 0 0 2px #000;overflow:hidden}
+.lvbar i{display:block;height:100%;width:0;background:linear-gradient(90deg,#c77a1c,var(--amber-hot));transition:width .08s}
 .chromatic .accset{display:flex}
 
 .msg{display:none;margin-top:14px;border-radius:10px;padding:12px 14px;background:#fff6e2;box-shadow:inset 0 0 0 1.5px #c0582f;font:600 14.5px/1.45 var(--f-serif);color:#4a1d0c}
@@ -292,7 +296,7 @@ details.more .settings{padding:4px 0 6px}
           <div class="cell"><div class="k">Cents</div><div class="v" id="vCents">&mdash;</div></div>
           <div class="cell"><div class="k">Frequency</div><div class="v" id="vHz">&mdash;<small>Hz</small></div></div>
           <div class="lamp"><div class="jewel" id="jewel" role="img" aria-label="In tune lamp: off"></div><div class="k">In tune</div></div>
-          <div class="status"><span class="sig" id="sig" aria-hidden="true"></span><span id="status" aria-live="polite">Starting the tuner…</span></div>
+          <div class="status"><span class="sig" id="sig" aria-hidden="true"></span><span class="lvbar" aria-hidden="true" title="Microphone level"><i id="lvFill"></i></span><span id="status" aria-live="polite">Starting the tuner…</span></div>
         </div>
       </section>
 
@@ -327,6 +331,10 @@ details.more .settings{padding:4px 0 6px}
               <button data-t="2" aria-pressed="false">&plusmn;2</button>
             </div>
           </div>
+          <div class="set micset">
+            <label class="lbl" for="micSel">Microphone</label>
+            <select id="micSel"><option value="">Default microphone</option></select>
+          </div>
           <div class="set accset">
             <div class="lbl" id="accLbl">Spelling</div>
             <div class="seg" id="acc" role="group" aria-labelledby="accLbl">
@@ -339,7 +347,7 @@ details.more .settings{padding:4px 0 6px}
         <div class="msg" id="msg" role="alert"></div>
       </section>
     </div>
-    <p class="appver">Strobe Tuner &middot; Version 2026-11-24.1</p>
+    <p class="appver">Strobe Tuner &middot; Version 2026-11-24.2</p>
   </main>
   <div class="cheek" aria-hidden="true"></div>
 </div>
@@ -378,8 +386,9 @@ try { const p = JSON.parse(localStorage.getItem('gr-strobe-v1') || '{}');
   if (p.a4 >= 430 && p.a4 <= 450) S.a4 = Math.round(p.a4);
   if ([0.5,1,2].includes(p.tol)) S.tol = p.tol;
   if (p.acc === 'flat') S.acc = 'flat';
+  if (typeof p.mic === 'string') S.mic = p.mic;
 } catch (e) {}
-function save(){ try { localStorage.setItem('gr-strobe-v1', JSON.stringify({t:S.tuning.id,a4:S.a4,tol:S.tol,acc:S.acc})); } catch (e) {} }
+function save(){ try { localStorage.setItem('gr-strobe-v1', JSON.stringify({t:S.tuning.id,a4:S.a4,tol:S.tol,acc:S.acc,mic:S.mic||''})); } catch (e) {} }
 
 const freq = m => S.a4 * Math.pow(2, (m - 69) / 12);
 function spell(m, how){ const pc = ((m % 12) + 12) % 12; const oct = Math.floor(m / 12) - 1;
@@ -569,6 +578,10 @@ function readout(){
   S.lit = inTune;
   $('jewel').classList.toggle('lit', inTune);
   $('sig').classList.toggle('lit', !!(S.running && m && m.lvl > m.thr));
+  // mic level bar: -80 dBFS empty, -20 dBFS full (2026-11-24.2: shows at a glance whether the guitar reaches the tuner)
+  const db = S.running && m && m.lvl > 0 ? 20 * Math.log10(m.lvl) : -120;
+  $('lvFill').style.width = Math.max(0, Math.min(100, (db + 80) / 60 * 100)).toFixed(0) + '%';
+  if (S.running && m) S.peak = Math.max(S.peak * 0.995, m.lvl || 0);
   $('face').classList.toggle('on', S.running);
   $('meter').classList.toggle('off', !fresh);
   if (now - lastTxt < 70) return; lastTxt = now;
@@ -587,6 +600,7 @@ function readout(){
   let st;
   if (!S.running) st = S.needTap ? 'Tap the tuner to start.' : 'Starting the tuner… allow the microphone.';
   else if (S.ctx && S.ctx.state !== 'running') st = 'Tap anywhere to start listening.';
+  else if (!fresh && !live && now - (S.runSince || now) > 5000 && S.peak < 0.0004) st = 'No sound is reaching the tuner. Open Settings and pick your microphone, or move closer.';
   else if (!fresh) st = live ? 'Listening…' : 'Listening… play one string.';
   else if (Math.abs(S.cents) > 60) st = S.cents > 0 ? 'Way too high. Is that the right string?' : 'Way too low. Is that the right string?';
   else if (inTune) st = 'In tune. Nice! Next string.';
@@ -622,7 +636,9 @@ async function start(){
   const drop = () => { if (stream) stream.getTracks().forEach(t => { try { t.stop(); } catch (e) {} }); stream = null; };
   try {
     if (navigator.audioSession) { try { navigator.audioSession.type = 'play-and-record'; } catch (e) {} }
-    stream = await navigator.mediaDevices.getUserMedia({ audio:{ echoCancellation:false, noiseSuppression:false, autoGainControl:false, channelCount:1 } });
+    const AUD = { echoCancellation:false, noiseSuppression:false, autoGainControl:false, channelCount:1 };
+    try { stream = await navigator.mediaDevices.getUserMedia({ audio: S.mic ? Object.assign({ deviceId:{ exact:S.mic } }, AUD) : AUD }); }
+    catch (e) { if (!S.mic || !(e && (e.name === 'OverconstrainedError' || e.name === 'NotFoundError'))) throw e; S.mic = ''; save(); stream = await navigator.mediaDevices.getUserMedia({ audio:AUD }); }  // saved mic unplugged: use the default
     if (tok !== S.startTok) { drop(); return; }
     await Promise.race([resumed, new Promise(r => setTimeout(r, 400))]);  // opened without a tap: carry on suspended; the first tap anywhere resumes it
     if (!S.moduleReady) { await ctx.audioWorklet.addModule('tuner-worklet.js'); S.moduleReady = true; }
@@ -635,7 +651,7 @@ async function start(){
     // messages still in flight from a node that was stopped are dropped
     node.port.onmessage = e => { if (node !== S.node || !S.running) return; const m = e.data; if (m.type === 'p') onPitch(m); else onStat(m); };
     sendTarget(S.target ? S.target.f : 0);
-    S.running = true; setPower(true);
+    S.running = true; setPower(true); S.runSince = performance.now(); S.peak = 0; listMics();
     const tracks = stream.getAudioTracks();
     tracks.forEach(t => t.addEventListener('ended', () => { if (S.stream && S.stream.getAudioTracks().includes(t)) stop(); }));
     keepAwake();
@@ -664,6 +680,17 @@ function stop(){
   if (S.auto) S.target = null;
   setPower(false); renderStrings();
 }
+async function listMics(){
+  const sel = $('micSel'); if (!sel || !navigator.mediaDevices || !navigator.mediaDevices.enumerateDevices) return;
+  let ins = [];
+  try { ins = (await navigator.mediaDevices.enumerateDevices()).filter(d => d.kind === 'audioinput' && d.deviceId && d.deviceId !== 'default' && d.deviceId !== 'communications'); } catch (e) { return; }
+  const cur = S.stream && S.stream.getAudioTracks()[0] && S.stream.getAudioTracks()[0].getSettings ? S.stream.getAudioTracks()[0].getSettings().deviceId : '';
+  sel.innerHTML = '<option value="">Default microphone</option>' + ins.map((d, i) => '<option value="' + d.deviceId.replace(/"/g, '') + '">' + (d.label || ('Microphone ' + (i + 1))).replace(/[<>&]/g, '') + '</option>').join('');
+  sel.value = S.mic && ins.some(d => d.deviceId === S.mic) ? S.mic : '';
+  sel.title = cur ? 'In use: ' + ((ins.find(d => d.deviceId === cur) || {}).label || 'default') : '';
+}
+if ($('micSel')) $('micSel').addEventListener('change', e => { S.mic = e.target.value; save(); stop(); autoStart(); });
+if (navigator.mediaDevices && navigator.mediaDevices.addEventListener) navigator.mediaDevices.addEventListener('devicechange', () => { if (S.running) listMics(); });
 function setPower(on){ S.needTap = false; const hub = $('hub'); if (hub) hub.classList.toggle('tapme', on === false && !!S.lastErr); }
 // no power switch: the tuner starts on its own and stays on while the page is open.
 // Browsers that need a tap first (iPhone, some Chrome) start on the first tap anywhere.
