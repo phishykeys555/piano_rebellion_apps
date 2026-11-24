@@ -1,0 +1,197 @@
+<!doctype html>
+<html lang="en">
+<head>
+<base href="../match-point/">
+<meta name="robots" content="noindex,nofollow">
+
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Match Point · Clarendon Hills Music Academy</title><meta name="description" content="Pitch matching for singers: hear a note, sing it back, and see how close you landed in cents. Ten notes a round, four levels."><meta property="og:type" content="website"><meta property="og:site_name" content="Clarendon Hills Music Academy"><meta property="og:title" content="Match Point · Clarendon Hills Music Academy"><meta property="og:description" content="Pitch matching for singers: hear a note, sing it back, and see how close you landed in cents."><meta property="og:url" content="https://phishykeys555.github.io/piano_rebellion_apps/match-point/">
+<link rel="stylesheet" href="../shared/chma.css">
+<script src="../shared/brand.js"></script>
+<link rel="stylesheet" href="../shared/voice-apps.css">
+<script src="../shared/voice-pitch.js"></script>
+<link rel="icon" type="image/svg+xml" href="../shared/icons/match-point.svg"><link rel="icon" type="image/png" sizes="32x32" href="../shared/icons/match-point-32.png"><link rel="apple-touch-icon" href="../shared/icons/match-point-180.png">
+</head>
+<body>
+<div class="wrap">
+  <div data-chma-head data-ver="Version 2026-11-24.1"></div>
+  <div class="setup">
+  <header>
+    <h1>Match <em>Point</em></h1>
+    <p class="sub">Hear a note. Sing it back. Land it dead center.</p>
+  </header>
+  <p class="sec">Voice type</p>
+  <div class="voices" id="voices" role="group" aria-label="Voice type"></div>
+  <p class="tip" id="voiceTip">Not sure? Men usually start with Baritone, women and kids with Alto. Your Instructor can tell you.</p>
+  <p class="sec">Level</p>
+  <div class="levels" id="levels" role="group" aria-label="Level"></div>
+  <div class="micbox">
+    <div class="mrow"><button class="ghost" id="micBtn" type="button">Turn on the microphone</button><div class="lvlbar" aria-hidden="true"><i id="micLvl"></i></div></div>
+    <a class="mopen" id="micOpen" href="./" target="_blank" rel="noopener" hidden>Open full screen</a>
+    <p class="mstat" id="micStat" role="status" aria-live="polite"></p>
+  </div>
+  <details>
+    <summary>Settings</summary>
+    <div class="set">
+      <label for="sens">Mic sensitivity <input type="range" id="sens" min="0" max="100" step="1"></label>
+      <label for="vol">Tone volume <input type="range" id="vol" min="10" max="100" step="1"></label>
+      <span class="stamp">Sensitivity: raise it if a quiet voice doesn't move the level bar green; lower it in a noisy room.</span>
+    </div>
+  </details>
+  </div>
+
+  <section class="card" id="card" aria-label="Practice">
+    <div class="stats">
+      <div class="stat"><b id="sRep">0/10</b><span>Note</span></div>
+      <div class="stat"><b id="sLast">–</b><span>Last</span></div>
+      <div class="stat"><b id="sAvg">–</b><span>Average</span></div>
+      <div class="stat"><b id="sHits">0</b><span>Hits</span></div>
+    </div>
+    <div class="target">
+      <div class="tn"><span>Target</span><b id="tName">–</b></div>
+      <div class="live"><b id="lCents" aria-live="off">–</b><span id="lNote">Your voice</span></div>
+    </div>
+    <canvas class="plot" id="plot" role="img" aria-label="Your pitch over time against the target note"></canvas>
+    <div class="msg" id="msg" role="status" aria-live="polite"><div class="v">Press Start</div><div class="c">A note plays. Sing it back on "ah" and hold it.</div></div>
+    <p class="phones" data-vp-phones hidden>Use headphones: the mic can hear the speaker.</p>
+    <div class="row actions">
+      <button class="ghost" id="hear" type="button"><span aria-hidden="true">▶</span> Hear it</button>
+      <button class="primary" id="go" type="button">Start</button>
+    </div>
+
+    <div class="results" id="results" role="region" aria-label="Results" hidden>
+      <h2 id="rTitle" tabindex="-1" style="outline:none">Round done</h2>
+      <div class="big" id="rBig">–</div>
+      <div class="pass" id="rPass"></div>
+      <div class="rgrid">
+        <div><b id="rHits">–</b><span>Hits</span></div>
+        <div><b id="rLock">–</b><span>Avg time to lock</span></div>
+        <div><b id="rIn">–</b><span>Time in the window</span></div>
+        <div><b id="rLvl">–</b><span>Level</span></div>
+        <div><b id="rBest">–</b><span>Best note</span></div>
+        <div><b id="rWorst">–</b><span>Worst note</span></div>
+      </div>
+      <div class="stamp" id="rStamp"></div>
+      <p class="tip">Screenshot this screen and send it to your Instructor.</p>
+      <div class="credit">Match Point · Created by Derek Berg · <a href="https://clarendonhillsmusicacademy.com/" target="_blank" rel="noopener">Clarendon Hills Music Academy</a></div>
+      <div class="row"><button class="ghost" id="rBack" type="button">Back</button><button class="ghost" id="rNext" type="button" hidden>Next level</button><button class="primary" id="rAgain" type="button">Play again</button></div>
+    </div>
+  </section>
+</div>
+
+<script>
+(function(){
+  const $=id=>document.getElementById(id), VP=window.VP, APP='Match Point';
+  const store={get(k,d){try{const v=localStorage.getItem('mp-'+k);return v==null?d:JSON.parse(v)}catch(e){return d}},set(k,v){try{localStorage.setItem('mp-'+k,JSON.stringify(v))}catch(e){}}};
+  // Level ladder. win = the cents window that counts as on pitch; tone = seconds the note plays; gap = silent seconds before you sing (memory).
+  const LEVELS=[
+    {id:1,name:'5 notes',sub:'Comfy range',win:25,tone:1,gap:0},
+    {id:2,name:'Full range',sub:'Your voice',win:25,tone:1,gap:0},
+    {id:3,name:'Tight',sub:'±10¢ window',win:10,tone:1,gap:0},
+    {id:4,name:'Memory',sub:'Short tone',win:25,tone:0.5,gap:1}];
+  const REPS=10, LOCK=50, LOCKT=0.15, WIN=2, TIMEOUT=6, PASS=8;
+  let voice=VP.voice(), level=+store.get('level',1)||1, run=null, prevT=null;
+  const L=()=>LEVELS.find(x=>x.id===level)||LEVELS[0];
+  const fmtC=c=>{ if(c==null) return '–'; const r=Math.round(c); return (r>0?'+':r<0?'−':'')+Math.abs(r)+'¢' };
+  const plot=VP.plot($('plot')); plot.span=4;
+
+  function msg(cls,v,c){ const m=$('msg'); m.className='msg'+(cls?' '+cls:''); m.querySelector('.v').textContent=v; m.querySelector('.c').textContent=c||'' }
+  function passed(lv){ return !!(voice&&store.get('pass-'+voice.id+'-'+lv,false)) }
+  function drawLevels(){ $('levels').innerHTML=LEVELS.map(x=>`<button class="lvl" type="button" data-l="${x.id}" aria-pressed="${x.id===level}"><b>L${x.id}</b><span>${x.name}</span><span>${x.sub}</span>${passed(x.id)?'<span class="done">✓ passed</span>':''}</button>`).join('');
+    $('levels').querySelectorAll('.lvl').forEach(b=>b.addEventListener('click',()=>{ if(run) stopRound(); level=+b.dataset.l; store.set('level',level); drawLevels(); idleView() })) }
+  function onVoice(v){ voice=v; $('voices').classList.remove('need'); $('voiceTip').hidden=true; if(run) stopRound(); drawLevels(); idleView() }
+  VP.voicePicker($('voices'),onVoice); if(voice) $('voiceTip').hidden=true;
+  const mp=VP.micPanel(APP,{btn:'micBtn',open:'micOpen',stat:'micStat',lvl:'micLvl',sens:'sens',vol:'vol',
+    idle:'"Start" asks for the microphone. Tap "Allow" when your device asks.',on:'Listening. Sing any note: the level bar turns green.'});
+
+  function pool(){ const v=voice; if(level===1) return [0,2,4,5,7].map(d=>v.l1+d); const a=[]; for(let m=v.lo;m<=v.hi;m++) a.push(m); return a }
+  function center(){ return voice?voice.l1+4:60 }
+  function idleView(){ const c=run&&run.rep?run.rep.target:center(); plot.cents=c; plot.lo=c-1.5; plot.hi=c+1.5; if(!run){ plot.targets=[]; $('tName').textContent='–'; $('sRep').textContent='0/'+REPS } }
+  function stats(){ const r=run?run.reps:[]; const lk=r.filter(x=>x.err!=null);
+    $('sRep').textContent=(run?Math.min(run.reps.length+(run.rep?1:0),REPS):0)+'/'+REPS;
+    $('sLast').textContent=r.length?(r[r.length-1].err==null?'miss':fmtC(r[r.length-1].err)):'–';
+    $('sAvg').textContent=lk.length?Math.round(lk.reduce((a,x)=>a+Math.abs(x.err),0)/lk.length)+'¢':'–';
+    $('sHits').textContent=r.filter(x=>x.hit).length }
+
+  // ---------- one round: 10 notes ----------
+  async function startRound(){ if(!voice){ $('voices').classList.add('need'); $('voices').scrollIntoView({block:'center',behavior:'smooth'}); msg('bad','Pick your voice type first','Tap the one that fits you, then press "Start".'); return }
+    VP.ctx(); const ok=await mp.go(); if(!ok){ msg('bad','The microphone is off','See the note under the microphone button.'); return }
+    if(innerWidth<900) try{ $('card').scrollIntoView({behavior:'smooth',block:'start'}) }catch(e){}
+    run={reps:[],rep:null,timer:0}; $('results').hidden=true; $('go').textContent='Stop'; stats(); nextRep() }
+  function stopRound(){ if(!run) return; clearTimeout(run.timer); run=null; $('go').textContent='Start'; plot.targets=[]; stats(); msg('','Stopped','Press "Start" for a new round.') }
+  function pickTarget(){ const p=pool().filter(m=>m!==prevT); return p[Math.floor(Math.random()*p.length)] }
+  function nextRep(){ if(!run) return; const lv=L(), target=pickTarget(); prevT=target;
+    const ts=VP.now()+0.25, te=VP.tone(target,lv.tone,ts);
+    run.rep={target,ts,te,listenAt:te+0.15+lv.gap,run0:null,runF:[],lockAt:null,win:[],sung:[],phase:'tone'};
+    $('tName').textContent=VP.noteName(target); idleView();
+    plot.targets=[{t0:ts,t1:run.rep.listenAt+TIMEOUT,midi:target,tol:lv.win}];
+    msg('','Listen…',lv.gap?'Short tone. Hold it in your head.':'Sing it back when the tone stops.'); stats() }
+  function hearAgain(){ if(!voice) return; VP.ctx();
+    if(run&&run.rep&&run.rep.lockAt==null){ const r=run.rep, te=VP.tone(r.target,L().tone); r.listenAt=Math.max(r.listenAt,te+0.15+L().gap); r.run0=null; r.runF=[]; r.replays=(r.replays||0)+1; plot.targets[0].t1=r.listenAt+TIMEOUT; return }
+    if(!run){ const t=center(); $('tName').textContent=VP.noteName(t); VP.tone(t,1) } }
+
+  function onFrame(f){ const r=run&&run.rep;
+    const tgt=r?r.target:plot.cents, c=f.voiced?(f.midi-tgt)*100:null, win=L().win;
+    plot.pts.push({t:f.t,m:f.midi,ok:c!=null&&Math.abs(c)<=win});
+    const lc=$('lCents');
+    if(f.voiced&&!(r&&f.t<r.listenAt)){ lc.textContent=r?fmtC(c):fmtC(f.cents); lc.className=r?(Math.abs(c)<=win?'ok':Math.abs(c)<=LOCK?'near':'off'):''; $('lNote').textContent='You: '+f.note }
+    else if(!f.voiced){ lc.textContent='–'; lc.className=''; $('lNote').textContent='Your voice' }
+    if(!r) return;
+    if(f.t<r.listenAt){ if(r.phase==='tone'&&f.t>r.te&&L().gap){ r.phase='wait'; msg('','Wait…','Keep the note in your head.') } return }
+    if(r.phase!=='sing'){ r.phase='sing'; msg('go','Sing it now','Sing "ah" and hold it.') }
+    const since=f.t-r.listenAt;
+    if(r.lockAt==null){
+      if(c!=null) r.sung.push(c);
+      if(c!=null&&Math.abs(c)<=LOCK){ if(r.run0==null){ r.run0=f.t; r.runF=[] } r.runF.push(c); if(f.t-r.run0>=LOCKT){ r.lockAt=r.run0; r.win=r.runF.slice(); msg('go','Locked. Hold it…','') } }
+      else { r.run0=null; r.runF=[] }
+      if(r.lockAt==null&&since>TIMEOUT) finishRep(false);
+    } else { r.win.push(c); if(f.t-r.lockAt>=WIN) finishRep(true) } }
+  function finishRep(locked){ const r=run.rep, lv=L(); run.rep=null; let out;
+    if(locked){ const v=r.win.filter(c=>c!=null), err=VP.median(v), inP=r.win.filter(c=>c!=null&&Math.abs(c)<=lv.win).length/Math.max(1,r.win.length);
+      out={target:r.target,err,lock:Math.max(0,r.lockAt-r.listenAt),inP,hit:Math.abs(err)<=lv.win&&inP>=0.5};
+      const a=Math.abs(err), dir=err>0?'sharp':'flat';
+      if(out.hit) msg('good',a<=lv.win/2?'Dead on':'Hit',`${fmtC(err)} · locked in ${out.lock.toFixed(1)} s · ${Math.round(inP*100)}% in the window`);
+      else if(a<=lv.win) msg('ok','Right pitch, keep it steady',`${fmtC(err)}, but only ${Math.round(inP*100)}% of the 2 seconds stayed in the window.`);
+      else msg('ok','Close',`${fmtC(err)}: a little ${dir}. Aim ${err>0?'lower':'higher'}.`) }
+    else { const s=r.sung.length>=5?VP.median(r.sung):null; out={target:r.target,err:null,lock:null,inP:0,hit:false,sung:s};
+      let why='No steady note heard. Sing louder, closer to the mic.';
+      if(s!=null){ const o=Math.round(s/1200); if(o!==0&&Math.abs(s-o*1200)<=LOCK) why=`You sang it an octave ${o>0?'high':'low'}. Same note name, match the octave you hear.`;
+        else why=`You were ${Math.abs(Math.round(s/100))} half step${Math.abs(Math.round(s/100))===1?'':'s'} ${s>0?'high':'low'}. Listen again and slide to it.` }
+      msg('bad','Missed',why) }
+    plot.targets.forEach(T=>T.state='done'); run.reps.push(out); stats();
+    if(run.reps.length>=REPS) run.timer=setTimeout(results,1400); else run.timer=setTimeout(nextRep,1500) }
+
+  function results(){ if(!run) return; const R=run.reps, lv=L(), lk=R.filter(x=>x.err!=null), hits=R.filter(x=>x.hit).length;
+    const avg=lk.length?lk.reduce((a,x)=>a+Math.abs(x.err),0)/lk.length:null;
+    $('rBig').innerHTML=avg==null?'–':`${Math.round(avg)}<small>¢ average error</small>`;
+    $('rHits').textContent=hits+' of '+REPS;
+    $('rLock').textContent=lk.length?(lk.reduce((a,x)=>a+x.lock,0)/lk.length).toFixed(1)+' s':'–';
+    $('rIn').textContent=Math.round(R.reduce((a,x)=>a+x.inP,0)/R.length*100)+'% (±'+lv.win+'¢)';
+    $('rLvl').textContent='L'+lv.id+' '+lv.name;
+    const byErr=lk.slice().sort((a,b)=>Math.abs(a.err)-Math.abs(b.err)), miss=R.find(x=>x.err==null);
+    $('rBest').textContent=byErr.length?VP.noteName(byErr[0].target)+' · '+fmtC(byErr[0].err):'–';
+    const w=miss||byErr[byErr.length-1]; $('rWorst').textContent=w?VP.noteName(w.target)+' · '+(w.err==null?'missed':fmtC(w.err)):'–';
+    const pass=hits>=PASS; $('rPass').className='pass '+(pass?'yes':'no');
+    $('rPass').textContent=pass?`Level ${lv.id} passed: ${hits} of ${REPS} hits.`:`${hits} of ${REPS} hits. Pass = ${PASS} of ${REPS}.`;
+    if(pass){ store.set('pass-'+voice.id+'-'+lv.id,true); drawLevels() }
+    $('rNext').hidden=!(pass&&lv.id<LEVELS.length);
+    $('rStamp').textContent=voice.name+' · '+new Date().toLocaleString([], {dateStyle:'medium',timeStyle:'short'});
+    $('results').hidden=false; clearTimeout(run.timer); run=null; $('go').textContent='Start'; plot.targets=[]; try{ $('rTitle').focus({preventScroll:true}) }catch(e){} }
+
+  $('go').addEventListener('click',()=>{ if(run) stopRound(); else startRound() });
+  $('hear').addEventListener('click',hearAgain);
+  $('rBack').addEventListener('click',()=>{ $('results').hidden=true; stats(); msg('','Press Start','A note plays. Sing it back on "ah" and hold it.') });
+  $('rAgain').addEventListener('click',()=>{ $('results').hidden=true; startRound() });
+  $('rNext').addEventListener('click',()=>{ level=Math.min(LEVELS.length,level+1); store.set('level',level); drawLevels(); $('results').hidden=true; startRound() });
+  VP.listen(onFrame); VP.on('stop',()=>{ if(run) stopRound() });
+  (function loop(){ if(VP.isOn()||run){ plot.now=VP.now(); plot.trim(); plot.draw() } requestAnimationFrame(loop) })();
+  drawLevels(); idleView(); stats(); plot.now=0; plot.draw();
+  if(!voice) msg('','Pick your voice type','Then press Start.');
+  window.__mp={levels:()=>LEVELS,state:()=>run&&{reps:run.reps.slice(),rep:run.rep&&{target:run.rep.target,listenAt:run.rep.listenAt,lockAt:run.rep.lockAt,phase:run.rep.phase}},level:()=>level,voice:()=>voice,pool};
+})();
+</script>
+<p class="appver">Match Point · Version 2026-11-24.1</p>
+<div id="chma-beta" style="position:fixed;left:calc(8px + env(safe-area-inset-left,0px));top:calc(8px + env(safe-area-inset-top,0px));z-index:2147483647;background:#c4302b;color:#fff;font:700 12px/1 -apple-system,Helvetica,Arial,sans-serif;letter-spacing:.08em;padding:6px 9px;border-radius:6px;pointer-events:none;opacity:.92">BETA</div>
+</body>
+</html>
