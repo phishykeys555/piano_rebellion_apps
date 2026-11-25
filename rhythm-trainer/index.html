@@ -252,6 +252,8 @@ input,textarea,select,[contenteditable]{-webkit-user-select:text!important;user-
       <label><input type="checkbox" id="mixHard"> Single tries: mix harder ones in (some from the next level)</label>
       <label><input type="checkbox" id="hypeOn" checked> Music on round screens</label>
       <span class="stamp">On: every rhythm you play well nudges the tempo up (95%+: +2 BPM, 80%+: +1, under 60%: −2), up to 8% faster each round, never below where the round started. Off: one steady tempo. A change applies from the next "Start".</span>
+      <label><input type="checkbox" id="clkBar"> One note: keep the click going while I play (headphones only)</label>
+      <span class="stamp">"One note" listens with the microphone, so by default the click stops once your bar starts (you still hear the count-in, and the cursor shows the beat). Turn this on only with headphones: a click through the speaker can sound like a note, so any sound the mic hears right on a click is ignored.</span>
       <label><input type="checkbox" id="holds" checked> Grade how long I hold (Tap, MIDI, One note)</label>
       <span class="stamp">"Tap", "MIDI" and "One note": quarter notes and longer, dotted and tied notes, and notes right before a rest are also graded on when you let go (the bar under each note shows how long you held it; the tick is where it ends). In "One note" the mic hears you let go (the damper stops the sound), so the hold windows are a little wider. "Clap or snap" grades only when each note starts.</span>
       <div class="row"><button class="ghost" id="cal">Calibrate timing</button><span class="stamp" id="calTxt" role="status" aria-live="polite"></span></div>
@@ -664,11 +666,12 @@ input,textarea,select,[contenteditable]{-webkit-user-select:text!important;user-
     const M=MT(), SP=spb(), U=SP/M.beatU; // this bar's tempo, fixed for the whole bar (count-in, clicks, cursor and grading)
     const CNTMODE=mode==="hear"&&!!(opt&&opt.count), pre=at!=null&&at+M.beats*SP>a.currentTime+0.05, t0=pre?at:a.currentTime+0.15-(mode==="hear"&&!CNTMODE?M.beats*SP:0), start=t0+M.beats*SP, end=start+M.units*U; // Hear it starts right away (no silent bar)
     // while you play into the mic, the clicks in your bar are softer so the mic hears you, not them
-    if(!M.compound) for(let b=0;b<2*M.beats;b++){ if((mode==="hear"||pre)&&b<M.beats) continue; const ci=mode==="test"&&b<M.beats, sf=b>=M.beats&&mode==="test"&&micMode(); click(t0+b*SP,b%M.beats===0,sf,1,ci,ci&&b<2);
+    const MUTEBAR=mode==="test"&&inMode==="note"&&!$("clkBar").checked; // One note: no click in your bar unless "keep the click going" is on (the mic would hear it as notes)
+    if(!M.compound) for(let b=0;b<2*M.beats;b++){ if((mode==="hear"||pre)&&b<M.beats) continue; if(MUTEBAR&&b>=M.beats) continue; const ci=mode==="test"&&b<M.beats, sf=b>=M.beats&&mode==="test"&&micMode(); click(t0+b*SP,b%M.beats===0,sf,1,ci,ci&&b<2);
       if(subOn()&&mode==="test") sub(t0+b*SP+SP/2,sf,ci,ci&&b===0) }
     else { // 6/8: the count-in bar clicks all six eighths (accent on 1, secondary accent on 4); the bar you play clicks the two dotted-quarter beats
       if(mode!=="hear"&&!pre) for(let k=0;k<6;k++) click(t0+k*SP/3,k===0,false,k===3?1.3:k===0?1:0.7,mode==="test",mode==="test"&&k<2);
-      if(!CNTMODE) for(let b=0;b<2;b++) click(start+b*SP,b===0,mode==="test"&&micMode(),b===1?1.3:1) }
+      if(!CNTMODE&&!MUTEBAR) for(let b=0;b<2;b++) click(start+b*SP,b===0,mode==="test"&&micMode(),b===1?1.3:1) }
     // spoken count (2026-11-19, Derek: "Hear it with clap and verbal counting"): every note's count, plus any beat with no new note, said right on time
     if(CNTMODE) voiceCount(a,M,SP,U,t0,start); else window.__rtCount=null
     if(!CNTMODE&&(mode==="hear"||$("guide").checked)) bar.notes.forEach(n=>(mode==="test"&&inMode==="clap"&&mic)?wood(start+n.s*U,n.d*U):hand(start+n.s*U));
@@ -702,8 +705,10 @@ input,textarea,select,[contenteditable]{-webkit-user-select:text!important;user-
   const LEAD=0.04;
   const autoLag=src=>{ if(src==="midi") return 0.004-LEAD; /* MIDI times are mapped to what you heard (getOutputTimestamp), so only the cable/USB delay and the lead are left */ const a=audio; const o=a?((a.outputLatency||0)+(a.baseLatency||0)):0; return src==="mic"?Math.min(0.25,o+0.015):Math.min(0.25,o+0.03-LEAD) };
   const manLag=src=>src==="midi"?latMidi:src!=="mic"?latency:inMode==="note"?latNote:latClap;
+  // One note: the app's own click, heard through the speaker, is never a note. A hit within 30 ms of when a click was played (or of when it reaches the mic) is dropped.
+  let clickRej=0; const nearClick=t=>{ const a=audio, L=a?Math.min(0.25,(a.outputLatency||0)+(a.baseLatency||0)):0; return outT.some(o=>Math.abs(t-o)<0.03||Math.abs(t-o-L)<0.03) };
   const hitLog=[]; // test hook: every raw hit (tap or mic) as it arrives, before any correction
-  function tapAt(tsec,src,info){ if(src==="mic"&&hypeWait()>0){ hypeSup++; return } hitLog.push({t:tsec,src:src||"tap",mode:inMode,via:info&&info.via}); if(hitLog.length>400) hitLog.shift(); if(calHook){ calHook(tsec,info); return -1 } if(!run||run.mode!=="test") return -1; const man=manLag(src); const t=tsec-(man!=null?man/1000:autoLag(src)); if(t<run.start-0.3||t>run.end+0.2) return -1; taps.push(t); rels.push(null);
+  function tapAt(tsec,src,info){ if(src==="mic"&&hypeWait()>0){ hypeSup++; return } hitLog.push({t:tsec,src:src||"tap",mode:inMode,via:info&&info.via}); if(hitLog.length>400) hitLog.shift(); if(calHook){ calHook(tsec,info); return -1 } if(!run||run.mode!=="test") return -1; if(src==="mic"&&inMode==="note"&&nearClick(tsec)){ clickRej++; return -1 } const man=manLag(src); const t=tsec-(man!=null?man/1000:autoLag(src)); if(t<run.start-0.3||t>run.end+0.2) return -1; taps.push(t); rels.push(null);
     $("pad").classList.add("hit"); setTimeout(()=>$("pad").classList.remove("hit"),90); return taps.length-1 }
   // Releases (Tap): every press is kept by its pointer (each finger on its own) or "key" for the space bar, so it can be let go.
   // The pad captures the pointer, so a finger that slides off the pad still lets go here; a cancelled touch counts as letting go then.
@@ -819,6 +824,9 @@ input,textarea,select,[contenteditable]{-webkit-user-select:text!important;user-
       else if(avg>45) c=`Dragging: about ${Math.round(avg)} ms late on average. Lock onto the click.`;
       else { const worst=bar.notes[errs.map(Math.abs).indexOf(Math.max(...errs.map(Math.abs)))]; c=worst?`Close. Watch "${CNT(worst.s)}". Say the counts out loud while you tap.`:"Close. Say the counts out loud while you tap." } }
     if(inMode==="midi"&&latMidi==null&&errs.length>=3&&Math.abs(avg)>25&&Math.max(...errs)-Math.min(...errs)<40) c+=` (Every note ${Math.round(Math.abs(avg))} ms ${avg>0?"late":"early"}? That's keyboard delay: tap "Calibrate" once.)`;
+    if(micMode()&&!taps.length){ // a take with no notes heard (silence, or only the app's own click) scores nothing and is never recorded
+      msg("bad","No notes heard",inMode==="note"?"Nothing was heard. Check that the microphone is on, play your note on each beat, and try again.":"Nothing was heard. Check that the microphone is on, clap or snap on each beat, and try again.");
+      lastGrade={score:null,silent:true,v:"No notes heard"}; return afterGrade({silent:true,score:0,perfect:0,ok:0,notes:notes.length,errs:[],missed:notes.length,extras:0,cpts:0,holdN:0,holdOk:0}) }
     msg(cls,v,c);
     lastGrade={score,cpts:Math.max(0,cp-0.5*extras.length),holds:holds.map(h=>({s:h.s,end:h.end,len:h.len,tied:h.tied,g:h.g,err:h.err==null?null:Math.round(h.err*1000)})),v,c};
     afterGrade({score,perfect,ok:okN,notes:notes.length,errs,missed:missed.length,extras:extras.length,cpts:lastGrade.cpts,holdN:holds.length,holdOk:holds.filter(h=>h.g==="perfect"||h.g==="good").length}) }
@@ -887,8 +895,8 @@ function lockUI(){ const on=!!(run||sess||arc); document.body.classList.toggle("
   function chime(){ const a=ctx(),t=a.currentTime; [784,1047,1319].forEach((f,i)=>{ const o=a.createOscillator(),g=a.createGain(); o.type="triangle"; o.frequency.value=f; g.gain.setValueAtTime(0.0001,t+i*0.08); g.gain.exponentialRampToValueAtTime(0.25,t+i*0.08+0.01); g.gain.exponentialRampToValueAtTime(0.0001,t+i*0.08+0.35); o.connect(g).connect(bus()); o.start(t+i*0.08); o.stop(t+i*0.08+0.4) }) }
   function scoreFlash(v){ const f=$("scoreFlash"); f.textContent=v+"%"; f.className="scoreflash"+(v>=90?"":v>=70?" ok":" bad"); void f.offsetWidth; f.classList.add("go") }
   function afterGrade(r){ const pts=r.cpts!=null?r.cpts:Math.max(0,r.perfect+0.5*r.ok-0.5*r.extras);
-    if(gmode==="practice"){ round.push(r); const hs=bestNum(bestKey()); if(hs==null||r.score>hs) store.set(bestKey(),r.score); $("go").textContent="Next"; $("again").hidden=false; stats(); if(loopOn&&loopAt!=null){ const t=loopAt; loopAt=null; loopRes={score:r.score,res:curRes}; $("results").hidden=true; $("again").hidden=true; play("test",t).then(loopBtn) } return }
-    const S=sess; if(!S) return; S.points+=pts; S.bars.push(r); scoreFlash(r.score);
+    if(gmode==="practice"){ if(!r.silent){ round.push(r); const hs=bestNum(bestKey()); if(hs==null||r.score>hs) store.set(bestKey(),r.score) } $("go").textContent=r.silent?"Start":"Next"; $("again").hidden=false; stats(); if(loopOn&&loopAt!=null){ const t=loopAt; loopAt=null; if(r.silent){ loopStop(); msg("bad","No notes heard","The loop stopped. Check that the microphone is on, then press Start."); return } loopRes={score:r.score,res:curRes}; $("results").hidden=true; $("again").hidden=true; play("test",t).then(loopBtn) } return }
+    const S=sess; if(!S) return; if(r.silent){ stats(); if(arc) arcBar(); if(S.left>0&&!S.stopped) setTimeout(()=>{ if(sess===S&&S.left>0&&!S.stopped){ newBar(); play("test") } },900); else setTimeout(()=>{ if(sess===S) sessionOver() },500); return } S.points+=pts; S.bars.push(r); scoreFlash(r.score);
     if(arc){ arc.rp=(arc.rp||0)+pts; if(arc.ramp){ const nxb=arc.deck&&arc.deck[arc.bi], step=!!(nxb&&bar&&bar.diff!=null&&nxb.diff-bar.diff>Math.max(0.75,0.1*bar.diff)); /* the next rhythm is a clear step harder: hold the tempo for it (never both at once) */ const d0=r.score>=95?2:r.score>=80?1:r.score>=60?0:-2, d=step?Math.min(0,d0):d0; nb=Math.max(arc.start,Math.min(arc.cap,arc.bpm+d)); arc.dir=Math.sign(nb-arc.bpm); arc.bpm=nb; arc.top=Math.max(arc.top,nb) } }
     stats(); if(arc) arcBar();
     if(S.left>0&&!S.stopped) setTimeout(()=>{ if(sess===S&&S.left>0&&!S.stopped){ newBar(); play("test") } },500); else setTimeout(()=>{ if(sess===S) sessionOver() },500) }
@@ -1465,11 +1473,12 @@ class NoteFlux{
     try{ navigator.clipboard.writeText(txt).then(()=>{ $("diagCopy").textContent="Copied" },()=>{ $("diagRows").textContent=txt }) }catch(e){ $("diagRows").textContent=txt } });
   if(/[?&]debug=1/.test(location.search)) $("diag").hidden=false;
   document.querySelectorAll("#inSeg button").forEach(b=>b.addEventListener("click",()=>setIn(b.dataset.in)));
+  $("clkBar").checked=!!store.get("clkBar",false); $("clkBar").addEventListener("change",e=>store.set("clkBar",e.target.checked));
   setIn(inMode); clkUI();
 
   window.__rt={pool:(lv,m)=>{const km=meterId;if(m)meterId=m;try{return poolOf(lv).map(b=>({diff:b.diff,feat:Object.keys(b.feat),r:sig(b),ev:b.ev.map(e=>[e.d,e.r?1:0,e.tie?1:0])}))}finally{meterId=km}},deck:(r,lv,m,F)=>{const km=meterId,kl=level;if(m)meterId=m;if(lv)level=lv;try{return drawDeck(r,level,F||8).map(b=>({lv:b.lv,diff:b.diff}))}finally{meterId=km;level=kl}},rounds:()=>window.__rtRounds||[],meter:()=>meterId,setMeter:id=>setMeter(id),meters:()=>METERS,make:(lv,m)=>{const k=level,km=meterId;level=lv;if(m)meterId=m;try{return makeBar()}finally{level=k;meterId=km}},
     beams:(ev,m)=>{const km=meterId;if(m)meterId=m;try{return beamGroups(ev).map(g=>({idx:g.map(e=>e.i),sec:secBeams(g)}))}finally{meterId=km}},cnt:(s,m)=>{const km=meterId;if(m)meterId=m;try{return CNT(s)}finally{meterId=km}},
-    svg:()=>$("bar").innerHTML,draw:()=>drawBar(null),hype:()=>({sup:hypeSup,dirty:hypeDirty,wait:hypeWait()}),bpm:()=>bpm,tempos:()=>tempoList(),label:()=>$("bar").getAttribute("aria-label"),bar:()=>bar,start:()=>lastStart,tap:t=>tapAt(t),now:()=>audio&&audio.currentTime,u:()=>u16(),setBar:b=>{bar=b;drawBar(null)},hits:()=>hitLog.slice(),setTempo:v=>{ if(!run&&!sess) bpm=+v },run:()=>run&&{start:run.start,end:run.end,u:run.u},arcInfo:()=>arc&&{round:arc.round,rp:arc.rp,need:arc.need,possible:arc.possible,bpm:arc.bpm,start:arc.start,cap:arc.cap,top:arc.top,dir:arc.dir,bars:arc.deck.length,bi:arc.bi,left:sess&&sess.left},
+    svg:()=>$("bar").innerHTML,draw:()=>drawBar(null),hype:()=>({sup:hypeSup,dirty:hypeDirty,wait:hypeWait()}),bpm:()=>bpm,tempos:()=>tempoList(),label:()=>$("bar").getAttribute("aria-label"),bar:()=>bar,start:()=>lastStart,tap:t=>tapAt(t),now:()=>audio&&audio.currentTime,u:()=>u16(),setBar:b=>{bar=b;drawBar(null)},hits:()=>hitLog.slice(),micTap:t=>tapAt(t,"mic",{via:"test"}),outT:()=>outT.slice(),clickRej:()=>clickRej,setTempo:v=>{ if(!run&&!sess) bpm=+v },run:()=>run&&{start:run.start,end:run.end,u:run.u},arcInfo:()=>arc&&{round:arc.round,rp:arc.rp,need:arc.need,possible:arc.possible,bpm:arc.bpm,start:arc.start,cap:arc.cap,top:arc.top,dir:arc.dir,bars:arc.deck.length,bi:arc.bi,left:sess&&sess.left},
     plan:(r,b,lv,m)=>{const k=level,km=meterId;if(lv)level=lv;if(m)meterId=m;try{const P=roundPlan(r,b);return {need:P.need,possible:P.possible,n:P.deck.map(x=>x.notes.length)}}finally{level=k;meterId=km}},press:(t,id)=>pressAt(t,id==null?"t":id),release:(t,id)=>releaseAt(t,id==null?"t":id),holdSpec:ev=>holdSpec(ev||bar.ev),grade:()=>lastGrade,rels:()=>rels.slice(),taps:()=>taps.slice(),held:()=>held.size,
     st:()=>({run:run?run.mode:null,rid:run?run.t0:null,sess:!!sess,arc:!!arc,starting,cal:!!calHook,mic:!!mic,micBusy,inMode,gmode,live:live.size,left:sess?sess.left:null,points:sess?sess.points:null})}; // test hook
   mark(); newBar(); setMode("practice");
