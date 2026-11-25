@@ -297,7 +297,8 @@ input,textarea,select,[contenteditable]{-webkit-user-select:text!important;user-
       <button class="ghost" id="again" hidden><span aria-hidden="true">↺</span> Retry</button>
       <button class="primary" id="go">Start</button>
     </div>
-    <details class="how"><summary>How it works</summary><p class="tip">Tap the pad or the space bar, or switch to "Clap or snap". Rests are silent: don't tap them. In "Tap", hold long notes down for their full length and let go on time. Clapping or playing with speakers? Headphones are best: the mic never hears the clicks at all.</p></details>
+    <details class="how"><summary>How it works</summary><p class="tip">Tap the pad or the space bar, or switch to "Clap or snap". Rests are silent: don't tap them. In "Tap", hold long notes down for their full length and let go on time. Clapping or playing with speakers? Headphones are best: the mic never hears the clicks at all.</p>
+      <p class="tip"><b>How scoring works.</b> Each note scores by where it starts. Full credit within a small window of the beat (about 40 to 55 ms on MIDI, 40 to 60 ms on a tap, 50 to 75 ms on the microphone, a little wider at slow tempos), then credit slides down to zero about a tenth of a second later. A long note you hold for at least 75% of its length counts as fully held: lifting your finger between piano notes is normal. Under half its length, or held past the next note, loses a little. A missed note scores 0, and an extra tap costs half a note. Green = full credit, orange = partial (the coaching line says why), red = missed. In Challenge, a round is passed on its overall accuracy (75% in Round 2, rising to 80%, then 85% in the bonus round) with no more than 1 missed note, never on a count of perfect hits.</p></details>
 
     <div class="arcsplash" id="arcSplash" hidden><div class="pre" id="spP"></div><b id="spT"></b><em id="spB" hidden></em><span id="spS"></span><small class="sptap" id="spTap" hidden>Tap to start</small></div><div class="hitstamp" id="hitStamp">ON TARGET!</div>
     <div class="results" id="results" role="region" aria-label="Results" hidden>
@@ -763,7 +764,11 @@ input,textarea,select,[contenteditable]{-webkit-user-select:text!important;user-
   // to 0 at P + 70 ms (91 ms at 72 BPM). Further off = 0 for that note. Extra hits (rests, doubles, banging) cost 0.5 each, a missed
   // note scores 0. (Until 11.23 anything within 60 ms was perfect and 120-250 ms still earned 0.4, so sloppy playing read 90%+.)
   // loosened 2026-11-19 (Derek: "grading is a bit strict, chill out"): Perfect within 30-45 ms (was 18-30), partial credit out to ~110 ms past that (was 70)
-  const tWin=u=>{ const P=Math.min(0.045,Math.max(0.03,0.12*u)), O=P+0.11; return {P,G:(P+O)/2,O} };
+  // Separate windows per input (2026-11-25.2, instructor feedback: a clean MIDI take read as mostly "good", not perfect): MIDI times are mapped to what you
+  // heard, so MIDI is the tightest; a screen tap adds touch lag; a microphone adds the most (room, speaker and detector), so it gets the widest window.
+  // Perfect = full credit within P; credit then falls in a straight line to zero at O.
+  const TWINS={midi:[0.04,0.055,0.11],tap:[0.04,0.06,0.11],mic:[0.05,0.075,0.12]};
+  const tWin=u=>{ const [lo,hi,fall]=TWINS[inMode==="midi"?"midi":inMode==="tap"?"tap":"mic"], P=Math.min(hi,Math.max(lo,0.14*u)), O=P+fall; return {P,G:(P+O)/2,O} };
   const tScore=(a,W)=>a<=W.P?1:Math.max(0,(W.O-a)/(W.O-W.P));
   function grade(){
     const st=lastStart, u=lastU;
@@ -792,7 +797,9 @@ input,textarea,select,[contenteditable]{-webkit-user-select:text!important;user-
       // the release (Tap, MIDI, One note; graded notes only). Not double-punished: a late start held for the right length is a good release too,
       // so the release is judged by whichever is closer, the written end or the written length from where you started.
       let hold=null; if(HS&&HS[ni].graded){ const hs=HS[ni], L=hs.len*u, w0=holdWin(L,u*MT().beatU), w={p:w0.p*lastHoldX,g:w0.g*lastHoldX}, r=rels[bi]; let err=null, g="held";
-        if(r!=null){ const e1=r-(st+hs.end*u), e2=(r-taps[bi])-L; err=Math.abs(e2)<Math.abs(e1)?e2:e1; const a=err<0&&!hs.beforeRest&&hs.end<MT().units?Math.max(0,-err-liftOf(L)):Math.abs(err); g=a<=w.p?"perfect":a<=w.g?"good":err<0?"early":"late" }
+        if(r!=null){ const e1=r-(st+hs.end*u), e2=(r-taps[bi])-L; err=Math.abs(e2)<Math.abs(e1)?e2:e1; const a=err<0&&!hs.beforeRest&&hs.end<MT().units?Math.max(0,-err-liftOf(L)):Math.abs(err); g=a<=w.p?"perfect":a<=w.g?"good":err<0?"early":"late";
+          /* fair rubric (2026-11-25.2): a note held for at least 75% of its written length is fully held (lifting a finger between piano notes is natural); 50% to 75% is good; only shorter loses points */
+          const heldFor=r-taps[bi]; if(err<0&&heldFor>=0.75*L) g="perfect"; else if(err<0&&g==="early"&&heldFor>=0.5*L) g="good" }
         sc=Math.max(0,sc-HOLD_PEN[g]); hold={...hs,a:(taps[bi]-st)/u,r:r==null?null:(r-st)/u,err,g,col:HCOL[g]}; holds.push(hold) }
       // Challenge points: 1 perfect start, ½ good start, then −½ for a long note let go early or held too long (never below 0 for the note)
       cp+=Math.max(0,(a<=TW.P?1:a<=TW.G?0.5:0)-(hold&&HOLD_PEN[hold.g]>=0.3?0.5:0));
@@ -855,7 +862,7 @@ function lockUI(){ const on=!!(run||sess||arc); document.body.classList.toggle("
   // between tries; a try that would start in the last moment is left out, so a perfect player is never one rhythm short) are dealt up front, and the target is the round's accuracy bar (75/80/85/90/90%)
   // of the points they hold (1 per note), always more than the notes in its first 2 rhythms, so it can never be reached in 2 bars.
   // Earning a faster tempo fits more rhythms in: more chances to score.
-  const ARC_NEED=[0,0,75,80,85,90,90], ARC_MAX=180, ARC_OVH=1.0, ARC_LEAD=0.4; // index = round (6 = bonus); seconds between tries; before the first
+  const ARC_NEED=[0,0,75,80,80,85,85], GATE_MISS=1, GATE_MINBARS=3, ARC_MAX=180, ARC_OVH=1.0, ARC_LEAD=0.4; // index = round (6 = bonus); seconds between tries; before the first
   // Rounds climb in difficulty (drawDeck). The target is still the round's accuracy bar of the points its rhythms hold (1 per note), so a
   // round with more notes per rhythm holds more points; rounds that borrow the next level's rhythms ask 5% less accuracy (80/80/85 instead
   // of 85/90/90 for rounds 4, 5 and the bonus), because the step up is a new level, not just faster hands.
@@ -864,6 +871,12 @@ function lockUI(){ const on=!!(run||sess||arc); document.body.classList.toggle("
     const seen=new Set(); (arc&&arc.seenF||[]).forEach(x=>seen.add(x)); const fs=new Set(); deck.forEach(x=>Object.keys(x.feat||{}).forEach(k=>fs.add(k)));
     const nw=[...fs].filter(k=>!seen.has(k)), mean=deck.reduce((a,x)=>a+(x.diff||0),0)/deck.length, from=[...new Set(deck.map(x=>x.lv))].filter(l=>l!==level);
     return {deck,need,possible,pct,diff:mean,news:nw,from} }
+  // Round gate (2026-11-25.2, instructor feedback: a clean 89% take was blocked): a round is passed on its overall ACCURACY (the average of the
+  // tries' scores, which already give partial credit: perfect, good, then late or early by a sliding scale), with no more than GATE_MISS missed notes.
+  // It is never decided by a count of perfect hits. Points still add up for the high score.
+  const roundStats=()=>{ const bs=sess&&arc?sess.bars.slice(arc.from):[]; return {n:bs.length,acc:bs.length?Math.round(bs.reduce((a,b)=>a+b.score,0)/bs.length):0,miss:bs.reduce((a,b)=>a+(b.missed||0),0)} };
+  const gateOk=(R,g)=>R.n>=GATE_MINBARS&&R.acc>=g&&R.miss<=GATE_MISS;
+  const gateRule=g=>`${g}% accuracy or better, with no more than ${GATE_MISS} missed note`;
   // what is new this round, in words for the round screen
   function roundNews(P){ const L=from=>{ const X=LEVELS.find(x=>x.id===from); return X?`L${lvIdx(from)+1} ${lvlName(X)}`:"" };
     const nn=P.deck.reduce((a,x)=>a+x.notes.length,0)/P.deck.length, pn=arc&&arc.nn, parts=P.news.map(k=>FEATN[k]).filter(Boolean).slice(0,2);
@@ -871,7 +884,7 @@ function lockUI(){ const on=!!(run||sess||arc); document.body.classList.toggle("
     if(P.from.length) t+=` Rhythms from ${L(P.from[0])} join in.`; return t }
   const trange=(a,b)=>a===b?tl(a):MT().compound?`♩. = ${a}–${b}`:`${a}–${b} BPM`;
   function arcLimits(start){ arc.start=Math.min(arcMax(),start); arc.cap=arc.ramp?Math.min(arcMax(),Math.round(arc.start*1.08)):arc.start; arc.bpm=arc.start; arc.dir=0; arc.top=Math.max(arc.top||0,arc.bpm);
-    const P=roundPlan(arc.round,arc.start); arc.deck=P.deck; arc.bi=0; arc.need=P.need; arc.possible=P.possible; arc.rp=0; arc.news=roundNews(P); arc.diff=P.diff;
+    const P=roundPlan(arc.round,arc.start); arc.deck=P.deck; arc.bi=0; arc.need=P.need; arc.gate=P.pct; arc.rtop=arc.bpm; arc.possible=P.possible; arc.rp=0; arc.news=roundNews(P); arc.diff=P.diff;
     arc.seenF=[...new Set([...(arc.seenF||[]),...P.deck.flatMap(x=>Object.keys(x.feat||{}))])]; (window.__rtRounds=window.__rtRounds||[]).push({round:arc.round,lv:level,diff:+P.diff.toFixed(2),need:P.need,possible:P.possible,news:arc.news,bars:P.deck.map(x=>({lv:x.lv,diff:x.diff,r:sig(x)}))}) }
   const rampOn=()=>$("ramp").checked; // read at Start: a change during a run applies to the next run
   const arcMax=()=>MT().compound?120:ARC_MAX; // 6/8: dotted quarter 120 = eighths at 360, the same eighth speed as 4/4 at 180
@@ -889,7 +902,7 @@ function lockUI(){ const on=!!(run||sess||arc); document.body.classList.toggle("
   function setMode(m){ if(m!=="practice") m="chal"; // only two modes: any other or old value lands on Challenge
     if(sess) stopSession(true); gmode=m; document.querySelectorAll("#modeSeg button").forEach(b=>b.setAttribute("aria-pressed",String(b.dataset.m===m)));
     round=[]; $("results").hidden=true; $("again").hidden=true; $("go").textContent="Start";
-    msg(null,m==="practice"?"Single tries":"Challenge mode",m==="practice"?"One rhythm at a time, with your timing after every try.":"Faster + accuracy. Round 1 is a 30-second warm-up at your tempo. Play well and the tempo climbs, up to 8% a round. Each round after the warm-up has its own points target, counted from 0: play accurately for most of the 30 seconds to reach it. 5 rounds, then a bonus round. (\"Settings\": turn off the speed-up for a steady tempo.)");
+    msg(null,m==="practice"?"Single tries":"Challenge mode",m==="practice"?"One rhythm at a time, with your timing after every try.":"Faster + accuracy. Round 1 is a 30-second warm-up at your tempo. Play well and the tempo climbs, up to 8% a round. Each round after the warm-up has an accuracy goal (75% in Round 2, rising to 80%, then 85% in the bonus round), with no more than 1 missed note: play accurately for most of the 30 seconds to reach it. 5 rounds, then a bonus round. (\"Settings\": turn off the speed-up for a steady tempo.)");
     stats() }
   document.querySelectorAll("#modeSeg button").forEach(b=>b.addEventListener("click",()=>setMode(b.dataset.m)));
   function chime(){ const a=ctx(),t=a.currentTime; [784,1047,1319].forEach((f,i)=>{ const o=a.createOscillator(),g=a.createGain(); o.type="triangle"; o.frequency.value=f; g.gain.setValueAtTime(0.0001,t+i*0.08); g.gain.exponentialRampToValueAtTime(0.25,t+i*0.08+0.01); g.gain.exponentialRampToValueAtTime(0.0001,t+i*0.08+0.35); o.connect(g).connect(bus()); o.start(t+i*0.08); o.stop(t+i*0.08+0.4) }) }
@@ -897,7 +910,7 @@ function lockUI(){ const on=!!(run||sess||arc); document.body.classList.toggle("
   function afterGrade(r){ const pts=r.cpts!=null?r.cpts:Math.max(0,r.perfect+0.5*r.ok-0.5*r.extras);
     if(gmode==="practice"){ if(!r.silent){ round.push(r); const hs=bestNum(bestKey()); if(hs==null||r.score>hs) store.set(bestKey(),r.score) } $("go").textContent=r.silent?"Start":"Next"; $("again").hidden=false; stats(); if(loopOn&&loopAt!=null){ const t=loopAt; loopAt=null; if(r.silent){ loopStop(); msg("bad","No notes heard","The loop stopped. Check that the microphone is on, then press Start."); return } loopRes={score:r.score,res:curRes}; $("results").hidden=true; $("again").hidden=true; play("test",t).then(loopBtn) } return }
     const S=sess; if(!S) return; if(r.silent){ stats(); if(arc) arcBar(); if(S.left>0&&!S.stopped) setTimeout(()=>{ if(sess===S&&S.left>0&&!S.stopped){ newBar(); play("test") } },900); else setTimeout(()=>{ if(sess===S) sessionOver() },500); return } S.points+=pts; S.bars.push(r); scoreFlash(r.score);
-    if(arc){ arc.rp=(arc.rp||0)+pts; if(arc.ramp){ const nxb=arc.deck&&arc.deck[arc.bi], step=!!(nxb&&bar&&bar.diff!=null&&nxb.diff-bar.diff>Math.max(0.75,0.1*bar.diff)); /* the next rhythm is a clear step harder: hold the tempo for it (never both at once) */ const d0=r.score>=95?2:r.score>=80?1:r.score>=60?0:-2, d=step?Math.min(0,d0):d0; nb=Math.max(arc.start,Math.min(arc.cap,arc.bpm+d)); arc.dir=Math.sign(nb-arc.bpm); arc.bpm=nb; arc.top=Math.max(arc.top,nb) } }
+    if(arc){ arc.rp=(arc.rp||0)+pts; if(arc.ramp){ const nxb=arc.deck&&arc.deck[arc.bi], step=!!(nxb&&bar&&bar.diff!=null&&nxb.diff-bar.diff>Math.max(0.75,0.1*bar.diff)); /* the next rhythm is a clear step harder: hold the tempo for it (never both at once) */ const d0=r.score>=95?2:r.score>=80?1:r.score>=60?0:-2, d=step?Math.min(0,d0):d0; nb=Math.max(arc.start,Math.min(arc.cap,arc.bpm+d)); arc.dir=Math.sign(nb-arc.bpm); arc.bpm=nb; arc.top=Math.max(arc.top,nb); arc.rtop=Math.max(arc.rtop||nb,nb) } }
     stats(); if(arc) arcBar();
     if(S.left>0&&!S.stopped) setTimeout(()=>{ if(sess===S&&S.left>0&&!S.stopped){ newBar(); play("test") } },500); else setTimeout(()=>{ if(sess===S) sessionOver() },500) }
   function stopSession(silent){ hypeStop(120); if(!sess) return; clearInterval(sess.timer); sess.stopped=true; sess=null; arc=null; splashTok++; if(run){ run=null; hush(); drawBar(null); $("go").disabled=false } lockUI(); $("arcbar").hidden=true; $("arcMeter").hidden=true; $("cxBar").hidden=true; $("arcSplash").hidden=true; $("hear").disabled=false; $("go").textContent="Start"; if(!silent) msg(null,"Stopped","Press \"Start\" to go again."); stats() }
@@ -924,10 +937,10 @@ function lockUI(){ const on=!!(run||sess||arc); document.body.classList.toggle("
   const arcRoundName=()=>arc.round===6?"BONUS ROUND":`ROUND ${arc.round}`;
   function arcBar(){ if(!arc||!sess) return; const S=sess, rp=arc.rp||0, tt=tl(arc.bpm)+(arc.dir>0?" ▲":arc.dir<0?" ▼":""); $("arcbar").hidden=false; $("arcMeter").hidden=false;
     if(arc.round===1){ $("arcRound").textContent=`WARM-UP · ${tt}`; $("arcNeed").textContent=`${half(rp)} POINTS`; $("arcNeed").classList.remove("met"); $("arcFill").style.width=(100*(ARC_T-S.left)/ARC_T)+"%"; $("arcTgt").hidden=true; $("arcMeter").classList.remove("hit"); return }
-    const need=arc.need, hit=rp>=need; // the meter fills from 0 toward this round's points target
-    $("arcRound").textContent=`${arc.round===6?"BONUS":`ROUND ${arc.round} OF 5`} · ${tt}`; $("arcNeed").textContent=`${hit?"✓ ":""}${half(rp)} / ${need} POINTS`; $("arcNeed").classList.toggle("met",hit);
-    $("arcFill").style.width=Math.min(100,100*rp/need)+"%"; $("arcTgt").hidden=true; $("arcMeter").classList.toggle("hit",hit);
-    $("arcMeter").setAttribute("aria-label",`${half(rp)} of ${need} points this round`);
+    const R=roundStats(), g=arc.gate, hit=gateOk(R,g); // the meter shows this round's accuracy against the gate
+    $("arcRound").textContent=`${arc.round===6?"BONUS":`ROUND ${arc.round} OF 5`} · ${tt}`; $("arcNeed").textContent=R.n?`${hit?"✓ ":""}${R.acc}% · NEED ${g}%`:`NEED ${g}% ACCURACY`; $("arcNeed").classList.toggle("met",hit);
+    $("arcFill").style.width=Math.min(100,R.n?100*R.acc/g:0)+"%"; $("arcTgt").hidden=true; $("arcMeter").classList.toggle("hit",hit);
+    $("arcMeter").setAttribute("aria-label",`${R.acc} percent accuracy this round, ${g} percent needed, ${R.miss} missed notes`);
     if(hit&&!arc.hit){ arc.hit=true; const hs=$("hitStamp"); hs.classList.remove("go"); void hs.offsetWidth; hs.classList.add("go"); chime() } }
   let splashTok=0;
   // ---------- round-screen music (shared/hype.js): only with "Music on round screens" on; the page works without the file ----------
@@ -943,23 +956,23 @@ function lockUI(){ const on=!!(run||sess||arc); document.body.classList.toggle("
     let done=false; const go=()=>{ if(done||tok!==splashTok) return; done=true; hypeStop(120); sp.onpointerdown=null; sp.hidden=true; $("spTap").hidden=true; if(arc) setTimeout(()=>{ if(arc&&tok===splashTok) then() },900) }; // 0.9 s of quiet after the round music so the count-in stands apart (2026-11-20, Derek)
     hypePlay(ms); sp.onpointerdown=null; setTimeout(()=>{ if(tok!==splashTok||done) return; $("spTap").hidden=false; sp.onpointerdown=e=>{ e.preventDefault(); go() } },900); setTimeout(go,ms) }
   function arcStart(){ if(sess) stopSession(true); sess={points:0,bars:[],left:ARC_T,stopped:true}; arc={round:1,ramp:rampOn(),from:0,hit:false}; arcLimits(bpm); lockUI(); $("clockPill").textContent=ARC_T+" s"; $("clockPill").classList.remove("hot"); $("results").hidden=true; $("go").textContent="Stop"; $("hear").disabled=true;
-    arcBar(); splash(arc.ramp?"CHALLENGE MODE":"CHALLENGE MODE · STEADY TEMPO","ROUND 1",arc.ramp?trange(arc.start,arc.cap):tl(arc.bpm),arc.ramp?"Warm-up: no target, just play. Play well and the tempo climbs. Then every round has a fresh points target. One try per rhythm.":"Warm-up: no target, just play. Then every round has a fresh points target, all at this tempo. One try per rhythm.",2800,arcRound) }
+    arcBar(); splash(arc.ramp?"CHALLENGE MODE":"CHALLENGE MODE · STEADY TEMPO","ROUND 1",arc.ramp?trange(arc.start,arc.cap):tl(arc.bpm),arc.ramp?"Warm-up: no target, just play. Play well and the tempo climbs. Then every round has an accuracy goal (75% to start, no more than 1 missed note). One try per rhythm.":"Warm-up: no target, just play. Then every round has an accuracy goal (75% to start, no more than 1 missed note), all at this tempo. One try per rhythm.",2800,arcRound) }
   function arcRound(){ clearInterval(sess.timer); sess.left=ARC_T; sess.stopped=false; arc.hit=false; arc.rp=0; arc.from=sess.bars.length; $("clockPill").textContent=ARC_T+" s"; $("clockPill").classList.remove("hot"); arcBar();
     sess.timer=setInterval(()=>{ const S=sess; if(!S) return; S.left--; stats(); $("clockPill").textContent=Math.max(0,S.left)+" s"; $("clockPill").classList.toggle("hot",S.left<=10); arcBar(); if(S.left<=0){ clearInterval(S.timer); if(!run) arcRoundEnd() } },1000);
     newBar(); play("test") }
   function arcNext(pre){ arc.round++; arcLimits(arc.ramp?arc.cap:bpm); // the next round starts where the last one could reach
-    splash(pre,arcRoundName(),arc.ramp?trange(arc.start,arc.cap):`${tl(arc.bpm)} · steady tempo`,`${arc.news} Target: ${arc.need} points. Fresh count: nothing carries over.${arc.ramp?" Play well and the tempo climbs.":""}`,2600,arcRound) }
+    splash(pre,arcRoundName(),arc.ramp?trange(arc.start,arc.cap):`${tl(arc.bpm)} · steady tempo`,`${arc.news} ${arc.round===6?"Bonus round":"To unlock "+(arc.round===5?"the bonus round":"Round "+(arc.round+1))}: score ${gateRule(arc.gate)}. Fresh count: nothing carries over.${arc.ramp?" Play well and the tempo climbs.":""}`,2600,arcRound) }
   function arcRoundEnd(){ if(arc.done===arc.round) return; arc.done=arc.round; const S=sess; clearInterval(S.timer); S.stopped=true; const rp=arc.rp||0;
     if(arc.round===1) return arcNext(`WARM-UP DONE · ${half(rp)} POINTS`);
     if(arc.round===6) return arcFinish(true,rp);
-    if(rp<arc.need) return arcFinish(false,rp);
-    arcNext(`ROUND ${arc.round} CLEARED ✓ · ${half(rp)} POINTS`) }
-  function arcFinish(won,rp){ hypeStop(120); const S=sess, r=arc.round, t=arc.start, need=arc.need, top=arc.top, start=bpm, ramp=arc.ramp;
+    const R=roundStats(); if(!gateOk(R,arc.gate)) return arcFinish(false,rp,R);
+    arcNext(`ROUND ${arc.round} CLEARED ✓ · ${R.acc}% (NEEDED ${arc.gate}%)`) }
+  function arcFinish(won,rp,R){ hypeStop(120); const S=sess, r=arc.round, t=arc.start, need=arc.need, top=arc.top, rtop=arc.rtop||arc.bpm, gate=arc.gate, start=bpm, ramp=arc.ramp; R=R||roundStats(); const rt=ramp?trange(t,rtop):tl(t);
     arc=null; sess=null; lockUI(); $("arcbar").hidden=true; $("arcMeter").hidden=true; $("cxBar").hidden=true; $("go").textContent="Start"; $("hear").disabled=false;
     const had=`You had ${half(rp)}.`;
-    const why=won?(rp>=need?`All 5 rounds cleared, and the bonus round at ${tl(t)} too (${half(rp)} / ${need} points).`:`All 5 rounds cleared, up to ${tl(top)}. The bonus round at ${tl(t)} needed ${need} points. ${had}`)
-      :`Round ${r} at ${tl(t)} needed ${need} points. ${had} Hit ${need} to unlock ${r===5?"the bonus round":"Round "+(r+1)}.`;
-    showResults(won?"Challenge cleared!":"Challenge over",S,why,`CHALLENGE · ${won?"ALL ROUNDS CLEARED":"ROUND "+r}`,ramp?`Start ${tl(start)} · Reached ${tl(top)}`:`Steady tempo ${tl(start)}`,!ramp) }
+    const why=won?(gateOk(R,gate)?`All 5 rounds cleared, and the bonus round (${rt}) too: ${R.acc}% accuracy.`:`All 5 rounds cleared, up to ${tl(top)}. The bonus round (${rt}) needed ${gateRule(gate)}. You scored ${R.acc}% with ${R.miss} missed.`)
+      :`Round ${r} (${rt}) needed ${gateRule(gate)}. You scored ${R.acc}% with ${R.miss} missed${R.n<GATE_MINBARS?` over ${R.n} ${R.n===1?"try":"tries"} (a round needs at least ${GATE_MINBARS})`:""}. Hit it to unlock ${r===5?"the bonus round":"Round "+(r+1)}.`;
+    showResults(won?"Challenge cleared!":"Challenge over",S,why,`CHALLENGE · ${won?"ALL ROUNDS CLEARED":"ROUND "+r}`,ramp?trange(start,top):`Steady tempo ${tl(start)}`,!ramp) }
   // ---------- controls ----------
   // a screen reader hears the rhythm as words: "quarter, eighth, eighth, quarter rest, half"
   const DUR={16:"whole",12:"dotted half",8:"half",6:"dotted quarter",4:"quarter",3:"dotted eighth",2:"eighth",1:"16th"};
@@ -1478,8 +1491,8 @@ class NoteFlux{
 
   window.__rt={pool:(lv,m)=>{const km=meterId;if(m)meterId=m;try{return poolOf(lv).map(b=>({diff:b.diff,feat:Object.keys(b.feat),r:sig(b),ev:b.ev.map(e=>[e.d,e.r?1:0,e.tie?1:0])}))}finally{meterId=km}},deck:(r,lv,m,F)=>{const km=meterId,kl=level;if(m)meterId=m;if(lv)level=lv;try{return drawDeck(r,level,F||8).map(b=>({lv:b.lv,diff:b.diff}))}finally{meterId=km;level=kl}},rounds:()=>window.__rtRounds||[],meter:()=>meterId,setMeter:id=>setMeter(id),meters:()=>METERS,make:(lv,m)=>{const k=level,km=meterId;level=lv;if(m)meterId=m;try{return makeBar()}finally{level=k;meterId=km}},
     beams:(ev,m)=>{const km=meterId;if(m)meterId=m;try{return beamGroups(ev).map(g=>({idx:g.map(e=>e.i),sec:secBeams(g)}))}finally{meterId=km}},cnt:(s,m)=>{const km=meterId;if(m)meterId=m;try{return CNT(s)}finally{meterId=km}},
-    svg:()=>$("bar").innerHTML,draw:()=>drawBar(null),hype:()=>({sup:hypeSup,dirty:hypeDirty,wait:hypeWait()}),bpm:()=>bpm,tempos:()=>tempoList(),label:()=>$("bar").getAttribute("aria-label"),bar:()=>bar,start:()=>lastStart,tap:t=>tapAt(t),now:()=>audio&&audio.currentTime,u:()=>u16(),setBar:b=>{bar=b;drawBar(null)},hits:()=>hitLog.slice(),micTap:t=>tapAt(t,"mic",{via:"test"}),outT:()=>outT.slice(),clickRej:()=>clickRej,setTempo:v=>{ if(!run&&!sess) bpm=+v },run:()=>run&&{start:run.start,end:run.end,u:run.u},arcInfo:()=>arc&&{round:arc.round,rp:arc.rp,need:arc.need,possible:arc.possible,bpm:arc.bpm,start:arc.start,cap:arc.cap,top:arc.top,dir:arc.dir,bars:arc.deck.length,bi:arc.bi,left:sess&&sess.left},
-    plan:(r,b,lv,m)=>{const k=level,km=meterId;if(lv)level=lv;if(m)meterId=m;try{const P=roundPlan(r,b);return {need:P.need,possible:P.possible,n:P.deck.map(x=>x.notes.length)}}finally{level=k;meterId=km}},press:(t,id)=>pressAt(t,id==null?"t":id),release:(t,id)=>releaseAt(t,id==null?"t":id),holdSpec:ev=>holdSpec(ev||bar.ev),grade:()=>lastGrade,rels:()=>rels.slice(),taps:()=>taps.slice(),held:()=>held.size,
+    svg:()=>$("bar").innerHTML,draw:()=>drawBar(null),hype:()=>({sup:hypeSup,dirty:hypeDirty,wait:hypeWait()}),bpm:()=>bpm,tempos:()=>tempoList(),label:()=>$("bar").getAttribute("aria-label"),bar:()=>bar,start:()=>lastStart,tap:t=>tapAt(t),now:()=>audio&&audio.currentTime,u:()=>u16(),setBar:b=>{bar=b;drawBar(null)},hits:()=>hitLog.slice(),micTap:t=>tapAt(t,"mic",{via:"test"}),outT:()=>outT.slice(),clickRej:()=>clickRej,setTempo:v=>{ if(!run&&!sess) bpm=+v },run:()=>run&&{start:run.start,end:run.end,u:run.u},arcInfo:()=>arc&&{round:arc.round,rp:arc.rp,gate:arc.gate,rtop:arc.rtop,need:arc.need,possible:arc.possible,bpm:arc.bpm,start:arc.start,cap:arc.cap,top:arc.top,dir:arc.dir,bars:arc.deck.length,bi:arc.bi,left:sess&&sess.left},
+    plan:(r,b,lv,m)=>{const k=level,km=meterId;if(lv)level=lv;if(m)meterId=m;try{const P=roundPlan(r,b);return {need:P.need,possible:P.possible,n:P.deck.map(x=>x.notes.length)}}finally{level=k;meterId=km}},press:(t,id)=>pressAt(t,id==null?"t":id),pressSrc:(t,id,src)=>pressAt(t,id,src),gate:(R,g)=>gateOk(R,g),roundStats:()=>roundStats(),setIn:m=>setIn(m),release:(t,id)=>releaseAt(t,id==null?"t":id),holdSpec:ev=>holdSpec(ev||bar.ev),grade:()=>lastGrade,rels:()=>rels.slice(),taps:()=>taps.slice(),held:()=>held.size,
     st:()=>({run:run?run.mode:null,rid:run?run.t0:null,sess:!!sess,arc:!!arc,starting,cal:!!calHook,mic:!!mic,micBusy,inMode,gmode,live:live.size,left:sess?sess.left:null,points:sess?sess.points:null})}; // test hook
   mark(); newBar(); setMode("practice");
   if(document.fonts) document.fonts.ready.then(()=>{ if(!run) drawBar(curRes) });
