@@ -52,7 +52,7 @@ button:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
 @media (prefers-reduced-motion:reduce){ @keyframes cntf{0%,60%{opacity:.85}100%{opacity:0}} }
 svg{display:block;width:100%;height:auto}
 .msg{text-align:center;min-height:44px;display:flex;flex-direction:column;gap:2px;align-items:center;justify-content:center}
-.msg .v{font-weight:800;font-size:19px} .msg .c{font-size:14px;color:var(--ink)}
+.msg .v{font-weight:800;font-size:19px} .msg .c{font-size:14px;color:var(--ink);white-space:pre-line}
 .msg.good .v{color:var(--good)} .msg.ok .v{color:var(--ok)} .msg.bad .v{color:var(--bad)}
 .pad{height:120px;border-radius:14px;border:2px solid var(--accent);background:var(--accent-soft);color:var(--accent);font-weight:800;font-size:22px;letter-spacing:.06em;
   touch-action:manipulation;user-select:none;-webkit-user-select:none}
@@ -520,6 +520,7 @@ input,textarea,select,[contenteditable]{-webkit-user-select:text!important;user-
         const open=e.d>=8, dotted=e.d===6||e.d===12||e.d===3;
         h+=`<ellipse cx="${x}" cy="${LY}" rx="${open?7.9:7.5}" ry="${open?5.7:5.4}" transform="rotate(-20 ${x} ${LY})" fill="${open?"none":col}" stroke="${col}" stroke-width="${open?2.4:0}"/>`;
         if(dotted) h+=`<circle cx="${x+13}" cy="${LY-5}" r="2.3" fill="${col}"/>`;
+        if(res&&res.focus&&res.focus.has(i)) h+=`<circle cx="${x}" cy="${LY}" r="16" fill="none" stroke="${col}" stroke-width="2" stroke-dasharray="4 3"/>`; // the note a coaching line talks about
         if(e.d<16){ h+=`<line x1="${x+SX}" x2="${x+SX}" y1="${LY-1}" y2="${sTop}" stroke="${col}" stroke-width="1.8"/>`;
           if(e.d<4&&!beamed.has(i)){ // single flag(s)
             for(let f=0;f<(e.d===1?2:1);f++){const y0=sTop+f*8; h+=`<path d="M${x+SX} ${y0} c 3 8, 12 10, 9 22 c 0 -8, -5 -12, -9 -14 z" fill="${col}"/>`} } }
@@ -791,7 +792,7 @@ input,textarea,select,[contenteditable]{-webkit-user-select:text!important;user-
   const tScore=(a,W)=>a<=W.P?1:Math.max(0,(W.O-a)/(W.O-W.P));
   function grade(){
     const st=lastStart, u=lastU;
-    const notes=bar.notes, used=new Set(), byNote=new Map(), resTaps=[], missed=[]; let pts=0, errs=[], perfect=0, okN=0, cp=0;
+    const notes=bar.notes, used=new Set(), byNote=new Map(), resTaps=[], missed=[], info=[]; let pts=0, errs=[], perfect=0, okN=0, cp=0;
     const HS=lastHolds?holdSpec(bar.ev):null, holds=[];
     // Pair taps with notes in time order, choosing the pairing that scores best overall (so one missed or doubled
     // note never shifts every later tap onto the wrong note, even with 16ths at fast tempos).
@@ -810,16 +811,16 @@ input,textarea,select,[contenteditable]{-webkit-user-select:text!important;user-
     const pair=new Array(N).fill(-1); for(let i=N,j=M;i>0||j>0;){ const h=how[i][j]; if(h===3){ pair[i-1]=order[j-1]; i--; j-- } else if(h===1) i--; else j-- }
     notes.forEach((n,ni)=>{ const target=T[ni], bi=pair[ni], bd=bi<0?0:taps[bi]-target;
       const idx=bar.ev.indexOf(n);
-      if(bi<0){ missed.push(n.s); byNote.set(idx,{col:"#c2352b"}); return }
-      used.add(bi); const ms=bd*1000, ad=Math.abs(ms); errs.push(ms);
+      if(bi<0){ missed.push(n.s); byNote.set(idx,{col:"#c2352b"}); info[ni]={missed:true,idx}; return }
+      used.add(bi); const ms=bd*1000, ad=Math.abs(ms); errs.push(ms); info[ni]={ms,ad,idx};
       const a=ad/1000; let sc=tScore(a,TW), col; if(a<=TW.P){col="#1f8a4c";perfect++} else if(a<=TW.G){col="#c98a06";okN++} else if(a<=TW.O) col="#e0702c"; else col="#b0413e";
       // the release (Tap, MIDI, One note; graded notes only). Not double-punished: a late start held for the right length is a good release too,
       // so the release is judged by whichever is closer, the written end or the written length from where you started.
       let hold=null; if(HS&&HS[ni].graded){ const hs=HS[ni], L=hs.len*u, w0=holdWin(L,u*MT().beatU), w={p:w0.p*lastHoldX,g:w0.g*lastHoldX}, r=rels[bi]; let err=null, g="held";
         if(r!=null){ const e1=r-(st+hs.end*u), e2=(r-taps[bi])-L; err=Math.abs(e2)<Math.abs(e1)?e2:e1; const a=err<0&&!hs.beforeRest&&hs.end<MT().units?Math.max(0,-err-liftOf(L)):Math.abs(err); g=a<=w.p?"perfect":a<=w.g?"good":err<0?"early":"late";
           /* fair rubric (2026-11-25.2): a note held for at least 75% of its written length is fully held (lifting a finger between piano notes is natural); 50% to 75% is good; only shorter loses points */
-          const heldFor=r-taps[bi]; if(err<0&&heldFor>=0.75*L) g="perfect"; else if(err<0&&g==="early"&&heldFor>=0.5*L) g="good" }
-        sc=Math.max(0,sc-HOLD_PEN[g]); hold={...hs,a:(taps[bi]-st)/u,r:r==null?null:(r-st)/u,err,g,col:HCOL[g]}; holds.push(hold) }
+          const heldFor=r-taps[bi]; if(err<0&&heldFor>=0.75*L) g="perfect"; else if(err<0&&g==="early"&&heldFor>=0.5*L) g="good"; else if(err<0&&heldFor<0.5*L) g="early" /* clearly short: under half its written length, even when another note follows */ }
+        sc=Math.max(0,sc-HOLD_PEN[g]); hold={...hs,a:(taps[bi]-st)/u,r:r==null?null:(r-st)/u,err,g,col:HCOL[g]}; holds.push(hold); info[ni].hold=hold }
       // Challenge points: 1 perfect start, ½ good start, then −½ for a long note let go early or held too long (never below 0 for the note)
       cp+=Math.max(0,(a<=TW.P?1:a<=TW.G?0.5:0)-(hold&&HOLD_PEN[hold.g]>=0.3?0.5:0));
       pts+=sc; byNote.set(idx,{col}); resTaps.push({s16:(taps[bi]-st)/u,col}) });
@@ -853,8 +854,20 @@ input,textarea,select,[contenteditable]{-webkit-user-select:text!important;user-
     if(micMode()&&!taps.length){ // a take with no notes heard (silence, or only the app's own click) scores nothing and is never recorded
       msg("bad","No notes heard",inMode==="note"?"Nothing was heard. Check that the microphone is on, play your note on each beat, and try again.":"Nothing was heard. Check that the microphone is on, clap or snap on each beat, and try again.");
       lastGrade={score:null,silent:true,v:"No notes heard"}; return afterGrade({silent:true,score:0,perfect:0,ok:0,notes:notes.length,errs:[],missed:notes.length,extras:0,cpts:0,holdN:0,holdOk:0}) }
+    { // coaching (2026-11-25.2, instructor feedback): 1 to 3 short lines under the score, worst problem first, each naming its note; the note is ringed on the staff
+      const L=[], tonal=inMode==="note"||inMode==="midi", mk=ni=>`Note ${ni+1}`, ringed=new Set(), add=(w,ni,t)=>{ L.push({w,ni,t}) };
+      notes.forEach((n,ni)=>{ if(info[ni]&&info[ni].missed) add(100,ni,`${mk(ni)}: not heard on "${CNT(n.s)}". Count it out loud and play it with the count.`) });
+      if(swap) add(95,-1,`You played "${CNT(exG[swap.k])}", but the note is on "${CNT(missed[0])}". Say the counts out loud and play only the notes.`);
+      else if(extras.length) add(90,-1,(why&&inMode!=="note")?why:inMode==="note"?`${extras.length===1?"An extra sound was":"Extra sounds were"} heard. Play each note once.`:why||"Extra taps. One tap per note.");
+      if(tonal) holds.filter(h=>HOLD_PEN[h.g]>=0.3).forEach(h=>{ const ni=notes.findIndex(n=>n.s===h.s), M=MT(), endW=h.end>=M.units?"the end of the bar":`"${CNT(h.end)}"`, a16=h.err==null?0:Math.abs(h.err)/u, unit=M.compound?2:4, q=Math.round(2*a16/unit)/2, by=h.err==null?"":q>=1?` by about ${half(q)} ${M.compound?"eighth":"beat"}${q>1?"s":""}`:` by about ${Math.round(Math.abs(h.err)*1000)} ms`;
+        add(70+(h.err==null?30:Math.min(25,Math.abs(h.err)*40)),ni,h.g==="held"?`${mk(ni)}: you were still holding it after the bar ended. Let go at ${endW}.`:h.g==="early"?`${mk(ni)}: you let go early${by}.${inMode==="note"?" On a piano, hold each note its full length.":" Hold it all the way to "+endW+"."}`:`${mk(ni)}: you held it too long${by}. Let go right at ${endW}.`) });
+      notes.forEach((n,ni)=>{ const o=info[ni]; if(o&&!o.missed&&o.ad/1000>TW.P) add(40+Math.min(25,o.ad/6),ni,`${mk(ni)}: ${Math.round(o.ad)} ms ${o.ms<0?"early":"late"}. ${o.ms<0?"Wait for the beat.":"Lock onto the click."}`) });
+      L.sort((x,y)=>y.w-x.w); const top=L.slice(0,3); top.forEach(x=>{ if(x.ni>=0) ringed.add(info[x.ni].idx) });
+      if(top.length){ c=top.map(x=>x.t).join("\n")+(inMode==="midi"&&latMidi==null&&errs.length>=3&&Math.abs(avg)>25&&Math.max(...errs)-Math.min(...errs)<40?` (Every note ${Math.round(Math.abs(avg))} ms ${avg>0?"late":"early"}? That's keyboard delay: tap "Calibrate" once.)`:"");
+        if(ringed.size){ res.focus=ringed; drawBar(res) } }
+      else if(score>=90&&!missed.length&&!extras.length) c=c.replace(/^Tight\. /,"") }
     msg(cls,v,c);
-    lastGrade={score,cpts:Math.max(0,cp-0.5*extras.length),holds:holds.map(h=>({s:h.s,end:h.end,len:h.len,tied:h.tied,g:h.g,err:h.err==null?null:Math.round(h.err*1000)})),v,c};
+    lastGrade={score,coach:c,cpts:Math.max(0,cp-0.5*extras.length),holds:holds.map(h=>({s:h.s,end:h.end,len:h.len,tied:h.tied,g:h.g,err:h.err==null?null:Math.round(h.err*1000)})),v,c};
     afterGrade({score,perfect,ok:okN,notes:notes.length,errs,missed:missed.length,extras:extras.length,cpts:lastGrade.cpts,holdN:holds.length,holdOk:holds.filter(h=>h.g==="perfect"||h.g==="good").length}) }
   // "Half note on "3": let go early by 1 beat." (6/8 counts eighths, so it says eighths)
   const NOTEN={16:"Whole note",12:"Dotted half",8:"Half note",6:"Dotted quarter",4:"Quarter note",3:"Dotted eighth",2:"Eighth note",1:"16th note"};
