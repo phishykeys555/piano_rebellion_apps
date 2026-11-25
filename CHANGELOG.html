@@ -148,6 +148,40 @@
 <h2>Rhythm Trainer — rhythm-trainer/</h2>
 <p class="note">Counting voice clips live in <code>rhythm-trainer/count/</code>; <code>rhythm-trainer/count/preview.html</code> is a voice preview page (not on the hub).</p>
 
+<h3>Version 2026-11-25.2 (built 2026-11-25)</h3>
+<h4>Added</h4>
+<ul>
+  <li>Tap mode plays a chosen sound on every tap (Clap, Snap, Hand drum, Woodblock, Cowbell, Rimshot, Shaker, Tambourine or Off), with its own volume, separate from the click. The choice is remembered on the device. Instructor feedback. <code>rhythm-trainer/index.html</code></li>
+  <li>Coaching under the score: one to three short lines, worst problem first, each naming its note (early or late by how many ms, let go early, held too long, missed, extra sounds). The note is ringed on the staff. Hold-length lines show in One note and MIDI only. Instructor feedback.</li>
+  <li>Settings: "One note: keep the click going while I play (headphones only)". Off by default. Instructor feedback.</li>
+  <li>How it works now spells out the scoring rubric and the Challenge round rule in plain words. Instructor feedback.</li>
+</ul>
+<h4>Changed</h4>
+<ul>
+  <li>Challenge rounds are passed on overall accuracy (75% in Round 2, rising to 80%, then 85% in the bonus round) with no more than 1 missed note, not on a count of perfect hits. The rule shows on the round screen, in the round meter and on the results. A round shows one tempo range. Instructor feedback.</li>
+  <li>Separate timing windows for MIDI, tap and microphone; a note held for at least 75% of its written length counts as fully held (lifting a finger between piano notes is not penalized). Instructor feedback.</li>
+  <li>Loop mode leaves whole beats of room after your bar, so the full 1-2-3-4 count-in always shows and plays on the beat. Instructor feedback.</li>
+  <li>The Hear it / Hear + count / Retry / Start buttons are evenly spaced. Instructor feedback.</li>
+  <li>The microphone picker uses the same escaping as Note Sprint's picker (it was already there). Instructor feedback.</li>
+</ul>
+<h4>Fixed</h4>
+<ul>
+  <li>One note no longer counts the app's own click as extra notes: the click stops once your bar starts (unless the new setting is on), and a sound heard within 30 ms of a click is ignored. Instructor feedback.</li>
+  <li>A take with no notes heard says "No notes heard" and scores nothing: it is not counted in tries, averages or high scores. Instructor feedback.</li>
+  <li>The drum click now plays in Single tries (the first try started before the drum samples had loaded). Instructor feedback.</li>
+</ul>
+
+<h3>Version 2026-11-25.1 (live 2026-11-25)</h3>
+<h4>Changed</h4>
+<ul>
+  <li>Hear + count is voice only (no clap, no click): a spoken count-in bar, then every note, and "rest" said softly on a rest beat. Student feedback. <code>rhythm-trainer/index.html</code></li>
+  <li>New counting voice: every word spoken once by a neural voice, cut tight with no breath and no "t"/"th" tails, leveled, two lengths per word for fast tempos, scheduled on the audio clock so the vowel lands on the beat. <code>rhythm-trainer/count2/</code></li>
+</ul>
+<h4>Added</h4>
+<ul>
+  <li>Settings: Counting voice (warm woman, warm man, bright and friendly) and Count style (auto, beats, eighths, sixteenths). The count number lights up on the staff as it is spoken. <code>rhythm-trainer/index.html</code></li>
+</ul>
+
 <h3>Version 2026-11-24.1 (beta 2026-11-24)</h3>
 <h4>Fixed</h4>
 <ul>
@@ -513,6 +547,12 @@
 
 <!-- ============================================================ -->
 <h2>Ear Trainer — ear-trainer/</h2>
+
+<h3>Version 2026-11-24.2 (beta 2026-11-24)</h3>
+<h4>Added</h4>
+<ul>
+  <li>"Answer with: Microphone": sing the answer or play it on your piano. Any octave counts; a note held steady for about a tenth of a second is the answer. The mic ignores the app's own notes and their ring. Uses <code>shared/voice-pitch.js</code>. Derek request. <code>ear-trainer/index.html</code></li>
+</ul>
 <h3>Version 2026-11-24.1 (beta 2026-11-24)</h3>
 <h4>Changed</h4>
 <ul>
@@ -553,6 +593,21 @@
 <h2>Modal Metronome — drum-machine/</h2>
 <p class="note">Started 2026-11-03 as "Groove Metronome"; renamed Modal Metronome 2026-11-05. Sound folders: <code>drum-machine/kits/</code>, <code>drum-machine/bass/</code>, <code>drum-machine/keys/</code>.</p>
 
+<h3>Version 2026-11-24.4 (beta 2026-11-24)</h3>
+<h4>Changed</h4>
+<ul>
+  <li>Beat grid count labels: triplets now read 1 trip let instead of 1 &amp; a, matching the studio count (TF-11). 16ths stay 1 e &amp; a, 8ths 1 &amp;. Derek request. <code>drum-machine/index.html</code></li>
+</ul>
+
+<h3>Version 2026-11-24.3 (beta 2026-11-24)</h3>
+<h4>Added</h4>
+<ul>
+  <li>Chords tab: "Chord type" for the progressions in the list: Auto (7ths on modal and jazz, as before), Triads, or 7th chords (every chord gets its 7th; a V that does not resolve stays V7 instead of add9; the Dorian V6 rule stays). Derek request. <code>drum-machine/index.html</code></li>
+</ul>
+<h4>Changed</h4>
+<ul>
+  <li>A Custom progression plays exactly what is typed: a 7th only where written (V7, IVmaj7, ii7), for chord names, bass and keys. Before, modal and jazz settings added 7ths to every chord. Derek request.</li>
+</ul>
 <h3>Version 2026-11-24.2 (beta 2026-11-24)</h3>
 <h4>Added</h4>
 <ul>
@@ -1195,6 +1250,14 @@
 
 <!-- ============================================================ -->
 <h2>Guitar Revolution Strobe Tuner — guitar-tuner/</h2>
+
+<h3>Version 2026-11-24.2 (beta 2026-11-24)</h3>
+<h4>Added</h4>
+<ul>
+  <li>Microphone level bar next to the status line, so you can see at once whether the guitar reaches the tuner. <code>guitar-tuner/index.html</code></li>
+  <li>Settings: "Microphone" picker (every input the browser sees; the choice is remembered; an unplugged mic falls back to the default). Derek request: the tuner did not hear the guitar on a computer.</li>
+  <li>After 5 seconds of total silence the status says no sound is reaching the tuner and points to the picker.</li>
+</ul>
 <h3>Version 2026-11-24.1 (beta 2026-11-24)</h3>
 <h4>Added</h4>
 <ul>
