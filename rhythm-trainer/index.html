@@ -691,7 +691,7 @@ input,textarea,select,[contenteditable]{-webkit-user-select:text!important;user-
     if(mode==="test"&&inMode==="note") fxWins(bar.notes.map(n=>start+n.s*U),null,U,mlag); if(mode==="test"){ lastStart=start; lastU=U; lastHolds=holds; lastHoldX=hX } lockUI();
     const tick=()=>{ if(run!==R) return; /* this bar was stopped (or replaced): its frame loop ends here */ const now=a.currentTime; let px=null, pos=null;
       if(now>=start&&now<=end){ pos=(now-start)/U; px=$("cursor").checked?xOf(pos):null; if(mode==="test"&&!run.go){ run.go=true; msg(null,"Go!",inMode==="clap"?"Clap or snap every note.":inMode==="note"?"Play your note for every note.":"Tap every note.") } }
-      if(loopOn&&mode==="test"&&gmode==="practice"&&!R.q&&now>=end-0.3){ R.q=true; loopAt=end; countClicks(end,M,SP) }
+      if(loopOn&&mode==="test"&&gmode==="practice"&&!R.q&&now>=end-0.3){ R.q=true; const LG=Math.ceil((R.tail+0.2)/SP)*SP; /* whole beats of room after your bar for the late-note wait and the grade, so the next count-in never starts before the screen is ready (2026-11-25.2: beat 1 was cut) */ loopAt=end+LG; countClicks(end+LG,M,SP) }
       if(now<start&&mode==="test"){ const n=M.compound?6:M.beats, step=M.compound?SP/3:SP, left=Math.ceil((start-now)/step); $("msg").querySelector(".v").textContent=left<=n?"Count in: "+(n+1-left):"Get ready";
         // the whole staff panel flashes each count-in beat with the big number (beat 1 in red), timed to the click
         const c=n+1-left; if(left<=n&&R.cf!==c){ R.cf=c; const f=$("cntFlash"); f.textContent=c; f.classList.toggle("one",c===1); f.style.setProperty("--cntd",Math.max(0.25,Math.min(0.7,step*0.85))+"s"); f.classList.remove("go"); void f.offsetWidth; f.classList.add("go") } }
