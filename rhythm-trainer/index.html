@@ -291,6 +291,8 @@ input,textarea,select,[contenteditable]{-webkit-user-select:text!important;user-
       <div id="diag" class="diag" hidden><div class="row" style="justify-content:space-between"><b>What the mic decided (newest first)</b><button class="ghost" id="diagCopy">Copy log</button></div><pre id="diagRows"></pre></div>
       <p class="tip" style="margin-top:4px">"Clap or snap" grades when each note starts (a clap can't be held). "One note" also grades how long you hold each long note: let the key up on time.</p>
     </div>
+    <div class="micp" id="tapBox" hidden style="margin:0 0 8px"><label for="tapSel">Tap sound</label><select id="tapSel"><option value="clap">Clap</option><option value="snap">Snap</option><option value="drum">Hand drum</option><option value="wood">Woodblock</option><option value="cow">Cowbell</option><option value="rim">Rimshot</option><option value="shk">Shaker</option><option value="tam">Tambourine</option><option value="off">Off</option></select>
+      <label for="tapVol">Tap volume</label><input type="range" id="tapVol" min="0" max="150" step="5" aria-label="Tap sound volume (separate from the click)"></div>
     <button class="pad" id="pad">TAP</button>
     <div class="row actions">
       <button class="ghost" id="hear"><span aria-hidden="true">▶</span> Hear it</button><button class="ghost" id="hearCount" title="A voice counts the rhythm for you: a count-in bar, then every note, and \"rest\" on a rest. Voice only: no clap, no click."><span aria-hidden="true">🗣</span> Hear + count</button>
@@ -719,6 +721,19 @@ input,textarea,select,[contenteditable]{-webkit-user-select:text!important;user-
   // The pad captures the pointer, so a finger that slides off the pad still lets go here; a cancelled touch counts as letting go then.
   // A release takes off the same latency as its press (measured: the browser delivers pointerup and pointerdown, keyup and keydown, through the same path).
   // A press held past the end of the bar still lets go into that bar; a press from an older bar is ignored.
+  // ---------- tap sound (2026-11-25.2, instructor feedback): in Tap mode every pad press or space bar plays the chosen sound at once ----------
+  // Its own volume and limiter (never the click's), never scheduled through the click path, so the scoring and the microphone are not involved (Tap has no mic).
+  const TAPS={off:{n:"Off"},snap:{n:"Snap"},clap:{n:"Clap",s:"@clap"},drum:{n:"Hand drum",s:"bb/tomm_3"},wood:{n:"Woodblock"},cow:{n:"Cowbell",s:"@cowbell",g:0.8},rim:{n:"Rimshot",s:"ss/stick_3"},shk:{n:"Shaker",s:"@shaker"},tam:{n:"Tambourine",s:"@tambourine"}};
+  let TSND=store.get("tapSnd","clap"); if(!TAPS[TSND]) TSND="clap"; let TVOL=+store.get("tapvol","100"); if(!(TVOL>=0&&TVOL<=150)) TVOL=100;
+  let TBUS=null; const tapBus=a=>{ if(!TBUS||TBUS.context!==a){ const g=a.createGain(), lim=a.createDynamicsCompressor(); lim.threshold.value=-6; lim.knee.value=0; lim.ratio.value=20; lim.attack.value=0.001; lim.release.value=0.08; g.connect(lim).connect(a.destination); TBUS=g } return TBUS };
+  function tapPrep(){ if(!audio) return; const S=TAPS[TSND]; if(S&&S.s) loadSnd(S.s) }
+  function tapSound(){ if(inMode!=="tap"||TSND==="off"||!(TVOL>0)) return; const a=ctx(); if(a.state!=="running") a.resume().catch(()=>{}); tapPrep();
+    const t=a.currentTime, S=TAPS[TSND], G=0.8*Math.pow(TVOL/100,2), out=a.createGain(); out.gain.value=1; out.connect(tapBus(a)); const buf=S.s&&SBUF[S.s];
+    if(buf){ const src=a.createBufferSource(); src.buffer=buf; const g=a.createGain(); g.gain.value=G*pkN(buf)*(S.g||1); src.connect(g).connect(out); src.start(t); return }
+    if(TSND==="wood"){ const o=a.createOscillator(), g=a.createGain(); o.type="triangle"; o.frequency.value=880; g.gain.setValueAtTime(0.0001,t); g.gain.exponentialRampToValueAtTime(0.9*G,t+0.003); g.gain.exponentialRampToValueAtTime(0.0001,t+0.14); o.connect(g).connect(out); o.start(t); o.stop(t+0.2); return }
+    // a snap (and the stand-in while a sample is still loading): a short burst of noise around 2.5 kHz
+    const L=Math.floor(a.sampleRate*0.07), nb=a.createBuffer(1,L,a.sampleRate), d=nb.getChannelData(0); for(let i=0;i<L;i++) d[i]=(Math.random()*2-1)*Math.exp(-i/a.sampleRate/0.009);
+    const s=a.createBufferSource(), bp=a.createBiquadFilter(), g=a.createGain(); s.buffer=nb; bp.type="bandpass"; bp.frequency.value=2500; bp.Q.value=1.4; g.gain.value=1.6*G; s.connect(bp).connect(g).connect(out); s.start(t) }
   const held=new Map();
   const padDown=()=>$("pad").classList.toggle("down",[...held.values()].some(h=>h.arr===taps&&h.i>=0));
   function pressAt(t,id,src){ src=src||"tap"; if(held.has(id)) releaseAt(t,id); const man=manLag(src), lag=man!=null?man/1000:autoLag(src), i=tapAt(t,src==="tap"?undefined:src); held.set(id,{arr:taps,i,lag}); padDown(); return i }
@@ -732,14 +747,14 @@ input,textarea,select,[contenteditable]{-webkit-user-select:text!important;user-
   ["contextmenu","selectstart","dragstart"].forEach(k=>$("pad").addEventListener(k,e=>e.preventDefault()));
   // Phones (2026-11-20.11): cancel touchstart so fast taps never start iOS text selection ("How it works" below the pad); the hit still comes from pointerdown.
   $("pad").addEventListener("touchstart",e=>{ if(e.cancelable) e.preventDefault() },{passive:false});
-  $("pad").addEventListener("pointerdown",e=>{ e.preventDefault(); try{ $("pad").setPointerCapture(e.pointerId) }catch(_){} if(audio) pressAt(audio.currentTime,e.pointerId) });
+  $("pad").addEventListener("pointerdown",e=>{ e.preventDefault(); try{ $("pad").setPointerCapture(e.pointerId) }catch(_){} tapSound(); if(audio) pressAt(audio.currentTime,e.pointerId) });
   const lift=e=>{ if(held.has(e.pointerId)) releaseAt(audio?audio.currentTime:0,e.pointerId) };
   ["pointerup","pointercancel","lostpointercapture"].forEach(k=>$("pad").addEventListener(k,lift)); ["pointerup","pointercancel"].forEach(k=>document.addEventListener(k,lift,true));
   document.addEventListener("keyup",e=>{ if(e.code==="Space"&&held.has("key")){ e.preventDefault(); releaseAt(audio?audio.currentTime:0,"key") } });
   window.addEventListener("blur",releaseAll); // a key or finger can't be let go once the page loses focus: count it as let go now
   document.addEventListener("keydown",e=>{ const tg=e.target.tagName; if(e.code!=="Space"||tg==="INPUT"||tg==="SELECT"||tg==="TEXTAREA"||tg==="SUMMARY"||tg==="A") return;
     if(!run&&!calHook&&tg==="BUTTON"&&!["go","pad","again"].includes(e.target.id)) return; // Space still presses the focused button
-    e.preventDefault(); if(e.repeat) return; if(audio&&(run||calHook)) pressAt(audio.currentTime,"key"); else if(!run&&!sess&&!arc&&!starting&&!$("go").disabled&&$("results").hidden) $("go").click() }); // in a challenge, Space between bars is a (late) tap, never Stop
+    e.preventDefault(); if(e.repeat) return; tapSound(); if(audio&&(run||calHook)) pressAt(audio.currentTime,"key"); else if(!run&&!sess&&!arc&&!starting&&!$("go").disabled&&$("results").hidden) $("go").click() }); // in a challenge, Space between bars is a (late) tap, never Stop
 
   // Silent spots in the bar: rests, tied-over notes, and beats held inside a long note or rest. A tap nearer one of these than
   // to the note is a reading mistake (tapping the rest, the tie or the held beat), not a "close" hit on the note.
@@ -1461,7 +1476,7 @@ class NoteFlux{
   function placeMic(){ const mb=$("micBox"); if(wideMQ&&wideMQ.matches){ if(mb.parentNode!==$("micSlot")) $("micSlot").appendChild(mb) } else if(mb.previousElementSibling!==$("inSeg")) $("inSeg").after(mb) }
   placeMic(); if(wideMQ){ try{ wideMQ.addEventListener("change",placeMic) }catch(e){ try{ wideMQ.addListener(placeMic) }catch(_){} } }
   function setIn(m){ hypeStop(120); const was=inMode; inMode=m; if(mic&&m!=="tap"&&(was==="note")!==(m==="note")) micStart($("micSel").value||undefined); store.set("in",m); document.querySelectorAll("#inSeg button").forEach(b=>b.setAttribute("aria-pressed",String(b.dataset.in===m)));
-    $("micBox").hidden=!micMode(); $("midiBox").hidden=m!=="midi"; if(micMode()&&!mic&&!micBusy) micHint(); document.querySelectorAll(".noteonly").forEach(e=>e.hidden=m!=="note"); $("pad").textContent="TAP"; $("pad").hidden=m!=="tap"; if(m!=="tap") releaseAll(); /* 2026-11-13.4: the pad shows in Tap only (Space still taps in MIDI) */ if(!micMode()) micStop(); if(m==="midi") midiStart(); calLabel(); if(typeof clkUI==="function") try{ clkUI() }catch(e){} }
+    $("micBox").hidden=!micMode(); $("midiBox").hidden=m!=="midi"; if(micMode()&&!mic&&!micBusy) micHint(); document.querySelectorAll(".noteonly").forEach(e=>e.hidden=m!=="note"); $("pad").textContent="TAP"; $("pad").hidden=m!=="tap"; $("tapBox").hidden=m!=="tap"; tapPrep(); if(m!=="tap") releaseAll(); /* 2026-11-13.4: the pad shows in Tap only (Space still taps in MIDI) */ if(!micMode()) micStop(); if(m==="midi") midiStart(); calLabel(); if(typeof clkUI==="function") try{ clkUI() }catch(e){} }
   // ---------- MIDI input (Chrome, Edge, Opera; not Safari) ----------
   // note-on (velocity > 0) = a press, note-off = a release, each on the audio clock of what you heard (getOutputTimestamp), so holds are exact
   let midiAcc=null, midiAsk=null; const keyIn=()=>inMode==="tap"||inMode==="midi";
@@ -1490,6 +1505,9 @@ class NoteFlux{
     try{ navigator.clipboard.writeText(txt).then(()=>{ $("diagCopy").textContent="Copied" },()=>{ $("diagRows").textContent=txt }) }catch(e){ $("diagRows").textContent=txt } });
   if(/[?&]debug=1/.test(location.search)) $("diag").hidden=false;
   document.querySelectorAll("#inSeg button").forEach(b=>b.addEventListener("click",()=>setIn(b.dataset.in)));
+  $("tapSel").value=TSND; $("tapSel").addEventListener("change",e=>{ TSND=TAPS[e.target.value]?e.target.value:"clap"; store.set("tapSnd",TSND); tapPrep(); tapSound() });
+  $("tapVol").value=String(TVOL); $("tapVol").addEventListener("input",e=>{ TVOL=+e.target.value; store.set("tapvol",String(TVOL)) }); $("tapVol").addEventListener("change",()=>tapSound());
+  document.addEventListener("pointerdown",()=>{ if(!audio&&inMode==="tap"){ ctx(); } tapPrep() },true); // the first touch anywhere creates the audio engine and loads the chosen tap sample, so the first pad tap is on time
   $("clkBar").checked=!!store.get("clkBar",false); $("clkBar").addEventListener("change",e=>store.set("clkBar",e.target.checked));
   setIn(inMode); clkUI();
 
