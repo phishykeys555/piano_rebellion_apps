@@ -170,8 +170,8 @@ button:focus-visible,select:focus-visible,summary:focus-visible,input:focus-visi
 .card{gap:12px}
 .stats{padding:8px 12px} .stat b{font-size:18px}
 .msg{min-height:40px}
-.actions{justify-content:space-between;gap:12px}
-.actions .primary{min-width:120px}
+.actions{justify-content:stretch;gap:10px}
+.actions>button{flex:1 1 0} .actions .primary{min-width:120px;flex:1.3 1 0} /* even spacing for Hear it / Hear + count / Retry / Start (2026-11-25.2) */
 details.how{border:0;background:none;margin-top:-4px} details.how summary{padding:4px 0;text-align:center;font-size:13px;font-weight:600;color:var(--c-mut)}
 details.how p{margin-top:6px}
 @media (max-width:899px){
@@ -598,6 +598,10 @@ input,textarea,select,[contenteditable]{-webkit-user-select:text!important;user-
   function clkRanges(){ const k=clkSound(); if(k==="classic") return null; const S=CLK[k], f=clkBase(k), out=[]; for(const m of [1,2]) for(const [r] of S.p) out.push([f*r*m*0.97,f*r*m*1.03]); return out }
   const SBUF={}; function loadSnd(path){ if(SBUF[path]!==undefined||!audio) return; SBUF[path]=null; const a=audio;
     fetch(path[0]==="@"?"../simple-metronome/sounds/"+path.slice(1)+".mp3":path[0]==="$"?"count2/"+path.slice(1)+".wav":path[0]==="#"?"count/af_heart/"+path.slice(1)+".wav":path[0]==="%"?"count/pat/"+path.slice(1)+".wav":"../drum-machine/kits/"+path+".mp3").then(r=>r.arrayBuffer()).then(b=>a.decodeAudioData(b)).then(buf=>{ SBUF[path]=buf }).catch(()=>{ delete SBUF[path] }) }
+  // Single tries used to start the first bar before the drum samples were fetched, so the drum click fell back to silence/classic (Challenge has a round screen that gives them time).
+  // Now every try and every "Hear it" waits (up to 3 s) until the chosen sound's samples are decoded.
+  function sndNeed(){ const k=clkSound(), S=CLK[k]; if(!S||!S.s) return []; const out=[]; for(const v of S.sv){ out.push(S.s+v); if(S.sub) out.push(S.subFix?S.sub:S.sub+v); if(k==="kick") out.push("bb/hat_"+v) } return out }
+  function sndReady(){ prepSnd(); const need=sndNeed(), t0=performance.now(); return new Promise(r=>{ const k=()=>{ if(need.every(x=>SBUF[x])||performance.now()-t0>3000) r(); else setTimeout(k,30) }; k() }) }
   function prepSnd(){ const k=$("clkSel").value, S=CLK[k]; if(!S||!S.s) return; for(const v of S.sv){ loadSnd(S.s+v); if(S.sub) loadSnd(S.subFix?S.sub:S.sub+v); if(k==="kick") loadSnd("bb/hat_"+v) } }
   // play one tick of the chosen sound: kind a = accent (beat 1), n = beat, s = subdivision (about 9 dB under the beat)
   // Gain structure (2026-11-20, Derek: "drum kit way too loud, check ratio and gain structure"): every sample is scaled by its own measured peak so it
@@ -655,7 +659,7 @@ input,textarea,select,[contenteditable]{-webkit-user-select:text!important;user-
   async function play(mode,at,opt){ // mode: "test" | "hear"; at = loop: the count bar starts exactly here (its clicks were already scheduled)
     if(run||starting||calHook) return; const S0=sess; starting=true; let a;
     // waiting for the audio or the microphone can take a while: a second press, Stop, or the clock running out in that gap must not start a second bar
-    try{ a=ctx(); await a.resume(); prepSnd(); if(inMode==="midi"&&mode==="test") await midiStart(); if(micMode()&&mode==="test"&&!mic) await micStart($("micSel").value||undefined)
+    try{ a=ctx(); await a.resume(); await sndReady(); if(inMode==="midi"&&mode==="test") await midiStart(); if(micMode()&&mode==="test"&&!mic) await micStart($("micSel").value||undefined)
       // Clap / One note: the round-screen music must be fully out of the speaker (plus 250 ms) before the count-in, so the mic never takes it for a hit;
       // then the mic's onset baselines and its learned click level start fresh
       if(mode==="test"&&micMode()){ let w; while((w=hypeWait())>0&&sess===S0&&!(S0&&S0.stopped)) await new Promise(r=>setTimeout(r,Math.min(w,250)));
