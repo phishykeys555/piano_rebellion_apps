@@ -148,7 +148,30 @@
 <h2>Rhythm Trainer — rhythm-trainer/</h2>
 <p class="note">Counting voice clips live in <code>rhythm-trainer/count/</code>; <code>rhythm-trainer/count/preview.html</code> is a voice preview page (not on the hub).</p>
 
-<h3>Version 2026-11-25.1 (built 2026-11-25, NOT yet in beta: waiting on an ear check of the attack alignment)</h3>
+<h3>Version 2026-11-25.2 (built 2026-11-25)</h3>
+<h4>Added</h4>
+<ul>
+  <li>Tap mode plays a chosen sound on every tap (Clap, Snap, Hand drum, Woodblock, Cowbell, Rimshot, Shaker, Tambourine or Off), with its own volume, separate from the click. The choice is remembered on the device. Instructor feedback. <code>rhythm-trainer/index.html</code></li>
+  <li>Coaching under the score: one to three short lines, worst problem first, each naming its note (early or late by how many ms, let go early, held too long, missed, extra sounds). The note is ringed on the staff. Hold-length lines show in One note and MIDI only. Instructor feedback.</li>
+  <li>Settings: "One note: keep the click going while I play (headphones only)". Off by default. Instructor feedback.</li>
+  <li>How it works now spells out the scoring rubric and the Challenge round rule in plain words. Instructor feedback.</li>
+</ul>
+<h4>Changed</h4>
+<ul>
+  <li>Challenge rounds are passed on overall accuracy (75% in Round 2, rising to 80%, then 85% in the bonus round) with no more than 1 missed note, not on a count of perfect hits. The rule shows on the round screen, in the round meter and on the results. A round shows one tempo range. Instructor feedback.</li>
+  <li>Separate timing windows for MIDI, tap and microphone; a note held for at least 75% of its written length counts as fully held (lifting a finger between piano notes is not penalized). Instructor feedback.</li>
+  <li>Loop mode leaves whole beats of room after your bar, so the full 1-2-3-4 count-in always shows and plays on the beat. Instructor feedback.</li>
+  <li>The Hear it / Hear + count / Retry / Start buttons are evenly spaced. Instructor feedback.</li>
+  <li>The microphone picker uses the same escaping as Note Sprint's picker (it was already there). Instructor feedback.</li>
+</ul>
+<h4>Fixed</h4>
+<ul>
+  <li>One note no longer counts the app's own click as extra notes: the click stops once your bar starts (unless the new setting is on), and a sound heard within 30 ms of a click is ignored. Instructor feedback.</li>
+  <li>A take with no notes heard says "No notes heard" and scores nothing: it is not counted in tries, averages or high scores. Instructor feedback.</li>
+  <li>The drum click now plays in Single tries (the first try started before the drum samples had loaded). Instructor feedback.</li>
+</ul>
+
+<h3>Version 2026-11-25.1 (live 2026-11-25)</h3>
 <h4>Changed</h4>
 <ul>
   <li>Hear + count is voice only (no clap, no click): a spoken count-in bar, then every note, and "rest" said softly on a rest beat. Student feedback. <code>rhythm-trainer/index.html</code></li>
