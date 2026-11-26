@@ -41,6 +41,68 @@
 </ul>
 
 <!-- ============================================================ -->
+<h2>Piano Strobe Tuner — piano-tuner/ (not on the hub)</h2>
+
+<p class="note">Built 2026-11-26 from the Guitar Revolution Strobe Tuner engine. Reference tone uses the grand piano samples in <code>drum-machine/keys/grand/</code>.</p>
+
+<h3>Version 2026-11-26.1 (beta 2026-11-26)</h3>
+<h4>Added</h4>
+<ul>
+  <li>New app: a strobe tuner for all 88 piano keys, A0 to C8. It has every Strobe Tuner feature (strobe, A4 calibrate, in-tune window, sharps or flats, microphone level bar, no-sound warning). It finds the note on its own and shows its octave (A4). An 88-key strip lights the key it hears. Owner request. <code>piano-tuner/index.html</code>, <code>piano-tuner/tuner-worklet.js</code></li>
+  <li>Built for piano sound: the bass notes read correctly even when their lowest tone is weak (it works them out from the higher partials and allows for string stiffness), the top notes up to C8 read correctly, and the last reading stays on screen while a key fades out. Owner request.</li>
+  <li>"Hear" and tapping a key on the strip play the note on the grand piano recordings. Tuning check lists every key held until it settled, with its cents. How it works lists the keyboard shortcuts. Settings and the tuning check are saved on the device. The microphone picker matches Note Sprint's. Owner request.</li>
+  <li>Favicon: its own icon in the browser tab, bookmarks and the home screen (<code>shared/icons/piano-tuner.svg</code>, <code>-32.png</code>, <code>-180.png</code>).</li>
+</ul>
+
+<h2>Guitar Revolution Strobe Tuner — guitar-tuner/</h2>
+
+<h3>Version 2026-11-26.1 (beta 2026-11-26)</h3>
+<h4>Changed</h4>
+<ul>
+  <li>Settings, Microphone: now follows Note Sprint's picker. Every input is listed by name with the one in use selected, and a Level meter sits under the list with a line where the tuner starts hearing. The chosen microphone is still remembered on this device. Owner request. <code>guitar-tuner/index.html</code></li>
+</ul>
+
+<h3>Version 2026-11-24.2 (beta 2026-11-24)</h3>
+<h4>Added</h4>
+<ul>
+  <li>Microphone level bar next to the status line, so you can see at once whether the guitar reaches the tuner. <code>guitar-tuner/index.html</code></li>
+  <li>Settings: "Microphone" picker (every input the browser sees; the choice is remembered; an unplugged mic falls back to the default). Derek request: the tuner did not hear the guitar on a computer.</li>
+  <li>After 5 seconds of total silence the status says no sound is reaching the tuner and points to the picker.</li>
+</ul>
+<h3>Version 2026-11-24.1 (beta 2026-11-24)</h3>
+<h4>Added</h4>
+<ul>
+  <li>Favicon: its own icon in the browser tab, bookmarks and the home screen (<code>shared/icons/guitar-tuner.svg</code>, <code>-32.png</code>, <code>-180.png</code>). Beta tester request.</li>
+  <li>Page title now ends in "Clarendon Hills Music Academy". Beta tester request.</li>
+</ul>
+<h3>Version 2026-11-20.1</h3>
+<h4>Changed</h4>
+<ul>
+  <li>Button names in help text are now in quotes (e.g. Press "Start"), a house rule for every app.</li>
+</ul>
+
+<h3>Version 2026-11-13.1</h3>
+<h4>Added</h4>
+<ul>
+  <li>Share button.</li>
+</ul>
+<h3>Version 2026-11-12.1</h3>
+<h4>Changed</h4>
+<ul>
+  <li>One screen, always on, always auto (no power switch, no string picking, no reference tone).</li>
+</ul>
+<h3>Versions 2026-11-11.2 to 2026-11-11.6</h3>
+<h4>Added</h4>
+<ul>
+  <li>11.2: first release, true strobe display.</li>
+</ul>
+<h4>Fixed</h4>
+<ul>
+  <li>11.5: hum rejection, inharmonicity correction, quiet input, sympathetic strings.</li>
+  <li>11.6: wake lock release, mic cancel and resume on tap.</li>
+</ul>
+
+<!-- ============================================================ -->
 <h2>Note Sprint — note-sprint/</h2>
 
 <h3>Version 2026-11-26.1 (beta 2026-11-26)</h3>
@@ -1344,49 +1406,6 @@
 <h4>Added</h4>
 <ul>
   <li>First release: play-along with speed without pitch change, key shift, A-B loop and speed-up trainer; one pilot song.</li>
-</ul>
-
-<!-- ============================================================ -->
-<h2>Guitar Revolution Strobe Tuner — guitar-tuner/</h2>
-
-<h3>Version 2026-11-24.2 (beta 2026-11-24)</h3>
-<h4>Added</h4>
-<ul>
-  <li>Microphone level bar next to the status line, so you can see at once whether the guitar reaches the tuner. <code>guitar-tuner/index.html</code></li>
-  <li>Settings: "Microphone" picker (every input the browser sees; the choice is remembered; an unplugged mic falls back to the default). Derek request: the tuner did not hear the guitar on a computer.</li>
-  <li>After 5 seconds of total silence the status says no sound is reaching the tuner and points to the picker.</li>
-</ul>
-<h3>Version 2026-11-24.1 (beta 2026-11-24)</h3>
-<h4>Added</h4>
-<ul>
-  <li>Favicon: its own icon in the browser tab, bookmarks and the home screen (<code>shared/icons/guitar-tuner.svg</code>, <code>-32.png</code>, <code>-180.png</code>). Beta tester request.</li>
-  <li>Page title now ends in "Clarendon Hills Music Academy". Beta tester request.</li>
-</ul>
-<h3>Version 2026-11-20.1</h3>
-<h4>Changed</h4>
-<ul>
-  <li>Button names in help text are now in quotes (e.g. Press "Start"), a house rule for every app.</li>
-</ul>
-
-<h3>Version 2026-11-13.1</h3>
-<h4>Added</h4>
-<ul>
-  <li>Share button.</li>
-</ul>
-<h3>Version 2026-11-12.1</h3>
-<h4>Changed</h4>
-<ul>
-  <li>One screen, always on, always auto (no power switch, no string picking, no reference tone).</li>
-</ul>
-<h3>Versions 2026-11-11.2 to 2026-11-11.6</h3>
-<h4>Added</h4>
-<ul>
-  <li>11.2: first release, true strobe display.</li>
-</ul>
-<h4>Fixed</h4>
-<ul>
-  <li>11.5: hum rejection, inharmonicity correction, quiet input, sympathetic strings.</li>
-  <li>11.6: wake lock release, mic cancel and resume on tap.</li>
 </ul>
 
 <!-- ============================================================ -->

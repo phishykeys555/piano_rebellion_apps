@@ -198,7 +198,13 @@ button{touch-action:manipulation;cursor:pointer}
 .reftone svg{width:20px;height:20px}
 .accset{display:none}
 .micset{grid-column:1/-1}
-.micset select{min-height:44px;width:100%;border:1px solid #b89a62;border-radius:10px;background:linear-gradient(180deg,#fffaf0,#e9dcbc);font:600 14px/1.2 var(--f-mono);color:var(--ink,#2a1d0c);padding:0 10px}
+/* microphone picker (2026-11-26.1): Note Sprint's pattern, label left and control right, the Level meter with its hearing line under the list */
+.micctl{width:100%;display:grid;grid-template-columns:auto 1fr;gap:8px 10px;align-items:center}
+.micctl label,.micctl>span{font:700 10.5px/1.2 var(--f-caps);letter-spacing:.2em;color:var(--ink-soft);text-transform:uppercase;text-shadow:0 1px 0 var(--engrave-hi)}
+.micctl select{min-height:44px;width:100%;min-width:0;border:1px solid #b89a62;border-radius:10px;background:linear-gradient(180deg,#fffaf0,#e9dcbc);font:600 14px/1.2 var(--f-mono);color:var(--ink,#2a1d0c);padding:0 10px}
+.mtr{position:relative;height:8px;border-radius:4px;background:#2a1606;box-shadow:inset 0 0 2px #000}
+.mtr i{display:block;height:100%;width:0;border-radius:4px;background:linear-gradient(90deg,#c77a1c,var(--amber-hot))}
+.mtr .thr{position:absolute;top:-4px;bottom:-4px;width:2px;background:var(--ink);opacity:.65}
 .lvbar{flex:none;width:54px;height:8px;border-radius:4px;background:#2a1606;box-shadow:inset 0 0 2px #000;overflow:hidden}
 .lvbar i{display:block;height:100%;width:0;background:linear-gradient(90deg,#c77a1c,var(--amber-hot));transition:width .08s}
 .chromatic .accset{display:flex}
@@ -332,8 +338,10 @@ details.more .settings{padding:4px 0 6px}
             </div>
           </div>
           <div class="set micset">
-            <label class="lbl" for="micSel">Microphone</label>
-            <select id="micSel"><option value="">Default microphone</option></select>
+            <div class="micctl">
+              <label for="micSel">Microphone</label><select id="micSel"><option value="">Default microphone</option></select>
+              <span>Level</span><div class="mtr" aria-hidden="true"><i id="meterFill"></i><span class="thr" id="thr"></span></div>
+            </div>
           </div>
           <div class="set accset">
             <div class="lbl" id="accLbl">Spelling</div>
@@ -347,7 +355,7 @@ details.more .settings{padding:4px 0 6px}
         <div class="msg" id="msg" role="alert"></div>
       </section>
     </div>
-    <p class="appver">Strobe Tuner &middot; Version 2026-11-24.2</p>
+    <p class="appver">Strobe Tuner &middot; Version 2026-11-26.1</p>
   </main>
   <div class="cheek" aria-hidden="true"></div>
 </div>
@@ -581,6 +589,11 @@ function readout(){
   // mic level bar: -80 dBFS empty, -20 dBFS full (2026-11-24.2: shows at a glance whether the guitar reaches the tuner)
   const db = S.running && m && m.lvl > 0 ? 20 * Math.log10(m.lvl) : -120;
   $('lvFill').style.width = Math.max(0, Math.min(100, (db + 80) / 60 * 100)).toFixed(0) + '%';
+  // Settings Level meter (2026-11-26.1, like Note Sprint): peak-held, with a line where the tuner starts hearing
+  const pct = x => Math.max(0, Math.min(100, ((x > 0 ? 20 * Math.log10(x) : -120) + 80) / 60 * 100));
+  S.mv = Math.max(S.running && m ? m.lvl : 0, (S.mv || 0) * 0.94);
+  $('meterFill').style.width = pct(S.mv).toFixed(0) + '%';
+  $('thr').style.left = (S.running && m ? pct(m.thr) : 0).toFixed(0) + '%';
   if (S.running && m) S.peak = Math.max(S.peak * 0.995, m.lvl || 0);
   $('face').classList.toggle('on', S.running);
   $('meter').classList.toggle('off', !fresh);
@@ -683,11 +696,12 @@ function stop(){
 async function listMics(){
   const sel = $('micSel'); if (!sel || !navigator.mediaDevices || !navigator.mediaDevices.enumerateDevices) return;
   let ins = [];
-  try { ins = (await navigator.mediaDevices.enumerateDevices()).filter(d => d.kind === 'audioinput' && d.deviceId && d.deviceId !== 'default' && d.deviceId !== 'communications'); } catch (e) { return; }
+  // 2026-11-26.1: Note Sprint's wording: every input by name, the one in use selected (the choice is still remembered on this device)
+  try { ins = (await navigator.mediaDevices.enumerateDevices()).filter(d => d.kind === 'audioinput' && d.deviceId); } catch (e) { return; }
+  if (!ins.length) return;
   const cur = S.stream && S.stream.getAudioTracks()[0] && S.stream.getAudioTracks()[0].getSettings ? S.stream.getAudioTracks()[0].getSettings().deviceId : '';
-  sel.innerHTML = '<option value="">Default microphone</option>' + ins.map((d, i) => '<option value="' + d.deviceId.replace(/"/g, '') + '">' + (d.label || ('Microphone ' + (i + 1))).replace(/[<>&]/g, '') + '</option>').join('');
-  sel.value = S.mic && ins.some(d => d.deviceId === S.mic) ? S.mic : '';
-  sel.title = cur ? 'In use: ' + ((ins.find(d => d.deviceId === cur) || {}).label || 'default') : '';
+  sel.innerHTML = ins.map((d, i) => '<option value="' + d.deviceId.replace(/"/g, '') + '">' + (d.label || ('Microphone ' + (i + 1))).replace(/[<>&"]/g, '') + '</option>').join('');
+  sel.value = S.mic && ins.some(d => d.deviceId === S.mic) ? S.mic : (cur && ins.some(d => d.deviceId === cur) ? cur : ins[0].deviceId);
 }
 if ($('micSel')) $('micSel').addEventListener('change', e => { S.mic = e.target.value; save(); stop(); autoStart(); });
 if (navigator.mediaDevices && navigator.mediaDevices.addEventListener) navigator.mediaDevices.addEventListener('devicechange', () => { if (S.running) listMics(); });
