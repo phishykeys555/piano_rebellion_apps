@@ -81,7 +81,8 @@ label.opt{cursor:default}
  .R{gap:4px}.L{flex-basis:230px;gap:6px}
 }
 .appver{font-size:11px;opacity:.6;margin:4px 0 0;font-family:ui-monospace,Menlo,monospace}
-</style></head>
+</style><link rel="icon" type="image/svg+xml" href="../shared/icons/simple-metronome.svg"><link rel="icon" type="image/png" sizes="32x32" href="../shared/icons/simple-metronome-32.png"><link rel="apple-touch-icon" href="../shared/icons/simple-metronome-180.png">
+</head>
 <body><main class="wrap">
   <header class="top"><a class="chma-logo" href="https://clarendonhillsmusicacademy.com/" target="_blank" rel="noopener" aria-label="Clarendon Hills Music Academy website"><picture><source srcset="../shared/chma-logo-dark.png" media="(prefers-color-scheme: dark)"><img src="../shared/chma-logo-light.png" alt="Clarendon Hills Music Academy" width="65" height="32"></picture></a><h1>Simple Metronome</h1></header>
   <div class="L">
@@ -98,13 +99,13 @@ label.opt{cursor:default}
   </div>
   <div class="R">
   <label class="opt"><span class="lbl">Time signature</span><select id="ts"></select></label>
-  <label class="opt" id="subRow"><span class="lbl">Subdivision</span><select id="sub"></select></label>
+  <div class="opt" id="subRow"><span class="lbl">Subdivision</span><select id="sub" aria-label="Subdivision"></select><select id="subsnd" aria-label="Subdivision sound" title="The sound between the beats"></select></div>
   <p class="hint8" id="hint8" hidden>Each click is an eighth note.</p>
   <label class="opt"><span class="lbl">Sound</span><select id="snd"></select></label>
   <label class="opt"><span class="lbl">1st beat</span><select id="first"></select></label>
   <label class="opt" id="addRow"><span class="lbl">Additional sound</span><select id="add" title="Only with the Drum beat sound"></select></label>
   <p class="hint">Space bar starts and stops. Up and down arrows change the speed.</p>
-  <p class="appver">Simple Metronome · Version 2026-11-20.1</p>
+  <p class="appver">Simple Metronome · Version 2026-11-24.1</p>
   </div>
 </main>
 <script>
@@ -120,7 +121,10 @@ const PRE=QS.get('pre')||'', PMAP={waltz:['3/4'],jwaltz:['3/4',1,'ride'],brwaltz
   shuffle:['4/4',3,'drums'],texas:['4/4',3,'drums'],halfshuf:['4/4',3,'drums'],brshuf:['4/4',3,'ride'],mjelvin:['4/4',3,'ride'],p54swing:['5/4',1,'ride'],p54rock:['5/4',1,'drums'],p78:['7/8',1,'drums']};
 const PM=PMAP[PRE]||(PRE&&PRE!=='click'?[null,null,/jazz|bop|swing|twofeel|uptempo|^br|ride/.test(PRE)?'ride':'drums']:[]);
 const SUBS={1:'♩ Quarters',2:'♫ 8ths',3:'Triplets',4:'16ths'};
-const SNDS={click:'Click',wood:'Woodblock',sticks:'Sticks',hat:'Hi-hat',drums:'Drum beat',ride:'Ride',bell:'More Cowbell'};
+// 2026-11-24.1 (beta tester request): more sounds, every sound in every menu, a cleaner woodblock (the Modal Metronome's recipe), and a sound for the subdivisions
+const SNDS={click:'Click',wood:'Woodblock',clave:'Claves',sticks:'Sticks',xstick:'Side stick',hat:'Hi-hat',ride:'Ride',bell:'More Cowbell',tamb:'Tambourine',clap:'Hand clap',shaker:'Shaker',drums:'Drum beat'};
+const VOICES={click:'Click',beep:'Beep',wood:'Woodblock',clave:'Claves',sticks:'Sticks',xstick:'Side stick',kick:'Kick',hat:'Hi-hat',ride:'Ride',cow:'Cowbell',tamb:'Tambourine',clap:'Hand clap',shaker:'Shaker'};
+const SUBSNDS=Object.assign({same:'Same sound'},VOICES);
 const clampB=v=>Math.max(30,Math.min(240,Math.round(v)||70));
 let bpm=clampB(QS.get('bpm')||saved.bpm||70);
 let ts=TS[QS.get('ts')]?QS.get('ts'):{2:'2/4',3:'3/4',4:'4/4',6:'6/8'}[QS.get('beats')]||PM[0]||(PRE?'4/4':TS[saved.ts]?saved.ts:'4/4');
@@ -128,11 +132,12 @@ let sub=SUBS[QS.get('sub')]?+QS.get('sub'):PM[1]||(PRE?1:SUBS[saved.sub]?saved.s
 let snd=SNDS[QS.get('snd')]?QS.get('snd'):PM[2]||(SNDS[saved.snd]?saved.snd:'click');
 let vol=saved.vol!=null?saved.vol:80;
 // 1st beat (2026-11-20): one extra sound on every downbeat, any main sound. Replaces the Kick on 1 button (old setting and ?kick=1 become Kick).
-const FIRSTS={none:'Nothing extra',kick:'Kick',cow:'Cowbell',xstick:'Side stick',wood:'Woodblock',beep:'Beep'};
+const FIRSTS=Object.assign({none:'Nothing extra'},VOICES);
 let first=FIRSTS[QS.get('first')]?QS.get('first'):QS.get('kick')!=null?(QS.get('kick')==='1'?'kick':'none'):FIRSTS[saved.first]?saved.first:saved.kick1?'kick':'none';
 let shk=QS.get('shk')!=null?QS.get('shk')==='1':!!saved.shk, xs=QS.get('xs')!=null?QS.get('xs')==='1':!!saved.xs; // Drum beat additional sound (2026-11-19): shaker on the subdivision, side stick for the snare
+let subS=SUBSNDS[QS.get('subsnd')]?QS.get('subsnd'):SUBSNDS[saved.subS]?saved.subS:'same';
 const ADDS={none:'None',shk:'Shaker (8ths)',xs:'Side stick',both:'Shaker + side stick'};
-const save=()=>{try{localStorage.setItem(KEY,JSON.stringify({bpm,ts,sub,snd,vol,first,shk,xs}))}catch(e){}};
+const save=()=>{try{localStorage.setItem(KEY,JSON.stringify({bpm,ts,sub,snd,vol,first,shk,xs,subS}))}catch(e){}};
 try{if(navigator.audioSession)navigator.audioSession.type='playback'}catch(e){} // iPhone: sound even with the ringer switch on silent
 let ac=null,master=null,running=false,C=null,OUT=null;
 // Background play (2026-11-19): iPad/iPhone freeze page timers when you switch apps, so the bar is rendered once and looped on the audio engine (no timers needed to keep time)
@@ -140,22 +145,39 @@ let src=null,t0=0,P0=null,rbT=null,rbN=0;
 function audio(){if(!ac){const AC=window.AudioContext||window.webkitAudioContext;ac=new AC();master=ac.createGain();master.connect(ac.destination);C=ac;OUT=master}master.gain.value=Math.pow(vol/100,1.5);if(ac.state!=='running')ac.resume();return ac}
 // drum samples: the Modal Metronome's Blonde Bop kit (velocity layers 1-5)
 const BUF={},LOAD={};
-function need(names){names.forEach(n=>{if(LOAD[n])return;LOAD[n]=fetch(n.startsWith('cb')?'sounds/'+(n==='cb'?'cowbell':'cowbell-soft')+'.mp3':n==='shaker'?'sounds/shaker.mp3':n==='xstick'?'../drum-machine/kits/ss/stick_4.mp3':'../drum-machine/kits/bb/'+n+'.mp3').then(r=>r.arrayBuffer()).then(b=>new Promise((ok,no)=>audio().decodeAudioData(b,ok,no))).then(d=>{BUF[n]=d;if(running)rebuild()}).catch(()=>{delete LOAD[n]})})}
-const KIT={sticks:['stick_4','stick_3','stick_1'],hat:['kick_4','hat_4','hat_1'],drums:['kick_4','snare_4','hat_4','hat_1','kick_3','shaker','xstick'],ride:['kick_4','ride_4','ride_3','ride_1'],bell:['cb','cbs']};
+function need(names){names.forEach(n=>{if(LOAD[n])return;LOAD[n]=fetch(n.startsWith('cb')?'sounds/'+(n==='cb'?'cowbell':'cowbell-soft')+'.mp3':n==='shaker'?'sounds/shaker.mp3':n==='tamb'?'sounds/tambourine.mp3':n==='clap'?'sounds/clap.mp3':n==='xstick'?'../drum-machine/kits/ss/stick_4.mp3':'../drum-machine/kits/bb/'+n+'.mp3').then(r=>r.arrayBuffer()).then(b=>new Promise((ok,no)=>audio().decodeAudioData(b,ok,no))).then(d=>{BUF[n]=d;if(running)rebuild()}).catch(()=>{delete LOAD[n]})})}
+const KIT={sticks:['stick_4','stick_3','stick_1'],hat:['kick_4','hat_4','hat_1'],drums:['kick_4','snare_4','hat_4','hat_1','kick_3','shaker','xstick'],ride:['kick_4','ride_4','ride_3','ride_1'],bell:['cb','cbs'],xstick:['xstick'],tamb:['tamb'],clap:['clap'],shaker:['shaker']};
+const VNEED={kick:['kick_4'],cow:['cb'],xstick:['xstick'],sticks:['stick_4','stick_3','stick_1'],hat:['hat_4','hat_1'],ride:['ride_4','ride_3','ride_1'],tamb:['tamb'],clap:['clap'],shaker:['shaker']};
 function samp(n,t,g){const b=BUF[n];if(!b)return false;const s=C.createBufferSource(),v=C.createGain();s.buffer=b;v.gain.value=g;s.connect(v);v.connect(OUT);s.start(t);return true}
 function beep(t,f,g,len,type){const o=C.createOscillator(),v=C.createGain();o.type=type||'square';o.frequency.value=f;v.gain.setValueAtTime(0.0001,t);v.gain.exponentialRampToValueAtTime(g,t+0.001);v.gain.exponentialRampToValueAtTime(0.0001,t+len);o.connect(v);v.connect(OUT);o.start(t);o.stop(t+len+0.01)}
 // fallback cowbell while the recording loads: the classic drum-machine recipe, two square tones (587 and 845 Hz) through a band-pass, a sharp hit then a short ring
 function cowbell(t,g){const bp=C.createBiquadFilter(),v=C.createGain();bp.type='bandpass';bp.frequency.value=2640;bp.Q.value=1;
   v.gain.setValueAtTime(0.0001,t);v.gain.exponentialRampToValueAtTime(0.9*g,t+0.002);v.gain.exponentialRampToValueAtTime(0.25*g,t+0.04);v.gain.exponentialRampToValueAtTime(0.0001,t+0.35);
   [587,845].forEach(f=>{const o=C.createOscillator();o.type='square';o.frequency.value=f;o.connect(bp);o.start(t);o.stop(t+0.36)});bp.connect(v);v.connect(OUT)}
+// one sound at one level (lv 0-3), for the 1st beat, the subdivision and the new main sounds. Woodblock and claves: the Modal Metronome's recipes
+function tone(t,ty,f0,f1,dur,peak,dec){const o=C.createOscillator(),v=C.createGain();o.type=ty;o.frequency.setValueAtTime(f0,t);if(f1)o.frequency.exponentialRampToValueAtTime(f1,t+dur*0.4);
+  v.gain.setValueAtTime(0.0001,t);v.gain.exponentialRampToValueAtTime(peak,t+0.002);v.gain.exponentialRampToValueAtTime(0.0001,t+dec);o.connect(v);v.connect(OUT);o.start(t);o.stop(t+dur+0.01)}
+function voice(n,t,lv,g){const G=g!=null?g:[0.45,0.75,0.85,1][lv];
+  if(n==='click'){beep(t,[880,1175,1175,1760][lv],[0.12,0.3,0.36,0.5][lv],0.05);return true}
+  if(n==='beep'){beep(t,1760,0.45*G,0.05);return true}
+  if(n==='wood'){const f=[880,1000,1050,1180][lv];tone(t,'triangle',f,f*0.81,0.08,0.85*G,0.07);tone(t,'sine',f*2,0,0.04,0.17*G,0.03);return true}
+  if(n==='clave'){tone(t,'sine',[2200,2400,2500,2700][lv],0,0.08,0.8*G,0.065);return true}
+  if(n==='cow'){if(!samp(lv?'cb':'cbs',t,0.8*G))cowbell(t,0.8*G);return true}
+  if(n==='sticks')return samp(lv>=2?'stick_4':lv===1?'stick_3':'stick_1',t,G);
+  if(n==='kick')return samp('kick_4',t,G);
+  if(n==='hat')return samp(lv?'hat_4':'hat_1',t,0.9*G);
+  if(n==='ride')return samp(lv===3?'ride_4':lv?'ride_3':'ride_1',t,0.9*G);
+  if(n==='xstick'||n==='tamb'||n==='clap'||n==='shaker')return samp(n,t,(n==='clap'?0.78:n==='shaker'?0.95:1)*G);
+  return false}
 // lv: 3 = beat 1, 2 = start of a group (5/4, x/8), 1 = other beat, 0 = subdivision. bi = beat number in the bar
 function hit(t,lv,bi){
   // 1st beat sound (2026-11-20): on every downbeat, on top of the main sound (Kick skips the drum sounds that already kick on 1)
-  if(lv===3&&first!=='none'){if(first==='kick'){if(!/^(drums|hat|ride)$/.test(snd))samp('kick_4',t,1)}else if(first==='cow'){if(!samp('cb',t,0.8))cowbell(t,0.8)}else if(first==='xstick')samp('xstick',t,1);
-    else if(first==='wood'){beep(t,1900,0.7,0.06,'sine');beep(t,5130,0.18,0.03,'sine')}else if(first==='beep')beep(t,1760,0.45,0.05)}
+  if(lv===3&&first!=='none'){if(first==='kick'){if(!/^(drums|hat|ride)$/.test(snd))samp('kick_4',t,1)}else voice(first,t,3,first==='beep'?1:0.9)}
+  // subdivision sound (2026-11-24.1): replaces the main sound between the beats
+  if(lv===0&&subS!=='same'){if(!voice(subS,t,0,0.55))beep(t,880,0.12,0.05);return}
   if(snd==='click'){beep(t,[880,1175,1175,1760][lv],[0.12,0.3,0.36,0.5][lv],0.05);return}
-  if(snd==='wood'){const f=[1200,1500,1650,1900][lv],g=[0.18,0.5,0.6,0.8][lv];beep(t,f,g,0.06,'sine');beep(t,f*2.7,g*0.25,0.03,'sine');return}
   let ok=true;
+  if(/^(wood|clave|xstick|tamb|clap|shaker)$/.test(snd))ok=voice(snd,t,lv);
   if(snd==='sticks')ok=samp(KIT.sticks[lv>=2?0:lv===1?1:2],t,lv?(lv===3?1:0.8):0.45);
   else if(snd==='bell'){ok=lv?samp('cb',t,[0,0.55,0.75,1][lv]):samp('cbs',t,0.45);if(!ok){cowbell(t,[0.25,0.6,0.75,1][lv]);return}} // recorded cowbell (VCSL, CC0); the synth only until it loads
   else if(snd==='hat'){if(lv===3)samp('kick_4',t,0.9);ok=samp(lv?'hat_4':'hat_1',t,lv?0.9:0.7)}
@@ -184,7 +206,7 @@ function media(on){try{const ms=navigator.mediaSession;if(!ms)return;if(window.M
 function start(){audio();need(KIT[snd]||[]);needFirst();running=true;src=null;P0=null;rebuild();requestAnimationFrame(draw);media(true);$('go').textContent='Stop';$('go').classList.add('stop')}
 function stop(){running=false;rbN++;clearTimeout(rbT);if(src){try{src.stop()}catch(e){}src=null}P0=null;[...$('dots').children].forEach(d=>d.classList.remove('on'));media(false);$('go').textContent='Start';$('go').classList.remove('stop')}
 function toggle(){running?stop():start()}
-const FNEED={kick:['kick_4'],cow:['cb'],xstick:['xstick']};function needFirst(){if(ac&&FNEED[first])need(FNEED[first])}
+function needFirst(){if(ac){if(VNEED[first])need(VNEED[first]);if(VNEED[subS])need(VNEED[subS])}}
 function fill(){const e=$('slider');e.style.setProperty('--p',((bpm-30)/(240-30)*100)+'%')}
 function setBpm(v){bpm=clampB(v);$('bpm').textContent=bpm;$('slider').value=bpm;fill();save();if(running){rebuild();media(true)}}
 // every option is a dropdown (2026-11-20): less scrolling on a phone
@@ -192,12 +214,13 @@ function seg(id,opts,cur,fn){const el=$(id);el.innerHTML='';Object.keys(opts).fo
 function mark(id,cur){$(id).value=String(cur)}
 function setTs(v){ts=v;const T=TS[ts];$('dots').innerHTML='';for(let i=0;i<T.n;i++){const d=document.createElement('div');d.className='dot'+(i===0?' one':T.acc.includes(i)?' grp':'');$('dots').appendChild(d)}
   $('subRow').hidden=!!T.e;$('hint8').hidden=!T.e;$('hint8').textContent=T.c?'Each click is an eighth note. The speed counts the dotted quarter (3 clicks).':'Each click is an eighth note.';mark('ts',ts);save();if(running)rebuild()}
-function setSub(v){sub=+v;mark('sub',sub);save();if(running)rebuild()}
+function setSub(v){sub=+v;mark('sub',sub);$('subsnd').disabled=sub===1;save();if(running)rebuild()}
 function setSnd(v){snd=v;if(ac)need(KIT[snd]||[]);mark('snd',snd);paintDk();save();if(running)rebuild()}
 // Additional sound: greyed out unless the sound is Drum beat
 function paintDk(){const on=snd==='drums',a=$('add');a.disabled=!on;$('addRow').classList.toggle('off',!on);a.value=shk&&xs?'both':shk?'shk':xs?'xs':'none'}
 seg('ts',Object.fromEntries(Object.keys(TS).map(k=>[k,k])),ts,setTs);seg('sub',SUBS,sub,setSub);seg('snd',SNDS,snd,setSnd);
 seg('first',FIRSTS,first,v=>{first=v;needFirst();save();if(running)rebuild()});
+seg('subsnd',SUBSNDS,subS,v=>{subS=v;needFirst();save();if(running)rebuild()});$('subsnd').disabled=sub===1;
 seg('add',ADDS,'none',v=>{shk=v==='shk'||v==='both';xs=v==='xs'||v==='both';save();if(running)rebuild()});
 // hold − or + to keep changing
 function hold(el,d){let t=null,r=null;const end=()=>{clearTimeout(t);clearInterval(r)};
@@ -215,6 +238,6 @@ document.addEventListener('keydown',e=>{if(e.target.tagName==='INPUT'&&e.target.
 document.addEventListener('visibilitychange',()=>{if(!document.hidden&&running&&ac&&ac.state!=='running')ac.resume()});
 paintDk();
 setBpm(bpm);setTs(ts);
-window.__sm={state:()=>({bpm,ts,sub,snd,running,vol,first,shk,xs,loaded:Object.keys(BUF),loop:src?{t0,len:src.buffer.duration,now:ac.currentTime,buf:src.buffer}:null})};
+window.__sm={state:()=>({bpm,ts,sub,snd,running,vol,first,shk,xs,subS,loaded:Object.keys(BUF),loop:src?{t0,len:src.buffer.duration,now:ac.currentTime,buf:src.buffer}:null})};
 })();
 </script></body></html>

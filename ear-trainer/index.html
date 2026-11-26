@@ -6,6 +6,7 @@
 <script src="../shared/brand.js"></script>
 <script src="../shared/hype.js"></script>
 <script src="../shared/share.js"></script>
+<script src="../shared/voice-pitch.js"></script>
 <style>
 /* One practice card: score strip, prompt, keyboard, answer pad. Results sheet over the card when a challenge ends. */
 :root{
@@ -193,7 +194,7 @@ details.how p{margin:10px 0 0}
   h1{font-size:24px;line-height:1}
   .chma-ver,.sub,.lbl{display:none}
   body.running .s-level,body.running .s-game{display:none}
-  .pick{flex-wrap:nowrap;overflow-x:auto;gap:8px;margin:0 -12px;padding:2px 12px 6px;scroll-snap-type:x proximity;scrollbar-width:none;-webkit-overflow-scrolling:touch}
+  .pick{flex-wrap:nowrap;overflow-x:auto;gap:8px;margin:0 -12px;padding:2px 12px 6px 16px;scroll-padding-inline:16px;scroll-snap-type:x proximity;scrollbar-width:none;-webkit-overflow-scrolling:touch}
   .pick::-webkit-scrollbar{display:none}
   .pick button{flex:0 0 auto;min-width:0;width:auto;min-height:48px;padding:5px 14px;scroll-snap-align:start;gap:0;font-size:14px;line-height:1.25;display:block;text-align:left}
   .pick button b{font-size:14px;display:inline;margin-right:6px}.pick button span{display:block}
@@ -282,7 +283,14 @@ details .note{font-size:14px;color:var(--c-mut);margin:8px 0 0}
   .stats{padding:6px 10px}.stats b{font-size:17px}
   .prompt b.nm{font-size:20px}
 }
-</style></head>
+.micbox{display:flex;flex-wrap:wrap;align-items:center;gap:8px 12px;margin-top:10px;font-size:14px;line-height:1.4}
+.micbox[hidden]{display:none}
+.micbox .ghost{min-height:44px;padding:0 16px;border-radius:12px;border:1px solid currentColor;background:transparent;color:inherit;font:inherit;font-weight:700;cursor:pointer}
+.micbox #micSt{flex:1 1 200px}
+.mlv{flex:none;width:70px;height:8px;border-radius:4px;background:rgba(127,127,127,.25);overflow:hidden}
+.mlv i{display:block;height:100%;width:0;background:#33d17a;transition:width .06s}
+</style><link rel="icon" type="image/svg+xml" href="../shared/icons/ear-trainer.svg"><link rel="icon" type="image/png" sizes="32x32" href="../shared/icons/ear-trainer-32.png"><link rel="apple-touch-icon" href="../shared/icons/ear-trainer-180.png">
+</head>
 <body>
 <div class="wrap">
   <div data-chma-head></div>
@@ -307,13 +315,15 @@ details .note{font-size:14px;color:var(--c-mut);margin:8px 0 0}
   <div class="sect s-game"><span class="lbl" aria-hidden="true">Mode</span>
   <div class="seg" id="modeSeg" role="group" aria-label="Mode"><button data-m="single">Single tries</button><button data-m="chal">Challenge</button></div>
   <span class="lbl" aria-hidden="true" style="margin-top:12px">Answer with</span>
-  <div class="seg" id="inSeg" role="group" aria-label="Answer with" style="margin-top:6px"><button data-i="screen">On screen</button><button data-i="midi">MIDI keyboard</button></div>
-  <div id="midiBox" hidden></div></div>
+  <div class="seg" id="inSeg" role="group" aria-label="Answer with" style="margin-top:6px"><button data-i="screen">On screen</button><button data-i="midi">MIDI keyboard</button><button data-i="mic">Microphone</button></div>
+  <div id="midiBox" hidden></div>
+  <div id="micBox" class="micbox" hidden><button type="button" id="micGo" class="ghost">Turn on the microphone</button><span class="mlv" aria-hidden="true"><i id="micLv"></i></span><span id="micSt" role="status" aria-live="polite">Sing or play the note on your piano. Headphones help: the app won't hear its own sound.</span></div></div>
 
   <details class="how"><summary>How it works</summary>
     <p class="tip"><b>Relative pitch</b> means you hear one note you know (the reference), then work out the next note by how far away it is. You don't need perfect pitch for this. You need distance.</p>
     <p class="tip"><b>Mystery note:</b> the app says "This is C" and plays it, then plays a mystery note. Tap it on the keyboard (or on the note names, in "Settings"). Levels 7 and 8 change the reference, so you can't just memorize C.</p>
     <p class="tip"><b>Scale degree:</b> the app plays I – IV – V – I to set the key, then one note. Name its number in the scale: 1 is home (do), 5 is sol. Level 5 is a minor key, counted from its parent major like every numeral in the studio: in A minor (parent C) the cadence is vi – ii – III – vi (III is E major, borrowing G♯ from harmonic minor), and A is 6, B is 7, C is 1.</p>
+    <p class="tip"><b>Microphone:</b> pick it under "Answer with", turn it on, then sing or play the note you hear. Any octave counts. It listens only after the app stops playing.</p>
     <p class="tip"><b>MIDI keyboard:</b> pick it under "Answer with" (Chrome or Edge on a computer) and press the key you hear: in Scale degree and Interval, the key's distance from the reference is your answer.</p>
     <p class="tip"><b>Interval:</b> two notes, name the distance. m = minor, M = major, P = perfect, TT = tritone (6 half steps), P8 = octave.</p>
     <p class="tip"><b>Single tries:</b> one question at a time. Replay the reference or the mystery as often as you like, then press "Next". <b>Challenge:</b> 5 rounds of 8 questions and a bonus round. Round 1 is the warm-up that sets your targets; each round's points count up from 0. Right answer = 1 point, right within 3 seconds = 2. One replay of each per question, one try, no second chances.</p>
@@ -328,9 +338,9 @@ details .note{font-size:14px;color:var(--c-mut);margin:8px 0 0}
     <label><input type="checkbox" id="labelsOn" checked> Letter names on the keys</label>
     <label><input type="checkbox" id="retryOn"> Second try on a miss (Single tries only)</label>
     <label><input type="checkbox" id="hypeOn" checked> Music on round screens</label>
-    <p class="note">MIDI keyboard (Chrome or Edge on a computer): press a key to answer. Mystery note = that key; Scale degree and Interval = its distance from the reference, the same as on the keyboard here. Play-it-on-your-piano (microphone) answers are not in this version.</p>
+    <p class="note">MIDI keyboard (Chrome or Edge on a computer): press a key to answer. Mystery note = that key; Scale degree and Interval = its distance from the reference, the same as on the keyboard here. Microphone: sing it or play it on your piano. Any octave counts; hold the note steady for a moment. The microphone pauses while the app plays.</p>
   </details>
-  <p class="appver" id="appVer">Ear Trainer · Version 2026-11-20.1</p>
+  <p class="appver" id="appVer">Ear Trainer · Version 2026-11-24.2</p>
   <p class="credit">Piano: Salamander Grand Piano V3 by Alexander Holm (<a href="https://creativecommons.org/licenses/by/3.0/" target="_blank" rel="noopener">CC BY 3.0</a>), retuned by Markus Fiedler, via sfzinstruments. Song cues name public-domain or traditional tunes; no recordings are used.</p>
   </section>
 
@@ -494,7 +504,8 @@ function note(m,t,dur,vel){ if(!ac) return; vel=vel==null?0.8:vel;
   voices.push({g,src,end:t+dur+rel*8}) }
 function hush(){ if(!ac) return; const t=ac.currentTime; voices.forEach(v=>{ if(v.end<t) return; try{ const p=v.g.gain; if(p.cancelAndHoldAtTime) p.cancelAndHoldAtTime(t); else { p.cancelScheduledValues(t); p.setValueAtTime(p.value,t) } p.setTargetAtTime(0,t,0.025); v.src.stop(t+0.25) }catch(e){} }); voices=[] }
 // a sequence: [{at seconds, ms:[midi...], d seconds, v}] -> scheduled together; returns its length in seconds
-function playSeq(ev){ AC(); hush(); const t0=ac.currentTime+0.08; let len=0; ev.forEach(e=>{ e.ms.forEach(m=>note(m,t0+e.at,e.d,e.v)); len=Math.max(len,e.at+e.d) }); return len }
+let micQuietUntil=0;   // the mic ignores the app's own notes (and their ring) until this AudioContext time
+function playSeq(ev){ AC(); hush(); const t0=ac.currentTime+0.08; let len=0; ev.forEach(e=>{ e.ms.forEach(m=>note(m,t0+e.at,e.d,e.v)); len=Math.max(len,e.at+e.d) }); micQuietUntil=t0+len+0.45; return len }
 
 // ================= STATE =================
 let ex=+store.get("ex",1), level=+store.get("lv"+ex,1), gmode=store.get("mode","single"), ansMode=store.get("ans","kb");
@@ -754,13 +765,28 @@ function chmaMidi(o){
 // a key press is the answer: Mystery note = the key itself (or its name), Scale degree = its place counted from the parent major
 // (the minor level's parent is a minor 3rd above its tonic), Interval = its distance from the reference (beyond an octave, folded back in)
 const DEGN=["1","♭2","2","♭3","3","4","♯4","5","♭6","6","♭7","7"];
-function midiAnswer(n){ if(inMode!=="midi"||!q||phase!=="answer") return; AC();
+function midiAnswer(n,fromMic){ if((inMode!=="midi"&&!fromMic)||!q||phase!=="answer") return; AC();
   if(ex===1) return ansMode==="kb"?answer(n,keyEl(n)):answer(mod(n,12),padBtn(mod(n,12)));
   if(ex===2){ const rel=mod(n-q.ref+(q.minor?9:0),12), d=L().deg.find(x=>DEG_SEMI[x]===rel)||DEGN[rel]; return answer(d,padBtn(d)) }
   let v=Math.abs(n-q.ref); if(v>12) v=(v-1)%12+1; return answer(v,padBtn(v)) }
-let inMode=store.get("in","screen"); if(inMode!=="midi") inMode="screen";
+// Microphone answers (2026-11-24.2, Derek): any octave counts. Mystery note = the pitch class, placed in the asked note's octave;
+// Interval = the distance in the direction played, folded into one octave.
+function micAnswer(n){ if(inMode!=="mic"||!q||phase!=="answer") return;
+  if(ex===1){ const want=q.notes[q.taps.length]; if(want==null) return; const n2=want+(mod(n-want+6,12)-6); return ansMode==="kb"?answer(n2,keyEl(n2)):answer(mod(n,12),padBtn(mod(n,12))) }
+  if(ex===2) return midiAnswer(n,true);
+  const pc=mod(n-q.ref,12), down=!q.harm&&q.semis[0]<0; let v=down?(pc?12-pc:12):(pc||12); const ok=L().iv; if(ok&&!ok.includes(v)&&ok.includes(v%12)) v=v%12; return answer(v,padBtn(v)) }
+const MIC={on:false,run:null,cnt:0};
+function micSt(t){ $("micSt").textContent=t }
+async function micStart(){ if(MIC.on) return; try{ await VP.start() }catch(e){ const x=VP.errText(e,"Ear Trainer"); micSt(x.text); return }
+  MIC.on=true; $("micGo").hidden=true; micSt("Listening. Sing or play the note.");
+  VP.listen(f=>{ $("micLv").style.width=Math.min(100,Math.sqrt(f.rms/0.2)*100)+"%";
+    if(inMode!=="mic"||phase!=="answer"||(ac?ac.currentTime:0)<micQuietUntil||!f.voiced||f.midi==null||Math.abs(f.cents)>40){ MIC.cnt=0; MIC.run=null; return }
+    const m=Math.round(f.midi); if(m===MIC.run) MIC.cnt++; else { MIC.run=m; MIC.cnt=1 }
+    if(MIC.cnt===6){ micSt("Heard "+VP.noteName(m)); micQuietUntil=(ac?ac.currentTime:0)+0.6; micAnswer(m) } }) }
+$("micGo").addEventListener("click",micStart);
+let inMode=store.get("in","screen"); if(inMode!=="midi"&&inMode!=="mic") inMode="screen";
 const MIDI=chmaMidi({app:"ear-trainer",host:$("midiBox"),onNote:n=>midiAnswer(n)});
-function inMark(){ document.querySelectorAll("#inSeg button").forEach(b=>b.setAttribute("aria-pressed",String(b.dataset.i===inMode))); $("midiBox").hidden=inMode!=="midi"; if(inMode==="midi") MIDI.start() }
+function inMark(){ document.querySelectorAll("#inSeg button").forEach(b=>b.setAttribute("aria-pressed",String(b.dataset.i===inMode))); $("midiBox").hidden=inMode!=="midi"; $("micBox").hidden=inMode!=="mic"; if(inMode==="midi") MIDI.start() }
 document.querySelectorAll("#inSeg button").forEach(b=>b.addEventListener("click",()=>{ inMode=b.dataset.i; store.set("in",inMode); inMark() })); inMark();
 // keyboard shortcuts: Space/Enter = Play/Next (single tries), R = reference again, M = mystery again
 document.addEventListener("keydown",e=>{ if(/INPUT|SELECT|TEXTAREA/.test(e.target.tagName)||e.metaKey||e.ctrlKey||e.altKey||e.repeat) return; const k=e.key.toLowerCase();
