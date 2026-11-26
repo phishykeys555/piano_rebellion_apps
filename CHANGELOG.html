@@ -41,6 +41,64 @@
 </ul>
 
 <!-- ============================================================ -->
+<h2>Ear Trainer — ear-trainer/</h2>
+
+<h3>Version 2026-11-25.1 (beta 2026-11-25)</h3>
+<h4>Added</h4>
+<ul>
+  <li>Volume section: separate sliders for the reference note (and the I - IV - V - I) and the mystery note, 0 to 150 percent, remembered on the device (<code>et-volref</code>, <code>et-volmys</code>); moving a slider plays a short C4 so you hear the level. Default 100 percent is the old loudness. Student feedback. <code>ear-trainer/index.html</code></li>
+  <li>Microphone picker, shown with Answer with: Microphone, same idea as Note Sprint: a Microphone menu lists the inputs once the mic is on, switching restarts the mic on the chosen input, the level meter is shown, and the choice is remembered (<code>et-micdev</code>; an unplugged mic falls back to the default). Student feedback. <code>ear-trainer/index.html</code></li>
+</ul>
+<h4>Changed</h4>
+<ul>
+  <li>"Hear the pair" button sits on its own line under the explanation text instead of beside it. Beta tester request. <code>ear-trainer/index.html</code></li>
+</ul>
+<h4>Fixed</h4>
+<ul>
+  <li>Mystery note with On screen (for example Level 2, Five notes): no answer buttons showed, only an unmarked keyboard, so there was nothing obvious to press. Levels with 13 or fewer possible notes now show a row of answer buttons (C4, D4, E4 and so on) under the keyboard; tap a key or a button. The button you pressed turns red on a miss and the right one turns green. Levels with more notes (up and down, chromatic, any reference) keep the keyboard only. Student feedback. <code>ear-trainer/index.html</code></li>
+</ul>
+<h3>Version 2026-11-24.2 (beta 2026-11-24)</h3>
+<h4>Added</h4>
+<ul>
+  <li>"Answer with: Microphone": sing the answer or play it on your piano. Any octave counts; a note held steady for about a tenth of a second is the answer. The mic ignores the app's own notes and their ring. Uses <code>shared/voice-pitch.js</code>. Derek request. <code>ear-trainer/index.html</code></li>
+</ul>
+<h3>Version 2026-11-24.1 (beta 2026-11-24)</h3>
+<h4>Changed</h4>
+<ul>
+  <li>The Level button row starts 16 px in from the left edge, like Note Sprint's, and stays there when it scrolls (scroll padding). Beta tester request. <code>ear-trainer/index.html</code></li>
+</ul>
+<h4>Added</h4>
+<ul>
+  <li>Favicon: its own icon in the browser tab, bookmarks and the home screen (<code>shared/icons/ear-trainer.svg</code>, <code>-32.png</code>, <code>-180.png</code>). Beta tester request.</li>
+</ul>
+<h3>Version 2026-11-20.1</h3>
+<h4>Changed</h4>
+<ul>
+  <li>Button names in help text are now in quotes (e.g. Press "Start"), a house rule for every app.</li>
+</ul>
+
+<h3>Version 2026-11-18.1</h3>
+<h4>Added</h4>
+<ul>
+  <li>MIDI activity light.</li>
+</ul>
+<h3>Versions 2026-11-13.1 to 2026-11-13.4</h3>
+<h4>Added</h4>
+<ul>
+  <li>13.2 / 13.3: MIDI input (shared MIDI block v1.1).</li>
+  <li>13.4: Share button.</li>
+</ul>
+<h4>Changed</h4>
+<ul>
+  <li>13.1: parent-key numerals.</li>
+</ul>
+<h3>Version 2026-11-12.1</h3>
+<h4>Added</h4>
+<ul>
+  <li>First release: relative pitch with reference notes (mystery note, scale degree, interval).</li>
+</ul>
+
+<!-- ============================================================ -->
 <h2>Simple Metronome — simple-metronome/</h2>
 <h3>Version 2026-11-24.1 (beta 2026-11-24)</h3>
 <h4>Added</h4>
@@ -543,50 +601,6 @@
 <h4>Added</h4>
 <ul>
   <li>First release: piano key identification game (no staff); name the glowing key or find the named key; 5 levels.</li>
-</ul>
-
-<!-- ============================================================ -->
-<h2>Ear Trainer — ear-trainer/</h2>
-
-<h3>Version 2026-11-24.2 (beta 2026-11-24)</h3>
-<h4>Added</h4>
-<ul>
-  <li>"Answer with: Microphone": sing the answer or play it on your piano. Any octave counts; a note held steady for about a tenth of a second is the answer. The mic ignores the app's own notes and their ring. Uses <code>shared/voice-pitch.js</code>. Derek request. <code>ear-trainer/index.html</code></li>
-</ul>
-<h3>Version 2026-11-24.1 (beta 2026-11-24)</h3>
-<h4>Changed</h4>
-<ul>
-  <li>The Level button row starts 16 px in from the left edge, like Note Sprint's, and stays there when it scrolls (scroll padding). Beta tester request. <code>ear-trainer/index.html</code></li>
-</ul>
-<h4>Added</h4>
-<ul>
-  <li>Favicon: its own icon in the browser tab, bookmarks and the home screen (<code>shared/icons/ear-trainer.svg</code>, <code>-32.png</code>, <code>-180.png</code>). Beta tester request.</li>
-</ul>
-<h3>Version 2026-11-20.1</h3>
-<h4>Changed</h4>
-<ul>
-  <li>Button names in help text are now in quotes (e.g. Press "Start"), a house rule for every app.</li>
-</ul>
-
-<h3>Version 2026-11-18.1</h3>
-<h4>Added</h4>
-<ul>
-  <li>MIDI activity light.</li>
-</ul>
-<h3>Versions 2026-11-13.1 to 2026-11-13.4</h3>
-<h4>Added</h4>
-<ul>
-  <li>13.2 / 13.3: MIDI input (shared MIDI block v1.1).</li>
-  <li>13.4: Share button.</li>
-</ul>
-<h4>Changed</h4>
-<ul>
-  <li>13.1: parent-key numerals.</li>
-</ul>
-<h3>Version 2026-11-12.1</h3>
-<h4>Added</h4>
-<ul>
-  <li>First release: relative pitch with reference notes (mystery note, scale degree, interval).</li>
 </ul>
 
 <!-- ============================================================ -->
