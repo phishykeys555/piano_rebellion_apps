@@ -1,0 +1,702 @@
+<!doctype html>
+<html lang="en">
+<head>
+<base href="../piano-tuner/">
+<meta name="robots" content="noindex,nofollow">
+
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Piano Strobe Tuner · Clarendon Hills Music Academy</title>
+<meta name="description" content="A high-precision strobe tuner for piano, all 88 keys from A0 to C8. Play one key; when the pattern stands still, it is in tune.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="../shared/chma.css">
+<script src="../shared/brand.js"></script>
+<script src="../shared/share.js"></script>
+<style>
+/* Layout: phones one column (strobe, readout, 88-key strip, Hear button, Settings / Tuning check / How it works);
+   880 px and wider: strobe + readout + keyboard on the left, controls on the right. Colours come from shared/chma.css
+   (Studio Gear dark / Pocket Synth light), like the other piano apps. */
+*{box-sizing:border-box} [hidden]{display:none!important}
+html,body{margin:0}
+body{min-height:100vh;background:var(--c-page);color:var(--c-ink);font-family:var(--f-body);font-size:15px;-webkit-font-smoothing:antialiased;
+  padding:16px max(16px,env(safe-area-inset-right,0px)) calc(20px + env(safe-area-inset-bottom,0px)) max(16px,env(safe-area-inset-left,0px));overflow-x:hidden;-webkit-tap-highlight-color:transparent}
+button,select{font:inherit;color:inherit}
+button{touch-action:manipulation;cursor:pointer}
+.wrap{max-width:620px;margin:0 auto;background:var(--c-panel);border-radius:var(--r-card);box-shadow:var(--shadow-card);padding:0 16px 16px;overflow:hidden}
+.chma-headwrap{margin:0 -16px 6px}
+header{margin:6px 0 10px}
+h1{font-family:var(--f-title);font-weight:700;font-size:28px;letter-spacing:-.01em;line-height:1.05;margin:0} h1 em{font-style:normal;color:var(--c-act)}
+.sub{color:var(--c-mut);font-size:13px;margin:4px 0 0}
+.sec{margin:0 0 6px;font-size:10.5px;font-weight:700;letter-spacing:.16em;text-transform:uppercase;color:var(--c-mut)}
+
+/* ---------- strobe window ---------- */
+.scope{display:flex;flex-direction:column;align-items:center}
+.bezel{position:relative;width:min(62vw,40vh,290px);aspect-ratio:1;border-radius:50%;padding:9px;background:var(--c-key);
+  box-shadow:0 0 0 1px var(--c-key-b),0 4px 0 var(--c-key-sh),0 10px 24px rgba(0,0,0,.25)}
+.glass{position:relative;width:100%;height:100%;border-radius:50%;overflow:hidden;background:var(--c-lcd);box-shadow:inset 0 2px 14px rgba(0,0,0,.8),0 0 0 1px var(--c-lcd-b)}
+#strobe{position:absolute;inset:0;width:100%;height:100%;display:block}
+.hub{position:absolute;left:50%;top:50%;width:33%;aspect-ratio:1;transform:translate(-50%,-50%);border-radius:50%;background:var(--c-panel);
+  box-shadow:0 0 0 3px var(--c-key-b),0 3px 10px rgba(0,0,0,.55);display:flex;align-items:center;justify-content:center;text-align:center}
+.note{font:700 clamp(28px,9vw,40px)/1 var(--f-title);color:var(--c-ink);display:flex;align-items:baseline;gap:1px}
+.note .acc{font-size:.6em;align-self:flex-start}
+.note .oct{font:700 .55em/1 var(--f-num);color:var(--c-act);margin-left:2px}
+.note.idle{color:var(--c-mut);font-size:26px}
+.hub.tapme{cursor:pointer}
+.hub.tapme .note.idle{font:700 12px/1.15 var(--f-body);padding:0 6px}
+.dirs{width:min(100%,380px);display:flex;justify-content:space-between;align-items:center;margin-top:6px}
+.dir{display:flex;align-items:center;gap:6px;font-size:11px;line-height:1.2;color:var(--c-mut)}
+.dir svg{width:24px;height:24px;flex:none}
+.dir b{color:var(--c-ink)}
+.dirmid{font-size:12px;font-weight:700;color:var(--c-mut);text-align:center}
+
+/* ---------- readout (LCD) ---------- */
+.meter{width:100%;margin-top:8px;border-radius:14px;padding:8px 12px;background:var(--c-lcd);border:1px solid var(--c-lcd-b);box-shadow:inset 0 2px 8px rgba(0,0,0,.6);
+  display:grid;grid-template-columns:1fr 1fr auto;gap:6px 10px;align-items:center}
+.cell .k,.lamp .k{font-size:9.5px;font-weight:700;letter-spacing:.16em;text-transform:uppercase;color:#9aa3b2}
+.cell .v{font:700 clamp(22px,6.4vw,28px)/1.15 var(--f-num);color:var(--c-led);text-shadow:var(--c-led-glow);font-variant-numeric:tabular-nums;white-space:nowrap}
+.cell .v small{font-size:.5em;opacity:.8;margin-left:3px}
+.off .cell .v{opacity:.45;text-shadow:none}
+.lamp{display:flex;flex-direction:column;align-items:center;gap:5px;padding-left:4px}
+.jewel{width:34px;height:34px;border-radius:50%;background:#2a2d33;box-shadow:inset 0 -3px 6px rgba(0,0,0,.6),0 0 0 2px #3a3e47;transition:background .12s,box-shadow .12s}
+.jewel.lit{background:radial-gradient(circle at 45% 40%,#eaffef,#33d17a 45%,#14843f);box-shadow:0 0 0 2px #33d17a,0 0 18px 4px rgba(51,209,122,.55)}
+.status{grid-column:1/-1;display:flex;align-items:center;gap:8px;border-top:1px solid rgba(255,255,255,.08);padding-top:6px;font-size:14px;line-height:1.3;color:#eceef2;min-height:24px}
+.sig{width:9px;height:9px;border-radius:50%;flex:none;background:#3a3f4b;transition:background .08s,box-shadow .08s}
+.sig.lit{background:#33d17a;box-shadow:0 0 8px 2px rgba(51,209,122,.6)}
+.lvbar{flex:none;width:54px;height:8px;border-radius:4px;background:#2a2d33;overflow:hidden}
+.lvbar i{display:block;height:100%;width:0;background:var(--c-led);transition:width .08s}
+
+/* ---------- 88-key strip ---------- */
+.kbwrap{width:100%;margin-top:10px}
+.kbbox{position:relative;padding-top:16px}
+#kb{display:block;width:100%;height:auto;touch-action:manipulation;cursor:pointer;border-radius:4px}
+#kb .w{fill:#f8f7f3;stroke:#8c8f98;stroke-width:.6}
+#kb .b{fill:#1b1c1f;stroke:#000;stroke-width:.4}
+#kb .lit{fill:var(--c-act)}
+#kb .lit.ok{fill:#33d17a}
+#kb .ref{fill:var(--c-sel)}
+#kb .mc{fill:#8c8f98}
+.caret{position:absolute;top:0;transform:translateX(-50%);font:700 11px/1 var(--f-num);color:var(--c-ink);white-space:nowrap;pointer-events:none;transition:left .12s}
+.caret::after{content:"";display:block;width:0;height:0;margin:2px auto 0;border:5px solid transparent;border-top-color:var(--c-act);border-bottom:0}
+.kbcap{display:flex;justify-content:space-between;font:600 10.5px/1 var(--f-num);color:var(--c-mut);margin-top:4px}
+
+/* ---------- controls ---------- */
+.panel{margin-top:12px;display:grid;gap:10px}
+.primary{min-height:48px;border-radius:var(--r-key);border:1px solid var(--c-act);background:var(--c-act);color:var(--c-act-ink);box-shadow:0 3px 0 var(--c-act-sh);font-weight:700;font-size:16px;padding:0 16px;display:flex;align-items:center;justify-content:center;gap:8px}
+.primary:active{transform:translateY(2px);box-shadow:0 1px 0 var(--c-act-sh)}
+.primary svg{width:20px;height:20px}
+.key{min-height:44px;border-radius:var(--r-key);border:1px solid var(--c-key-b);background:var(--c-key);color:var(--c-ink);box-shadow:0 3px 0 var(--c-key-sh);font-weight:700;font-size:14px;padding:0 14px}
+.key:active{transform:translateY(2px);box-shadow:0 1px 0 var(--c-key-sh)}
+details.more{border:1px solid var(--c-line);border-radius:12px;background:var(--c-panel2)}
+details.more>summary{cursor:pointer;min-height:44px;display:flex;align-items:center;padding:0 14px;font-weight:600;list-style:none}
+details.more>summary::before{content:"\25B8";margin-right:8px;transition:transform .2s;color:var(--c-mut)}
+details.more[open]>summary::before{transform:rotate(90deg)}
+details.more>summary::-webkit-details-marker{display:none}
+.settings{display:grid;grid-template-columns:1fr 1fr;gap:12px;padding:4px 14px 14px}
+.set{display:flex;flex-direction:column;gap:6px;min-width:0}
+.lbl{font-size:10.5px;font-weight:700;letter-spacing:.16em;text-transform:uppercase;color:var(--c-mut)}
+.stepper{display:flex;align-items:stretch;border-radius:10px;overflow:hidden;border:1px solid var(--c-key-b)}
+.stepper button{width:44px;min-height:44px;border:0;background:var(--c-key);font-weight:800;font-size:20px;color:var(--c-ink)}
+.stepper button:active{background:var(--c-key-b)}
+.stepper output{flex:1;display:flex;align-items:center;justify-content:center;background:var(--c-lcd);font:700 16px/1 var(--f-num);color:var(--c-led);text-shadow:var(--c-led-glow);white-space:nowrap}
+.seg{display:flex;border-radius:10px;overflow:hidden;border:1px solid var(--c-key-b)}
+.seg button{flex:1;min-height:44px;border:0;border-left:1px solid var(--c-key-b);background:var(--c-key);font:700 14px/1 var(--f-num);color:var(--c-ink);padding:0 4px}
+.seg button:first-child{border-left:0}
+.seg button[aria-pressed="true"]{background:var(--c-sel);color:var(--c-sel-ink)}
+#acc button{font:700 20px/1 var(--f-body)}
+/* microphone picker: the same pattern as Note Sprint (label left, control right; Level meter with the hearing line under the list) */
+.micset{grid-column:1/-1}
+.micctl{width:100%;display:grid;grid-template-columns:auto 1fr;gap:8px 10px;align-items:center;font-size:12px;color:var(--c-mut)}
+.micctl select{font:inherit;font-size:13px;min-height:40px;padding:6px 8px;border-radius:8px;border:1px solid var(--c-key-b);background:var(--c-key);color:var(--c-ink);min-width:0;width:100%}
+.micctl select option{color:var(--c-ink);background:var(--c-panel)}
+.mtr{position:relative;height:8px;border-radius:4px;background:var(--c-lcd)}
+.mtr i{display:block;height:100%;width:0;border-radius:4px;background:var(--c-ok)}
+.mtr .thr{position:absolute;top:-4px;bottom:-4px;width:2px;background:var(--c-ink);opacity:.65}
+.privacy{grid-column:1/-1;margin:0;font-size:12px;color:var(--c-mut)}
+/* tuning check */
+.logbody{padding:0 14px 14px;display:flex;flex-direction:column;gap:10px}
+.logsum{font-size:13px;color:var(--c-mut);margin:0}
+.loglist{display:grid;grid-template-columns:repeat(auto-fill,minmax(84px,1fr));gap:6px;margin:0;padding:0;list-style:none}
+.loglist li{background:var(--c-lcd);border-radius:8px;padding:6px 8px;display:flex;justify-content:space-between;gap:6px;font:700 13px/1.2 var(--f-num);color:#eceef2}
+.loglist li b{color:var(--c-led)}
+.loglist li.good b{color:#33d17a}
+.logrow{display:flex;gap:8px;flex-wrap:wrap}
+.logrow button{flex:1 1 0}
+details.how{border:0;background:none}
+details.how>summary{cursor:pointer;padding:6px 0;text-align:center;font-size:13px;font-weight:600;color:var(--c-mut)}
+details.how p,details.how ul{font-size:13px;line-height:1.45;color:var(--c-mut);margin:6px 0}
+details.how ul{padding-left:18px}
+details.how kbd{font:700 11.5px/1 var(--f-num);padding:2px 5px;border-radius:5px;border:1px solid var(--c-key-b);background:var(--c-key);color:var(--c-ink)}
+.msg{display:none;border-radius:10px;padding:12px 14px;background:color-mix(in srgb,var(--c-bad) 14%,var(--c-panel));border:1px solid var(--c-bad);font-size:14px;line-height:1.45}
+.msg.show{display:block}
+.msg a{color:var(--c-act);font-weight:700}
+.appver{margin:14px 0 0;text-align:center;font:500 11px/1.4 var(--f-num);color:var(--c-mut);letter-spacing:.02em}
+:focus-visible{outline:3px solid var(--c-act);outline-offset:2px}
+.chma-share{margin-left:auto;min-height:44px;padding:0 14px;border:1px solid var(--c-key-b);border-radius:10px;background:var(--c-key);box-shadow:0 2px 0 var(--c-key-sh);font:700 13px/1 var(--f-body);color:var(--c-ink);white-space:nowrap}
+@media (max-width:400px){
+  body{padding-left:10px;padding-right:10px}
+  .wrap{padding:0 12px 14px}.chma-headwrap{margin:0 -12px 6px}
+  .settings{gap:10px}
+  h1{font-size:25px}
+}
+@media (min-width:880px){
+  body{padding-top:24px}
+  .wrap{max-width:1040px;padding:0 24px 20px}
+  .chma-headwrap{margin:0 -24px 6px}
+  .cols{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(0,1fr);gap:28px;align-items:start}
+  .bezel{width:min(340px,52vh)}
+  .panel{margin-top:0}
+}
+@media (prefers-reduced-motion:reduce){.caret{transition:none}}
+</style>
+<link rel="icon" type="image/svg+xml" href="../shared/icons/piano-tuner.svg"><link rel="icon" type="image/png" sizes="32x32" href="../shared/icons/piano-tuner-32.png"><link rel="apple-touch-icon" href="../shared/icons/piano-tuner-180.png">
+</head>
+<body>
+<main class="wrap" id="face">
+  <div data-chma-head></div>
+  <header>
+    <h1>Piano <em>Strobe Tuner</em></h1>
+    <p class="sub">All 88 keys. Play one key: when the pattern stands still, it is in tune.</p>
+  </header>
+
+  <div class="cols">
+    <section class="scope" aria-label="Strobe display">
+      <div class="bezel">
+        <div class="glass">
+          <canvas id="strobe" aria-hidden="true"></canvas>
+          <div class="hub" id="hub"><div class="note idle" id="hubNote" aria-live="polite">&mdash;</div></div>
+        </div>
+      </div>
+      <div class="dirs" aria-label="Which way means sharp or flat">
+        <div class="dir"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 13a7 7 0 1 0 2.1-7.1"/><path d="M6.5 1.8l.6 4.3 4.3-.6"/></svg><span><b>Flat</b><br>turns left</span></div>
+        <div class="dirmid">Still =<br>in tune</div>
+        <div class="dir" style="text-align:right"><span><b>Sharp</b><br>turns right</span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 13a7 7 0 1 1-2.1-7.1"/><path d="M17.5 1.8l-.6 4.3-4.3-.6"/></svg></div>
+      </div>
+
+      <div class="meter" id="meter" role="group" aria-label="Readout">
+        <div class="cell"><div class="k">Cents</div><div class="v" id="vCents">&mdash;</div></div>
+        <div class="cell"><div class="k">Frequency</div><div class="v" id="vHz">&mdash;<small>Hz</small></div></div>
+        <div class="lamp"><div class="jewel" id="jewel" role="img" aria-label="In tune lamp: off"></div><div class="k">In tune</div></div>
+        <div class="status"><span class="sig" id="sig" aria-hidden="true"></span><span class="lvbar" aria-hidden="true" title="Microphone level"><i id="lvFill"></i></span><span id="status" aria-live="polite">Starting the tuner…</span></div>
+      </div>
+
+      <div class="kbwrap">
+        <div class="kbbox" id="kbbox">
+          <div class="caret" id="caret" hidden></div>
+          <svg id="kb" viewBox="0 0 520 56" preserveAspectRatio="none" role="img" aria-label="Piano keyboard, 88 keys"></svg>
+        </div>
+        <div class="kbcap"><span>A0</span><span id="mcCap">Middle C</span><span>C8</span></div>
+      </div>
+    </section>
+
+    <section class="panel" aria-label="Controls">
+      <button class="primary" id="hearBtn" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 9v6h4l5 4V5L8 9H4z"/><path d="M16.5 8.5a5 5 0 0 1 0 7"/><path d="M19 6a8.5 8.5 0 0 1 0 12"/></svg><span id="hearTxt">Hear A4</span></button>
+
+      <details class="more" id="setBox"><summary>Settings</summary><div class="settings">
+        <div class="set">
+          <div class="lbl" id="calLbl">A4 calibrate</div>
+          <div class="stepper" role="group" aria-labelledby="calLbl">
+            <button id="calDn" type="button" aria-label="Lower A4 by 1 hertz">&minus;</button>
+            <output id="calOut" aria-live="polite">440 Hz</output>
+            <button id="calUp" type="button" aria-label="Raise A4 by 1 hertz">+</button>
+          </div>
+        </div>
+        <div class="set">
+          <div class="lbl" id="tolLbl">In-tune window</div>
+          <div class="seg" id="tol" role="group" aria-labelledby="tolLbl">
+            <button type="button" data-t="0.5" aria-pressed="false">&plusmn;&frac12;</button>
+            <button type="button" data-t="1" aria-pressed="true">&plusmn;1</button>
+            <button type="button" data-t="2" aria-pressed="false">&plusmn;2</button>
+          </div>
+        </div>
+        <div class="set">
+          <div class="lbl" id="accLbl">Spelling</div>
+          <div class="seg" id="acc" role="group" aria-labelledby="accLbl">
+            <button type="button" data-a="sharp" aria-pressed="true" aria-label="Sharps">&#9839;</button>
+            <button type="button" data-a="flat" aria-pressed="false" aria-label="Flats">&#9837;</button>
+          </div>
+        </div>
+        <div class="set micset">
+          <div class="micctl">
+            <label for="micSel">Microphone</label><select id="micSel"><option value="">Default microphone</option></select>
+            <span>Level</span><div class="mtr" aria-hidden="true"><i id="meterFill"></i><span class="thr" id="thr"></span></div>
+          </div>
+        </div>
+        <p class="privacy">Your sound stays on this device. Nothing is recorded or uploaded.</p>
+      </div></details>
+
+      <details class="more" id="logBox"><summary>Tuning check&nbsp;<span id="logN">(no keys yet)</span></summary><div class="logbody">
+        <p class="logsum" id="logSum">Hold each key until the strobe settles: the tuner notes its reading here, so you can see the whole piano at a glance.</p>
+        <ul class="loglist" id="logList"></ul>
+        <div class="logrow"><button class="key" id="shareBtn" type="button">Share result</button><button class="key" id="logClear" type="button">Clear</button></div>
+      </div></details>
+
+      <details class="how"><summary>How it works</summary>
+        <p>Play one key and let it ring. The tuner finds the note on its own, anywhere from A0 to C8, lights that key on the strip and spins the strobe at that note. The outer ring follows the fundamental, the inner rings its 2nd and 4th partials. Turning right means sharp, turning left means flat, standing still means in tune; the In tune light comes on inside the window you pick in Settings (&plusmn;&frac12;, &plusmn;1 or &plusmn;2 cents).</p>
+        <p>Piano tone is mostly overtones and fades fast. The tuner reads the fundamental: in the bass, where the lowest strings barely sound their fundamental, it works it out from the 2nd and 4th partials and corrects for string stiffness. When the key fades out, the last reading stays on screen (dimmed) until you play again.</p>
+        <p>It tunes to equal temperament from A4 (440 Hz, or the pitch you set in A4 calibrate), with no stretch. A piano technician stretches the top and bottom octaves on purpose, so a well-tuned piano can read a few cents sharp at the top and flat at the bottom. Tap any key on the strip, or "Hear", to play it on a real grand piano recording.</p>
+        <p>Tuning check lists every key you held until it settled, with its reading in cents.</p>
+        <p><b>Keyboard shortcuts</b></p>
+        <ul>
+          <li><kbd>Space</kbd> play the note shown on the "Hear" button</li>
+          <li><kbd>&larr;</kbd> <kbd>&rarr;</kbd> pick the key a half step lower or higher and play it</li>
+          <li><kbd>&uarr;</kbd> <kbd>&darr;</kbd> A4 calibrate up or down 1 Hz</li>
+          <li><kbd>1</kbd> <kbd>2</kbd> <kbd>3</kbd> in-tune window &plusmn;&frac12;, &plusmn;1, &plusmn;2 cents</li>
+          <li><kbd>F</kbd> switch between sharps and flats</li>
+        </ul>
+        <p>Settings and the tuning check are saved on this device only.</p>
+      </details>
+
+      <div class="msg" id="msg" role="alert"></div>
+    </section>
+  </div>
+  <p class="appver">Piano Strobe Tuner &middot; Version 2026-11-26.1</p>
+</main>
+
+<script>
+(function(){
+'use strict';
+if (window.chmaHead) window.chmaHead();
+
+const $ = id => document.getElementById(id);
+const SH = ['C','C♯','D','D♯','E','F','F♯','G','G♯','A','A♯','B'];
+const FL = ['C','D♭','D','E♭','E','F','G♭','G','A♭','A','B♭','B'];
+const LOW = 21, HIGH = 108;                     // A0 .. C8
+const KEY = 'pt-settings', LOGKEY = 'pt-log';
+
+const S = { a4:440, tol:1, acc:'sharp', mic:'',
+  running:false, ctx:null, node:null, stream:null, src:null, sink:null, wake:null, wakeBusy:false, moduleReady:false, startTok:0, ref:null,
+  target:null, cand:null, candN:0, f0:null, lastP:0, lastRead:-1e9, stat:null,
+  cents:null, centsSrc:'', lastStrobe:-1e9, lastSound:-1e9, ang:[0,0,0], bright:[0,0,0], lit:false,
+  refM:null, log:{}, stKey:null, stSince:0, peak:0, mv:0 };
+
+try { const p = JSON.parse(localStorage.getItem(KEY) || '{}');
+  if (p.a4 >= 430 && p.a4 <= 450) S.a4 = Math.round(p.a4);
+  if ([0.5,1,2].includes(p.tol)) S.tol = p.tol;
+  if (p.acc === 'flat') S.acc = 'flat';
+  if (typeof p.mic === 'string') S.mic = p.mic;
+} catch (e) {}
+try { const l = JSON.parse(localStorage.getItem(LOGKEY) || '{}');
+  Object.keys(l).forEach(k => { const m = +k, c = +l[k]; if (m >= LOW && m <= HIGH && isFinite(c) && Math.abs(c) < 100) S.log[m] = c; }); } catch (e) {}
+function save(){ try { localStorage.setItem(KEY, JSON.stringify({a4:S.a4,tol:S.tol,acc:S.acc,mic:S.mic||''})); } catch (e) {} }
+function saveLog(){ try { localStorage.setItem(LOGKEY, JSON.stringify(S.log)); } catch (e) {} }
+
+const freq = m => S.a4 * Math.pow(2, (m - 69) / 12);
+function spell(m){ const pc = ((m % 12) + 12) % 12; return { letter:(S.acc === 'flat' ? FL : SH)[pc], oct:Math.floor(m / 12) - 1 }; }
+const label = m => { const s = spell(m); return s.letter + s.oct; };
+const isBlack = m => [1,3,6,8,10].includes(((m % 12) + 12) % 12);
+
+/* ---------- 88-key strip ---------- */
+const KB = {}, WK = 10;
+(function buildKeys(){
+  const svg = $('kb'), NS = 'http://www.w3.org/2000/svg';
+  let wi = 0; const xs = {};
+  for (let m = LOW; m <= HIGH; m++) if (!isBlack(m)) { xs[m] = wi * WK; wi++; }
+  const mk = (m, x, w, h, cls) => { const r = document.createElementNS(NS, 'rect');
+    r.setAttribute('x', x); r.setAttribute('y', 0); r.setAttribute('width', w); r.setAttribute('height', h); r.setAttribute('class', cls); r.dataset.m = m; svg.appendChild(r); KB[m] = { el:r, x:x + w / 2 }; };
+  for (let m = LOW; m <= HIGH; m++) if (!isBlack(m)) mk(m, xs[m], WK, 56, 'w');
+  for (let m = LOW; m <= HIGH; m++) if (isBlack(m)) mk(m, xs[m + 1] - 3.3, 6.6, 34, 'b');
+  const dot = document.createElementNS(NS, 'circle'); dot.setAttribute('cx', KB[60].x); dot.setAttribute('cy', 49); dot.setAttribute('r', 2); dot.setAttribute('class', 'mc'); svg.appendChild(dot);
+  $('mcCap').style.cssText = 'position:relative;left:' + ((KB[60].x / 520 - 0.5) * 100).toFixed(1) + '%';
+  svg.addEventListener('pointerdown', e => { const m = e.target && e.target.dataset && +e.target.dataset.m; if (m) { S.refM = m; playRef(m); renderKeys(); updateRef(); } });
+})();
+let kbLit = null, kbOk = null, kbRef = null;
+function renderKeys(){
+  const m = S.target ? S.target.midi : null, ok = !!S.lit;
+  if (kbLit !== m || kbOk !== ok) {
+    if (kbLit && KB[kbLit]) KB[kbLit].el.classList.remove('lit', 'ok');
+    if (m && KB[m]) { KB[m].el.classList.add('lit'); KB[m].el.classList.toggle('ok', ok); }
+    kbLit = m; kbOk = ok;
+    const c = $('caret');
+    if (m && KB[m]) { c.hidden = false; c.textContent = label(m); c.style.left = (KB[m].x / 520 * 100).toFixed(2) + '%'; }
+    else c.hidden = true;
+    $('kb').setAttribute('aria-label', 'Piano keyboard, 88 keys' + (m ? ', ' + label(m) + ' lit' : ''));
+  }
+  const r = S.refM !== null && S.refM !== m ? S.refM : null;
+  if (kbRef !== r) { if (kbRef && KB[kbRef]) KB[kbRef].el.classList.remove('ref'); if (r && KB[r]) KB[r].el.classList.add('ref'); kbRef = r; }
+}
+
+/* ---------- settings ---------- */
+function setA4(v){ S.a4 = Math.max(430, Math.min(450, Math.round(v))); $('calOut').textContent = S.a4 + ' Hz'; save();
+  if (S.target) setTarget(S.target.midi); else sendTarget(0); }
+$('calDn').addEventListener('click', () => setA4(S.a4 - 1));
+$('calUp').addEventListener('click', () => setA4(S.a4 + 1));
+function setTol(v){ S.tol = v; document.querySelectorAll('#tol button').forEach(b => b.setAttribute('aria-pressed', String(+b.dataset.t === v))); save(); }
+document.querySelectorAll('#tol button').forEach(b => b.addEventListener('click', () => setTol(+b.dataset.t)));
+function setAcc(a){ S.acc = a; document.querySelectorAll('#acc button').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.a === a))); save();
+  if (S.target) S.target.name = label(S.target.midi); kbLit = -1; updateRef(); renderLog(); $('hubNote').dataset.h = ''; }
+document.querySelectorAll('#acc button').forEach(b => b.addEventListener('click', () => setAcc(b.dataset.a)));
+
+/* ---------- target handling ---------- */
+function setTarget(m){
+  S.target = { midi:m, f:freq(m), name:label(m) };
+  sendTarget(S.target.f); S.cents = null; S.centsSrc = ''; S.stat = null; S.lastRead = -1e9; S.stKey = null;
+}
+function sendTarget(f){ if (S.node) S.node.port.postMessage({ target:f }); }
+
+// A new note needs a fresh key strike: steady hum, a fan or a TV never pick a key. Changing an
+// existing note also waits for a strike (a fading string can fool the pitch finder late in its decay).
+const FRESH = 1.5;
+function onPitch(p){
+  const f0 = p.f0;
+  S.f0 = f0; S.lastP = performance.now();
+  let best = Math.round(69 + 12 * Math.log2(f0 / S.a4));
+  if (S.target && Math.abs(1200 * Math.log2(f0 / S.target.f)) < 62) best = S.target.midi;   // hysteresis
+  if (best < LOW || best > HIGH) return;
+  if (S.target && best === S.target.midi) { S.cand = null; S.candN = 0; return; }
+  if (best === S.cand) S.candN++; else { S.cand = best; S.candN = 1; }
+  if (p.since < FRESH && S.candN >= 2) { setTarget(best); S.cand = null; S.candN = 0; S.refM = null; updateRef(); }
+}
+// a wrong note whose partials land on this note's fundamental or 2nd harmonic (octaves, 5ths below...)
+const PARTIAL_HIT = [-3102, -2786, -2400, -1902, -1586, -1200, -702, 1200];
+const partialHit = c => PARTIAL_HIT.some(h => Math.abs(c - h) < 60);
+
+function onStat(m){
+  S.stat = m;
+  if (m.present) S.lastSound = performance.now();
+  if (!S.target || !m.present) return;
+  let c = null, src = '';
+  const now = performance.now();
+  let coarse = (S.f0 && now - S.lastP < 600) ? 1200 * Math.log2(S.f0 / S.target.f) : null;
+  if (coarse !== null && Math.abs(coarse) >= 40 && m.fr >= 0.06 && !partialHit(coarse)) coarse = null;
+  const strobeOk = m.df !== null && m.n >= 48 && m.fr >= 0.02 && (coarse === null || Math.abs(coarse) < 40);
+  if (strobeOk) { c = 1200 * Math.log2((S.target.f + m.df) / S.target.f); src = 'strobe'; S.lastStrobe = now; }
+  else if (S.centsSrc === 'strobe' && now - S.lastStrobe < 1200 && (coarse === null || Math.abs(coarse - S.cents) < 10)) { S.lastRead = now; return; }  // re-measuring: hold the last strobe reading
+  else if (S.centsSrc === 'strobe') return;   // a fading key: keep the strobe reading (dimmed) rather than the rough pitch of its last moments
+  else if (coarse !== null && m.since < 8 && S.cand === null) { c = coarse; src = 'pitch'; }   // rough reading, only after a strike
+  if (c === null) return;
+  S.lastRead = now;
+  if (S.cents === null || src !== S.centsSrc || Math.abs(c - S.cents) > 15) S.cents = c;
+  else S.cents += (c - S.cents) * 0.2;
+  S.centsSrc = src;
+  // tuning check: a key whose strobe reading has held steady for a second is noted
+  if (src === 'strobe') {
+    if (S.stKey !== S.target.midi) { S.stKey = S.target.midi; S.stSince = now; }
+    else if (now - S.stSince > 1000) { const v = Math.round(S.cents * 10) / 10, k = S.target.midi;
+      if (S.log[k] !== v) { S.log[k] = v; logDirty = true; } }
+  } else S.stKey = null;
+}
+
+/* ---------- strobe drawing ---------- */
+const cv = $('strobe'), g = cv.getContext('2d');
+let bands = [], CW = 0;
+const RAD = [[0.735, 0.95], [0.535, 0.705], [0.345, 0.505]];   // outer = fundamental, then 2nd, then 4th partial
+const NSEG = 16;
+function cssVar(n, d){ try { return getComputedStyle(document.documentElement).getPropertyValue(n).trim() || d; } catch (e) { return d; } }
+function buildBands(){
+  const dpr = Math.min(2, window.devicePixelRatio || 1);
+  const w = Math.round(cv.clientWidth * dpr); if (!w) return;
+  CW = cv.width = cv.height = w;
+  const led = cssVar('--c-led', '#ff7a2e');
+  bands = RAD.map(([r0, r1]) => {
+    const c = document.createElement('canvas'); c.width = c.height = w; const x = c.getContext('2d');
+    const R = w / 2, a = R * r0, b = R * r1;
+    x.translate(R, R);
+    x.shadowColor = led; x.shadowBlur = 8 * dpr;
+    const grd = x.createRadialGradient(0, 0, a, 0, 0, b);
+    grd.addColorStop(0, led); grd.addColorStop(.5, '#ffffff'); grd.addColorStop(1, led);
+    x.fillStyle = grd;
+    for (let s = 0; s < NSEG; s++) {
+      const t0 = s * 2 * Math.PI / NSEG, t1 = t0 + Math.PI / NSEG;
+      x.beginPath(); x.arc(0, 0, b, t0, t1); x.arc(0, 0, a, t1, t0, true); x.closePath(); x.fill();
+    }
+    return c;
+  });
+}
+function draw(){
+  if (!CW) buildBands();
+  const W = CW, R = W / 2;
+  if (!W) return;
+  g.setTransform(1, 0, 0, 1, 0, 0);
+  g.fillStyle = cssVar('--c-lcd', '#0a0b0d'); g.fillRect(0, 0, W, W);
+  const m = S.stat;
+  const sounding = S.running && m && m.present && S.target && m.tgt > 0;
+  let mx = 1e-9; if (m) for (let b = 0; b < 3; b++) mx = Math.max(mx, m.mag[b]);
+  for (let b = 0; b < 3; b++) {
+    let want = 0.1;
+    if (sounding) want = 0.22 + 0.78 * Math.min(1, Math.sqrt(m.mag[b] / mx));
+    else if (S.running) want = 0.14;
+    S.bright[b] += (want - S.bright[b]) * 0.18;
+    if (sounding) S.ang[b] = m.ph[b] / NSEG;          // pattern turns at the beat frequency
+    if (!bands[b]) continue;
+    g.save(); g.globalAlpha = S.bright[b];
+    g.translate(R, R); g.rotate(S.ang[b]); g.translate(-R, -R);
+    g.drawImage(bands[b], 0, 0); g.restore();
+  }
+  g.lineWidth = Math.max(1, W / 260); g.strokeStyle = 'rgba(0,0,0,.6)';
+  [0.52, 0.72].forEach(r => { g.beginPath(); g.arc(R, R, R * r, 0, 2 * Math.PI); g.stroke(); });
+  const v = g.createRadialGradient(R, R, R * .78, R, R, R);
+  v.addColorStop(0, 'rgba(0,0,0,0)'); v.addColorStop(1, 'rgba(0,0,0,.55)');
+  g.fillStyle = v; g.fillRect(0, 0, W, W);
+}
+
+/* ---------- readout ---------- */
+const fmtC = c => Math.abs(c) < 0.05 ? '0.0' : (c >= 0 ? '+' : '−') + Math.abs(c).toFixed(1);
+let lastTxt = 0, logDirty = true;
+function readout(){
+  const now = performance.now();
+  const m = S.stat, fresh = S.running && m && m.present && S.target && S.cents !== null && now - S.lastRead < 400;
+  const live = S.running && now - S.lastSound < 1500;
+  // hysteresis: once lit, stay lit until 0.3 c past the window, so the lamp never flickers on the edge
+  const inTune = !!(fresh && S.centsSrc === 'strobe' && Math.abs(S.cents) <= S.tol + (S.lit ? 0.3 : 1e-9));
+  S.lit = inTune;
+  $('jewel').classList.toggle('lit', inTune);
+  $('sig').classList.toggle('lit', !!(S.running && m && m.lvl > m.thr));
+  // level: -80 dBFS empty, -20 dBFS full; the Settings meter holds its peak and marks the hearing line
+  const toPct = x => Math.max(0, Math.min(100, ((x > 0 ? 20 * Math.log10(x) : -120) + 80) / 60 * 100));
+  const lv = S.running && m ? m.lvl : 0;
+  $('lvFill').style.width = toPct(lv).toFixed(0) + '%';
+  S.mv = Math.max(lv, S.mv * 0.94);
+  $('meterFill').style.width = toPct(S.mv).toFixed(0) + '%';
+  $('thr').style.left = (S.running && m ? toPct(m.thr) : 0).toFixed(0) + '%';
+  if (S.running && m) S.peak = Math.max(S.peak * 0.995, m.lvl || 0);
+  $('face').classList.toggle('on', S.running);
+  $('meter').classList.toggle('off', !fresh);
+  renderKeys();
+  if (now - lastTxt < 70) return; lastTxt = now;
+  if (logDirty) { logDirty = false; renderLog(); saveLog(); }
+  $('jewel').setAttribute('aria-label', 'In tune lamp: ' + (inTune ? 'on' : 'off'));
+  const hub = $('hubNote');
+  if (S.target) {
+    const s = spell(S.target.midi);
+    const acc = s.letter.length > 1 ? '<span class="acc">' + s.letter.slice(1) + '</span>' : '';
+    const html = s.letter[0] + acc + '<span class="oct">' + s.oct + '</span>';
+    if (hub.dataset.h !== html) { hub.innerHTML = html; hub.dataset.h = html; hub.classList.remove('idle'); hub.setAttribute('aria-label', 'Note ' + label(S.target.midi)); }
+  } else if (hub.dataset.h !== '-') { hub.innerHTML = S.needTap ? 'Tap to start' : '&mdash;'; hub.dataset.h = '-'; hub.classList.add('idle'); hub.removeAttribute('aria-label'); }
+  if (fresh) {
+    $('vCents').textContent = fmtC(S.cents);
+    $('vHz').innerHTML = (S.target.f * Math.pow(2, S.cents / 1200)).toFixed(2) + '<small>Hz</small>';
+  } else if (!S.target || S.cents === null) { $('vCents').textContent = '—'; $('vHz').innerHTML = '—<small>Hz</small>'; }   // a new note never shows the last note's reading
+  let st;
+  if (!S.running) st = S.needTap ? 'Tap the tuner to start.' : 'Starting the tuner… allow the microphone.';
+  else if (S.ctx && S.ctx.state !== 'running') st = 'Tap anywhere to start listening.';
+  else if (!fresh && !live && now - (S.runSince || now) > 5000 && S.peak < 0.0004) st = 'No sound is reaching the tuner. Open Settings and pick your microphone, or move closer.';
+  else if (!fresh) st = S.target && S.cents !== null && S.centsSrc === 'strobe' ? 'Last reading held. Play the key again to check it.' : live ? 'Listening…' : 'Listening… play one key.';
+  else if (Math.abs(S.cents) > 60) st = S.cents > 0 ? 'Way too high. Is that the right key?' : 'Way too low. Is that the right key?';
+  else if (inTune) st = 'In tune. Next key.';
+  else if (S.centsSrc !== 'strobe') st = 'Measuring… let the key ring.';
+  else if (S.cents > 0) st = 'Sharp: a little high.';
+  else st = 'Flat: a little low.';
+  if ($('status').textContent !== st) $('status').textContent = st;
+}
+function loop(){ draw(); readout(); requestAnimationFrame(loop); }
+
+/* ---------- tuning check ---------- */
+function logKeys(){ return Object.keys(S.log).map(Number).sort((a, b) => a - b); }
+function renderLog(){
+  const ks = logKeys(), good = ks.filter(k => Math.abs(S.log[k]) <= S.tol).length;
+  $('logN').textContent = ks.length ? '(' + ks.length + (ks.length === 1 ? ' key)' : ' keys)') : '(no keys yet)';
+  $('logList').innerHTML = ks.map(k => '<li class="' + (Math.abs(S.log[k]) <= S.tol ? 'good' : '') + '"><span>' + label(k) + '</span><b>' + fmtC(S.log[k]) + '</b></li>').join('');
+  $('logSum').textContent = ks.length ? good + ' of ' + ks.length + ' within ±' + S.tol + ' cent' + (S.tol === 1 ? '' : 's') + ' of A4 = ' + S.a4 + ' Hz.' :
+    'Hold each key until the strobe settles: the tuner notes its reading here, so you can see the whole piano at a glance.';
+  $('shareBtn').disabled = !ks.length; $('logClear').disabled = !ks.length;
+}
+$('logClear').addEventListener('click', () => { S.log = {}; S.stKey = null; saveLog(); renderLog(); });
+$('shareBtn').addEventListener('click', () => {
+  const ks = logKeys(); if (!ks.length) return;
+  const good = ks.filter(k => Math.abs(S.log[k]) <= S.tol).length;
+  const worst = ks.slice().sort((a, b) => Math.abs(S.log[b]) - Math.abs(S.log[a])).filter(k => Math.abs(S.log[k]) > S.tol).slice(0, 6);
+  const text = 'Piano Strobe Tuner · tuning check\n' + ks.length + (ks.length === 1 ? ' key' : ' keys') + ' checked, ' + good + ' within ±' + S.tol + ' cent' + (S.tol === 1 ? '' : 's') + ' (A4 = ' + S.a4 + ' Hz)' +
+    (worst.length ? '\nFurthest off: ' + worst.map(k => label(k) + ' ' + fmtC(S.log[k])).join(', ') : '\nEvery key in the window.');
+  if (window.chmaShare) chmaShare.share({ app:'piano-tuner', text });
+});
+
+/* ---------- audio ---------- */
+const isFramed = (() => { try { return window.self !== window.top; } catch (e) { return true; } })();
+function showMsg(html){ const m = $('msg'); m.innerHTML = html; m.classList.add('show'); }
+function hideMsg(){ $('msg').classList.remove('show'); }
+const openTab = () => isFramed ? ' <a href="' + location.href.split('#')[0] + '" target="_blank" rel="noopener">Open full screen</a> and try there.' : '';
+
+function getCtx(){
+  if (!S.ctx) { const AC = window.AudioContext || window.webkitAudioContext; if (!AC) return null; S.ctx = new AC({ latencyHint:'interactive' }); }
+  return S.ctx;
+}
+const micPolicyOff = () => { try { const pp = document.permissionsPolicy || document.featurePolicy; return !!(pp && pp.allowsFeature && !pp.allowsFeature('microphone')); } catch (e) { return false; } };
+const FRAMED_MSG = 'The microphone can’t turn on inside this page (Notion and other embeds keep it off).';
+async function start(){
+  hideMsg();
+  if (isFramed && micPolicyOff()) { showMsg(FRAMED_MSG + openTab()); return; }
+  if (!window.isSecureContext || !navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+    showMsg('This browser can’t reach the microphone here. Open the tuner in Safari or Chrome (the page must start with https).' + openTab()); return; }
+  const ctx = getCtx();
+  if (!ctx || !ctx.audioWorklet) { showMsg('This browser is too old for the tuner. Update your device, or try Safari or Chrome.'); return; }
+  const resumed = ctx.resume().catch(() => {});  // inside the tap, before any await (iOS)
+  setPower('wait');
+  const tok = ++S.startTok;                     // a stop() while warming up cancels this start
+  let stream = null;
+  const drop = () => { if (stream) stream.getTracks().forEach(t => { try { t.stop(); } catch (e) {} }); stream = null; };
+  try {
+    if (navigator.audioSession) { try { navigator.audioSession.type = 'play-and-record'; } catch (e) {} }
+    const AUD = { echoCancellation:false, noiseSuppression:false, autoGainControl:false, channelCount:1 };
+    try { stream = await navigator.mediaDevices.getUserMedia({ audio: S.mic ? Object.assign({ deviceId:{ exact:S.mic } }, AUD) : AUD }); }
+    catch (e) { if (!S.mic || !(e && (e.name === 'OverconstrainedError' || e.name === 'NotFoundError'))) throw e; S.mic = ''; save(); stream = await navigator.mediaDevices.getUserMedia({ audio:AUD }); }  // saved mic unplugged: use the default
+    if (tok !== S.startTok) { drop(); return; }
+    await Promise.race([resumed, new Promise(r => setTimeout(r, 400))]);  // opened without a tap: carry on suspended; the first tap anywhere resumes it
+    if (!S.moduleReady) { await ctx.audioWorklet.addModule('tuner-worklet.js'); S.moduleReady = true; }
+    if (tok !== S.startTok) { drop(); return; }
+    S.stream = stream;
+    S.src = ctx.createMediaStreamSource(stream);
+    const node = S.node = new AudioWorkletNode(ctx, 'piano-strobe', { numberOfInputs:1, numberOfOutputs:1, outputChannelCount:[1], channelCount:1, channelCountMode:'explicit' });
+    S.sink = ctx.createGain(); S.sink.gain.value = 0;
+    S.src.connect(node); node.connect(S.sink); S.sink.connect(ctx.destination);
+    node.port.onmessage = e => { if (node !== S.node || !S.running) return; const m = e.data; if (m.type === 'p') onPitch(m); else onStat(m); };
+    sendTarget(S.target ? S.target.f : 0);
+    S.running = true; setPower(true); S.runSince = performance.now(); S.peak = 0; listMics();
+    stream.getAudioTracks().forEach(t => t.addEventListener('ended', () => { if (S.stream && S.stream.getAudioTracks().includes(t)) stop(); }));
+    keepAwake();
+  } catch (err) {
+    drop();
+    if (tok !== S.startTok) return;
+    S.lastErr = err && err.name; setPower(false); console.warn(err);
+    const n = err && err.name;
+    if ((n === 'NotAllowedError' || n === 'SecurityError') && isFramed && micPolicyOff()) showMsg(FRAMED_MSG + openTab());
+    else if (n === 'NotAllowedError' || n === 'SecurityError' || n === 'PermissionDeniedError')
+      showMsg('The tuner needs to hear your piano. Tap "<b>Allow</b>" when your device asks about the microphone. If you tapped "Don’t Allow", turn the microphone on for this site in your browser settings (iPhone/iPad Safari: tap "<b>aA</b>" in the address bar, then "Website Settings", then "Microphone"), then tap the tuner again.' + openTab());
+    else if (n === 'NotFoundError' || n === 'OverconstrainedError' || n === 'DevicesNotFoundError')
+      showMsg('No microphone found. Plug one in or use a phone or tablet, then tap the tuner again.');
+    else if (n === 'NotReadableError' || n === 'TrackStartError' || n === 'AbortError')
+      showMsg('Another app is using the microphone. Close it (or end the call), then tap the tuner again.');
+    else showMsg('The tuner couldn’t start the microphone. Reload the page and tap the tuner.' + openTab());
+  }
+}
+function stop(){
+  S.running = false; S.startTok++;
+  try { S.stream && S.stream.getTracks().forEach(t => t.stop()); } catch (e) {}
+  if (S.node) { try { S.node.port.onmessage = null; S.node.port.postMessage({ stop:true }); } catch (e) {} }
+  try { S.src && S.src.disconnect(); S.node && S.node.disconnect(); S.sink && S.sink.disconnect(); } catch (e) {}
+  S.stream = S.src = S.node = S.sink = null; S.stat = null; S.f0 = null;
+  if (S.wake) { const w = S.wake; S.wake = null; try { w.release().catch(() => {}); } catch (e) {} }
+  S.target = null;
+  setPower(false);
+}
+// microphone list: the same wording as Note Sprint (each input by name, the one in use selected); the choice is remembered on this device
+async function listMics(){
+  const sel = $('micSel'); if (!sel || !navigator.mediaDevices || !navigator.mediaDevices.enumerateDevices) return;
+  let ins = [];
+  try { ins = (await navigator.mediaDevices.enumerateDevices()).filter(d => d.kind === 'audioinput' && d.deviceId); } catch (e) { return; }
+  if (!ins.length) return;
+  const tr = S.stream && S.stream.getAudioTracks()[0], cur = tr && tr.getSettings ? tr.getSettings().deviceId : '';
+  sel.innerHTML = ins.map((d, i) => '<option value="' + d.deviceId.replace(/"/g, '') + '">' + (d.label || ('Microphone ' + (i + 1))).replace(/[<>&"]/g, '') + '</option>').join('');
+  sel.value = S.mic && ins.some(d => d.deviceId === S.mic) ? S.mic : (cur && ins.some(d => d.deviceId === cur) ? cur : ins[0].deviceId);
+}
+$('micSel').addEventListener('change', e => { S.mic = e.target.value; save(); stop(); autoStart(); });
+if (navigator.mediaDevices && navigator.mediaDevices.addEventListener) navigator.mediaDevices.addEventListener('devicechange', () => { if (S.running) listMics(); });
+function setPower(on){ S.needTap = false; const hub = $('hub'); if (hub) hub.classList.toggle('tapme', on === false && !!S.lastErr); }
+// no power switch: the tuner starts on its own and stays on while the page is open.
+// Browsers that need a tap first (iPhone, some Chrome) start on the first tap anywhere.
+function autoStart(){ if (!S.running && !S.starting) { S.starting = true; Promise.resolve(start()).finally(() => { S.starting = false; }); } }
+document.addEventListener('pointerdown', () => { if (!S.running) autoStart(); }, true);
+
+async function keepAwake(){
+  if (!('wakeLock' in navigator) || !S.running || S.wake || S.wakeBusy || document.visibilityState !== 'visible') return;
+  S.wakeBusy = true;
+  let w = null;
+  try { w = await navigator.wakeLock.request('screen'); } catch (e) {}
+  S.wakeBusy = false;
+  if (!w) return;
+  if (!S.running || S.wake) { try { w.release().catch(() => {}); } catch (e) {} return; }
+  S.wake = w; w.addEventListener('release', () => { if (S.wake === w) S.wake = null; });
+}
+document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') { if (S.running && !S.wake) keepAwake(); if (S.ctx && S.running) S.ctx.resume().catch(() => {}); } });
+// a phone call, Siri or another app can suspend the audio; the next tap anywhere wakes it (iOS needs a gesture)
+const wakeAudio = () => { if (S.running && S.ctx && S.ctx.state !== 'running') S.ctx.resume().catch(() => {}); };
+document.addEventListener('pointerdown', wakeAudio, true);
+document.addEventListener('keydown', wakeAudio, true);
+
+/* ---------- reference tone: the Modal Metronome's grand piano recordings (drum-machine/keys/grand/) ---------- */
+// one recording every minor third, A1 (33) to C7 (96); a key in between plays the nearest one, re-pitched.
+// GRAND_TUNE: each recording's own tuning correction in cents (the same table the Modal Metronome uses).
+const GRAND_DIR = '../drum-machine/keys/grand/';
+const GRAND_TUNE = [10,13,11,-3,-9,-9,-11,-7,-4,0,-6,-3,-3,-6,-3,0,-4,-8,-8,-5,-7,-8,-12,-13,-12,-17,-17,-27,-38,-38];
+const grandBuf = {};
+function grandNear(m){ return Math.max(33, Math.min(96, 33 + 3 * Math.round((m - 33) / 3))); }
+function loadGrand(n){
+  if (!grandBuf[n]) grandBuf[n] = fetch(GRAND_DIR + n + '_v8.mp3').then(r => { if (!r.ok) throw new Error('missing'); return r.arrayBuffer(); })
+    .then(ab => new Promise((ok, no) => { const p = getCtx().decodeAudioData(ab, ok, no); if (p && p.then) p.then(ok, no); }))
+    .catch(e => { delete grandBuf[n]; throw e; });
+  return grandBuf[n];
+}
+function refMidi(){ return S.refM !== null ? S.refM : S.target ? S.target.midi : 69; }
+function updateRef(){ $('hearTxt').textContent = 'Hear ' + label(refMidi()); }
+function stopRef(ctx){
+  if (!S.ref) return; const p = S.ref; S.ref = null;
+  try { const tt = ctx.currentTime; p.out.gain.cancelScheduledValues(tt); p.out.gain.setValueAtTime(p.out.gain.value, tt); p.out.gain.linearRampToValueAtTime(0, tt + 0.03);
+    p.srcs.forEach(o => { try { o.stop(tt + 0.04); } catch (e) {} }); } catch (e) {}
+}
+function playRef(m){
+  const ctx = getCtx(); if (!ctx) return;
+  if (!S.running && navigator.audioSession) { try { navigator.audioSession.type = 'playback'; } catch (e) {} }
+  ctx.resume().catch(() => {});
+  if (m === undefined) m = refMidi();
+  stopRef(ctx);
+  const n = grandNear(m), tok = {};
+  S.refTok = tok;
+  loadGrand(n).then(buf => {
+    if (S.refTok !== tok) return;
+    stopRef(ctx);
+    const cents = (m - n) * 100 + (GRAND_TUNE[(n - 21) / 3] || 0);
+    const s = ctx.createBufferSource(), out = ctx.createGain(), t0 = ctx.currentTime + 0.01;
+    s.buffer = buf; s.playbackRate.value = Math.pow(2, cents / 1200) * S.a4 / 440;
+    const len = Math.min(3.2, buf.duration / s.playbackRate.value);
+    out.gain.setValueAtTime(1.2, t0); out.gain.setValueAtTime(1.2, t0 + len - 0.35); out.gain.linearRampToValueAtTime(0, t0 + len);
+    s.connect(out); out.connect(ctx.destination); s.start(t0); s.stop(t0 + len + 0.02);
+    const me = { out, srcs:[s] }; S.ref = me;
+    s.onended = () => { if (S.ref === me) S.ref = null; try { out.disconnect(); } catch (e) {} };
+  }).catch(() => { if (S.refTok === tok) synthRef(ctx, m); });   // no recording (offline): a soft built tone instead
+}
+function synthRef(ctx, m){
+  stopRef(ctx);
+  const f = freq(m), t0 = ctx.currentTime + 0.02, dur = 3.2;
+  const out = ctx.createGain(); out.gain.value = 0.32;
+  const lp = ctx.createBiquadFilter(); lp.type = 'lowpass'; lp.frequency.value = Math.min(6000, f * 9); lp.Q.value = 0.5;
+  lp.connect(out); out.connect(ctx.destination);
+  const srcs = [];
+  [1, .55, .38, .26, .18, .12, .08, .05].forEach((a, i) => {
+    const h = i + 1; if (f * h > 9000) return;
+    const o = ctx.createOscillator(); o.frequency.value = f * h;
+    const gn = ctx.createGain(); gn.gain.setValueAtTime(0, t0);
+    gn.gain.linearRampToValueAtTime(a / 3, t0 + 0.006);
+    gn.gain.setTargetAtTime(0, t0 + 0.006, 1.1 / (1 + 0.5 * i));
+    o.connect(gn); gn.connect(lp); o.start(t0); o.stop(t0 + dur); srcs.push(o);
+  });
+  const me = { out, srcs }; S.ref = me;
+  if (srcs[0]) srcs[0].onended = () => { if (S.ref === me) S.ref = null; try { out.disconnect(); } catch (e) {} };
+}
+$('hearBtn').addEventListener('click', () => playRef());
+
+/* ---------- keyboard shortcuts (listed in How it works) ---------- */
+document.addEventListener('keydown', e => {
+  if (e.ctrlKey || e.metaKey || e.altKey) return;
+  const tg = e.target && e.target.tagName;
+  if (tg === 'INPUT' || tg === 'SELECT' || tg === 'TEXTAREA') return;
+  if (document.getElementById('chmaShareBox') && !document.getElementById('chmaShareBox').hidden) return;
+  const k = e.key;
+  if (k === ' ' || e.code === 'Space') { if (tg === 'BUTTON' || tg === 'SUMMARY' || tg === 'A') return; e.preventDefault(); playRef(); }
+  else if (k === 'ArrowLeft' || k === 'ArrowRight') { e.preventDefault(); S.refM = Math.max(LOW, Math.min(HIGH, refMidi() + (k === 'ArrowRight' ? 1 : -1))); updateRef(); renderKeys(); playRef(); }
+  else if (k === 'ArrowUp' || k === 'ArrowDown') { e.preventDefault(); setA4(S.a4 + (k === 'ArrowUp' ? 1 : -1)); }
+  else if (k === '1' || k === '2' || k === '3') setTol([0.5, 1, 2][+k - 1]);
+  else if (k === 'f' || k === 'F') setAcc(S.acc === 'flat' ? 'sharp' : 'flat');
+});
+
+/* ---------- init ---------- */
+$('calOut').textContent = S.a4 + ' Hz'; setTol(S.tol); setAcc(S.acc);
+updateRef(); renderLog();
+autoStart();
+window.addEventListener('resize', () => { CW = 0; });
+try { matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => { CW = 0; }); } catch (e) {}
+requestAnimationFrame(loop);
+
+/* test hook */
+window.__tuner = {
+  state(){ const m = S.stat;
+    return { running:S.running, note:S.target ? label(S.target.midi) : null, midi:S.target ? S.target.midi : null, target:S.target ? S.target.f : null,
+      cents:S.cents, centsSrc:S.centsSrc, hz:S.target && S.cents !== null ? S.target.f * Math.pow(2, S.cents / 1200) : null,
+      df:m ? m.df : null, via:m ? m.via : 0, n:m ? m.n : 0, present:!!(m && m.present), fr:m ? m.fr : 0, mag:m ? m.mag.slice() : null,
+      since:m ? m.since : null, f0:S.f0, inTune:S.lit, level:m ? m.lvl : 0, a4:S.a4, tol:S.tol, lit:kbLit, log:Object.assign({}, S.log) }; },
+  setA4, setTol, setAcc, start, stop, playRef
+};
+})();
+</script>
+<script>/* Share this app: a small button in the brand header, next to the version (shared/share.js adds the short link + studio site) */(function(){function add(){try{if(window.chmaHead)chmaHead()}catch(e){}const h=document.querySelector(".chma-head");if(!h||h.querySelector(".chma-share"))return;const b=document.createElement("button");b.type="button";b.className="chma-share";b.textContent="Share this app";b.setAttribute("aria-label","Share this app");b.addEventListener("click",()=>chmaShare.share({app:"piano-tuner",text:"Piano Strobe Tuner: tune all 88 keys with a true strobe, right in your browser."}));h.insertBefore(b,h.querySelector(".chma-ver"))}if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",add);else add()})();</script>
+<div id="chma-beta" style="position:fixed;left:calc(8px + env(safe-area-inset-left,0px));top:calc(8px + env(safe-area-inset-top,0px));z-index:2147483647;background:#c4302b;color:#fff;font:700 12px/1 -apple-system,Helvetica,Arial,sans-serif;letter-spacing:.08em;padding:6px 9px;border-radius:6px;pointer-events:none;opacity:.92">BETA</div>
+</body>
+</html>
