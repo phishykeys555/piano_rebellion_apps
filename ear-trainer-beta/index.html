@@ -237,7 +237,7 @@ details.how p{margin:10px 0 0}
 .fb{font-size:15px;line-height:1.45;min-height:44px;color:var(--c-ink)}
 .fb .ok{color:var(--c-ok);font-weight:700} .fb .no{color:var(--c-bad);font-weight:700}
 .fb .cue{display:block;color:var(--c-mut);font-size:14px;margin-top:2px}
-.fb .pair{font:inherit;font-weight:600;font-size:14px;margin-left:6px;min-height:44px;padding:0 12px;border-radius:10px;border:1px solid var(--c-key-b);background:var(--c-key);color:var(--c-ink);box-shadow:0 2px 0 var(--c-key-sh);cursor:pointer}
+.fb .pair{display:block;font:inherit;font-weight:600;font-size:14px;margin:10px 0 0;min-height:44px;padding:0 12px;border-radius:10px;border:1px solid var(--c-key-b);background:var(--c-key);color:var(--c-ink);box-shadow:0 2px 0 var(--c-key-sh);cursor:pointer}
 #pad{display:grid;gap:8px}
 #pad button{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;line-height:1.1;font-size:19px;min-height:52px;padding:4px 2px}
 #pad button small{font:500 14px var(--f-body);opacity:.85}
@@ -264,6 +264,7 @@ details .note{font-size:14px;color:var(--c-mut);margin:8px 0 0}
   .piano{height:clamp(120px,22vh,170px)}
 }
 @media (max-width:899px){
+  .s-vol{order:6}
   .setup header{order:1}.s-ex{order:2}.s-level{order:3}.s-game{order:4}.play{order:5}.how{order:6}.setup details:not(.how){order:7}.setup .appver{order:8}.setup .credit{order:9}.setup .lifeline{display:none}
   body.running .s-ex{display:none}
   .seg.ex button span,.seg.ex .lgx{display:none} .seg.ex .shx{display:inline}
@@ -276,6 +277,7 @@ details .note{font-size:14px;color:var(--c-mut);margin:8px 0 0}
   .card.padmode:not(.answered) .pianoWrap,.card.padmode:not(.answered) .swipe{display:none}
   .card.padmode.answered #padWrap,.card.padmode.answered .cues{display:none}
   .card.kbmode .piano{height:clamp(100px,calc(100svh - 560px),170px)}
+  .card.kbmode.hasrow .piano{height:clamp(84px,calc(100svh - 640px),150px)}
   .piano{height:clamp(90px,calc(100svh - 580px),170px)}
   .swipe{display:none!important}
   .card{gap:8px}
@@ -290,6 +292,18 @@ details .note{font-size:14px;color:var(--c-mut);margin:8px 0 0}
 .micbox[hidden]{display:none}
 .micbox .ghost{min-height:44px;padding:0 16px;border-radius:12px;border:1px solid currentColor;background:transparent;color:inherit;font:inherit;font-weight:700;cursor:pointer}
 .micbox #micSt{flex:1 1 200px}
+.micbox .micsel{flex:1 1 100%;display:flex;flex-wrap:wrap;align-items:center;gap:6px 10px}
+.micbox .micsel label{font-weight:700;min-height:0;margin:0}
+.micbox .micsel select{flex:1 1 200px;min-width:0;max-width:100%}
+.vols{display:flex;flex-direction:column;gap:6px}
+.vols .vrow{display:grid;grid-template-columns:minmax(0,9.5em) minmax(0,1fr) 3.2em;align-items:center;gap:10px;font-size:14px}
+.vols .vrow label{font-weight:600;min-height:0;margin:0;display:block}
+.vols .vrow output{font-family:var(--f-num);text-align:right;color:var(--c-mut)}
+.vols input[type=range]{width:100%;min-height:32px;accent-color:var(--c-act)}
+.rowpad{display:grid;grid-template-columns:repeat(auto-fit,minmax(56px,1fr));gap:8px}
+#pad.rowpad button{display:flex;flex-direction:column;align-items:center;justify-content:center;line-height:1.1;font-size:17px;min-height:48px;padding:4px 2px;font-weight:700}
+.rowpad button.hit{background:var(--c-ok);border-color:var(--c-ok);color:#fff} .rowpad button.miss{background:var(--c-bad);border-color:var(--c-bad);color:#fff}
+
 .mlv{flex:none;width:70px;height:8px;border-radius:4px;background:rgba(127,127,127,.25);overflow:hidden}
 .mlv i{display:block;height:100%;width:0;background:#33d17a;transition:width .06s}
 </style><link rel="icon" type="image/svg+xml" href="../shared/icons/ear-trainer.svg"><link rel="icon" type="image/png" sizes="32x32" href="../shared/icons/ear-trainer-32.png"><link rel="apple-touch-icon" href="../shared/icons/ear-trainer-180.png">
@@ -320,7 +334,11 @@ details .note{font-size:14px;color:var(--c-mut);margin:8px 0 0}
   <span class="lbl" aria-hidden="true" style="margin-top:12px">Answer with</span>
   <div class="seg" id="inSeg" role="group" aria-label="Answer with" style="margin-top:6px"><button data-i="screen">On screen</button><button data-i="midi">MIDI keyboard</button><button data-i="mic">Microphone</button></div>
   <div id="midiBox" hidden></div>
-  <div id="micBox" class="micbox" hidden><button type="button" id="micGo" class="ghost">Turn on the microphone</button><span class="mlv" aria-hidden="true"><i id="micLv"></i></span><span id="micSt" role="status" aria-live="polite">Sing or play the note on your piano. Headphones help: the app won't hear its own sound.</span></div></div>
+  <div id="micBox" class="micbox" hidden><button type="button" id="micGo" class="ghost">Turn on the microphone</button><span class="mlv" aria-hidden="true"><i id="micLv"></i></span><span id="micSt" role="status" aria-live="polite">Sing or play the note on your piano. Headphones help: the app won't hear its own sound.</span><div class="micsel"><label for="micSel">Microphone</label><select id="micSel"><option value="">Default microphone</option></select></div></div></div>
+
+  <div class="sect s-vol"><span class="lbl" aria-hidden="true">Volume</span>
+  <div class="vols"><div class="vrow"><label for="volRef">Reference note</label><input type="range" id="volRef" min="0" max="150" step="5" value="100"><output id="volRefO" for="volRef">100%</output></div>
+  <div class="vrow"><label for="volMys">Mystery note</label><input type="range" id="volMys" min="0" max="150" step="5" value="100"><output id="volMysO" for="volMys">100%</output></div></div></div>
 
   <details class="how"><summary>How it works</summary>
     <p class="tip"><b>Relative pitch</b> means you hear one note you know (the reference), then work out the next note by how far away it is. You don't need perfect pitch for this. You need distance.</p>
@@ -343,7 +361,7 @@ details .note{font-size:14px;color:var(--c-mut);margin:8px 0 0}
     <label><input type="checkbox" id="hypeOn" checked> Music on round screens</label>
     <p class="note">MIDI keyboard (Chrome or Edge on a computer): press a key to answer. Mystery note = that key; Scale degree and Interval = its distance from the reference, the same as on the keyboard here. Microphone: sing it or play it on your piano. Any octave counts; hold the note steady for a moment. The microphone pauses while the app plays.</p>
   </details>
-  <p class="appver" id="appVer">Ear Trainer · Version 2026-11-24.2</p>
+  <p class="appver" id="appVer">Ear Trainer · Version 2026-11-25.1</p>
   <p class="credit">Piano: Salamander Grand Piano V3 by Alexander Holm (<a href="https://creativecommons.org/licenses/by/3.0/" target="_blank" rel="noopener">CC BY 3.0</a>), retuned by Markus Fiedler, via sfzinstruments. Song cues name public-domain or traditional tunes; no recordings are used.</p>
   </section>
 
@@ -498,6 +516,7 @@ function loadSamples(){ if(loadP) return loadP; AC(); let done=0;
   return loadP }
 function loadingMsg(p){ if(p<1&&phase==="loading") $("prompt").innerHTML=`Loading the piano… ${Math.round(p*100)}%` }
 // one note: nearest sample, retuned; 4 ms fade in and an exponential release, so nothing clicks
+const VOL={ref:1,mys:1};   // reference-note and mystery-note volume multipliers (sliders in the Volume section, remembered on the device)
 function note(m,t,dur,vel){ if(!ac) return; vel=vel==null?0.8:vel;
   const n=SAMP.reduce((p,c)=>Math.abs(c-m)<Math.abs(p-m)?c:p), b=buf[n], g=ac.createGain(), rel=m<48?0.22:m<72?0.15:0.11, pk=0.62*vel;
   g.gain.setValueAtTime(0,t); g.gain.linearRampToValueAtTime(pk,t+0.004); g.gain.setValueAtTime(pk,t+dur); g.gain.setTargetAtTime(0,t+dur,rel); g.connect(out);
@@ -508,7 +527,7 @@ function note(m,t,dur,vel){ if(!ac) return; vel=vel==null?0.8:vel;
 function hush(){ if(!ac) return; const t=ac.currentTime; voices.forEach(v=>{ if(v.end<t) return; try{ const p=v.g.gain; if(p.cancelAndHoldAtTime) p.cancelAndHoldAtTime(t); else { p.cancelScheduledValues(t); p.setValueAtTime(p.value,t) } p.setTargetAtTime(0,t,0.025); v.src.stop(t+0.25) }catch(e){} }); voices=[] }
 // a sequence: [{at seconds, ms:[midi...], d seconds, v}] -> scheduled together; returns its length in seconds
 let micQuietUntil=0;   // the mic ignores the app's own notes (and their ring) until this AudioContext time
-function playSeq(ev){ AC(); hush(); const t0=ac.currentTime+0.08; let len=0; ev.forEach(e=>{ e.ms.forEach(m=>note(m,t0+e.at,e.d,e.v)); len=Math.max(len,e.at+e.d) }); micQuietUntil=t0+len+0.45; return len }
+function playSeq(ev){ AC(); hush(); const t0=ac.currentTime+0.08; let len=0; ev.forEach(e=>{ e.ms.forEach((m,i)=>note(m,t0+e.at,e.d,(e.v==null?0.8:e.v)*VOL[(e.roles?e.roles[i]:e.role)||"ref"])); len=Math.max(len,e.at+e.d) }); micQuietUntil=t0+len+0.45; return len }
 
 // ================= STATE =================
 let ex=+store.get("ex",1), level=+store.get("lv"+ex,1), gmode=store.get("mode","single"), ansMode=store.get("ans","kb");
@@ -519,6 +538,7 @@ const later=(fn,ms)=>{ const t=setTimeout(fn,ms); timers.push(t); return t }, cl
 const L=()=>EXS[ex].levels[level-1];
 const opts=()=>({keyChg:$("keyChg").checked,dir:$("dirSel").value});
 const padMode=()=>ex!==1||ansMode==="names";
+const rowPool=()=>{ const lv=L(); if(ex!==1||ansMode!=="kb"||lv.rand||!lv.pool) return null; const p=[...new Set(lv.pool)].sort((a,b)=>a-b); return p.length<=13?p:null };   // Mystery note, On screen: a button per possible answer when the level has few of them
 
 // ================= KEYBOARD =================
 let win=[0,0];
@@ -539,14 +559,15 @@ function edges(){ const sc=$("pianoScroll"), w=$("pianoWrap"), more=sc.scrollWid
   $("swipe").textContent=window.matchMedia&&matchMedia("(pointer:coarse)").matches?"Swipe the keyboard to see more keys":"Scroll the keyboard sideways to see more keys" }
 $("pianoScroll").addEventListener("scroll",edges,{passive:true}); addEventListener("resize",edges);
 function keyTap(m){ AC(); if(ex===1&&ansMode==="kb"&&phase==="answer") return answer(m,keyEl(m));
-  if(phase==="done"||phase==="idle"){ if(!loadP) loadSamples(); playSeq([{at:0,ms:[m],d:0.9}]) } }
+  if(phase==="done"||phase==="idle"){ if(!loadP) loadSamples(); playSeq([{at:0,ms:[m],d:0.9,role:"mys"}]) } }
 
 // ================= ANSWER PAD =================
 function buildPad(){ const p=$("pad"), p2=$("pad2"); p.innerHTML=""; p2.innerHTML=""; p2.hidden=true; p.className=""; const lv=L();
-  $("card").classList.toggle("padmode",padMode()); $("card").classList.toggle("kbmode",!padMode()); $("padWrap").hidden=!padMode();
+  const rp=rowPool(); $("card").classList.toggle("padmode",padMode()); $("card").classList.toggle("kbmode",!padMode()); $("card").classList.toggle("hasrow",!!rp); $("padWrap").hidden=!(padMode()||rp);
   const add=(el,html,val,aria)=>{ const b=document.createElement("button"); b.className="chma-key"; b.innerHTML=html; b.dataset.v=val; if(aria) b.setAttribute("aria-label",aria); b.addEventListener("click",()=>answer(val,b)); el.appendChild(b); return b };
   let n=0;
-  if(ex===1&&ansMode==="names"){ const pcs=lv.rand?range(0,11):[...new Set(lv.pool.map(m=>mod(m,12)))].sort((a,b)=>a-b), wh=pcs.filter(x=>!isBlack(x)), bl=pcs.filter(isBlack);
+  if(rp){ p.className="rowpad"; p.style.gridTemplateColumns=""; rp.forEach(m=>add(p,`<b>${SH[mod(m,12)]}${Math.floor(m/12)-1}</b>`,m,SH[mod(m,12)]+" "+(Math.floor(m/12)-1))) }
+  else if(ex===1&&ansMode==="names"){ const pcs=lv.rand?range(0,11):[...new Set(lv.pool.map(m=>mod(m,12)))].sort((a,b)=>a-b), wh=pcs.filter(x=>!isBlack(x)), bl=pcs.filter(isBlack);
     wh.forEach(pc=>add(p,`<b>${SH[pc]}</b>`,pc)); n=wh.length; p.style.gridTemplateColumns=`repeat(${Math.max(3,n)},1fr)`;
     if(bl.length){ p2.hidden=false; bl.forEach(pc=>add(p2,`<span>${SH[pc]}</span><span>${FL[pc]}</span>`,pc,keyName(pc))) } }
   else if(ex===2){ lv.deg.forEach(d=>add(p,`<b>${d}</b>${$("solfOn").checked?`<small>${SOLF[d]}</small>`:""}`,d,"Scale degree "+d+" ("+SOLF[d]+")")); n=lv.deg.length; p.style.gridTemplateColumns=`repeat(${n>7?6:Math.max(3,n)},1fr)` }
@@ -562,12 +583,13 @@ function refText(){ if(ex===2) return `Listen: <b class="nm">${q.minor?"vi – i
   if(ex===3) return q.harm?"Two notes together…":`Note 1… <small>(the reference)</small>`;
   return `This is <b class="nm">${spName(q.refSp)}</b>.` }
 function askText(){ const lv=L();
-  if(ex===1){ const how=ansMode==="kb"?"Tap the key.":"Tap its name."; if(lv.two) return `Which two notes, in order? <small>${how}</small>`;
+  if(ex===1){ const how=ansMode==="kb"?(rowPool()?"Tap a key or a button.":"Tap the key."):"Tap its name."; if(lv.two) return `Which two notes, in order? <small>${how}</small>`;
     return `Which note was it? <small>${lv.dir==="up"?`Higher than ${spName(q.refSp)}, or the same. `:lv.dir==="both"?`Higher or lower than ${spName(q.refSp)}. `:""}${how}</small>` }
   if(ex===2) return `Which scale degree? <small>Key of ${spName(q.refSp)} ${q.minor?`minor · count from ${spName(q.parSp)}`:"major"}</small>`;
   return `Which interval? <small>${q.harm?"Played together":q.semis[0]>0?"Going up":"Going down"}</small>` }
 // the audio for a question, or one part of it
-function seqFor(part){ const ev=[]; let mysAt=0;
+function seqFor(part){ const r=seqRaw(part), ma=r.mysAt; r.ev.forEach(e=>{ if(e.roles) return; if(e.ms.length===2&&ex===3&&q.harm) e.roles=["ref","mys"]; else e.role=(e.v===0.6||ma==null||e.at<ma-1e-6)?"ref":"mys" }); return r }
+function seqRaw(part){ const ev=[]; let mysAt=0;
   const cad=(at,cads)=>{ const C=cads||(q.minor?CAD_MIN:CAD_MAJ); C.forEach((ch,i)=>ev.push({at:at+i*0.8*SP,ms:ch.map(x=>q.ref+x),d:i===3?1.1:0.72,v:0.6})); return at+3.2*SP+0.9*SP };
   if(ex===1){ let t=0; if(part==="all"&&$("cadOn").checked&&!L().rand) t=cad(0,CAD_MAJ);
     if(part!=="mys"){ ev.push({at:t,ms:[q.ref],d:1.0}); t+=1.5*SP }
@@ -607,11 +629,11 @@ function explain(){ const R=spFull(q.refSp,q.ref);
   if(ex===2){ const sp=q.sps[0], s=q.semis[0]; if(q.minor) return `<b>${spName(sp)}</b> is scale degree ${q.deg} (${SOLF[q.deg]}) counted from ${spName(q.parSp)}, the parent major of ${spName(q.refSp)} minor${s?`: ${dist(s,sp.n)} from ${spName(q.refSp)}.`:`: home, the tonic of ${spName(q.refSp)} minor.`}`;
     return `<b>${spName(sp)}</b> is scale degree ${q.deg} (${SOLF[q.deg]}) in ${spName(q.refSp)} major${s?`: ${dist(s,sp.n)} from ${spName(q.refSp)}.`:": home, the tonic."}` }
   const sp=q.sps[0], s=q.semis[0], n=sp.n; return `${R} ${q.harm?"with":s>0?"up to":"down to"} <b>${spFull(sp,q.notes[0])}</b>: ${Math.abs(s)===1?"1 half step":Math.abs(s)+" half steps"} = <b>${ivName(s,n)}</b>.` }
-function pairSeq(){ const ev=[{at:0,ms:[q.ref],d:0.9}]; if(ex===3&&q.harm){ ev.push({at:1.1,ms:[q.notes[0]],d:0.9},{at:2.3,ms:[q.ref,q.notes[0]],d:1.4}); return ev } q.notes.forEach((m,i)=>ev.push({at:1.1+i*0.9,ms:[m],d:i===q.notes.length-1?1.2:0.8})); return ev }
+function pairSeq(){ const ev=[{at:0,ms:[q.ref],d:0.9,role:"ref"}]; if(ex===3&&q.harm){ ev.push({at:1.1,ms:[q.notes[0]],d:0.9,role:"mys"},{at:2.3,ms:[q.ref,q.notes[0]],d:1.4,roles:["ref","mys"]}); return ev } q.notes.forEach((m,i)=>ev.push({at:1.1+i*0.9,ms:[m],d:i===q.notes.length-1?1.2:0.8,role:"mys"})); return ev }
 function finish(ok,v,btn){ phase="done"; clearTimers(); $("card").classList.add("answered"); clearMarks(); mark(q.ref,"ref");
   q.notes.forEach((m,i)=>mark(m,"ans",q.notes.length>1?String(i+1):null));
-  if(!ok){ if(ex===1&&ansMode==="kb") q.taps.forEach(t=>{ if(!t.ok) mark(t.v,"miss") }); else if(btn) btn.classList.add("miss") }
-  if(ex===1&&ansMode==="names") q.notes.forEach(m=>{ const b=padBtn(mod(m,12)); if(b) b.classList.add("hit") }); else if(ex!==1){ const b=padBtn(ex===2?q.deg:q.ivs); if(b) b.classList.add("hit") }
+  if(!ok){ if(ex===1&&ansMode==="kb") q.taps.forEach(t=>{ if(!t.ok){ mark(t.v,"miss"); const b=padBtn(t.v); if(b) b.classList.add("miss") } }); else if(btn) btn.classList.add("miss") }
+  if(ex===1&&ansMode==="names") q.notes.forEach(m=>{ const b=padBtn(mod(m,12)); if(b) b.classList.add("hit") }); else if(ex===1&&rowPool()) q.notes.forEach(m=>{ const b=padBtn(m); if(b) b.classList.add("hit") }); else if(ex!==1){ const b=padBtn(ex===2?q.deg:q.ivs); if(b) b.classList.add("hit") }
   const cue=ex===3&&$("cueOn").checked?`<span class="cue">Song cue: ${CUE[q.ivs][q.semis[0]<0?1:0]}</span>`:"";
   const head=ok?`<span class="ok">✓ ${q.tried?"There it is.":"Yes!"}${q.got>1?` +${q.got}`:""}</span> `:`<span class="no">✗ ${ex===1?"You played "+q.taps.map(t=>valName(t.v)).join(", then "):"That was "+valName(v)}.</span> `;
   $("fb").innerHTML=head+explain()+cue+(arc?"":` <button class="pair" id="pairBtn">▶ Hear the pair</button>`);
@@ -712,6 +734,11 @@ $("againBtn").addEventListener("click",arcStart);
 $("shareBtn").addEventListener("click",()=>chmaShare.share({app:"ear-trainer",text:shareTxt}));
 $("closeBtn").addEventListener("click",()=>{ sheet(false); gmode="single"; store.set("mode",gmode); setup() });
 document.addEventListener("visibilitychange",()=>{ if(document.hidden){ hypeStop(60); hush() } else if(ac&&ac.state!=="running") ac.resume().catch(()=>{}) });
+// ================= VOLUME (reference note and mystery note, remembered on the device) =================
+[["Ref","ref"],["Mys","mys"]].forEach(([id,k])=>{ const el=$("vol"+id), o=$("vol"+id+"O"), v=+store.get("vol"+k,100);
+  const set=x=>{ x=Math.max(0,Math.min(150,Math.round(+x)||0)); VOL[k]=x/100; o.textContent=x+"%"; return x };
+  el.value=set(isFinite(v)?v:100); el.addEventListener("input",()=>{ set(el.value); store.set("vol"+k,+el.value) });
+  el.addEventListener("change",()=>{ if(phase==="idle"||phase==="done"){ AC(); if(!loadP) loadSamples(); playSeq([{at:0,ms:[60],d:0.7,role:k}]) } }) });   // a short C4 so you hear the new level
 // ================= MIDI KEYBOARD =================
 /* ---- CHMA MIDI input v1.2 (2026-11-18). The same block in every app that listens to a keyboard (copied in, never imported).
    Web MIDI: Chrome and Edge on a computer (Safari, iPhone and iPad have none). One device picker when more than one input is plugged in,
@@ -780,13 +807,27 @@ function micAnswer(n){ if(inMode!=="mic"||!q||phase!=="answer") return;
   const pc=mod(n-q.ref,12), down=!q.harm&&q.semis[0]<0; let v=down?(pc?12-pc:12):(pc||12); const ok=L().iv; if(ok&&!ok.includes(v)&&ok.includes(v%12)) v=v%12; return answer(v,padBtn(v)) }
 const MIC={on:false,run:null,cnt:0};
 function micSt(t){ $("micSt").textContent=t }
-async function micStart(){ if(MIC.on) return; try{ await VP.start() }catch(e){ const x=VP.errText(e,"Ear Trainer"); micSt(x.text); return }
-  MIC.on=true; $("micGo").hidden=true; micSt("Listening. Sing or play the note.");
+const MICDEV=store.get("micdev",null);   // {id,label}: the microphone picked last time
+function micOpts(devs,cur){ const sel=$("micSel"), esc=t=>String(t).replace(/[<>&"]/g,""); let h='<option value="">Default microphone</option>';
+  if(devs&&devs.length) h=devs.map((d,i)=>`<option value="${esc(d.deviceId)}">${esc(d.label||("Microphone "+(i+1)))}</option>`).join("");
+  else if(MICDEV&&MICDEV.id) h+=`<option value="${esc(MICDEV.id)}">${esc(MICDEV.label||"Saved microphone")} (saved)</option>`;
+  sel.innerHTML=h; if(cur&&[...sel.options].some(o=>o.value===cur)) sel.value=cur; else if(!devs&&MICDEV&&MICDEV.id) sel.value=MICDEV.id }
+async function micStart(devId){ if(MIC.busy) return; MIC.busy=true; if(devId===undefined||devId&&devId.target) devId=$("micSel").value||"";
+  try{ if(MIC.on){ VP.stop(); MIC.on=false; MIC.run=null; MIC.cnt=0 }
+    let m; try{ m=await VP.start(devId?{deviceId:devId}:{}) }catch(e){ if(devId&&e&&/Overconstrained|NotFound/.test(e.name)){ devId=""; m=await VP.start({}) } else throw e }   // that mic was unplugged: use the default one
+    MIC.on=true; $("micGo").hidden=true; micSt("Listening. Sing or play the note.");
+    try{ const devs=(await navigator.mediaDevices.enumerateDevices()).filter(d=>d.kind==="audioinput"), cur=m&&m.stream&&m.stream.getAudioTracks()[0].getSettings().deviceId;
+      micOpts(devs,cur); const lab=(devs.find(d=>d.deviceId===cur)||{}).label; if(cur){ store.set("micdev",{id:cur,label:lab||""}) } }catch(e){}
+  }catch(e){ const x=VP.errText(e,"Ear Trainer"); micSt(x.text); return }
+  finally{ MIC.busy=false }
+  if(!MIC.lis){ MIC.lis=true;
   VP.listen(f=>{ $("micLv").style.width=Math.min(100,Math.sqrt(f.rms/0.2)*100)+"%";
     if(inMode!=="mic"||phase!=="answer"||(ac?ac.currentTime:0)<micQuietUntil||!f.voiced||f.midi==null||Math.abs(f.cents)>40){ MIC.cnt=0; MIC.run=null; return }
     const m=Math.round(f.midi); if(m===MIC.run) MIC.cnt++; else { MIC.run=m; MIC.cnt=1 }
-    if(MIC.cnt===6){ micSt("Heard "+VP.noteName(m)); micQuietUntil=(ac?ac.currentTime:0)+0.6; micAnswer(m) } }) }
-$("micGo").addEventListener("click",micStart);
+    if(MIC.cnt===6){ micSt("Heard "+VP.noteName(m)); micQuietUntil=(ac?ac.currentTime:0)+0.6; micAnswer(m) } }) } }
+micOpts(null,null);
+$("micSel").addEventListener("change",e=>{ const o=e.target.selectedOptions[0]; store.set("micdev",{id:e.target.value,label:o?o.textContent.replace(/ \(saved\)$/,""):""}); if(MIC.on) micStart(e.target.value) });
+$("micGo").addEventListener("click",()=>micStart());
 let inMode=store.get("in","screen"); if(inMode!=="midi"&&inMode!=="mic") inMode="screen";
 const MIDI=chmaMidi({app:"ear-trainer",host:$("midiBox"),onNote:n=>midiAnswer(n)});
 function inMark(){ document.querySelectorAll("#inSeg button").forEach(b=>b.setAttribute("aria-pressed",String(b.dataset.i===inMode))); $("midiBox").hidden=inMode!=="midi"; $("micBox").hidden=inMode!=="mic"; if(inMode==="midi") MIDI.start() }
