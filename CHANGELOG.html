@@ -41,6 +41,112 @@
 </ul>
 
 <!-- ============================================================ -->
+<h2>Scale Climber — scale-climber/</h2>
+
+<h3>Version 2026-11-26.1 (beta 2026-11-26)</h3>
+<h4>Added</h4>
+<ul>
+  <li>Microphone picker like Note Sprint's: choose the microphone, see the Level bar; the choice is remembered on this device. Student feedback.</li>
+  <li>Tempo -5, -1, +1, +5 and "Tap"; click sound picker and click volume (Rhythm Trainer's sounds; ringing pitched sounds switch to the classic click while you sing); count-in of 2 clicks, 1 bar or 2 bars; "Calibrate timing" in "Settings" (timing grade only). Owner request.</li>
+  <li>"Piano volume" slider next to "Hear it" (same setting as "Tone volume" in "Settings"). Student feedback.</li>
+  <li>"Share result" button on the results (hidden site-wide during beta), "How it works" panel, and keys: Space Start/Stop, H "Hear it", Enter "Next level", Esc "Back". Beta tester request.</li>
+  <li>Saved on this device: best climb per level and voice type, the last 10 climbs ("History" in "Settings", with "Clear"), practice-day streak; "New best!" on the results. Beta tester request.</li>
+  <li>"Settings": "Loop" (stay in the same key), "Sing with me (easier)", "Music on round screens", "Copy log". Student feedback.</li>
+</ul>
+<h4>Changed</h4>
+<ul>
+  <li>The pattern and reference notes are now a real grand piano (the Drum Machine's samples, <code>drum-machine/keys/grand/</code>), with low notes lifted automatically. Student feedback.</li>
+  <li>Respects reduced motion. Shared code moved to new files so the live apps and Ear Trainer are untouched until this goes live: <code>shared/voice-apps.js</code>, <code>shared/voice-pitch2.js</code>, <code>shared/voice-apps2.css</code>.</li>
+</ul>
+<h4>Fixed</h4>
+<ul>
+  <li>Stopping a climb early now stops the click and the notes already scheduled, and pressing "Start" again can never start a second metronome. Beta tester request.</li>
+</ul>
+<h3>Version 2026-11-24.1 (beta 2026-11-24)</h3>
+<h4>Added</h4>
+<ul>
+  <li>Favicon: its own icon in the browser tab, bookmarks and the home screen (<code>shared/icons/scale-climber.svg</code>, <code>-32.png</code>, <code>-180.png</code>). Beta tester request.</li>
+</ul>
+<h3>Version 2026-11-20.2</h3>
+<h4>Changed</h4>
+<ul>
+  <li>Button names in help text are now in quotes (e.g. Press "Start"), a house rule for every app.</li>
+</ul>
+
+<h3>Version 2026-11-20.1</h3>
+<h4>Added</h4>
+<ul>
+  <li>New singing app (Sing apps); shared voice pitch engine. Listed on the hub.</li>
+</ul>
+
+<!-- ============================================================ -->
+<h2>Hold Steady — hold-steady/</h2>
+
+<h3>Version 2026-11-26.1 (beta 2026-11-26)</h3>
+<h4>Added</h4>
+<ul>
+  <li>Microphone picker like Note Sprint's: choose the microphone, see the Level bar; the choice is remembered on this device. Student feedback.</li>
+  <li>"Piano volume" slider next to "Hear it" (same setting as "Tone volume" in "Settings"). Student feedback.</li>
+  <li>"Share result" button on the results (hidden site-wide during beta), "How it works" panel, and keys: Space Start/Stop, H "Hear it", Enter "Next level", Esc "Back". Beta tester request.</li>
+  <li>Saved on this device: best hold per level and voice type, the last 10 holds ("History" in "Settings", with "Clear"), practice-day streak; "New best!" on the results. Beta tester request.</li>
+  <li>"Settings": "Loop" (the same hold again until "Stop"), "Sing with me (easier)", "Drone" (your note an octave away on piano), "Music on round screens", "Copy log". Student feedback.</li>
+</ul>
+<h4>Changed</h4>
+<ul>
+  <li>The reference note is now a real grand piano (the Drum Machine's samples, <code>drum-machine/keys/grand/</code>), with low notes lifted automatically. Student feedback.</li>
+  <li>Respects reduced motion. Shared code moved to new files so the live apps and Ear Trainer are untouched until this goes live: <code>shared/voice-apps.js</code>, <code>shared/voice-pitch2.js</code>, <code>shared/voice-apps2.css</code>.</li>
+  <li>Note +/- buttons are locked while Loop is running.</li>
+</ul>
+<h3>Version 2026-11-24.1 (beta 2026-11-24)</h3>
+<h4>Added</h4>
+<ul>
+  <li>Favicon: its own icon in the browser tab, bookmarks and the home screen (<code>shared/icons/hold-steady.svg</code>, <code>-32.png</code>, <code>-180.png</code>). Beta tester request.</li>
+</ul>
+<h3>Version 2026-11-20.2</h3>
+<h4>Changed</h4>
+<ul>
+  <li>Button names in help text are now in quotes (e.g. Press "Start"), a house rule for every app.</li>
+</ul>
+
+<h3>Version 2026-11-20.1</h3>
+<h4>Added</h4>
+<ul>
+  <li>New singing app (Sing apps); shared voice pitch engine. Listed on the hub.</li>
+</ul>
+
+<h2>Match Point — match-point/</h2>
+
+<h3>Version 2026-11-26.1 (beta 2026-11-26)</h3>
+<h4>Added</h4>
+<ul>
+  <li>Microphone picker like Note Sprint's: choose the microphone, see the Level bar; the choice is remembered on this device. Student feedback.</li>
+  <li>"Piano volume" slider next to "Hear it" (same setting as "Tone volume" in "Settings"). Student feedback.</li>
+  <li>"Share result" button on the results (hidden site-wide during beta), "How it works" panel, and keys: Space Start/Stop, H "Hear it", Enter "Next level", Esc "Back". Beta tester request.</li>
+  <li>Saved on this device: best result per level and voice type, the last 10 rounds ("History" in "Settings", with "Clear"), practice-day streak; "New best!" on the results. Beta tester request.</li>
+  <li>"Settings": "Loop" (the same note all round), "Sing with me (easier)", "Drone" (the key note on piano, quietly all round), "Music on round screens" (<code>shared/hype.js</code>), "Copy log". Student feedback.</li>
+</ul>
+<h4>Changed</h4>
+<ul>
+  <li>The reference note is now a real grand piano (the Drum Machine's samples, <code>drum-machine/keys/grand/</code>), with low notes lifted automatically. Student feedback.</li>
+  <li>Respects reduced motion. Shared code moved to new files so the live apps and Ear Trainer are untouched until this goes live: <code>shared/voice-apps.js</code>, <code>shared/voice-pitch2.js</code>, <code>shared/voice-apps2.css</code>.</li>
+</ul>
+<h3>Version 2026-11-24.1 (beta 2026-11-24)</h3>
+<h4>Added</h4>
+<ul>
+  <li>Favicon: its own icon in the browser tab, bookmarks and the home screen (<code>shared/icons/match-point.svg</code>, <code>-32.png</code>, <code>-180.png</code>). Beta tester request.</li>
+</ul>
+<h3>Version 2026-11-20.2</h3>
+<h4>Changed</h4>
+<ul>
+  <li>Button names in help text are now in quotes (e.g. Press "Start"), a house rule for every app.</li>
+</ul>
+
+<h3>Version 2026-11-20.1</h3>
+<h4>Added</h4>
+<ul>
+  <li>New singing app (one of three "Sing apps"); uses <code>shared/voice-pitch.js</code> and <code>shared/voice-apps.css</code>. Listed on the hub.</li>
+</ul>
+
 <h2>Piano Strobe Tuner — piano-tuner/ (not on the hub)</h2>
 
 <p class="note">Built 2026-11-26 from the Guitar Revolution Strobe Tuner engine. Reference tone uses the grand piano samples in <code>drum-machine/keys/grand/</code>.</p>
@@ -1281,61 +1387,6 @@
 <h4>Added</h4>
 <ul>
   <li>First release as Music Trivia: Daily 10, Quick Play, Streak Run, Party; 540-question bank.</li>
-</ul>
-
-<!-- ============================================================ -->
-<h2>Match Point — match-point/</h2>
-<h3>Version 2026-11-24.1 (beta 2026-11-24)</h3>
-<h4>Added</h4>
-<ul>
-  <li>Favicon: its own icon in the browser tab, bookmarks and the home screen (<code>shared/icons/match-point.svg</code>, <code>-32.png</code>, <code>-180.png</code>). Beta tester request.</li>
-</ul>
-<h3>Version 2026-11-20.2</h3>
-<h4>Changed</h4>
-<ul>
-  <li>Button names in help text are now in quotes (e.g. Press "Start"), a house rule for every app.</li>
-</ul>
-
-<h3>Version 2026-11-20.1</h3>
-<h4>Added</h4>
-<ul>
-  <li>New singing app (one of three "Sing apps"); uses <code>shared/voice-pitch.js</code> and <code>shared/voice-apps.css</code>. Listed on the hub.</li>
-</ul>
-
-<h2>Hold Steady — hold-steady/</h2>
-<h3>Version 2026-11-24.1 (beta 2026-11-24)</h3>
-<h4>Added</h4>
-<ul>
-  <li>Favicon: its own icon in the browser tab, bookmarks and the home screen (<code>shared/icons/hold-steady.svg</code>, <code>-32.png</code>, <code>-180.png</code>). Beta tester request.</li>
-</ul>
-<h3>Version 2026-11-20.2</h3>
-<h4>Changed</h4>
-<ul>
-  <li>Button names in help text are now in quotes (e.g. Press "Start"), a house rule for every app.</li>
-</ul>
-
-<h3>Version 2026-11-20.1</h3>
-<h4>Added</h4>
-<ul>
-  <li>New singing app (Sing apps); shared voice pitch engine. Listed on the hub.</li>
-</ul>
-
-<h2>Scale Climber — scale-climber/</h2>
-<h3>Version 2026-11-24.1 (beta 2026-11-24)</h3>
-<h4>Added</h4>
-<ul>
-  <li>Favicon: its own icon in the browser tab, bookmarks and the home screen (<code>shared/icons/scale-climber.svg</code>, <code>-32.png</code>, <code>-180.png</code>). Beta tester request.</li>
-</ul>
-<h3>Version 2026-11-20.2</h3>
-<h4>Changed</h4>
-<ul>
-  <li>Button names in help text are now in quotes (e.g. Press "Start"), a house rule for every app.</li>
-</ul>
-
-<h3>Version 2026-11-20.1</h3>
-<h4>Added</h4>
-<ul>
-  <li>New singing app (Sing apps); shared voice pitch engine. Listed on the hub.</li>
 </ul>
 
 <!-- ============================================================ -->

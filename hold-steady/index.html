@@ -6,8 +6,11 @@
 <title>Hold Steady · Clarendon Hills Music Academy</title><meta name="description" content="Sustain one note and keep it steady: the app times how long you hold it inside the pitch window and shows every wobble in cents. Four levels, 4 to 12 seconds."><meta property="og:type" content="website"><meta property="og:site_name" content="Clarendon Hills Music Academy"><meta property="og:title" content="Hold Steady · Clarendon Hills Music Academy"><meta property="og:description" content="Sustain one note and keep it steady, 4 to 12 seconds inside the pitch window."><meta property="og:url" content="https://phishykeys555.github.io/piano_rebellion_apps/hold-steady/">
 <link rel="stylesheet" href="../shared/chma.css">
 <script src="../shared/brand.js"></script>
-<link rel="stylesheet" href="../shared/voice-apps.css">
-<script src="../shared/voice-pitch.js"></script>
+<link rel="stylesheet" href="../shared/voice-apps2.css">
+<script src="../shared/voice-pitch2.js"></script>
+<script src="../shared/voice-apps.js"></script>
+<script src="../shared/hype.js"></script>
+<script src="../shared/share.js"></script>
 <style>
 /* Hold Steady: note stepper, the needle meter (±50 cents, window shaded) and the hold timer bar */
 .stepper{display:grid;grid-template-columns:52px 1fr 52px;gap:8px;align-items:center}
@@ -29,7 +32,7 @@
 </head>
 <body>
 <div class="wrap">
-  <div data-chma-head data-ver="Version 2026-11-24.1"></div>
+  <div data-chma-head data-ver="Version 2026-11-26.1"></div>
   <div class="setup">
   <header>
     <h1>Hold <em>Steady</em></h1>
@@ -40,11 +43,16 @@
   <p class="tip" id="voiceTip">Not sure? Men usually start with Baritone, women and kids with Alto. Your Instructor can tell you.</p>
   <p class="sec">Level</p>
   <div class="levels" id="levels" role="group" aria-label="Level"></div>
+  <p class="bestline" id="bestLine" hidden></p>
   <p class="sec">Your note</p>
   <div class="stepper"><button type="button" id="nDown" aria-label="Lower note">−</button><b id="nName">–</b><button type="button" id="nUp" aria-label="Higher note">+</button></div>
   <div class="micbox">
-    <div class="mrow"><button class="ghost" id="micBtn" type="button">Turn on the microphone</button><div class="lvlbar" aria-hidden="true"><i id="micLvl"></i></div></div>
+    <div class="mrow"><button class="ghost" id="micBtn" type="button">Turn on the microphone</button></div>
     <a class="mopen" id="micOpen" href="./" target="_blank" rel="noopener" hidden>Open full screen</a>
+    <div class="micctl" id="micCtl" hidden>
+      <label for="micSel">Microphone</label><select id="micSel"></select>
+      <span>Level</span><div class="lvlbar" aria-hidden="true"><i id="micLvl"></i></div>
+    </div>
     <p class="mstat" id="micStat" role="status" aria-live="polite"></p>
   </div>
   <details>
@@ -53,6 +61,18 @@
       <label for="sens">Mic sensitivity <input type="range" id="sens" min="0" max="100" step="1"></label>
       <label for="vol">Tone volume <input type="range" id="vol" min="10" max="100" step="1"></label>
       <span class="stamp">The timer counts only while you are inside the window. A breath or a slip shorter than a quarter second doesn't reset it.</span>
+      <label class="ck"><input type="checkbox" id="loop"> Loop: the same hold again and again until "Stop"</label>
+      <label class="ck"><input type="checkbox" id="withme"> Sing with me (easier): the note keeps sounding softly while you hold</label>
+      <label class="ck"><input type="checkbox" id="drone"> Drone: your note an octave away (piano), quietly all round</label>
+      <label class="ck"><input type="checkbox" id="hypeOn" checked> Music on round screens</label>
+      <span class="stamp">Loop: after each hold the result shows here and the same hold starts again, until you press "Stop" (each one is saved in History). "Sing with me" is a practice mode: graded the same way, but it doesn't unlock levels or set a best. "Sing with me" and the drone keep the piano playing while you sing, so use headphones (the mic can hear the speaker). Changes apply from the next "Start".</span>
+      <p class="sub2">History (last 10)</p>
+      <ol class="hist" id="hist"></ol>
+      <div class="row"><button class="ghost" id="histClear" type="button">Clear</button></div>
+      <p class="sub2">Problems?</p>
+      <div class="row"><button class="ghost" id="logCopy" type="button">Copy log</button><span class="stamp" id="logStat" role="status" aria-live="polite"></span></div>
+      <span class="stamp">"Copy log" copies your browser, microphone, sample rate and the last errors, to paste in a message to your Instructor. Nothing is sent anywhere by the app.</span>
+      <pre class="logout" id="logOut" hidden></pre>
     </div>
   </details>
   </div>
@@ -73,13 +93,22 @@
     <canvas class="plot" id="plot" role="img" aria-label="Your pitch in cents over time"></canvas>
     <div class="msg" id="msg" role="status" aria-live="polite"><div class="v">Press Start</div><div class="c">The note plays, then sing it on "ah" and hold it steady.</div></div>
     <p class="phones" data-vp-phones hidden>Use headphones: the mic can hear the speaker.</p>
+    <label class="volrow" for="vol2">Piano volume <input type="range" id="vol2" min="10" max="100" step="1"></label>
     <div class="row actions">
       <button class="ghost" id="hear" type="button"><span aria-hidden="true">▶</span> Hear it</button>
       <button class="primary" id="go" type="button">Start</button>
     </div>
+    <details class="how"><summary>How it works</summary>
+      <p class="tip"><b>What it measures.</b> Your note plays on the piano. Sing it on "ah" and hold it: the timer counts only while your pitch stays inside the window (±30¢ on Level 1, down to ±10¢ on Level 4; 100¢ = one half step). A breath or slip shorter than a quarter second doesn't reset it. "Wobble" is how much your pitch shakes (lower is steadier), "Drift" is whether it creeps sharp or sags flat over the hold.</p>
+      <p class="tip"><b>The colors.</b> <span class="swatch" style="background:var(--c-ok)"></span>Green = inside the window (the needle sits in the green band). <span class="swatch" style="background:var(--c-warn)"></span>Orange = close (within 50¢). <span class="swatch" style="background:var(--c-bad)"></span>Red = further off.</p>
+      <p class="tip"><b>Levels.</b> Hold the goal time inside the window once to pass: 4, 6, 8, then 12 seconds. Each voice type keeps its own passes. "Sing with me" holds don't unlock levels.</p>
+      <p class="tip"><b>Headphones</b> are best: the mic can hear the speaker. Without them, keep the volume moderate.</p>
+      <p class="tip"><b>Keys.</b> <kbd>Space</kbd> Start or Stop · <kbd>H</kbd> "Hear it" · <kbd>Enter</kbd> on the results: "Next level" · <kbd>Esc</kbd> "Back".</p>
+    </details>
 
     <div class="results" id="results" role="region" aria-label="Results" hidden>
       <h2 id="rTitle" tabindex="-1" style="outline:none">Hold done</h2>
+      <span class="newbest" id="rNew" hidden>New best!</span>
       <div class="big" id="rBig">–</div>
       <div class="pass" id="rPass"></div>
       <div class="rgrid">
@@ -92,7 +121,8 @@
       </div>
       <p class="tip" id="rWhy"></p>
       <div class="stamp" id="rStamp"></div>
-      <p class="tip">Screenshot this screen and send it to your Instructor.</p>
+      <button class="primary sharebtn" id="shareBtn" type="button">Share result</button>
+      <p class="tip shint">Tip: a screenshot of this screen works too.</p>
       <div class="credit">Hold Steady · Created by Derek Berg · <a href="https://clarendonhillsmusicacademy.com/" target="_blank" rel="noopener">Clarendon Hills Music Academy</a></div>
       <div class="row"><button class="ghost" id="rBack" type="button">Back</button><button class="ghost" id="rNext" type="button" hidden>Next level</button><button class="primary" id="rAgain" type="button">Try again</button></div>
     </div>
@@ -110,15 +140,23 @@
   const L=()=>LEVELS.find(x=>x.id===level)||LEVELS[0];
   const fmtC=c=>{ if(c==null) return '–'; const r=Math.round(c); return (r>0?'+':r<0?'−':'')+Math.abs(r)+'¢' };
   const plot=VP.plot($('plot')); plot.span=6;
+  const VA=window.VA.make({app:APP,slug:'hold-steady',prefix:'hs-',ver:'2026-11-26.1'});
+  // practice switches (saved): Loop = the same hold again until "Stop"; Sing with me = the note keeps sounding softly; Drone = your note an octave away, quietly all round
+  const loopOn=VA.toggle('loop','loop',false), withMe=VA.toggle('withme','withme',false), droneOn=VA.toggle('drone','drone',false);
+  const lvName=lv=>'L'+lv.id+' · '+lv.secs+' s ±'+lv.win+'¢';
+  // the drone is your note an octave down (an octave up for the lowest notes): frames at its pitch are never graded as your voice
+  const droneFor=m=>m-12>=33?m-12:m+12;
+  let loopT=0;
 
   function msg(cls,v,c){ const m=$('msg'); m.className='msg'+(cls?' '+cls:''); m.querySelector('.v').textContent=v; m.querySelector('.c').textContent=c||'' }
   function passed(lv){ return !!(voice&&store.get('pass-'+voice.id+'-'+lv,false)) }
   function drawLevels(){ $('levels').innerHTML=LEVELS.map(x=>`<button class="lvl" type="button" data-l="${x.id}" aria-pressed="${x.id===level}"><b>L${x.id}</b><span>${x.secs} s</span><span>±${x.win}¢</span>${passed(x.id)?'<span class="done">✓ passed</span>':''}</button>`).join('');
-    $('levels').querySelectorAll('.lvl').forEach(b=>b.addEventListener('click',()=>{ if(att) stopAtt(); level=+b.dataset.l; store.set('level',level); drawLevels(); view() })) }
+    $('levels').querySelectorAll('.lvl').forEach(b=>b.addEventListener('click',()=>{ if(att||loopT) stopAtt(); level=+b.dataset.l; store.set('level',level); drawLevels(); view() }));
+    VA.bestLine(voice,level,lvName(L())) }
   function setNote(m){ if(!voice) return; note=Math.max(voice.lo,Math.min(voice.hi,m)); store.set('note-'+voice.id,note); view() }
-  function onVoice(v){ voice=v; $('voices').classList.remove('need'); $('voiceTip').hidden=true; if(att) stopAtt(); drawLevels(); setNote(+store.get('note-'+v.id,v.l1+4)) }
+  function onVoice(v){ voice=v; $('voices').classList.remove('need'); $('voiceTip').hidden=true; if(att||loopT) stopAtt(); drawLevels(); setNote(+store.get('note-'+v.id,v.l1+4)) }
   VP.voicePicker($('voices'),onVoice); if(voice){ $('voiceTip').hidden=true; note=Math.max(voice.lo,Math.min(voice.hi,+store.get('note-'+voice.id,voice.l1+4))) }
-  const mp=VP.micPanel(APP,{btn:'micBtn',open:'micOpen',stat:'micStat',lvl:'micLvl',sens:'sens',vol:'vol',
+  const mp=VP.micPanel(APP,{btn:'micBtn',open:'micOpen',stat:'micStat',lvl:'micLvl',sens:'sens',vol:'vol',vol2:'vol2',ctl:'micCtl',sel:'micSel',
     idle:'"Start" asks for the microphone. Tap "Allow" when your device asks.',on:'Listening. Sing any note: the level bar turns green.'});
 
   function view(){ const lv=L(); $('nName').textContent=note!=null?VP.noteName(note):'–'; $('tName').textContent=note!=null?VP.noteName(note):'–';
@@ -127,16 +165,25 @@
     if(note!=null){ plot.cents=note; plot.lo=note-0.75; plot.hi=note+0.75 } if(!att) hold(0) }
   function hold(s){ const lv=L(), p=Math.min(1,s/lv.secs); $('holdFill').style.width=(p*100)+'%'; $('holdFill').classList.toggle('full',p>=1); $('holdTxt').textContent=s.toFixed(1)+' / '+lv.secs+' s'; $('holdTr').setAttribute('aria-valuenow',s.toFixed(1)); $('holdTr').setAttribute('aria-valuemax',lv.secs) }
 
-  async function startAtt(){ if(!voice){ $('voices').classList.add('need'); $('voices').scrollIntoView({block:'center',behavior:'smooth'}); msg('bad','Pick your voice type first','Tap the one that fits you, then press "Start".'); return }
-    VP.ctx(); const ok=await mp.go(); if(!ok){ msg('bad','The microphone is off','See the note under the microphone button.'); return }
-    if(innerWidth<900) try{ $('card').scrollIntoView({behavior:'smooth',block:'start'}) }catch(e){}
+  let starting=false;
+  async function startAtt(again){ if(!voice){ $('voices').classList.add('need'); $('voices').scrollIntoView({block:'center',behavior:VA.smooth()}); msg('bad','Pick your voice type first','Tap the one that fits you, then press "Start".'); return }
+    if(starting||att) return; starting=true;
+    try{ VP.ctx(); const ok=await mp.go(); if(!ok){ msg('bad','The microphone is off','See the note under the microphone button.'); return }
+      $('results').hidden=true; await VA.quiet(); await VP.pianoReady(3000) }finally{ starting=false }
+    if(att) return;
+    if(!again&&innerWidth<900) try{ $('card').scrollIntoView({behavior:VA.smooth(),block:'start'}) }catch(e){}
     const ts=VP.now()+0.25, te=VP.tone(note,1,ts);
-    att={target:note,lv:L(),listenAt:te+0.15,runs:[],cur:null,lastIn:0,any:false,lastV:0,voicedT:0,lastF:null,said:false};
+    att={target:note,lv:L(),listenAt:te+0.15,runs:[],cur:null,lastIn:0,any:false,lastV:0,voicedT:0,lastF:null,said:false,
+      loop:loopOn(),withme:withMe(),drone:droneOn()?droneFor(note):null,nextDrone:ts,nextG:0,aidT:setInterval(aids,100)};
     plot.targets=[{t0:ts,t1:att.listenAt+att.lv.secs+20,midi:note,tol:att.lv.win}];
     $('results').hidden=true; $('go').textContent='Stop'; hold(0); msg('','Listen…','Then sing it and hold it steady.') }
-  function stopAtt(){ if(!att) return; att=null; $('go').textContent='Start'; plot.targets=[]; hold(0); msg('','Stopped','Press "Start" to try again.') }
+  function stopAtt(){ const was=loopT; clearTimeout(loopT); loopT=0; if(!att&&!was) return; if(att) clearInterval(att.aidT); att=null; VP.hush(); $('go').textContent='Start'; plot.targets=[]; hold(0); msg('','Stopped',was?'Loop stopped. Press "Start" to loop again.':'Press "Start" to try again.') }
+  // the drone and "Sing with me": soft piano strikes, scheduled a little ahead on the audio clock
+  function aids(){ const a=att; if(!a) return; const now=VP.now();
+    if(a.drone!=null&&now>=a.nextDrone-0.15){ VP.tone(a.drone,2.6,Math.max(a.nextDrone,now+0.03),0.22); a.nextDrone=Math.max(a.nextDrone,now)+2.4 }
+    if(a.withme&&now>=a.listenAt-0.15){ if(!a.nextG||a.nextG<a.listenAt) a.nextG=a.listenAt; if(now>=a.nextG-0.15){ VP.tone(a.target,1.5,Math.max(a.nextG,now+0.03),0.3); a.nextG=Math.max(a.nextG,now)+1.6 } } }
 
-  function onFrame(f){ const a=att, tgt=a?a.target:note, c=f.voiced&&tgt!=null?(f.midi-tgt)*100:null, win=(a?a.lv:L()).win;
+  function onFrame(f){ if(att&&att.drone!=null&&f.voiced&&Math.abs(f.midi-att.drone)<0.5) f=Object.assign({},f,{voiced:false,midi:null,rawMidi:null}); const a=att, tgt=a?a.target:note, c=f.voiced&&tgt!=null?(f.midi-tgt)*100:null, win=(a?a.lv:L()).win;
     const ok=c!=null&&Math.abs(c)<=win;
     plot.pts.push({t:f.t,m:f.midi,ok});
     const listening=!a||f.t>=a.listenAt, n=$('ndl'), lc=$('lCents');
@@ -155,7 +202,7 @@
     if(a.runs.length&&!a.cur&&f.t-a.lastIn>3) return finish(false);   // slipped out and didn't get back in
     if(f.t-a.listenAt>a.lv.secs+20) return finish(false) }
 
-  function finish(win){ const a=att; att=null; if(a.cur) a.runs.push(a.cur);
+  function finish(win){ const a=att; att=null; clearInterval(a.aidT); VP.hush(); if(a.cur) a.runs.push(a.cur);
     const best=a.runs.slice().sort((x,y)=>(y.t1-y.t0)-(x.t1-x.t0))[0], lv=a.lv;
     const held=best?best.t1-best.t0:0, cs=best?best.cs:[], n=cs.length;
     // wobble (steadiness) = standard deviation of the unsmoothed frames, so vibrato and shake show at full size; the window gate uses the smoothed pitch
@@ -177,29 +224,44 @@
     else if(!pass) why='You stopped or slipped out before the goal. Take a bigger breath first.';
     else why=sd!=null&&sd<=lv.win/3?'Rock steady.':'Passed. Next time aim for less wobble.';
     $('rWhy').textContent=why;
-    $('rStamp').textContent=voice.name+' · '+new Date().toLocaleString([], {dateStyle:'medium',timeStyle:'short'});
-    const kB='best-'+voice.id+'-'+lv.id, pb=store.get(kB,null); if(pb==null||held>pb) store.set(kB,Math.min(held,lv.secs));
-    if(pass){ store.set('pass-'+voice.id+'-'+lv.id,true); drawLevels() }
+    const aid=a.withme, mode=[a.loop?'Loop':'',a.withme?'Sing with me':'',a.drone!=null?'Drone':''].filter(Boolean).join(', ');
+    if(aid){ $('rPass').className='pass no'; $('rPass').textContent=`${pass?'Held it':'Not yet'}. Practice mode (Sing with me): levels unlock without it.` }
+    $('rStamp').textContent=voice.name+(mode?' · '+mode:'')+' · '+new Date().toLocaleString([], {dateStyle:'medium',timeStyle:'short'});
+    if(!aid){ const kB='best-'+voice.id+'-'+lv.id, pb=store.get(kB,null); if(pb==null||held>pb) store.set(kB,Math.min(held,lv.secs)) }
+    if(pass&&!aid){ store.set('pass-'+voice.id+'-'+lv.id,true); drawLevels() }
+    const hs=Math.min(held,lv.secs), main=hs.toFixed(1)+' s'+(sd!=null?' · ±'+sd.toFixed(0)+'¢':'');
+    const isNew=VA.record({voice:voice.id,vname:voice.name,lv:lv.id,lvName:'L'+lv.id+' '+VP.noteName(a.target)+(mode?' ('+mode+')':''),rank:hs*100-(sd==null?99:Math.min(99,sd)),s:main,aid});
+    VA.bestLine(voice,level,lvName(L()));
+    VA.shareText=[`Hold Steady · ${lvName(lv)} · ${voice.name} · ${VP.noteName(a.target)}`+(mode?` · ${mode}`:''),`${hs.toFixed(1)} s held of ${lv.secs} s`+(sd!=null?` · wobble ±${sd.toFixed(1)}¢`:''),
+      aid?'Practice hold':pass?`Level ${lv.id} passed`:'Not passed yet'].concat(isNew?['New best']:[]).join('\n');
     $('sHeld').textContent=Math.min(held,lv.secs).toFixed(1)+' s'; $('sSteady').textContent=sd!=null?'±'+sd.toFixed(0)+'¢':'–';
-    $('rNext').hidden=!(pass&&lv.id<LEVELS.length);
-    $('go').textContent='Start'; plot.targets.forEach(T=>T.state='done'); view(); hold(Math.min(held,lv.secs));
+    $('rNext').hidden=!(pass&&!aid&&lv.id<LEVELS.length);
+    plot.targets.forEach(T=>T.state='done'); view(); hold(Math.min(held,lv.secs));
+    if(a.loop){ // Loop: no results sheet; the result shows in the message and the same hold starts again until "Stop"
+      $('go').textContent='Stop'; msg(pass?'good':'ok',(pass?'Held it':'Not yet')+(isNew?' · New best!':''),hs.toFixed(1)+' s'+(sd!=null?' · wobble ±'+sd.toFixed(0)+'¢':'')+'. Again in 2 seconds…');
+      loopT=setTimeout(()=>{ loopT=0; startAtt(true) },2200); return }
+    $('go').textContent='Start';
     msg(pass?'good':'ok',pass?'Held it':'Not yet',why);
-    $('results').hidden=false; try{ $('rTitle').focus({preventScroll:true}) }catch(e){} }
+    VA.newBest(isNew);
+    $('results').hidden=false; try{ $('rTitle').focus({preventScroll:true}) }catch(e){}
+    VA.hypePlay(lv.id) }
 
-  $('nDown').addEventListener('click',()=>{ if(!att&&note!=null) setNote(note-1) });
-  $('nUp').addEventListener('click',()=>{ if(!att&&note!=null) setNote(note+1) });
-  $('go').addEventListener('click',()=>{ if(att) stopAtt(); else startAtt() });
+  $('nDown').addEventListener('click',()=>{ if(!att&&!loopT&&note!=null) setNote(note-1) });
+  $('nUp').addEventListener('click',()=>{ if(!att&&!loopT&&note!=null) setNote(note+1) });
+  $('go').addEventListener('click',()=>{ if(att||loopT) stopAtt(); else startAtt() });
   $('hear').addEventListener('click',()=>{ if(note==null) return; VP.ctx(); const te=VP.tone(att?att.target:note,1); if(att) att.listenAt=Math.max(att.listenAt,te+0.15) });
-  $('rBack').addEventListener('click',()=>{ $('results').hidden=true; msg('','Press Start','The note plays, then sing it on "ah" and hold it steady.') });
+  $('rBack').addEventListener('click',()=>{ VA.hypeStop(); $('results').hidden=true; msg('','Press Start','The note plays, then sing it on "ah" and hold it steady.'); try{ $('go').focus({preventScroll:true}) }catch(e){} });
   $('rAgain').addEventListener('click',()=>{ $('results').hidden=true; startAtt() });
   $('rNext').addEventListener('click',()=>{ level=Math.min(LEVELS.length,level+1); store.set('level',level); drawLevels(); view(); $('results').hidden=true; startAtt() });
-  VP.listen(onFrame); VP.on('stop',()=>{ if(att) stopAtt() });
+  VP.listen(onFrame); VP.on('stop',()=>{ if(att||loopT) stopAtt() });
   (function loop(){ if(VP.isOn()||att){ plot.now=VP.now(); plot.trim(); plot.draw() } requestAnimationFrame(loop) })();
+  VA.keys({go:()=>$('go').click(),hear:()=>$('hear').click(),back:()=>$('rBack').click()});
+  VA.extra=()=>['Voice type: '+(voice?voice.name:'none')+' · Level: '+lvName(L())+' · Note: '+(note!=null?VP.noteName(note):'–'),'Loop: '+(loopOn()?'on':'off')+' · Sing with me: '+(withMe()?'on':'off')+' · Drone: '+(droneOn()?'on':'off')];
   drawLevels(); view(); plot.draw();
   if(!voice) msg('','Pick your voice type','Then press Start.');
-  window.__hs={levels:()=>LEVELS,state:()=>att&&{target:att.target,listenAt:att.listenAt,cur:att.cur&&{t0:att.cur.t0,t1:att.cur.t1}},level:()=>level,note:()=>note};
+  window.__hs={va:VA,att:()=>att,loopT:()=>loopT,levels:()=>LEVELS,state:()=>att&&{target:att.target,listenAt:att.listenAt,cur:att.cur&&{t0:att.cur.t0,t1:att.cur.t1}},level:()=>level,note:()=>note};
 })();
 </script>
-<p class="appver">Hold Steady · Version 2026-11-24.1</p>
+<p class="appver">Hold Steady · Version 2026-11-26.1</p>
 </body>
 </html>

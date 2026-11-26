@@ -6,8 +6,11 @@
 <title>Scale Climber · Clarendon Hills Music Academy</title><meta name="description" content="Graded vocal warm-up scales: hear the pattern, sing it back, and climb a half step at a time. Every note graded in cents and timing. Four levels, tempo you choose."><meta property="og:type" content="website"><meta property="og:site_name" content="Clarendon Hills Music Academy"><meta property="og:title" content="Scale Climber · Clarendon Hills Music Academy"><meta property="og:description" content="Graded vocal warm-up scales: sing it back and climb a half step at a time."><meta property="og:url" content="https://phishykeys555.github.io/piano_rebellion_apps/scale-climber/">
 <link rel="stylesheet" href="../shared/chma.css">
 <script src="../shared/brand.js"></script>
-<link rel="stylesheet" href="../shared/voice-apps.css">
-<script src="../shared/voice-pitch.js"></script>
+<link rel="stylesheet" href="../shared/voice-apps2.css">
+<script src="../shared/voice-pitch2.js"></script>
+<script src="../shared/voice-apps.js"></script>
+<script src="../shared/hype.js"></script>
+<script src="../shared/share.js"></script>
 <style>
 /* Scale Climber: tempo and mode chips, start key, one graded chip per note of the pattern */
 .chips.tempo{grid-template-columns:auto repeat(6,minmax(0,1fr));grid-auto-flow:row}
@@ -21,12 +24,21 @@
 .grades .g.off,.grades .g.none{background:color-mix(in srgb,var(--c-bad) 34%,var(--c-lcd));color:#fff}
 .grades .g.now{outline:2px solid var(--c-act)}
 .target .tn b small{font-size:15px;color:var(--c-mut);font-family:var(--f-body);font-weight:600;margin-left:6px}
+/* 2026-11-26.1: tempo -5/-1/+1/+5 and Tap (like the Drum Machine), click sound, click volume and count-in */
+.bpmrow{display:grid;grid-template-columns:repeat(2,minmax(0,1fr)) minmax(52px,auto) repeat(2,minmax(0,1fr)) minmax(0,1.3fr);gap:6px;align-items:center}
+.bpmrow button{min-height:40px;padding:6px 2px;font-family:var(--f-num);font-size:14px;font-weight:700;min-width:0}
+.bpmrow b{text-align:center;font:700 20px var(--f-num);font-variant-numeric:tabular-nums} .bpmrow b small{display:block;font-size:9.5px;letter-spacing:.12em;color:var(--c-mut);font-weight:700}
+.clkrow{display:grid;grid-template-columns:auto minmax(0,1fr);gap:8px 10px;align-items:center;font-size:13px;font-weight:600;color:var(--c-mut)}
+.clkrow select{font:inherit;font-size:14px;font-weight:500;min-height:40px;padding:4px 8px;border-radius:8px;border:1px solid var(--c-key-b);background:var(--c-key);color:var(--c-ink);min-width:0;width:100%}
+.clkrow select option{color:var(--c-ink);background:var(--c-panel)}
+.clkrow input[type=range]{width:100%;accent-color:var(--c-act);height:32px;margin:0}
+.clkrow .stamp{grid-column:1/-1;font-weight:500}
 </style>
 <link rel="icon" type="image/svg+xml" href="../shared/icons/scale-climber.svg"><link rel="icon" type="image/png" sizes="32x32" href="../shared/icons/scale-climber-32.png"><link rel="apple-touch-icon" href="../shared/icons/scale-climber-180.png">
 </head>
 <body>
 <div class="wrap">
-  <div data-chma-head data-ver="Version 2026-11-24.1"></div>
+  <div data-chma-head data-ver="Version 2026-11-26.1"></div>
   <div class="setup">
   <header>
     <h1>Scale <em>Climber</em></h1>
@@ -37,13 +49,25 @@
   <p class="tip" id="voiceTip">Not sure? Men usually start with Baritone, women and kids with Alto. Your Instructor can tell you.</p>
   <p class="sec">Level</p>
   <div class="levels" id="levels" role="group" aria-label="Level"></div>
+  <p class="bestline" id="bestLine" hidden></p>
   <p class="sec">Tempo and start</p>
   <div class="chips tempo" id="tempo" role="group" aria-label="Tempo"><span>BPM</span></div>
+  <div class="bpmrow" role="group" aria-label="Change the tempo"><button type="button" id="d5" aria-label="Slower by 5 BPM">−5</button><button type="button" id="d1" aria-label="Slower by 1 BPM">−1</button><b id="bpmNow" aria-live="polite">72<small>BPM</small></b><button type="button" id="u1" aria-label="Faster by 1 BPM">+1</button><button type="button" id="u5" aria-label="Faster by 5 BPM">+5</button><button type="button" id="tapT" aria-label="Tap tempo">Tap</button></div>
+  <div class="clkrow">
+    <label for="clkSel">Click</label><select id="clkSel"><option value="classic">Classic click</option><option value="cow">More cowbell</option><option value="wood">Woodblock</option><option value="rim">Side stick</option><option value="hat">Hi-hat</option><option value="clave">Clave</option><option value="beep">Beep (electronic)</option><option value="kick">Kick on 1 + hi-hat (drummer)</option></select>
+    <label for="clkVol">Click volume</label><input type="range" id="clkVol" min="0" max="200" step="5" aria-label="Click volume">
+    <label for="ciSel">Count-in</label><select id="ciSel"><option value="short">2 clicks</option><option value="1">1 bar (4 clicks)</option><option value="2">2 bars (8 clicks)</option></select>
+    <span class="stamp" id="clkSafe" hidden>(mic-safe click used: this sound rings on a pitch the mic could take for your voice, so the classic click plays while you sing)</span>
+  </div>
   <div class="chips mode" id="mode" role="group" aria-label="How you sing"><button class="chip" type="button" data-m="hear">Hear, then sing</button><button class="chip" type="button" data-m="along">Sing along (headphones)</button></div>
   <div class="keyrow"><label for="startKey">Start key</label><select class="keysel" id="startKey"></select></div>
   <div class="micbox">
-    <div class="mrow"><button class="ghost" id="micBtn" type="button">Turn on the microphone</button><div class="lvlbar" aria-hidden="true"><i id="micLvl"></i></div></div>
+    <div class="mrow"><button class="ghost" id="micBtn" type="button">Turn on the microphone</button></div>
     <a class="mopen" id="micOpen" href="./" target="_blank" rel="noopener" hidden>Open full screen</a>
+    <div class="micctl" id="micCtl" hidden>
+      <label for="micSel">Microphone</label><select id="micSel"></select>
+      <span>Level</span><div class="lvlbar" aria-hidden="true"><i id="micLvl"></i></div>
+    </div>
     <p class="mstat" id="micStat" role="status" aria-live="polite"></p>
   </div>
   <details>
@@ -52,6 +76,19 @@
       <label for="sens">Mic sensitivity <input type="range" id="sens" min="0" max="100" step="1"></label>
       <label for="vol">Tone volume <input type="range" id="vol" min="10" max="100" step="1"></label>
       <span class="stamp">A key is clean when every note lands within 50¢ and the notes average 30¢ or closer. Miss a key and you get one more try on it. Timing is measured from each click; Bluetooth headphones add delay.</span>
+      <div class="row"><button class="ghost" id="cal" type="button">Calibrate timing</button><button class="ghost" id="calReset" type="button" hidden>Reset</button><span class="stamp" id="calTxt" role="status" aria-live="polite"></span></div>
+      <span class="stamp">Optional: if notes you know are on time still read early or late (Bluetooth headphones, a slow speaker), calibrate. Your start note plays, then 12 clicks: sing a short "ta" on that note with each click from the 3rd one. The timing grade then takes off your device's delay. Pitch grades never change.</span>
+      <label class="ck"><input type="checkbox" id="loop"> Loop: stay in the same key (no climbing)</label>
+      <label class="ck"><input type="checkbox" id="withme"> Sing with me (easier): in "Hear, then sing" the pattern plays softly while you sing</label>
+      <label class="ck"><input type="checkbox" id="hypeOn" checked> Music on round screens</label>
+      <span class="stamp">Loop and "Sing with me" are practice modes: graded the same way, but they don't unlock levels or set a best. In Loop the key repeats until you press "Stop" or miss it twice. "Sing with me" keeps the piano playing while you sing, so use headphones (the mic can hear the speaker). Changes apply from the next "Start".</span>
+      <p class="sub2">History (last 10)</p>
+      <ol class="hist" id="hist"></ol>
+      <div class="row"><button class="ghost" id="histClear" type="button">Clear</button></div>
+      <p class="sub2">Problems?</p>
+      <div class="row"><button class="ghost" id="logCopy" type="button">Copy log</button><span class="stamp" id="logStat" role="status" aria-live="polite"></span></div>
+      <span class="stamp">"Copy log" copies your browser, microphone, sample rate and the last errors, to paste in a message to your Instructor. Nothing is sent anywhere by the app.</span>
+      <pre class="logout" id="logOut" hidden></pre>
     </div>
   </details>
   </div>
@@ -71,13 +108,22 @@
     <div class="grades" id="grades" aria-label="Note grades"></div>
     <div class="msg" id="msg" role="status" aria-live="polite"><div class="v">Press Start</div><div class="c">Hear the pattern, two clicks, then sing it back on the beat.</div></div>
     <p class="phones" data-vp-phones hidden>Use headphones: the mic can hear the speaker.</p>
+    <label class="volrow" for="vol2">Piano volume <input type="range" id="vol2" min="10" max="100" step="1"></label>
     <div class="row actions">
       <button class="ghost" id="hear" type="button"><span aria-hidden="true">▶</span> Hear it</button>
       <button class="primary" id="go" type="button">Start</button>
     </div>
+    <details class="how"><summary>How it works</summary>
+      <p class="tip"><b>What it measures.</b> The pattern plays on the piano with a click on every note, then a count-in, then you sing it back, one note per click (or sing along with "Sing along"). Each note is graded on its pitch, in cents (100¢ = one half step), from the middle of the beat, and on its timing: how early or late you landed on it, from the click. A key is clean when every note lands within 50¢ and the notes average 30¢ or closer; then you climb a half step. Miss a key and you get one more try on it.</p>
+      <p class="tip"><b>The colors.</b> <span class="swatch" style="background:var(--c-ok)"></span>Green = clean (within 25¢). <span class="swatch" style="background:var(--c-warn)"></span>Orange = close (within 50¢). <span class="swatch" style="background:var(--c-bad)"></span>Red = off, or no clear note heard. On the plot the bands are the notes and your voice is the line (green when on pitch).</p>
+      <p class="tip"><b>Levels.</b> 5 clean keys in a row passes a level (or reaching the top of your voice type's range with at least 2) and shows "Next level". Each voice type keeps its own passes. Practice modes (Loop, "Sing with me") don't unlock levels.</p>
+      <p class="tip"><b>Headphones</b> are best: the mic can hear the speaker. Bluetooth headphones add delay: use "Calibrate timing" in "Settings".</p>
+      <p class="tip"><b>Keys.</b> <kbd>Space</kbd> Start or Stop · <kbd>H</kbd> "Hear it" · <kbd>Enter</kbd> on the results: "Next level" · <kbd>Esc</kbd> "Back".</p>
+    </details>
 
     <div class="results" id="results" role="region" aria-label="Results" hidden>
       <h2 id="rTitle" tabindex="-1" style="outline:none">Climb done</h2>
+      <span class="newbest" id="rNew" hidden>New best!</span>
       <div class="big" id="rBig">–</div>
       <div class="pass" id="rPass"></div>
       <div class="rgrid">
@@ -90,7 +136,8 @@
       </div>
       <p class="tip" id="rWhy"></p>
       <div class="stamp" id="rStamp"></div>
-      <p class="tip">Screenshot this screen and send it to your Instructor.</p>
+      <button class="primary sharebtn" id="shareBtn" type="button">Share result</button>
+      <p class="tip shint">Tip: a screenshot of this screen works too.</p>
       <div class="credit">Scale Climber · Created by Derek Berg · <a href="https://clarendonhillsmusicacademy.com/" target="_blank" rel="noopener">Clarendon Hills Music Academy</a></div>
       <div class="row"><button class="ghost" id="rBack" type="button">Back</button><button class="ghost" id="rNext" type="button" hidden>Next level</button><button class="primary" id="rAgain" type="button">Climb again</button></div>
     </div>
@@ -114,13 +161,22 @@
   const L=()=>LEVELS.find(x=>x.id===level)||LEVELS[0], top=()=>Math.max(...L().pat);
   const fmtC=c=>{ if(c==null) return '–'; const r=Math.round(c); return (r>0?'+':r<0?'−':'')+Math.abs(r)+'¢' };
   const plot=VP.plot($('plot')); plot.span=6; plot.nowX=0.4;
+  const VA=window.VA.make({app:APP,slug:'scale-climber',prefix:'sc-',ver:'2026-11-26.1'});
+  // practice switches (saved): Loop = stay in the same key; Sing with me = in "Hear, then sing" the pattern plays softly under your voice
+  const loopOn=VA.toggle('loop','loop',false), withMe=VA.toggle('withme','withme',false);
+  const lvName=lv=>'L'+lv.id+' '+lv.name;
+  // click sound, click volume, count-in (saved); timing calibration (seconds, taken off the timing grade only)
+  const CI={short:2,'1':4,'2':8}; let ci=CI[store.get('ci','short')]?store.get('ci','short'):'short', cal=+store.get('cal',0)||0, calOn=null, starting=false;
 
   function msg(cls,v,c){ const m=$('msg'); m.className='msg'+(cls?' '+cls:''); m.querySelector('.v').textContent=v; m.querySelector('.c').textContent=c||'' }
   function passed(lv){ return !!(voice&&store.get('pass-'+voice.id+'-'+lv,false)) }
   function drawLevels(){ $('levels').innerHTML=LEVELS.map(x=>`<button class="lvl" type="button" data-l="${x.id}" aria-pressed="${x.id===level}"><b>L${x.id}</b><span>${x.name}</span><span>${x.sub}</span>${passed(x.id)?'<span class="done">✓ passed</span>':''}</button>`).join('');
-    $('levels').querySelectorAll('.lvl').forEach(b=>b.addEventListener('click',()=>{ if(run) stopRun(); level=+b.dataset.l; store.set('level',level); drawLevels(); keys(); idle() })) }
+    $('levels').querySelectorAll('.lvl').forEach(b=>b.addEventListener('click',()=>{ if(run) stopRun(); level=+b.dataset.l; store.set('level',level); drawLevels(); keys(); idle() }));
+    VA.bestLine(voice,level,lvName(L())) }
   function drawTempo(){ const el=$('tempo'); el.querySelectorAll('.chip').forEach(b=>b.remove());
-    TEMPOS.forEach(t=>{ const b=document.createElement('button'); b.type='button'; b.className='chip'; b.textContent=t; b.setAttribute('aria-pressed',t===bpm); b.addEventListener('click',()=>{ if(run) return; bpm=t; store.set('bpm',t); drawTempo(); idle() }); el.appendChild(b) }) }
+    TEMPOS.forEach(t=>{ const b=document.createElement('button'); b.type='button'; b.className='chip'; b.textContent=t; b.setAttribute('aria-pressed',t===bpm); b.addEventListener('click',()=>setBpm(t)); el.appendChild(b) });
+    $('bpmNow').firstChild.nodeValue=bpm }
+  function setBpm(v){ if(run||calOn) return; bpm=Math.max(40,Math.min(200,Math.round(v))); store.set('bpm',bpm); drawTempo(); idle() }
   function drawMode(){ $('mode').querySelectorAll('.chip').forEach(b=>{ b.setAttribute('aria-pressed',b.dataset.m===mode); b.onclick=()=>{ if(run) return; mode=b.dataset.m; store.set('mode',mode); drawMode(); idle() } }) }
   function keys(){ const s=$('startKey'); if(!voice){ s.innerHTML='<option>Pick a voice type</option>'; s.disabled=true; return } s.disabled=false;
     const hiK=voice.hi-top(), def=Math.max(voice.lo,Math.min(hiK,voice.l1-2)), saved=+store.get('start-'+voice.id,def), cur=Math.max(voice.lo,Math.min(hiK,saved));
@@ -128,7 +184,7 @@
   $('startKey').addEventListener('change',e=>{ if(voice) store.set('start-'+voice.id,+e.target.value) });
   function onVoice(v){ voice=v; $('voices').classList.remove('need'); $('voiceTip').hidden=true; if(run) stopRun(); drawLevels(); keys(); idle() }
   VP.voicePicker($('voices'),onVoice); if(voice) $('voiceTip').hidden=true;
-  const mp=VP.micPanel(APP,{btn:'micBtn',open:'micOpen',stat:'micStat',lvl:'micLvl',sens:'sens',vol:'vol',
+  const mp=VP.micPanel(APP,{btn:'micBtn',open:'micOpen',stat:'micStat',lvl:'micLvl',sens:'sens',vol:'vol',vol2:'vol2',ctl:'micCtl',sel:'micSel',
     idle:'"Start" asks for the microphone. Tap "Allow" when your device asks.',on:'Listening. Sing any note: the level bar turns green.'});
 
   function idle(){ if(run) return; const k=voice?+$('startKey').value:60; $('sKey').textContent=voice?VP.noteName(k):'–'; $('sBpm').textContent=bpm;
@@ -136,24 +192,33 @@
   function gradesRow(G,cur){ const p=L().pat; $('grades').innerHTML=p.map((d,i)=>{ const g=G[i]; return `<div class="g ${g?g.grade:''}${i===cur?' now':''}">${SOLF[d]||d}<small>${g?(g.c==null?'–':fmtC(g.c).replace('¢','')):'&nbsp;'}</small></div>` }).join('') }
 
   // ---------- one climb ----------
-  async function startRun(){ if(!voice){ $('voices').classList.add('need'); $('voices').scrollIntoView({block:'center',behavior:'smooth'}); msg('bad','Pick your voice type first','Tap the one that fits you, then press "Start".'); return }
-    VP.ctx(); const ok=await mp.go(); if(!ok){ msg('bad','The microphone is off','See the note under the microphone button.'); return }
-    if(innerWidth<900) try{ $('card').scrollIntoView({behavior:'smooth',block:'start'}) }catch(e){}
-    run={key:+$('startKey').value,bpm,lv:L(),mode,clean:[],tries:0,frames:[],timers:[],cur:null,startKey:+$('startKey').value,startBpm:bpm};
+  // 2026-11-26.1 fix (student feedback): a second "Start" while the first was still waiting for the microphone started a second climb
+  // (two metronomes), and "Stop" cleared the timers but not the clicks and tones already scheduled on the audio clock. Now one climb at a
+  // time (starting flag), and every stop runs VP.hush(), which silences everything already scheduled.
+  async function startRun(){ if(!voice){ $('voices').classList.add('need'); $('voices').scrollIntoView({block:'center',behavior:VA.smooth()}); msg('bad','Pick your voice type first','Tap the one that fits you, then press "Start".'); return }
+    if(starting||run||calOn) return; starting=true;
+    try{ VP.ctx(); const ok=await mp.go(); if(!ok){ msg('bad','The microphone is off','See the note under the microphone button.'); return }
+      $('results').hidden=true; await VA.quiet(); await Promise.all([VP.pianoReady(3000),VP.clickReady(3000)]) }finally{ starting=false }
+    if(run||calOn) return;
+    if(innerWidth<900) try{ $('card').scrollIntoView({behavior:VA.smooth(),block:'start'}) }catch(e){}
+    run={key:+$('startKey').value,bpm,lv:L(),mode,clean:[],tries:0,frames:[],timers:[],cur:null,startKey:+$('startKey').value,startBpm:bpm,ci:CI[ci],loop:loopOn(),withme:withMe()};
     $('results').hidden=true; $('go').textContent='Stop'; $('sClean').textContent='0'; $('sTop').textContent='–'; doKey() }
-  function stopRun(quiet){ if(!run) return; run.timers.forEach(clearTimeout); run=null; $('go').textContent='Start'; plot.targets=[]; if(!quiet) msg('','Stopped','Press "Start" to climb again.'); idle() }
+  function stopRun(quiet){ if(!run) return; run.timers.forEach(clearTimeout); run=null; VP.hush(); $('go').textContent='Start'; plot.targets=[]; if(!quiet) msg('','Stopped','Press "Start" to climb again.'); idle() }
   function at(t,fn){ const ms=Math.max(0,(t-VP.now())*1000); run.timers.push(setTimeout(fn,ms)) }
-  function doKey(){ if(!run) return; const R=run, lv=R.lv, pat=lv.pat, b=60/R.bpm, T=VP.now()+0.35, k=R.key;
+  function doKey(){ if(!run) return; const R=run, lv=R.lv, pat=lv.pat, b=60/R.bpm, T=VP.now()+0.35, k=R.key, N=R.ci||2;
+    VP.clickAvoid(pat.map(d=>k+d));   // a pitched click (woodblock) stays clear of every note you sing in this key
     let S; const tg=[];
     if(R.mode==='hear'){ pat.forEach((d,i)=>{ VP.tone(k+d,b*0.9,T+i*b,0.9); VP.click(T+i*b,false); tg.push({t0:T+i*b,t1:T+(i+0.9)*b,midi:k+d,tol:CLEAN,color:'#9aa3b2',state:'done'}) });
-      S=T+(pat.length+2)*b; VP.click(T+pat.length*b,true); VP.click(T+(pat.length+1)*b,true) }
-    else{ S=T+2*b; VP.click(T,true); VP.click(T+b,true); pat.forEach((d,i)=>VP.tone(k+d,b*0.9,S+i*b,0.9)) }
+      S=T+(pat.length+N)*b; for(let j=0;j<N;j++) VP.click(T+(pat.length+j)*b,true) }
+    else{ S=T+N*b; for(let j=0;j<N;j++) VP.click(T+j*b,true); pat.forEach((d,i)=>VP.tone(k+d,b*0.9,S+i*b,0.9)) }
+    if(R.withme&&R.mode==='hear') pat.forEach((d,i)=>VP.tone(k+d,b*0.9,S+i*b,0.3));   // Sing with me: the pattern softly under your voice
     pat.forEach((d,i)=>{ VP.click(S+i*b,false); tg.push({t0:S+i*b,t1:S+(i+0.92)*b,midi:k+d,tol:CLEAN,label:SOLF[d]}) });
     const E=S+pat.length*b;
     R.cur={k,S,E,b,notes:pat.map((d,i)=>({m:k+d,ts:S+i*b})),G:pat.map(()=>null),idx:-1}; R.frames=[];
     plot.lo=k-2; plot.hi=k+top()+2; plot.targets=tg;
     $('sKey').textContent=VP.noteName(k); $('sBpm').textContent=R.bpm; gradesRow(R.cur.G,-1);
-    msg('',R.mode==='hear'?'Listen…':'Get ready…',`Key of ${VP.pcName(k)}${R.tries?' · one more try':''}. ${R.mode==='hear'?'Two clicks, then sing it back.':'Sing with the tones after two clicks.'}`);
+    const cnt=N===2?'two clicks':N===4?'one bar of clicks':'two bars of clicks';
+    msg('',R.mode==='hear'?'Listen…':'Get ready…',`Key of ${VP.pcName(k)}${R.tries?' · one more try':''}. ${R.mode==='hear'?cnt[0].toUpperCase()+cnt.slice(1)+', then sing it back.':'Sing with the tones after '+cnt+'.'}`);
     at(S-b*0.25,()=>msg('go','Sing',R.mode==='hear'?'On the beat, one note per click.':'Sing along with the tones.'));
     at(E+0.3,gradeKey) }
 
@@ -173,7 +238,7 @@
     const v=F.filter(x=>x.t>=w0&&x.t<=w1), vs=v.filter(x=>x.m!=null).map(x=>(x.m-n.m)*100);
     const c=vs.length?VP.median(vs):null, cov=v.length?vs.length/v.length:0;
     let on=null; const o0=n.ts-0.35*b+lat, o1=n.ts+0.7*b+lat;
-    for(let i=0;i<F.length-1;i++){ const x=F[i], y=F[i+1]; if(x.t<o0||x.t>o1) continue; if(x.m!=null&&y.m!=null&&Math.abs((x.m-n.m)*100)<=NEAR&&Math.abs((y.m-n.m)*100)<=NEAR){ on=x.t-n.ts-lat; break } }
+    for(let i=0;i<F.length-1;i++){ const x=F[i], y=F[i+1]; if(x.t<o0||x.t>o1) continue; if(x.m!=null&&y.m!=null&&Math.abs((x.m-n.m)*100)<=NEAR&&Math.abs((y.m-n.m)*100)<=NEAR){ on=x.t-n.ts-lat-cal; break } }
     const grade=c==null||cov<0.25?'none':Math.abs(c)<=CLEAN?'clean':Math.abs(c)<=NEAR?'close':'off';
     return {m:n.m,c,on,grade} }
   function gradeKey(){ const R=run; if(!R) return; const C=R.cur, lat=VP.latency();
@@ -184,9 +249,9 @@
     plot.targets.forEach(T=>T.state='done');
     if(clean){ R.clean.push({k:C.k,avg,tim,bpm:R.bpm,top:C.k+top()}); R.tries=0;
       $('sClean').textContent=R.clean.length; $('sTop').textContent=VP.noteName(C.k);
-      const nk=C.k+1;
-      if(nk+top()>voice.hi){ msg('good','Top of your range','Every key clean. Nice climb.'); return at(VP.now()+1.2,()=>finish('top')) }
-      msg('good','Clean. Up a half step',`Avg ${Math.round(avg)}¢${tim!=null?' · timing '+fmtMs(tim):''}`);
+      const nk=R.loop?C.k:C.k+1;   // Loop: the same key again
+      if(!R.loop&&nk+top()>voice.hi){ msg('good','Top of your range','Every key clean. Nice climb.'); return at(VP.now()+1.2,()=>finish('top')) }
+      msg('good',R.loop?'Clean. Same key again':'Clean. Up a half step',`Avg ${Math.round(avg)}¢${tim!=null?' · timing '+fmtMs(tim):''}`);
       R.key=nk; if(R.lv.ramp) R.bpm=Math.min(200,R.bpm+R.lv.ramp); at(VP.now()+1.0,doKey) }
     else{ const worst=bad[0]||C.G.slice().sort((a,b)=>Math.abs(b.c||0)-Math.abs(a.c||0))[0];
       const why=worst.grade==='none'?`No clear note on ${SOLF[worst.m-C.k]||VP.noteName(worst.m)}. Sing out, one note per click.`:`${SOLF[worst.m-C.k]||''} (${VP.noteName(worst.m)}) was ${fmtC(worst.c)} ${worst.c>0?'sharp':'flat'}.`;
@@ -194,7 +259,7 @@
       else { msg('bad','Stuck on this key',why); R.lastWhy=why; at(VP.now()+1.4,()=>finish('miss')) } } }
   const fmtMs=s=>{ const ms=Math.round(s*1000); return Math.abs(ms)<=40?'on the beat':Math.abs(ms)+' ms '+(ms>0?'late':'early') };
 
-  function finish(why){ const R=run; if(!R) return; R.timers.forEach(clearTimeout); run=null; $('go').textContent='Start';
+  function finish(why){ const R=run; if(!R) return; R.timers.forEach(clearTimeout); run=null; VP.hush(); $('go').textContent='Start';
     const n=R.clean.length, lv=R.lv;
     $('rBig').innerHTML=n?`${VP.noteName(R.clean[n-1].k)}<small>highest clean key</small>`:`–<small>no clean key yet</small>`;
     $('rClean').textContent=n+(n===1?' key':' keys');
@@ -202,26 +267,68 @@
     const ts=R.clean.filter(x=>x.tim!=null); $('rTime').textContent=ts.length?fmtMs(ts.reduce((a,x)=>a+x.tim,0)/ts.length):'–';
     $('rRange').textContent=n?VP.noteName(R.clean[0].k)+' to '+VP.noteName(R.clean[n-1].top):'–';
     $('rLvl').textContent='L'+lv.id+' '+lv.name; $('rBpm').textContent=lv.ramp&&n?R.startBpm+' → '+R.clean[n-1].bpm+' BPM':R.startBpm+' BPM';
-    const pass=n>=PASSKEYS||(why==='top'&&n>=2); $('rPass').className='pass '+(pass?'yes':'no');
-    $('rPass').textContent=pass?`Level ${lv.id} passed: ${n} clean keys in a row.`:`${n} clean ${n===1?'key':'keys'}. Pass = ${PASSKEYS} clean keys in a row.`;
-    if(pass){ store.set('pass-'+voice.id+'-'+lv.id,true); drawLevels() }
+    const aid=R.loop||R.withme, pm=[R.loop?'Loop':'',R.withme?'Sing with me':''].filter(Boolean).join(', ');
+    const pass=n>=PASSKEYS||(why==='top'&&n>=2); $('rPass').className='pass '+(pass&&!aid?'yes':'no');
+    $('rPass').textContent=aid?`${n} clean ${n===1?'key':'keys'}. Practice mode (${pm}): levels unlock in a normal climb.`:pass?`Level ${lv.id} passed: ${n} clean keys in a row.`:`${n} clean ${n===1?'key':'keys'}. Pass = ${PASSKEYS} clean keys in a row.`;
+    if(pass&&!aid){ store.set('pass-'+voice.id+'-'+lv.id,true); drawLevels() }
     $('rWhy').textContent=why==='top'?'You reached the top of your voice type\'s range.':why==='miss'?(R.lastWhy||''):'';
-    $('rNext').hidden=!(pass&&lv.id<LEVELS.length);
-    $('rStamp').textContent=voice.name+' · '+(R.mode==='hear'?'Hear, then sing':'Sing along')+' · '+new Date().toLocaleString([], {dateStyle:'medium',timeStyle:'short'});
-    $('results').hidden=false; try{ $('rTitle').focus({preventScroll:true}) }catch(e){} }
+    $('rNext').hidden=!(pass&&!aid&&lv.id<LEVELS.length);
+    const how=(R.mode==='hear'?'Hear, then sing':'Sing along')+(pm?' · '+pm:'');
+    $('rStamp').textContent=voice.name+' · '+how+' · '+new Date().toLocaleString([], {dateStyle:'medium',timeStyle:'short'});
+    const top1=n?R.clean[n-1].k:null, main=n?`${n} clean ${n===1?'key':'keys'} · top ${VP.noteName(top1)}`:'no clean key';
+    const isNew=VA.record({voice:voice.id,vname:voice.name,lv:lv.id,lvName:lvName(lv)+(pm?' ('+pm+')':''),rank:n?n*1000+top1:0,s:main,aid});
+    VA.newBest(isNew); VA.bestLine(voice,level,lvName(L()));
+    VA.shareText=[`Scale Climber · ${lvName(lv)} · ${voice.name} · ${how}`,`${main}`+(ae!=null?` · ${Math.round(ae)}¢ average error`:'')+` · ${$('rBpm').textContent}`,
+      aid?'Practice climb':pass?`Level ${lv.id} passed`:`Pass = ${PASSKEYS} clean keys in a row`].concat(isNew?['New best']:[]).join('\n');
+    $('results').hidden=false; try{ $('rTitle').focus({preventScroll:true}) }catch(e){}
+    VA.hypePlay(lv.id) }
 
   $('go').addEventListener('click',()=>{ if(run) finish('stop'); else startRun() });
   $('hear').addEventListener('click',()=>{ if(run||!voice) return; const k=+$('startKey').value, b=60/bpm, T=VP.now()+0.1; L().pat.forEach((d,i)=>{ VP.tone(k+d,b*0.9,T+i*b,0.9) }) });
-  $('rBack').addEventListener('click',()=>{ $('results').hidden=true; idle(); msg('','Press Start','Hear the pattern, two clicks, then sing it back on the beat.') });
+  $('rBack').addEventListener('click',()=>{ VA.hypeStop(); $('results').hidden=true; idle(); msg('','Press Start','Hear the pattern, a count-in, then sing it back on the beat.'); try{ $('go').focus({preventScroll:true}) }catch(e){} });
+  // tempo: -5 / -1 / +1 / +5 and Tap (the average of your last taps; a 2-second pause starts over)
+  [['d5',-5],['d1',-1],['u1',1],['u5',5]].forEach(([id,d])=>$(id).addEventListener('click',()=>setBpm(bpm+d)));
+  let taps=[]; $('tapT').addEventListener('click',()=>{ if(run||calOn) return; const t=performance.now(); if(taps.length&&t-taps[taps.length-1]>2000) taps=[]; taps.push(t); if(taps.length>5) taps.shift();
+    if(taps.length>=2) setBpm(60000/((taps[taps.length-1]-taps[0])/(taps.length-1))) });
+  // click sound (Rhythm Trainer's list), click volume, count-in
+  function clkUI(){ const k=VP.clickKind(); $('clkSel').value=k; $('clkSafe').hidden=VP.clickSafe(k) }
+  { const k=store.get('clk','classic'); VP.clickKind(VP.CLICKS[k]?k:'classic'); clkUI() }
+  $('clkSel').addEventListener('change',e=>{ VP.clickKind(e.target.value); store.set('clk',e.target.value); clkUI() });
+  { const v=+store.get('clkvol',100); $('clkVol').value=isFinite(v)?v:100; VP.clickVol(+$('clkVol').value/100*0.8) }
+  $('clkVol').addEventListener('input',e=>{ VP.clickVol(+e.target.value/100*0.8); store.set('clkvol',+e.target.value) });
+  $('ciSel').value=ci; $('ciSel').addEventListener('change',e=>{ ci=CI[e.target.value]?e.target.value:'short'; store.set('ci',ci) });
+  // ---------- Calibrate timing (like Rhythm Trainer's): your start note, then 12 clicks; sing a short "ta" with each from the 3rd.
+  // Each onset is found the same way the timing grade finds it; the median of the offsets is saved and taken off the timing grade only.
+  function calShow(){ $('calTxt').textContent=cal?`Timing offset ${cal>0?'+':'−'}${Math.abs(Math.round(cal*1000))} ms (saved). Timing grades take it off.`:'Not calibrated: the device\'s own delay is taken off.'; $('calReset').hidden=!cal }
+  $('cal').addEventListener('click',async()=>{ if(run||calOn||starting) return; if(!voice){ $('calTxt').textContent='Pick your voice type first.'; return }
+    starting=true; try{ const ok=await mp.go(); if(!ok){ $('calTxt').textContent='Turn on the microphone first (see the note under the microphone button).'; return }
+      await VA.quiet(); await Promise.all([VP.pianoReady(3000),VP.clickReady(3000)]) }finally{ starting=false }
+    if(run||calOn) return;
+    const k=+$('startKey').value, b=60/Math.max(60,Math.min(100,bpm)), T=VP.now()+0.4, C0=T+2*b, ts=[]; VP.clickAvoid([k]);
+    VP.tone(k,b*1.6,T,0.9); for(let i=0;i<12;i++){ ts.push(C0+i*b); VP.click(C0+i*b,i<2) }
+    calOn={k,b,ts,frames:[],timer:setTimeout(calDone,(C0+12*b+0.7-VP.now())*1000)}; $('cal').disabled=true;
+    $('calTxt').textContent=`Listen: your note (${VP.noteName(k)}), 2 clicks, then sing a short "ta" with each click…` });
+  function calDone(){ const c=calOn; calOn=null; $('cal').disabled=false; if(!c) return; const lat=VP.latency(), F=c.frames, v=[], near=q=>q&&q.m!=null&&Math.abs((q.m-c.k)*100)<=NEAR;
+    for(let i=2;i<c.ts.length;i++){ const t=c.ts[i], o0=t-0.35*c.b+lat, o1=t+0.7*c.b+lat;
+      for(let j=1;j<F.length-1;j++){ const x=F[j]; if(x.t<o0||x.t>o1) continue; if(near(x)&&near(F[j+1])&&!near(F[j-1])){ v.push(x.t-t-lat); break } } }
+    if(v.length<5){ $('calTxt').textContent=`Only ${v.length} of 10 clicks had a clear "ta" on ${VP.noteName(c.k)}. Try again: short notes, one with each click.`; return }
+    cal=Math.max(-0.3,Math.min(0.3,VP.median(v))); store.set('cal',cal); calShow() }
+  $('calReset').addEventListener('click',()=>{ cal=0; store.set('cal',0); calShow() });
+  VP.listen(f=>{ if(calOn) calOn.frames.push({t:f.t,m:f.voiced&&!f.ref?f.midi:null}) });
+  calShow();
   $('rAgain').addEventListener('click',()=>{ $('results').hidden=true; startRun() });
   $('rNext').addEventListener('click',()=>{ level=Math.min(LEVELS.length,level+1); store.set('level',level); drawLevels(); keys(); $('results').hidden=true; startRun() });
-  VP.listen(f=>{ if(!$('results').hidden&&!run) return; onFrame(f) }); VP.on('stop',()=>{ if(run) stopRun() });
+  VP.listen(f=>{ if(!$('results').hidden&&!run) return; onFrame(f) }); VP.on('stop',()=>{ if(run) stopRun(); if(calOn){ clearTimeout(calOn.timer); calOn=null; $('cal').disabled=false; VP.hush(); calShow() } });
   (function loop(){ if(VP.isOn()||run){ plot.now=VP.now(); plot.trim(); plot.draw() } requestAnimationFrame(loop) })();
+  VA.keys({go:()=>$('go').click(),hear:()=>$('hear').click(),back:()=>$('rBack').click()});
+  VA.extra=()=>['Voice type: '+(voice?voice.name:'none')+' · Level: '+lvName(L())+' · '+bpm+' BPM · '+(mode==='hear'?'Hear, then sing':'Sing along'),
+    'Click: '+VP.clickKind()+(VP.clickSafe(VP.clickKind())?'':' (mic-safe classic used)')+' · Click volume: '+$('clkVol').value+'% · Count-in: '+CI[ci]+' clicks','Timing calibration: '+Math.round(cal*1000)+' ms',
+    'Loop: '+(loopOn()?'on':'off')+' · Sing with me: '+(withMe()?'on':'off')];
   drawLevels(); drawTempo(); drawMode(); keys(); idle(); plot.draw();
   if(!voice) msg('','Pick your voice type','Then press Start.');
-  window.__sc={levels:()=>LEVELS,state:()=>run&&{key:run.key,bpm:run.bpm,clean:run.clean.length,tries:run.tries,cur:run.cur&&{k:run.cur.k,S:run.cur.S,b:run.cur.b,notes:run.cur.notes}},level:()=>level};
+  window.__sc={va:VA,run:()=>run,cal:()=>cal,calOn:()=>calOn,bpm:()=>bpm,levels:()=>LEVELS,state:()=>run&&{key:run.key,bpm:run.bpm,clean:run.clean.length,tries:run.tries,cur:run.cur&&{k:run.cur.k,S:run.cur.S,b:run.cur.b,notes:run.cur.notes}},level:()=>level};
 })();
 </script>
-<p class="appver">Scale Climber · Version 2026-11-24.1</p>
+<p class="appver">Scale Climber · Version 2026-11-26.1</p>
 </body>
 </html>
