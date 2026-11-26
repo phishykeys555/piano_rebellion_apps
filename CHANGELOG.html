@@ -41,6 +41,369 @@
 </ul>
 
 <!-- ============================================================ -->
+<h2>Modal Metronome — drum-machine/</h2>
+<p class="note">Started 2026-11-03 as "Groove Metronome"; renamed Modal Metronome 2026-11-05. Sound folders: <code>drum-machine/kits/</code>, <code>drum-machine/bass/</code>, <code>drum-machine/keys/</code>.</p>
+
+<h3>Version 2026-11-25.1 (beta 2026-11-25)</h3>
+<h4>Changed</h4>
+<ul>
+  <li>Tempo Trainer layout (Practice tab): "Increase by ... BPM" and "every ... bars" share one line, and the end-speed box has its own line below. "Goal" is now "Final speed", which says that the trainer stops there. The "every" menu is as tall as the number boxes (40 px, width unchanged). Fits on one line down to a 360 px phone. Beta tester request. <code>drum-machine/index.html</code></li>
+  <li>Chord readout (the strip under the Play / Space window): one column per chord with its parent-key numeral directly under it, in a serif lead-sheet face with the quality and extension raised (D<sup>m7</sup>, G<sup>7</sup>), about three times the old size and higher contrast. The mode line ("D Dorian · parent C major") is a smaller caption underneath. While playing, the current chord shows the same way with the next chord beside it and the mode to play over it. The info window's fixed height is measured with the new strip. Display only: audio and timing are untouched. Instructor feedback. <code>drum-machine/index.html</code></li>
+</ul>
+<h3>Version 2026-11-24.4 (beta 2026-11-24)</h3>
+<h4>Changed</h4>
+<ul>
+  <li>Beat grid count labels: triplets now read 1 trip let instead of 1 &amp; a, matching the studio count (TF-11). 16ths stay 1 e &amp; a, 8ths 1 &amp;. Derek request. <code>drum-machine/index.html</code></li>
+</ul>
+
+<h3>Version 2026-11-24.3 (beta 2026-11-24)</h3>
+<h4>Added</h4>
+<ul>
+  <li>Chords tab: "Chord type" for the progressions in the list: Auto (7ths on modal and jazz, as before), Triads, or 7th chords (every chord gets its 7th; a V that does not resolve stays V7 instead of add9; the Dorian V6 rule stays). Derek request. <code>drum-machine/index.html</code></li>
+</ul>
+<h4>Changed</h4>
+<ul>
+  <li>A Custom progression plays exactly what is typed: a 7th only where written (V7, IVmaj7, ii7), for chord names, bass and keys. Before, modal and jazz settings added 7ths to every chord. Derek request.</li>
+</ul>
+<h3>Version 2026-11-24.2 (beta 2026-11-24)</h3>
+<h4>Added</h4>
+<ul>
+  <li>Practice tab: "Key changes" moves the parent key on its own while you play: circle of 5ths, circle of 4ths, chromatic up or chromatic down, every time through the chords or every 2, 4 or 8 bars. The numerals stay, so the progression follows the key. The info window shows the next key and when; Stop puts the key back where it started. Derek request. <code>drum-machine/index.html</code></li>
+</ul>
+<h3>Version 2026-11-24.1 (beta 2026-11-24)</h3>
+<h4>Added</h4>
+<ul>
+  <li>Favicon: its own icon in the browser tab, bookmarks and the home screen (<code>shared/icons/drum-machine.svg</code>, <code>-32.png</code>, <code>-180.png</code>). Beta tester request.</li>
+</ul>
+<h3>Version 2026-11-21.1 (beta 2026-11-21, live 2026-11-23)</h3>
+<h4>Changed</h4>
+<ul>
+  <li>Info window is shorter: its minimum height is measured with a realistic busy message instead of every message at once (194 px to 136 px on a phone); a longer message still grows it. Student feedback. <code>drum-machine/index.html</code></li>
+  <li>More room between the four beat lights and the info text, and a little more room before the volume percentage. Student feedback.</li>
+</ul>
+<h4>Fixed</h4>
+<ul>
+  <li>The BPM number no longer shows twice while you type a new tempo (the 2026-11-20.2 size rule overrode the hidden state). Student feedback.</li>
+  <li>Tapping a setting's name shows its help and never flips the checkbox next to it. Student feedback.</li>
+</ul>
+<h3>Version 2026-11-20.2</h3>
+<h4>Added</h4>
+<ul>
+  <li>Fixed-height info window showing the Verse / Chorus countdown and Tempo Trainer progress.</li>
+  <li>"How it works" dropdowns on every tab; Grid keyboard shortcuts in a dropdown.</li>
+  <li>Help on tab titles and on "Use the groove's own tempo".</li>
+  <li>"Reset this tab" on the Groove, Bass, Keys and Mix tabs.</li>
+  <li>Song tab grid; a Groove-tab link to the Song tab.</li>
+</ul>
+<h4>Changed</h4>
+<ul>
+  <li>BPM box keeps a steady size while typing.</li>
+  <li>Tempo Trainer on one line, worded "Increase by".</li>
+  <li>Swing and Pocket each on their own line.</li>
+  <li>Button names quoted in help text.</li>
+  <li>Bass / Keys Mix buttons renamed and moved.</li>
+  <li>Tab bar stays one row up to 899 px wide.</li>
+  <li>Student UI list from student feedback.</li>
+</ul>
+<h4>Fixed</h4>
+<ul>
+  <li>The VERSE / CHORUS tag never showed in the tabbed layout.</li>
+</ul>
+
+<h3>Version 2026-11-20.1</h3>
+<h4>Added</h4>
+<ul>
+  <li>Jazz changes section: ii-V-I major and minor, turnarounds, tritone sub, backdoor, Take the A Train, Autumn Leaves, Blue Bossa, jazz blues.</li>
+</ul>
+
+<h3>Version 2026-11-19.5</h3>
+<h4>Changed</h4>
+<ul>
+  <li>Chord progressions rebuilt from well-known songs, each with a why-it-works note.</li>
+</ul>
+
+<h3>Version 2026-11-19.4</h3>
+<h4>Added</h4>
+<ul>
+  <li>"Train while jammin'" why-it-works box for every progression.</li>
+</ul>
+<h4>Changed</h4>
+<ul>
+  <li>7th chords by default on modal progressions; the menu shows chords as they are played.</li>
+</ul>
+
+<h3>Version 2026-11-19.3</h3>
+<h4>Changed</h4>
+<ul>
+  <li>In Dorian, V plays as V6 (no tritone pull) unless typed V7.</li>
+</ul>
+
+<h3>Version 2026-11-19.2</h3>
+<h4>Changed</h4>
+<ul>
+  <li>Better Dorian progressions (Oye Como Va, Get Lucky, Mad World, Moondance, So What shapes).</li>
+</ul>
+
+<h3>Version 2026-11-19.1</h3>
+<h4>Fixed</h4>
+<ul>
+  <li>Manual bass or keys with an empty piano roll plays the auto part instead of silence.</li>
+</ul>
+
+<h3>Version 2026-11-13.5</h3>
+<h4>Added</h4>
+<ul>
+  <li>"Share current setup" link (full setup in the link, short link when available, copy embed link).</li>
+  <li>Choose which presets to export.</li>
+</ul>
+<h4>Changed</h4>
+<ul>
+  <li>Header shows "Share this app" instead of the version label; transport nudge buttons on one row.</li>
+</ul>
+<h4>Fixed</h4>
+<ul>
+  <li>iOS preset export no longer adds a stray text file.</li>
+</ul>
+
+<h3>Version 2026-11-13.4</h3>
+<h4>Changed</h4>
+<ul>
+  <li>Shared toast messages, steady status text, larger BPM slider thumb.</li>
+</ul>
+<h4>Fixed</h4>
+<ul>
+  <li>Preset import on iOS.</li>
+</ul>
+
+<h3>Version 2026-11-13.3</h3>
+<h4>Added</h4>
+<ul>
+  <li>Share button (<code>shared/share.js</code>).</li>
+</ul>
+<h4>Changed</h4>
+<ul>
+  <li>Bass is on at first run.</li>
+</ul>
+
+<h3>Version 2026-11-13.2</h3>
+<h4>Changed</h4>
+<ul>
+  <li>First run starts Basic Rock at 90 BPM (was 80). Saved settings and song links unchanged.</li>
+</ul>
+
+<h3>Version 2026-11-13.1</h3>
+<h4>Changed</h4>
+<ul>
+  <li>Custom chords read every standard chord symbol: letters, Roman numerals, slash chords, secondary dominants. Bass plays the slash bass.</li>
+</ul>
+
+<h3>Version 2026-11-12.5.1</h3>
+<h4>Changed</h4>
+<ul>
+  <li>Custom chords accept FM7, Maj7, triangle and ^7, D-7, mi7 and hyphen-separated lists; unrecognized chords are flagged.</li>
+</ul>
+
+<h3>Version 2026-11-12.5</h3>
+<h4>Added</h4>
+<ul>
+  <li>Pro Tools-style mix window: channel strips, insert plugins (EQ, compressor, saturation, transient shaper), master chain with loudness readout and presets; the chain goes into the MP3.</li>
+  <li>Keys arpeggio comping (several patterns, rates and octave ranges).</li>
+</ul>
+
+<h3>Version 2026-11-12.4</h3>
+<h4>Changed</h4>
+<ul>
+  <li>Roman numerals always count from the parent major key (studio rule locked 2026-11-13); mode-relative numerals removed everywhere.</li>
+  <li>Switching grooves keeps tempo, key, chords, bass/keys and mix, and lands on the next bar line; new opt-in "Use the groove's own tempo".</li>
+  <li>Mixer added to the Mix tab; keys timing matched to the bass; one-screen desktop layout.</li>
+</ul>
+
+<h3>Version 2026-11-12.3</h3>
+<h4>Fixed</h4>
+<ul>
+  <li>Every ghost note is written in the grid and audible.</li>
+</ul>
+
+<h3>Version 2026-11-12.2.1</h3>
+<h4>Changed</h4>
+<ul>
+  <li>Two odd-meter (7/4, 7/8) grooves renamed to drop a song title.</li>
+</ul>
+
+<h3>Version 2026-11-12.2</h3>
+<h4>Changed</h4>
+<ul>
+  <li>Tighter, funkier, more human bass.</li>
+</ul>
+
+<h3>Version 2026-11-12.1.1</h3>
+<h4>Changed</h4>
+<ul>
+  <li>Custom chords read "A m", "A minor" and lowercase as minor; chords outside the key say so.</li>
+</ul>
+
+<h3>Version 2026-11-12.1</h3>
+<h4>Added</h4>
+<ul>
+  <li>Piano roll for bass and keys (Auto / Manual, copy auto to roll, chord stamp).</li>
+  <li>MP3 export by number of times through.</li>
+</ul>
+
+<h3>Version 2026-11-11.25</h3>
+<p class="note">Numbering jumped from 11.18.1 to 11.25; 11.19 through 11.24 not recorded.</p>
+<h4>Added</h4>
+<ul>
+  <li>Real keys: grand piano, tine electric piano, Wurli, tonewheel organ.</li>
+  <li>Drum rolls, brushes, grid velocity levels, groove dynamics, song grooves.</li>
+</ul>
+<h4>Changed</h4>
+<ul>
+  <li>Mode-aware chords; old key samples removed.</li>
+</ul>
+
+<h3>Version 2026-11-11.18.1</h3>
+<h4>Changed</h4>
+<ul>
+  <li>Real side stick and snares.</li>
+</ul>
+
+<h3>Version 2026-11-11.18</h3>
+<h4>Changed</h4>
+<ul>
+  <li>Deleting a preset asks in a modal dialog (beta tester request).</li>
+</ul>
+
+<h3>Version 2026-11-11.17</h3>
+<h4>Fixed</h4>
+<ul>
+  <li>Tab bar sticks in full screen on phones; Notion embed unchanged.</li>
+</ul>
+
+<h3>Version 2026-11-11.16</h3>
+<h4>Changed</h4>
+<ul>
+  <li>SVG icons replace emojis; numbered medals (beta tester request).</li>
+</ul>
+
+<h3>Version 2026-11-11.15</h3>
+<h4>Added</h4>
+<ul>
+  <li><code>.metronome</code> preset file export and import.</li>
+</ul>
+<h4>Changed</h4>
+<ul>
+  <li>Presets save time signature and exact settings; stored data is forward-compatible.</li>
+</ul>
+
+<h3>Version 2026-11-11.14</h3>
+<h4>Changed</h4>
+<ul>
+  <li>Reset in the Groove tab, no sticky header on small screens, no vertical tab scroll, typed BPM entry (beta tester request).</li>
+</ul>
+
+<h3>Version 2026-11-11.13</h3>
+<h4>Changed</h4>
+<ul>
+  <li>Tabs grouped by what they control (drums, band, song, tools).</li>
+</ul>
+
+<h3>Version 2026-11-11.12</h3>
+<h4>Added</h4>
+<ul>
+  <li>"Back to this song's settings" button when this device's saved settings differ from the song page link.</li>
+</ul>
+
+<h3>Version 2026-11-11.11</h3>
+<h4>Changed</h4>
+<ul>
+  <li>Tabs in full screen; Simple / Advanced switch removed; Song tab second with a Verse / Chorus signpost.</li>
+</ul>
+
+<h3>Version 2026-11-11.10</h3>
+<h4>Fixed</h4>
+<ul>
+  <li>Picking a groove by hand turns Verse / Chorus off (it kept switching back to the Verse groove every bar).</li>
+</ul>
+
+<h3>Versions 2026-11-11.5 to 2026-11-11.9</h3>
+<h4>Fixed</h4>
+<ul>
+  <li>11.9: stuck "Loading sounds" when audio resume never settles; backup scheduler under load.</li>
+  <li>11.8: Play during export, swing calculation error, preset name validation, grid clamp, single sample load and animation loop.</li>
+  <li>11.7: damaged practice log, preset validation, streak rule, duplicate bass style, tap targets.</li>
+  <li>11.6: Space key double action, keyboard-only use, corrupt saved state, export errors, loading state.</li>
+  <li>11.5: stall-safe scheduling, iOS interruption and ringer-switch recovery, single start.</li>
+</ul>
+
+<h3>Versions 2026-11-11.1 to 2026-11-11.4</h3>
+<h4>Added</h4>
+<ul>
+  <li>11.1: Time signature menu replaces Beats / Notes; Blue Rondo preset.</li>
+  <li>11.2: hover / tap help on every setting; Reset settings keeps the log and presets; collapsible credits (beta tester request).</li>
+</ul>
+<h4>Changed</h4>
+<ul>
+  <li>11.3: restyled to the shared CHMA design system (<code>shared/chma.css</code>).</li>
+  <li>11.4: audit round (no separate notes recorded).</li>
+</ul>
+
+<h3>Versions 2026-11-10.1 to 2026-11-10.7</h3>
+<h4>Added</h4>
+<ul>
+  <li>10.4: auto-update (an old cached copy checks the live version and reloads once, keeping settings).</li>
+</ul>
+<h4>Changed</h4>
+<ul>
+  <li>10.5 / 10.7: inside Notion the transport stays pinned on top, sections become tabs, and the Simple / Advanced switch is gone.</li>
+  <li>10.6: Sound tab renamed "Drum sounds".</li>
+</ul>
+<h4>Fixed</h4>
+<ul>
+  <li>10.1 to 10.3: no audio glitches or stutter when switching screens on iPad or in a background Safari tab; bigger audio buffer; Stop silences instantly.</li>
+</ul>
+
+<h3>Versions 2026-11-06.1 to 2026-11-06.17</h3>
+<p class="note">06.5 and 06.8 not recorded.</p>
+<h4>Added</h4>
+<ul>
+  <li>06.2: Keys section with Rhodes chord comping.</li>
+  <li>06.4: three real acoustic basses (upright, gut-string upright, bowed).</li>
+  <li>06.7: export ends with a Save MP3 button.</li>
+  <li>06.9: comping phrase library.</li>
+  <li>06.10 / 06.11: grand piano and synth pads for Keys.</li>
+  <li>06.13: Harmony section (parent key, mode, chords, custom chords, chord speed).</li>
+  <li>06.14: display shows the mode of each chord as it plays.</li>
+  <li>06.15: six new Keys sounds.</li>
+  <li>06.16 / 06.17: two real jazz drum kits with ride and hi-hats.</li>
+</ul>
+<h4>Changed</h4>
+<ul>
+  <li>06.1: real studio slap bass.</li>
+  <li>06.3: tempo trainer only ever speeds up.</li>
+  <li>06.6: chord-tone guard (bass never plays a wrong 3rd or 7th for the chord).</li>
+  <li>06.12: automatic extensions follow function (V is dominant 7 only when it resolves).</li>
+</ul>
+<h4>Fixed</h4>
+<ul>
+  <li>06.15: hotfix, the page would not load in 06.14.</li>
+</ul>
+
+<h3>(version not recorded) 2026-11-03 to 2026-11-05</h3>
+<h4>Added</h4>
+<ul>
+  <li>First release as Groove Metronome (drum machine + bass) from the Notion embed; song settings from the link.</li>
+  <li>Chord quality follows the chosen mode; parent-key theory (key = parent major, mode = the degree you start on).</li>
+  <li>Studio basses, hi-hats and rides, acoustic kits; bass variation layer; "Change it up".</li>
+  <li>Funk, Latin, World, Modern Jazz and Traditional Jazz groove sections; pocket engine and idiomatic bass engine.</li>
+  <li>Export loop to MP3.</li>
+</ul>
+<h4>Changed</h4>
+<ul>
+  <li>Renamed Groove Metronome to Modal Metronome (2026-11-05).</li>
+  <li>Volume on a fader taper; bass lines kept in real bass range.</li>
+</ul>
+
+<!-- ============================================================ -->
 <h2>Hanon Speed Trainer — hanon-player/</h2>
 <p class="note">Tracks in <code>hanon-player/ex1/</code> and <code>hanon-player/ex2/</code>.</p>
 <h3>Version 2026-11-25.1 (beta 2026-11-25)</h3>
@@ -649,363 +1012,6 @@
 <h4>Added</h4>
 <ul>
   <li>First release: piano key identification game (no staff); name the glowing key or find the named key; 5 levels.</li>
-</ul>
-
-<!-- ============================================================ -->
-<h2>Modal Metronome — drum-machine/</h2>
-<p class="note">Started 2026-11-03 as "Groove Metronome"; renamed Modal Metronome 2026-11-05. Sound folders: <code>drum-machine/kits/</code>, <code>drum-machine/bass/</code>, <code>drum-machine/keys/</code>.</p>
-
-<h3>Version 2026-11-24.4 (beta 2026-11-24)</h3>
-<h4>Changed</h4>
-<ul>
-  <li>Beat grid count labels: triplets now read 1 trip let instead of 1 &amp; a, matching the studio count (TF-11). 16ths stay 1 e &amp; a, 8ths 1 &amp;. Derek request. <code>drum-machine/index.html</code></li>
-</ul>
-
-<h3>Version 2026-11-24.3 (beta 2026-11-24)</h3>
-<h4>Added</h4>
-<ul>
-  <li>Chords tab: "Chord type" for the progressions in the list: Auto (7ths on modal and jazz, as before), Triads, or 7th chords (every chord gets its 7th; a V that does not resolve stays V7 instead of add9; the Dorian V6 rule stays). Derek request. <code>drum-machine/index.html</code></li>
-</ul>
-<h4>Changed</h4>
-<ul>
-  <li>A Custom progression plays exactly what is typed: a 7th only where written (V7, IVmaj7, ii7), for chord names, bass and keys. Before, modal and jazz settings added 7ths to every chord. Derek request.</li>
-</ul>
-<h3>Version 2026-11-24.2 (beta 2026-11-24)</h3>
-<h4>Added</h4>
-<ul>
-  <li>Practice tab: "Key changes" moves the parent key on its own while you play: circle of 5ths, circle of 4ths, chromatic up or chromatic down, every time through the chords or every 2, 4 or 8 bars. The numerals stay, so the progression follows the key. The info window shows the next key and when; Stop puts the key back where it started. Derek request. <code>drum-machine/index.html</code></li>
-</ul>
-<h3>Version 2026-11-24.1 (beta 2026-11-24)</h3>
-<h4>Added</h4>
-<ul>
-  <li>Favicon: its own icon in the browser tab, bookmarks and the home screen (<code>shared/icons/drum-machine.svg</code>, <code>-32.png</code>, <code>-180.png</code>). Beta tester request.</li>
-</ul>
-<h3>Version 2026-11-21.1 (beta 2026-11-21, live 2026-11-23)</h3>
-<h4>Changed</h4>
-<ul>
-  <li>Info window is shorter: its minimum height is measured with a realistic busy message instead of every message at once (194 px to 136 px on a phone); a longer message still grows it. Student feedback. <code>drum-machine/index.html</code></li>
-  <li>More room between the four beat lights and the info text, and a little more room before the volume percentage. Student feedback.</li>
-</ul>
-<h4>Fixed</h4>
-<ul>
-  <li>The BPM number no longer shows twice while you type a new tempo (the 2026-11-20.2 size rule overrode the hidden state). Student feedback.</li>
-  <li>Tapping a setting's name shows its help and never flips the checkbox next to it. Student feedback.</li>
-</ul>
-<h3>Version 2026-11-20.2</h3>
-<h4>Added</h4>
-<ul>
-  <li>Fixed-height info window showing the Verse / Chorus countdown and Tempo Trainer progress.</li>
-  <li>"How it works" dropdowns on every tab; Grid keyboard shortcuts in a dropdown.</li>
-  <li>Help on tab titles and on "Use the groove's own tempo".</li>
-  <li>"Reset this tab" on the Groove, Bass, Keys and Mix tabs.</li>
-  <li>Song tab grid; a Groove-tab link to the Song tab.</li>
-</ul>
-<h4>Changed</h4>
-<ul>
-  <li>BPM box keeps a steady size while typing.</li>
-  <li>Tempo Trainer on one line, worded "Increase by".</li>
-  <li>Swing and Pocket each on their own line.</li>
-  <li>Button names quoted in help text.</li>
-  <li>Bass / Keys Mix buttons renamed and moved.</li>
-  <li>Tab bar stays one row up to 899 px wide.</li>
-  <li>Student UI list from student feedback.</li>
-</ul>
-<h4>Fixed</h4>
-<ul>
-  <li>The VERSE / CHORUS tag never showed in the tabbed layout.</li>
-</ul>
-
-<h3>Version 2026-11-20.1</h3>
-<h4>Added</h4>
-<ul>
-  <li>Jazz changes section: ii-V-I major and minor, turnarounds, tritone sub, backdoor, Take the A Train, Autumn Leaves, Blue Bossa, jazz blues.</li>
-</ul>
-
-<h3>Version 2026-11-19.5</h3>
-<h4>Changed</h4>
-<ul>
-  <li>Chord progressions rebuilt from well-known songs, each with a why-it-works note.</li>
-</ul>
-
-<h3>Version 2026-11-19.4</h3>
-<h4>Added</h4>
-<ul>
-  <li>"Train while jammin'" why-it-works box for every progression.</li>
-</ul>
-<h4>Changed</h4>
-<ul>
-  <li>7th chords by default on modal progressions; the menu shows chords as they are played.</li>
-</ul>
-
-<h3>Version 2026-11-19.3</h3>
-<h4>Changed</h4>
-<ul>
-  <li>In Dorian, V plays as V6 (no tritone pull) unless typed V7.</li>
-</ul>
-
-<h3>Version 2026-11-19.2</h3>
-<h4>Changed</h4>
-<ul>
-  <li>Better Dorian progressions (Oye Como Va, Get Lucky, Mad World, Moondance, So What shapes).</li>
-</ul>
-
-<h3>Version 2026-11-19.1</h3>
-<h4>Fixed</h4>
-<ul>
-  <li>Manual bass or keys with an empty piano roll plays the auto part instead of silence.</li>
-</ul>
-
-<h3>Version 2026-11-13.5</h3>
-<h4>Added</h4>
-<ul>
-  <li>"Share current setup" link (full setup in the link, short link when available, copy embed link).</li>
-  <li>Choose which presets to export.</li>
-</ul>
-<h4>Changed</h4>
-<ul>
-  <li>Header shows "Share this app" instead of the version label; transport nudge buttons on one row.</li>
-</ul>
-<h4>Fixed</h4>
-<ul>
-  <li>iOS preset export no longer adds a stray text file.</li>
-</ul>
-
-<h3>Version 2026-11-13.4</h3>
-<h4>Changed</h4>
-<ul>
-  <li>Shared toast messages, steady status text, larger BPM slider thumb.</li>
-</ul>
-<h4>Fixed</h4>
-<ul>
-  <li>Preset import on iOS.</li>
-</ul>
-
-<h3>Version 2026-11-13.3</h3>
-<h4>Added</h4>
-<ul>
-  <li>Share button (<code>shared/share.js</code>).</li>
-</ul>
-<h4>Changed</h4>
-<ul>
-  <li>Bass is on at first run.</li>
-</ul>
-
-<h3>Version 2026-11-13.2</h3>
-<h4>Changed</h4>
-<ul>
-  <li>First run starts Basic Rock at 90 BPM (was 80). Saved settings and song links unchanged.</li>
-</ul>
-
-<h3>Version 2026-11-13.1</h3>
-<h4>Changed</h4>
-<ul>
-  <li>Custom chords read every standard chord symbol: letters, Roman numerals, slash chords, secondary dominants. Bass plays the slash bass.</li>
-</ul>
-
-<h3>Version 2026-11-12.5.1</h3>
-<h4>Changed</h4>
-<ul>
-  <li>Custom chords accept FM7, Maj7, triangle and ^7, D-7, mi7 and hyphen-separated lists; unrecognized chords are flagged.</li>
-</ul>
-
-<h3>Version 2026-11-12.5</h3>
-<h4>Added</h4>
-<ul>
-  <li>Pro Tools-style mix window: channel strips, insert plugins (EQ, compressor, saturation, transient shaper), master chain with loudness readout and presets; the chain goes into the MP3.</li>
-  <li>Keys arpeggio comping (several patterns, rates and octave ranges).</li>
-</ul>
-
-<h3>Version 2026-11-12.4</h3>
-<h4>Changed</h4>
-<ul>
-  <li>Roman numerals always count from the parent major key (studio rule locked 2026-11-13); mode-relative numerals removed everywhere.</li>
-  <li>Switching grooves keeps tempo, key, chords, bass/keys and mix, and lands on the next bar line; new opt-in "Use the groove's own tempo".</li>
-  <li>Mixer added to the Mix tab; keys timing matched to the bass; one-screen desktop layout.</li>
-</ul>
-
-<h3>Version 2026-11-12.3</h3>
-<h4>Fixed</h4>
-<ul>
-  <li>Every ghost note is written in the grid and audible.</li>
-</ul>
-
-<h3>Version 2026-11-12.2.1</h3>
-<h4>Changed</h4>
-<ul>
-  <li>Two odd-meter (7/4, 7/8) grooves renamed to drop a song title.</li>
-</ul>
-
-<h3>Version 2026-11-12.2</h3>
-<h4>Changed</h4>
-<ul>
-  <li>Tighter, funkier, more human bass.</li>
-</ul>
-
-<h3>Version 2026-11-12.1.1</h3>
-<h4>Changed</h4>
-<ul>
-  <li>Custom chords read "A m", "A minor" and lowercase as minor; chords outside the key say so.</li>
-</ul>
-
-<h3>Version 2026-11-12.1</h3>
-<h4>Added</h4>
-<ul>
-  <li>Piano roll for bass and keys (Auto / Manual, copy auto to roll, chord stamp).</li>
-  <li>MP3 export by number of times through.</li>
-</ul>
-
-<h3>Version 2026-11-11.25</h3>
-<p class="note">Numbering jumped from 11.18.1 to 11.25; 11.19 through 11.24 not recorded.</p>
-<h4>Added</h4>
-<ul>
-  <li>Real keys: grand piano, tine electric piano, Wurli, tonewheel organ.</li>
-  <li>Drum rolls, brushes, grid velocity levels, groove dynamics, song grooves.</li>
-</ul>
-<h4>Changed</h4>
-<ul>
-  <li>Mode-aware chords; old key samples removed.</li>
-</ul>
-
-<h3>Version 2026-11-11.18.1</h3>
-<h4>Changed</h4>
-<ul>
-  <li>Real side stick and snares.</li>
-</ul>
-
-<h3>Version 2026-11-11.18</h3>
-<h4>Changed</h4>
-<ul>
-  <li>Deleting a preset asks in a modal dialog (beta tester request).</li>
-</ul>
-
-<h3>Version 2026-11-11.17</h3>
-<h4>Fixed</h4>
-<ul>
-  <li>Tab bar sticks in full screen on phones; Notion embed unchanged.</li>
-</ul>
-
-<h3>Version 2026-11-11.16</h3>
-<h4>Changed</h4>
-<ul>
-  <li>SVG icons replace emojis; numbered medals (beta tester request).</li>
-</ul>
-
-<h3>Version 2026-11-11.15</h3>
-<h4>Added</h4>
-<ul>
-  <li><code>.metronome</code> preset file export and import.</li>
-</ul>
-<h4>Changed</h4>
-<ul>
-  <li>Presets save time signature and exact settings; stored data is forward-compatible.</li>
-</ul>
-
-<h3>Version 2026-11-11.14</h3>
-<h4>Changed</h4>
-<ul>
-  <li>Reset in the Groove tab, no sticky header on small screens, no vertical tab scroll, typed BPM entry (beta tester request).</li>
-</ul>
-
-<h3>Version 2026-11-11.13</h3>
-<h4>Changed</h4>
-<ul>
-  <li>Tabs grouped by what they control (drums, band, song, tools).</li>
-</ul>
-
-<h3>Version 2026-11-11.12</h3>
-<h4>Added</h4>
-<ul>
-  <li>"Back to this song's settings" button when this device's saved settings differ from the song page link.</li>
-</ul>
-
-<h3>Version 2026-11-11.11</h3>
-<h4>Changed</h4>
-<ul>
-  <li>Tabs in full screen; Simple / Advanced switch removed; Song tab second with a Verse / Chorus signpost.</li>
-</ul>
-
-<h3>Version 2026-11-11.10</h3>
-<h4>Fixed</h4>
-<ul>
-  <li>Picking a groove by hand turns Verse / Chorus off (it kept switching back to the Verse groove every bar).</li>
-</ul>
-
-<h3>Versions 2026-11-11.5 to 2026-11-11.9</h3>
-<h4>Fixed</h4>
-<ul>
-  <li>11.9: stuck "Loading sounds" when audio resume never settles; backup scheduler under load.</li>
-  <li>11.8: Play during export, swing calculation error, preset name validation, grid clamp, single sample load and animation loop.</li>
-  <li>11.7: damaged practice log, preset validation, streak rule, duplicate bass style, tap targets.</li>
-  <li>11.6: Space key double action, keyboard-only use, corrupt saved state, export errors, loading state.</li>
-  <li>11.5: stall-safe scheduling, iOS interruption and ringer-switch recovery, single start.</li>
-</ul>
-
-<h3>Versions 2026-11-11.1 to 2026-11-11.4</h3>
-<h4>Added</h4>
-<ul>
-  <li>11.1: Time signature menu replaces Beats / Notes; Blue Rondo preset.</li>
-  <li>11.2: hover / tap help on every setting; Reset settings keeps the log and presets; collapsible credits (beta tester request).</li>
-</ul>
-<h4>Changed</h4>
-<ul>
-  <li>11.3: restyled to the shared CHMA design system (<code>shared/chma.css</code>).</li>
-  <li>11.4: audit round (no separate notes recorded).</li>
-</ul>
-
-<h3>Versions 2026-11-10.1 to 2026-11-10.7</h3>
-<h4>Added</h4>
-<ul>
-  <li>10.4: auto-update (an old cached copy checks the live version and reloads once, keeping settings).</li>
-</ul>
-<h4>Changed</h4>
-<ul>
-  <li>10.5 / 10.7: inside Notion the transport stays pinned on top, sections become tabs, and the Simple / Advanced switch is gone.</li>
-  <li>10.6: Sound tab renamed "Drum sounds".</li>
-</ul>
-<h4>Fixed</h4>
-<ul>
-  <li>10.1 to 10.3: no audio glitches or stutter when switching screens on iPad or in a background Safari tab; bigger audio buffer; Stop silences instantly.</li>
-</ul>
-
-<h3>Versions 2026-11-06.1 to 2026-11-06.17</h3>
-<p class="note">06.5 and 06.8 not recorded.</p>
-<h4>Added</h4>
-<ul>
-  <li>06.2: Keys section with Rhodes chord comping.</li>
-  <li>06.4: three real acoustic basses (upright, gut-string upright, bowed).</li>
-  <li>06.7: export ends with a Save MP3 button.</li>
-  <li>06.9: comping phrase library.</li>
-  <li>06.10 / 06.11: grand piano and synth pads for Keys.</li>
-  <li>06.13: Harmony section (parent key, mode, chords, custom chords, chord speed).</li>
-  <li>06.14: display shows the mode of each chord as it plays.</li>
-  <li>06.15: six new Keys sounds.</li>
-  <li>06.16 / 06.17: two real jazz drum kits with ride and hi-hats.</li>
-</ul>
-<h4>Changed</h4>
-<ul>
-  <li>06.1: real studio slap bass.</li>
-  <li>06.3: tempo trainer only ever speeds up.</li>
-  <li>06.6: chord-tone guard (bass never plays a wrong 3rd or 7th for the chord).</li>
-  <li>06.12: automatic extensions follow function (V is dominant 7 only when it resolves).</li>
-</ul>
-<h4>Fixed</h4>
-<ul>
-  <li>06.15: hotfix, the page would not load in 06.14.</li>
-</ul>
-
-<h3>(version not recorded) 2026-11-03 to 2026-11-05</h3>
-<h4>Added</h4>
-<ul>
-  <li>First release as Groove Metronome (drum machine + bass) from the Notion embed; song settings from the link.</li>
-  <li>Chord quality follows the chosen mode; parent-key theory (key = parent major, mode = the degree you start on).</li>
-  <li>Studio basses, hi-hats and rides, acoustic kits; bass variation layer; "Change it up".</li>
-  <li>Funk, Latin, World, Modern Jazz and Traditional Jazz groove sections; pocket engine and idiomatic bass engine.</li>
-  <li>Export loop to MP3.</li>
-</ul>
-<h4>Changed</h4>
-<ul>
-  <li>Renamed Groove Metronome to Modal Metronome (2026-11-05).</li>
-  <li>Volume on a fader taper; bass lines kept in real bass range.</li>
 </ul>
 
 <!-- ============================================================ -->
