@@ -41,6 +41,54 @@
 </ul>
 
 <!-- ============================================================ -->
+<h2>Hanon Speed Trainer — hanon-player/</h2>
+<p class="note">Tracks in <code>hanon-player/ex1/</code> and <code>hanon-player/ex2/</code>.</p>
+<h3>Version 2026-11-25.1 (beta 2026-11-25)</h3>
+<h4>Added</h4>
+<ul>
+  <li>Fine tempo: -5, -1, +1 and +5 buttons (Shift with an arrow key is 1 BPM). Between two recorded tracks the nearest track is stretched with the pitch kept (playback rate), and a small line says which track it is stretched from. Playing keeps going and keeps its place. Instructor feedback. <code>hanon-player/index.html</code></li>
+  <li>Tap tempo: tap the beat four times or more to set the tempo (also the T key); taps more than 2 seconds apart start over.</li>
+  <li>Volume slider, remembered on the device (hidden on browsers that do not allow page volume, such as iPhone).</li>
+  <li>My progress card, saved on the device only (<code>hanon_best</code>, <code>hanon_hist</code>, <code>hanon_days</code>, <code>hanon_secs</code>, <code>hanon_vol</code>): "I played it clean" logs the tempo, best clean tempo per exercise and hand shown against the level goal, the last 5 runs, a practice-day streak (a day with 30 seconds of a track playing or a logged run), Clear history with a second tap to confirm, and Share result through <code>shared/share.js</code>.</li>
+  <li>How it works panel with the keyboard shortcuts (Space, arrows, Shift+arrow, L loop, R start over, T tap, C played it clean).</li>
+  <li>Not added on purpose: microphone picker, timing calibration (the app does not listen or grade), count-in and click sounds (the tracks have no click), sound choices (the tracks are fixed recordings).</li>
+</ul>
+<h4>Changed</h4>
+<ul>
+  <li>Tempo can now be any whole BPM from 50 to 280, not only multiples of 10. Saved tempos from older versions still load; the goal line counts BPM to go instead of tracks to go.</li>
+  <li>Removed the level stop indicator (the small vertical bar on the tempo buttons and its legend line); the colored goal dots already show where each level starts and stops. Beta tester request. <code>hanon-player/index.html</code></li>
+</ul>
+<h3>Version 2026-11-24.1 (beta 2026-11-24)</h3>
+<h4>Added</h4>
+<ul>
+  <li>Favicon: its own icon in the browser tab, bookmarks and the home screen (<code>shared/icons/hanon-player.svg</code>, <code>-32.png</code>, <code>-180.png</code>). Beta tester request.</li>
+</ul>
+<h3>Version 2026-11-20.1</h3>
+<h4>Changed</h4>
+<ul>
+  <li>Button names in help text are now in quotes (e.g. Press "Start"), a house rule for every app.</li>
+</ul>
+
+<h3>Version 2026-11-13.1</h3>
+<h4>Added</h4>
+<ul>
+  <li>Share button.</li>
+</ul>
+<h3>Versions 2026-11-11.1 to 2026-11-11.7</h3>
+<h4>Added</h4>
+<ul>
+  <li>11.1: first release, one player per exercise, 24 tempos, age-level goals.</li>
+</ul>
+<h4>Changed</h4>
+<ul>
+  <li>11.2: restyled to the shared CHMA design system.</li>
+</ul>
+<h4>Fixed</h4>
+<ul>
+  <li>11.3 to 11.7: audit rounds (tempo steps, lock / call recovery, 320 px level row, tap targets, fractional level crash).</li>
+</ul>
+
+<!-- ============================================================ -->
 <h2>Ear Trainer — ear-trainer/</h2>
 
 <h3>Version 2026-11-25.1 (beta 2026-11-25)</h3>
@@ -1303,39 +1351,6 @@
 <ul>
   <li>11.5: hum rejection, inharmonicity correction, quiet input, sympathetic strings.</li>
   <li>11.6: wake lock release, mic cancel and resume on tap.</li>
-</ul>
-
-<!-- ============================================================ -->
-<h2>Hanon Speed Trainer — hanon-player/</h2>
-<p class="note">Tracks in <code>hanon-player/ex1/</code> and <code>hanon-player/ex2/</code>.</p>
-<h3>Version 2026-11-24.1 (beta 2026-11-24)</h3>
-<h4>Added</h4>
-<ul>
-  <li>Favicon: its own icon in the browser tab, bookmarks and the home screen (<code>shared/icons/hanon-player.svg</code>, <code>-32.png</code>, <code>-180.png</code>). Beta tester request.</li>
-</ul>
-<h3>Version 2026-11-20.1</h3>
-<h4>Changed</h4>
-<ul>
-  <li>Button names in help text are now in quotes (e.g. Press "Start"), a house rule for every app.</li>
-</ul>
-
-<h3>Version 2026-11-13.1</h3>
-<h4>Added</h4>
-<ul>
-  <li>Share button.</li>
-</ul>
-<h3>Versions 2026-11-11.1 to 2026-11-11.7</h3>
-<h4>Added</h4>
-<ul>
-  <li>11.1: first release, one player per exercise, 24 tempos, age-level goals.</li>
-</ul>
-<h4>Changed</h4>
-<ul>
-  <li>11.2: restyled to the shared CHMA design system.</li>
-</ul>
-<h4>Fixed</h4>
-<ul>
-  <li>11.3 to 11.7: audit rounds (tempo steps, lock / call recovery, 320 px level row, tap targets, fractional level crash).</li>
 </ul>
 
 <!-- ============================================================ -->
