@@ -44,6 +44,27 @@
 <h2>Modal Metronome — drum-machine/</h2>
 <p class="note">Started 2026-11-03 as "Groove Metronome"; renamed Modal Metronome 2026-11-05. Sound folders: <code>drum-machine/kits/</code>, <code>drum-machine/bass/</code>, <code>drum-machine/keys/</code>.</p>
 
+<h3>Version 2026-11-27.7 (beta 2026-11-27)</h3>
+<h4>Added</h4>
+<ul>
+  <li>True performances. 64 grooves now play a real drummer's own notes for a whole 2-, 4- or 8-bar cycle: which strokes he played and how hard, every ghost note, kick double and open hat. Before, bar 1 was always the written pattern and the drummer only shaded it. 36 grooves take all of his notes; 28 (22 song transcriptions and 6 near matches such as Bossa Nova, Ballad, Slow Blues and Texas Shuffle) keep their written kick, backbeat and hat pattern and take his strengths and his ghost notes. The meter stays locked: every note sits on the groove's own grid and swing, and none of the dataset's timing is used. Source: Groove MIDI Dataset (CC BY 4.0), modified by CHMA.</li>
+  <li>Drags: where the drummer played a second, softer snare stroke inside one step, it is kept, exactly half a step from the main stroke (58 across the grooves).</li>
+  <li>Grooves with no matching performance (the odd meters, Latin percussion, Punk, One Drop and others) now draw their detail from what the dataset's drummers of that style do: ghost notes fall on the steps where those drummers put them, with their real spread of strengths, and each hat, kick and backbeat stroke varies by the measured amount (half of it at the default Humanize) instead of a fixed rule.</li>
+  <li>New strokes in use: the Rock kit's china on some landings into a lifted section, the Vintage kit's snare-edge recording for some soft ghost notes, and the Studio kit's rim-click for softer cross-sticks.</li>
+</ul>
+<h4>Changed</h4>
+<ul>
+  <li>Owner order ("Your tight hi-hat is just a shortened sample. It should be a sample of a tighter hi-hat."): no hi-hat stroke is cut short any more. A tight hat is the kit's own tighter recording (Vintage has one); a kit without one plays its normal closed recording at full length. The older trick of fading an open hat under a closed stroke for "Loose" and lifted sections is removed, and open hats now ring to the end of their recording. Only a real choke (a closed or foot stroke stopping an open hat) ends a sound early.</li>
+  <li>Owner order ("I only want great sound kits so remove subpar kits."): Black Pearl, Vintage Ludwig, Blonde Bop and Hot Rods are off the Kit menu (their files stay). The menu is now Auto, Studio, Vintage, Jazz, Rock, Brushes, and the drum machines in their own group. Saved settings, share links and .metronome files that name an old kit load the nearest new one: Black Pearl, Pearl, Acoustic and Hybrid load Studio; Vintage Ludwig loads Rock; Blonde Bop and Hot Rods load Jazz. A drum swapped by hand in a saved setting stays as saved.</li>
+  <li>Matching is stricter: a performance must agree with the groove's written kick and backbeat, hat pattern, feel and tempo, and one stretch of a recording is used by one groove only. Seven grooves lost their match and use the style statistics instead (Punk, Samba, One Drop, Half-time Funk, Jazz Ballad and two modern-jazz grooves); six gained one.</li>
+  <li>Ghost notes from a real performance now run the drummer's whole range, and sit about 19 to 22 dB under the backbeat on every kit.</li>
+  <li>Studio and Vintage kits are a touch louder (about 0.4 dB) so all four kits stay within 1 dB of the older kits.</li>
+  <li>Keeps playing smoothly when you switch to another app. In the background the app used to queue a full minute of notes at once, which overloaded the phone's audio and made it stutter; it now queues 4 seconds (up to 12 if the phone slows the page down), plays one recording per stroke instead of a blend of two, and loads nothing new until you come back. In front, it queues half a second (was 0.35) so short stalls no longer clip a note. The practice log is saved when you return instead of every 10 seconds in the background. Measured on a desktop browser only; not yet checked on a real iPhone.</li>
+  <li>Owner order (the app is used by children): the James Brown groove formerly listed under its full song title now shows as <b>Machine (John "Jabo" Starks)</b> in every groove menu. Only the label changed; saved settings and share links still open it.</li>
+  <li>The lock screen and Now Playing controls can start and stop the metronome (where the browser supports it).</li>
+  <li>If you have edited a row of the grid, that row plays exactly what the grid shows; rows you have not touched still play the performance. Machine pocket plays the written pattern, as before.</li>
+</ul>
+
 <h3>Version 2026-11-27.6 (beta 2026-11-27)</h3>
 <h4>Added</h4>
 <ul>
