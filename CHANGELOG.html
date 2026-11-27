@@ -44,6 +44,18 @@
 <h2>Modal Metronome — drum-machine/</h2>
 <p class="note">Started 2026-11-03 as "Groove Metronome"; renamed Modal Metronome 2026-11-05. Sound folders: <code>drum-machine/kits/</code>, <code>drum-machine/bass/</code>, <code>drum-machine/keys/</code>.</p>
 
+<h3>Version 2026-11-27.3 (beta 2026-11-27)</h3>
+<h4>Changed</h4>
+<ul>
+  <li>Fills overhauled (owner feedback: "not smooth between groove and fill", "the groove goes dead", "your fills need pocket"). Measured on the 647 real fills in the Groove MIDI Dataset: the kick keeps playing in 70% of fills, the hi-hat foot in about half, the hands get busier and louder through the bar (from about 73 to 97 on the 127 scale), and toms come late in the fill. <code>drum-machine/index.html</code></li>
+  <li>The groove never stops under a fill. The kick keeps its pattern on the beats. When a fill leaves a hand free (two hand notes or fewer in a beat) the hi-hat or ride keeps going; when both hands are on the drums the hi-hat foot keeps time (every beat, or 2 and 4 in triplet grooves). Jazz fills are comping figures with the ride playing right through. Bass and keys were never stopped by a fill and still are not.</li>
+  <li>Fills hold the same tight meter as the groove: every fill note sits on the groove's own grid and swing with the same tiny spread as a groove hit (about 1 to 2 ms at the default Humanize, under 3 ms from its slot), in-between notes are exactly even, and there is no rush or drag. The old separate fill wobble is gone.</li>
+  <li>The landing is one stroke: crash and kick hit together exactly on beat 1 (0 ms apart, no random offset), and the groove carries straight on.</li>
+  <li>Fills grow out of the groove: they start near groove level and build into the downbeat, with no jump in volume.</li>
+  <li>Fill size now sets the biggest fill. The full size is played at 8-bar lines, section ends and the Fill button; the other fill bars get about half (a one-beat pickup instead of two beats at the default). The label reads "up to N beats". The fill frequency menu and saved settings are unchanged.</li>
+  <li>More small fills, never the same one twice in a row: ghost-note pickup, open-hat lift, kick double; funk gets linear snare-hat-kick figures; ballads get sparse fills; reggae (One Drop, Steppers) gets snare pickups. Fill choice now uses the drummer's seeded random stream, so an export repeats exactly.</li>
+</ul>
+
 <h3>Version 2026-11-27.2 (beta 2026-11-27)</h3>
 <h4>Changed</h4>
 <ul>
