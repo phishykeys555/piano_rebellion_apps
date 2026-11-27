@@ -44,6 +44,25 @@
 <h2>Modal Metronome — drum-machine/</h2>
 <p class="note">Started 2026-11-03 as "Groove Metronome"; renamed Modal Metronome 2026-11-05. Sound folders: <code>drum-machine/kits/</code>, <code>drum-machine/bass/</code>, <code>drum-machine/keys/</code>.</p>
 
+<h3>Version 2026-11-27.13 (beta 2026-11-27)</h3>
+<h4>Added</h4>
+<ul>
+  <li><strong>Deeper drum kits behind the same Kit menu.</strong> Studio, Vintage, Jazz and Rock now load rebuilt sets with every usable recorded level of every stroke: up to 16 recorded loudness levels per stroke (the snares have 13 to 15, of which 4 to 9 lie in the ghost-note range) instead of 3 to 6. New folders, the older ones stay: <code>drum-machine/kits/studio-drs2</code>, <code>vintage-rusty2</code>, <code>jazz-virtuosity2</code>, <code>rock-muldjord2</code>. The Jazz kit keeps its ride from the earlier set (twelve hits against six), re-levelled take by take.</li>
+  <li><strong>Brushes is now a whole kit</strong> (<code>drum-machine/kits/brushes-swirly</code>, Swirly Drums by Karoryfer Samples, CC0): snare taps, edge taps and digs, recorded stirs at four strengths and flutters for the sweeps, a brushed ride with twelve levels, hats in seven positions, toms, cymbals and its own bass drum. The older brush set stays as a fallback.</li>
+  <li><strong>New kit: Deep studio</strong> (<code>drum-machine/kits/deep-smdrums</code>, SM Drums by Scott McLean, Tod Stillwell and Suleiman Ali): the most detail of any kit here, 15 snare levels with six takes each, 16 closed hi-hat levels, tight, loose, bark and splash hats, three crashes and a splash cymbal. Its permission is the authors&#8217; own &#8220;free for any use&#8221; statement, not a formal licence file; it is one entry in the kit table and can be taken out by deleting that entry.</li>
+  <li>More ways of striking, all real recordings: hi-hat with the tip or the shank of the stick, quarter-open, half-open and three-quarter-open hats chosen by how hard the note is, the bark (an open hat closed at once) and the sizzle; the full rimshot on the hardest backbeats; a recorded flam in jazz comping and a two-stroke flam on fill accents; off-centre and rim strokes on the jazz toms; shank on the ride bell; the ride crashed on its edge in jazz; a soft crash on the bow of the cymbal; a third crash and a splash cymbal on the Deep studio kit; a choked ride when the band stops; a left-foot kick for fast doubles on the Rock kit.</li>
+  <li>Kick feel and Snare feel pick a real recording where the kit has one: Boomy plays the open, undamped kick (Studio, Vintage), Tight plays the dry kick and the damped snare (Jazz).</li>
+</ul>
+<h4>Changed</h4>
+<ul>
+  <li><strong>Loudness is continuous.</strong> Every stroke lands on the exact level its strength asks for, blended between the two nearest recorded levels (the blend allows for how alike the two recordings are, so the level does not bump in the middle). Measured over all 127 strengths the largest step between two neighbouring strengths is under 1 dB on the shells and cymbals of every kit. Ghost notes use the softest real strokes of the source and are no longer darkened or shortened.</li>
+  <li><strong>Nothing is shortened, filtered or gated on the recorded kits.</strong> Soft strokes ring their natural length, roll strokes are whole strokes, and Hat, Snare and Kick feel = Tight no longer cuts a stroke short (on a kit without a tighter recording, Tight tunes the drum higher and nothing else).</li>
+  <li>Kits load in two steps: a first set so the groove starts quickly, then the rest in the background with a progress line. Decoded sound per kit is capped: 120 MB on phones and tablets, 300 MB on computers; the first set of every stroke always fits.</li>
+  <li>While a kit loads, the click keeps the beat for as long as files keep arriving (before: at most 10 seconds, then the standard kit). The standard kit only steps in when nothing has arrived for 20 seconds.</li>
+  <li>Kick and snare are mono files panned to where the drum sat; the snare&#8217;s recorded room signal is played under it. All six kits are matched in loudness on the same groove (within 1 dB); the Jazz kit sits about 2 dB lower than before for that reason.</li>
+  <li>Credits list all six kits and their licences.</li>
+</ul>
+
 <h3>Version 2026-11-27.12 (beta 2026-11-27)</h3>
 <h4>Changed</h4>
 <ul>
