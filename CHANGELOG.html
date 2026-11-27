@@ -44,6 +44,41 @@
 <h2>Modal Metronome — drum-machine/</h2>
 <p class="note">Started 2026-11-03 as "Groove Metronome"; renamed Modal Metronome 2026-11-05. Sound folders: <code>drum-machine/kits/</code>, <code>drum-machine/bass/</code>, <code>drum-machine/keys/</code>.</p>
 
+<h3>Version 2026-11-27.14 (beta 2026-11-27)</h3>
+<p class="note">Groove fix, pass 1: every groove on the menu was checked against its groove study (ten family studies with sources and confidence labels) and fixed, replaced or taken off the menu. Folder <code>drum-machine/</code>, beta page <code>drum-machine-beta/</code>. Nothing was checked by ear.</p>
+<h4>Added</h4>
+<ul>
+  <li><strong>Clave / phrase direction</strong> (new menu, shown on grooves that have a direction; saved as <code>clv</code>, default Auto). 2-3 or 3-2 for the Cuban grooves, the two-bar phrase or its mirror for bossa and samba. The clave, the bell, the congas, the cross-stick, the piano montuno and the comping cells all turn round together; the bass tumbao (bombo and ponche in every bar) fits both.</li>
+  <li><strong>Six percussion rows for the recorded instruments that had no row:</strong> Timbale High and Low, Agogo High and Low, Tamborim, Pandeiro (the pandeiro plays thumb, fingertips, heel and slap from where the note falls and how strong it is). Used in Salsa and Mambo (low timbale on 4 of the 2 side), Songo (timbale answers), Samba and Batucada (tamborim phrase, pandeiro), Baião (agogo on the upbeats), and in the Cuban fills.</li>
+  <li><strong>18 grooves the studies mark high confidence:</strong> New Orleans Funk 2, Swung Clav Funk, Soul-Funk Pocket, Laid-Back Pocket, Go-Go 2 bars, Oakland Linear Funk, Son Montuno (verse), Mambo, Afro-Cuban Jazz, two Clave Trainers (son and rumba), Partido Alto, Samba Batucada, three Classic Breaks, Jazz Waltz in 1, and the 12/8 verse that follows the 11/8 intro. Names describe the feel; a song is named only as "type".</li>
+  <li><strong>Fill vocabulary by style:</strong> 30 fill families (big band set-ups, bebop comping fills, press rolls, timbale and conga fills, the samba virada, Motown pickups, go-go, half-time shuffle, hip-hop's one late snare and more) in place of 7. A fill is picked from the run's seed, then varied the way a player varies a lick (a note left out, one ghosted, one moved to another drum, a kick tucked in), with three dynamic shapes. The same fill never comes twice within 16 bars. Fills still land on 1 with kick and crash as one stroke, and the groove still runs under them.</li>
+</ul>
+<h4>Changed</h4>
+<ul>
+  <li><strong>Funk:</strong> the Cissy Strut type groove is the beat three sources agree on (linear hats, double backbeat on 4 and the &amp; of 4, kick after each backbeat); the Dean Town type groove is four on the floor at 109; go-go has its e-of-4 kick pickup, heavier swing and a cowbell line; Minneapolis is two flat levels on the LinnDrum kit; half-time funk no longer puts a ghost note on a kick.</li>
+  <li><strong>Jam band:</strong> the 11/8 intro has kick and ride on each group with the snare between (no backbeat); the Stash jam has the kick figure and the bell on the &amp; from Bill Carbone's analysis in place of a guessed kick.</li>
+  <li><strong>Jazz:</strong> Jazz Swing and Up-Tempo Swing are four-bar phrases with a feathered kick and light comping (the borrowed performance played the kick at full strength on every beat, so these grooves are several dB quieter in the low end than before, on purpose); two-feel is the hi-hat version with a feathered kick; bebop, big band, broken time and the Tony Williams ride are four-bar phrases (no lick repeats every bar); the Elvin groove has the ride-snare-kick triplet order; the jazz waltz is two bars; the Kansas City hi-hat opens on the skip note; New Orleans two-beat has press rolls and no tambourine. Snare and kick comping on the swung note now move with the ride (they stayed on the exact triplet: a flam at fast tempos).</li>
+  <li><strong>Blues:</strong> the blues shuffle and the Texas shuffle are double shuffles (both hands, kick on all four, hat foot on 2 and 4); half-time shuffle and slow blues are two-bar phrases with ghost notes as soft as measured.</li>
+  <li><strong>Afro-Cuban:</strong> salsa has a lighter bombo kick, the clave-aligned campana and the two-drum tumbao; songo has the bell on the pulses and timbale answers; cha-cha-cha has its kick on the &amp; of 2 and the hat foot on all four; the conga tumbao groove is a real two-bar son clave groove.</li>
+  <li><strong>Brazilian:</strong> bossa has the hat foot on 2 and 4 and quiet feet; samba is the two-bar telecoteco phrase with tamborim and pandeiro; brush bossa is constant soft taps with the phrase as accents.</li>
+  <li><strong>Reggae and world:</strong> one drop accents 2 and 4 on a thinner hat and opens it in bars 2 and 4; afrobeat alternates the notated Tony Allen bar with its answer and plays light (no rimshots); maqsum and saidi have their soft filler strokes.</li>
+  <li><strong>Rock and pop:</strong> the ride-cymbal rock groove and the swung-8ths groove play as written (their borrowed performance was a 12/8 take); punk, waltz and 6/8 have shaped dynamics; Motown's tambourine plays 8ths with 2 and 4 struck.</li>
+  <li><strong>Hip-hop:</strong> boom bap, neo-soul and the Dilla-feel groove are two-bar loops; trap is two bars on the Trap kit, and the 808 follows the chord (it used to hold the key note against the bass line).</li>
+  <li><strong>Songs and odd meters:</strong> Take Five has the kick on 1 only and the snare comping; the 7/4 groove has its kick pickup and crashes; the 9/8 grooves play 2+2+2+3 three times and then 3+3+3; Josie plays all four bars; Tom Sawyer's second kick is on the &amp; of 3; Good Times Bad Times has cowbell and hi-hat foot.</li>
+  <li>Keys and bass by groove: organ for the New Orleans funk grooves and go-go, Wurlitzer holds for the four-on-the-floor funk, piano for the Chicago shuffle, electric piano for the half-time shuffle, gospel comping (not jazz) for swung 8ths; in-one bass for the fast waltz.</li>
+  <li>Ghost notes written from the studies sit 20 to 23 dB under the backbeat on this engine's scale.</li>
+  <li>Default tempos were added where the studies give one; a groove that brings a drum-machine kit (Trap, LinnDrum) hands the kit back when you leave it.</li>
+</ul>
+<h4>Fixed</h4>
+<ul>
+  <li><strong>Same settings, same seed, same notes.</strong> One function now starts every run (Play, MP3 export, Copy auto to roll). Ghost-note levels, snare rolls, Machine-pocket spread, random mutes, the dropped ghost and "Change it up" drew from the page's random numbers and from state left by the run before; all of it now comes from the saved seed.</li>
+  <li>Deep studio kit: the cross-stick's room signal dropped 1.56 dB between two neighbouring strengths; it is now continuous (largest step 0.6 dB).</li>
+</ul>
+<h4>Taken off the menu (keys still load)</h4>
+<ul>
+  <li><code>fjb</code> (a second copy of Funky Drummer) plays <code>jb_funky_drummer</code>; <code>gen_follow_you</code> (one source, could not be confirmed) plays <code>popshaker</code>. Saved settings, share links and <code>.metronome</code> files that name them still load.</li>
+</ul>
+
 <h3>Version 2026-11-27.13 (beta 2026-11-27)</h3>
 <h4>Added</h4>
 <ul>
