@@ -44,6 +44,37 @@
 <h2>Modal Metronome — drum-machine/</h2>
 <p class="note">Started 2026-11-03 as "Groove Metronome"; renamed Modal Metronome 2026-11-05. Sound folders: <code>drum-machine/kits/</code>, <code>drum-machine/bass/</code>, <code>drum-machine/keys/</code>.</p>
 
+<h3>Version 2026-11-27.5 (beta 2026-11-27)</h3>
+<h4>Fixed</h4>
+<ul>
+  <li>Groove audit: all 116 grooves were checked against published lessons, transcriptions and the Groove MIDI Dataset. 15 were corrected (<code>drum-machine/index.html</code>). No groove was renamed or removed.</li>
+  <li>7/4 Rock (Money): was straight 8ths with the snare on 3 and 6, a half-time reading. Now the record's shuffle: kick, snare, kick, snare, kick, snare, and one more kick on 7, with shuffled hats. Checked against two descriptions of the part (kick-snare for six beats plus a kick on seven; a swung, triplet feel). It now sits in the shuffle pocket.</li>
+  <li>Afrobeat (Tony Allen feel): the kit part was a rock beat. Now no rock backbeat: snare on the a of 1 and on 4 with soft strokes between, a double-stroke kick on 3, a soft kick just after 4, and the hi-hat opening on the & of 4. The percussion on top is unchanged. Written sources and recordings differ on the soft kicks (one article puts one just after 2 as well); the recorded performances in the dataset were followed, and the groove now cycles 8 real bars from one of them.</li>
+  <li>Second-Line Funk (The Meters, Cissy Strut): was plain 8th hats with a ghost on every &. Now broken hand-to-hand 16th hats, a soft kick right after each backbeat, kick and open hat together on the & of 3, and a light swing (54%). Kick, snare and open-hat spots are from three published lessons; the exact hat strokes are a best reading.</li>
+  <li>Salsa: the cowbell played quarter notes (the cha-cha bell). Now the campana: 1, 2 &amp;, 3, 4 &amp; in every bar, with the hi-hat foot on 2 and 4. Clave, congas and kick unchanged.</li>
+  <li>Samba: the menu says the weight is on 2 but beat 1 was louder. Now the kick accent is on 2 with the hi-hat opened there, shaped 16th hats, and the hi-hat foot on the &amp;s (heard when the cymbal hand is on the ride).</li>
+  <li>Texas Shuffle: was a normal one-handed shuffle. Now a true double shuffle: both hands play the shuffle, big backbeat on 2 and 4, kick on all four beats.</li>
+  <li>Songo: the kick on the &amp; of 2 (the bombo) was missing in bar 1. Now it is in every bar, a bell replaces the plain hats, the hi-hat foot keeps time and the full clave is gone from the rim (two light rim notes stay). The recordings in the dataset put the hi-hat foot on 1 and 3 of each bar, so that reading was used over the written suggestion of 2 and 4.</li>
+  <li>Linear 16ths (Tower of Power): two voices landed together on three 16ths. Now truly linear: exactly one voice on every 16th, and nothing is ever added on top.</li>
+  <li>New Orleans Second Line: was a one-bar loop. Now a four-bar street-beat phrase: kick on 1 and 3, hi-hat foot on the &amp;s, and the "big four" (snare and kick together on beat 4) in bars 2 and 4.</li>
+  <li>Trap: the hats were a flat wall of 16ths. Now 8th hats with a 16th burst on beat 4 and three different hat rolls over four bars (a 32nd-note run into the snare, a triplet, and a rising 32nd roll across beat 4), each with a strength ramp. The kick doubles the 808. Rolls stop if you edit the hat row.</li>
+  <li>When the Levee Breaks: the soft second kick right after beat 1 was missing; added (two lessons agree on it).</li>
+  <li>Funky Drummer (the Funk menu one): now has the same light swing, kick and hat touch as the transcribed one in the song list. Both menu entries stay.</li>
+  <li>Half-Time, Half-Time Funk and Half-Time Shuffle: the one backbeat (beat 3) was played softer than a normal backbeat because the app only treated beats 2 and 4 as backbeats. Each groove now says where its backbeat is, so beat 3 gets full weight; snare rolls lead into it too. Half-Time Shuffle also gains the soft stroke right after the backbeat.</li>
+  <li>Ghost notes control and the train beats: "Off" used to silence the whole snare roll of the Country Train Beat, and "4 levels" could reshape it, because every soft snare stroke counted as a ghost note. Grooves whose soft strokes are the pattern (both train beats, the second line) are now marked, and the control leaves them alone. Every other groove behaves as before.</li>
+</ul>
+<h4>Changed</h4>
+<ul>
+  <li>"Crash every 4 bars" now lands with the kick as one stroke on kit grooves (a drummer never crashes without it), and in Verse / Chorus mode it also crashes on the first bar of each section. Clicks, the Machine pocket and percussion-only grooves get no added kick.</li>
+  <li>Saved settings, share links and .metronome files: a setup that still holds the old pattern of a corrected groove, untouched, now loads the corrected groove. The same goes for the two Country Train Beats corrected in 2026-11-27.2. A grid you edited loads exactly as you saved it. Nothing in the saved format changed.</li>
+  <li>The corrected grooves that have a close real performance were matched again and their 4, 8 or 16 real bars rebuilt (Afrobeat is new on that list: 66 grooves, plus the hand-written second-line phrase).</li>
+</ul>
+<h4>Checked</h4>
+<ul>
+  <li>116 grooves x 64 bars at the default settings: kick spread 1.6 ms and backbeat 1.7 ms on average; 1,856 of 1,856 fills land on beat 1 with kick and crash 0 ms apart; 0 unplayable bars in 7,104; 0 bars repeated note for note; 0 repeated hi-hat recordings; ghost notes 18 to 20 dB under the backbeat in the exported audio. All 15 corrected grooves, and both train beats from 2026-11-27.2, upgrade from a setup saved on the live version; unchanged grooves load identically from the live version (share link and .metronome file). Layout checked at 390 and 1280 wide, MP3 export checked.</li>
+  <li>Left for a listen before changing (sources missing or in conflict): Modern Funk (Vulfpeck) kick pattern; where the first open hi-hat sits in Funky Drummer (the two menu entries still differ there: the a of 2 and the &amp; of 2); the Cha-cha-ch&aacute; kick; a cascara pattern for Salsa; the two-bar side-stick phrase for Samba.</li>
+</ul>
+
 <h3>Version 2026-11-27.4 (beta 2026-11-27)</h3>
 <h4>Added</h4>
 <ul>
