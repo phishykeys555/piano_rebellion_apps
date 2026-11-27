@@ -44,6 +44,37 @@
 <h2>Modal Metronome — drum-machine/</h2>
 <p class="note">Started 2026-11-03 as "Groove Metronome"; renamed Modal Metronome 2026-11-05. Sound folders: <code>drum-machine/kits/</code>, <code>drum-machine/bass/</code>, <code>drum-machine/keys/</code>.</p>
 
+<h3>Version 2026-11-27.9 (beta 2026-11-27)</h3>
+<h4>Added</h4>
+<ul>
+  <li>Six recorded basses replace the soundfont bass as the default sound (<code>drum-machine/bass/jfinger2</code>, <code>flatfinger2</code>, <code>pick2</code>, <code>mute2</code>, <code>jgrowl2</code>, <code>upright2</code>; Karoryfer Samples, CC0; each folder has a <code>manifest.json</code> with every file's level, layers and takes). Fingered J-style bass, flatwound fingered bass, picked bass, palm-muted picked bass, a bright growl bass, and an upright (pizzicato). Three or four strengths of every note blend into each other, no recording plays twice in a row, soft notes are darker than loud ones, and each note's level comes from the folder's own table.</li>
+  <li>Auto picks the bass by groove: upright for jazz, bossa, the brush grooves and the blues shuffles; flatwound fingers for Motown, reggae, ballads, neo-soul and country; the pick for rock and punk; the fingered bass for funk, pop and everything else; the 808 sub for trap. Disco octaves and tight pop are palm-muted; Tower of Power lines play their accents with the fingers and the quiet 16ths on the muted set.</li>
+  <li>The bass is played on strings. Every note sits on one of five strings (B E A D G) at the fret nearest the hand, so a new note on the same string stops the old one, a hammer-on or pull-off carries on from the sounding note with no new pluck, a legato step lets the last note ring a moment into the next, and a shift of the hand brings a little fret noise. Notes that end in silence finish with the sound of the fingers letting go.</li>
+  <li>New articulations, all chosen by the bass line's seed and kept to a budget (two a bar in groove styles, four in slow ones, held notes and phrase ends first): vibrato on held notes (starts late, 5 to 6 times a second, deeper in ballads, soul and reggae, none on fast 16ths), bends up into blue notes (the 3rd and flat 7th, in blues, rock and funk), slides in from one or two frets below, fall-offs at phrase ends, and real dead notes from the muted-string recordings. The upright slides and has a pull accent; its vibrato is narrow and only at slow tempos.</li>
+  <li>5-string: the range now goes down to the low B. A new "5-string" setting (Auto, On, Off); Auto sends low D, C and B roots down an octave in ballads, reggae, neo-soul and modern pop. The bass channel's low cut moves just under the low B when the 5-string is in use.</li>
+  <li>"Bass licks" (Off, Light, Match the drum fills; Match is the default). When the drums fill, the bass plays a lick in the same beats: a pentatonic or blues run, octave pops, a chromatic walk-up, a gospel walk-up, or the drum fill's own rhythm in unison. The next bar always starts on the root, on beat 1, with the kick. Light adds a small pickup at the end of a phrase. Licks follow the bass seed, so "Copy auto to roll" brings them over.</li>
+  <li>"Mute" (Auto, Off, Light, Palm mute) and "Finger noise" (0 to 100) settings. The existing "Ghost notes" setting now plays the recorded dead notes.</li>
+  <li>The piano roll's "Played as" menu gains Vibrato, Bend and Legato. A roll saved with them opens in the older version as plain notes.</li>
+  <li>Fixed two-bar bass ostinatos for the James Brown and Tower of Power grooves, tied to each groove's kick and played as written (no variation): Funky Drummer type, Cold Sweat, Sex Machine and Soul Power (the long One with 16th answers), The Payback (sparse), and for Tower of Power the pedal 16ths and the gallop: every 16th is a real, clipped note with the accents on that groove's kicks.</li>
+  <li>New bass lines for grooves that had none of their own: rock (the verse doubles the kick, the lifted eight bars drive 8ths), punk (flat downstroke roots), waltz (one note a bar), reggae one drop and steppers (a fixed two-bar hook that lands with the drop), soca and dembow (the tresillo), second line, go-go, half-time shuffle, slow blues, boom bap, Shakedown Street type disco, Take Five type 5/4, 7/4 quarter notes, 9/8 by groups, and the two Zappa grooves.</li>
+</ul>
+<h4>Changed</h4>
+<ul>
+  <li>The bass locks to the kick the drummer really plays in that bar (including the true-performance bars). A note that shares a step with a kick lands within 3 ms of it; in funk styles a note one 16th away from a lone kick moves onto it. When the kick pushes the last 8th or 16th before a new chord, the bass can play the new root there and hold it over the bar line.</li>
+  <li>Bass timing: a tiny seeded scatter (about 1 ms on a kick, 2.5 ms between kicks) and harder notes a touch early. The style's lean (behind or ahead) now applies only between kicks.</li>
+  <li>Bass lines repeat their figure and change it at the end of a four-bar phrase. Runs into the next chord and fills no longer happen at random; the "Bass licks" setting owns them.</li>
+  <li>The default "Studio" bass tone is clean for the recorded basses (a touch of low end, the hardest plucks rounded off, gentle compression), matched in loudness to the old default. The other tones are unchanged.</li>
+  <li>Sound menu: the soundfont basses (fingered round, flatwound, picked, the two soundfont uprights and the older double bass) are off the menu; their files stay. A saved setting, share link or <code>.metronome</code> file that names one loads the recorded bass of the same kind.</li>
+  <li>Play waits for the recorded bass to load the first time (a few seconds), with a progress line under the Sound menu. Samples are cached under a new name (<code>mm-bass-v2</code>); only the notes a bass line can reach load first, the rest in the background, and phones keep two takes per note instead of three.</li>
+  <li>Country train beat: the bass plays root and fifth, not a walking line. Swung 8ths pop: a boogie figure, not straight 8ths. Disco octaves are shorter, the octave shorter than the root.</li>
+</ul>
+<h4>Fixed</h4>
+<ul>
+  <li>Every groove now names its bass style. Twenty-five grooves used to fall back to "Follow the Kick" without meaning to (Rock, Rock Ride, Boom Bap, Dembow, the Zappa, Genesis and Led Zeppelin grooves, the odd meters and others).</li>
+  <li>On the Machine pocket the bass arrived about 6 ms after the kick; it now lands with it.</li>
+  <li>A soft pickup note with nothing after it could ring across the whole bar in slow styles.</li>
+</ul>
+
 <h3>Version 2026-11-27.8 (beta 2026-11-27)</h3>
 <h4>Added</h4>
 <ul>
