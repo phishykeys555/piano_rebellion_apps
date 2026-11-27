@@ -1,0 +1,2025 @@
+{
+ "id": "jazz-virtuosity",
+ "name": "Jazz Club (Virtuosity)",
+ "character": "contemporary jazz kit played with sticks, live-club recording: overhead-led with mid and room mics; ride, flat ride, sizzle crash, buzz strokes",
+ "version": "1.0.0",
+ "date": "2026-11-27",
+ "source": {
+  "library": "Virtuosity Drums",
+  "author": "Versilian Studios / Karoryfer Samples, drummer Austin McMahon, recorded at Virtuosity Musical Instruments, Boston",
+  "license": "CC0 1.0 Universal",
+  "license_quote": "Creative Commons Legal Code \u2014 CC0 1.0 Universal (repository LICENSE file)",
+  "license_urls": [
+   "https://github.com/sfzinstruments/virtuosity_drums/blob/master/LICENSE",
+   "https://creativecommons.org/publicdomain/zero/1.0/"
+  ],
+  "commit": "9f04cf9",
+  "credit_line": "Drums: Virtuosity Drums by Versilian Studios and Karoryfer Samples (CC0).",
+  "attribution_required": false,
+  "share_alike": false,
+  "modifications": "selected hits mixed from multi-mic stems to stereo, trimmed, levelled and encoded to MP3"
+ },
+ "format": {
+  "codec": "mp3 (LAME VBR -q:a 4, joint stereo)",
+  "sample_rate": 44100,
+  "channels": 2,
+  "naming": "<drum>_<articulation>_<layer>_<roundrobin>.mp3 ; layer 1 = softest",
+  "files": 207,
+  "bytes": 6203342,
+  "seconds": 386.9
+ },
+ "perspective": "as recorded in the overheads (not flipped)",
+ "dynamics": {
+  "note": "Layers keep the level and brightness the drummer produced: files of softer layers are quieter and darker. Every articulation is normalised so its loudest layer peaks at -1 dBFS (cymbals -3 dBFS); all layers and round robins of an articulation share one mix. stored_rel_db is the level of a layer in the files relative to the loudest layer; natural_rel_db is what was recorded. They differ only where the natural range was wider than 24 dB (softest layers lifted proportionally); gain_trim_db (= natural - stored, zero or negative) restores the recorded level. Do NOT add a full velocity-to-gain law on top: pick the layer by velocity, then scale gain only inside the layer range (about +/-2 dB).",
+  "art_rel_db": "natural level of the loudest layer of an articulation relative to the main articulation of the same drum (files are normalised, apply this to restore e.g. a quieter cross-stick)",
+  "overhead_balance_db": "level of the drum in the overhead pair relative to snare centre, loudest layer; a starting point for the kit balance, not applied to the files",
+  "velocity": "vel_lo/vel_hi follow the recorded level steps: the softest layer is centred near velocity 26, the loudest at 127, split points at the geometric mean of neighbouring layers; remap freely"
+ },
+ "processing": {
+  "steps": [
+   "multi-mic stems summed to stereo with the gains in mix (dB, relative to the reference mic; computed so each mic contributes recipe dB relative to the reference on the loudest layer)",
+   "close mono mics panned to the position the drum has in the overhead image; polarity of shell close mics flipped when that gives more low end against the overheads",
+   "start trimmed to 1.5 ms before the onset, 0.7 ms fade-in",
+   "tail cut 60 dB under the loudest hit of the articulation or at max_len_s, cos^2 fade-out",
+   "no EQ, no compression, no reverb, no pitch change",
+   "TPDF dither to 16 bit, LAME VBR"
+  ],
+  "mix": {
+   "kick.center": {
+    "pan": 0.0,
+    "bal": 0.051,
+    "mics": {
+     "kickmic": {
+      "gain_db": 0.0,
+      "level_db": -16.03,
+      "invert": false,
+      "contrib_db": 0.0
+     },
+     "oh": {
+      "gain_db": 9.0,
+      "level_db": -35.68,
+      "invert": false,
+      "contrib_db": -10.65
+     },
+     "mid": {
+      "gain_db": 1.39,
+      "level_db": -23.41,
+      "invert": false,
+      "contrib_db": -6.0
+     },
+     "room": {
+      "gain_db": 0.19,
+      "level_db": -25.22,
+      "invert": false,
+      "contrib_db": -9.0
+     }
+    },
+    "recipe": {
+     "kickmic": 0,
+     "oh": -5,
+     "mid": -6,
+     "room": -9
+    },
+    "ref": "kickmic"
+   },
+   "snare.center": {
+    "pan": 0.165,
+    "bal": 0.082,
+    "mics": {
+     "oh": {
+      "gain_db": 0.0,
+      "level_db": -21.38,
+      "invert": false,
+      "contrib_db": 0.0
+     },
+     "snaremic": {
+      "gain_db": -0.42,
+      "level_db": -22.97,
+      "invert": true,
+      "contrib_db": -2.0
+     },
+     "mid": {
+      "gain_db": -8.03,
+      "level_db": -18.36,
+      "invert": false,
+      "contrib_db": -5.0
+     },
+     "room": {
+      "gain_db": -12.05,
+      "level_db": -18.33,
+      "invert": false,
+      "contrib_db": -9.0
+     }
+    },
+    "recipe": {
+     "oh": 0,
+     "snaremic": -2,
+     "mid": -5,
+     "room": -9
+    },
+    "ref": "oh"
+   },
+   "snare.rimshot": {
+    "pan": 0.165,
+    "bal": 0.082,
+    "mics": {
+     "oh": {
+      "gain_db": 0.0,
+      "level_db": -21.38,
+      "invert": false,
+      "contrib_db": 0.0
+     },
+     "snaremic": {
+      "gain_db": -0.42,
+      "level_db": -22.97,
+      "invert": true,
+      "contrib_db": -2.0
+     },
+     "mid": {
+      "gain_db": -8.03,
+      "level_db": -18.36,
+      "invert": false,
+      "contrib_db": -5.0
+     },
+     "room": {
+      "gain_db": -12.05,
+      "level_db": -18.33,
+      "invert": false,
+      "contrib_db": -9.0
+     }
+    },
+    "recipe": {
+     "oh": 0,
+     "snaremic": -2,
+     "mid": -5,
+     "room": -9
+    },
+    "ref": "oh"
+   },
+   "snare.sidestick": {
+    "pan": 0.165,
+    "bal": 0.082,
+    "mics": {
+     "oh": {
+      "gain_db": 0.0,
+      "level_db": -21.38,
+      "invert": false,
+      "contrib_db": 0.0
+     },
+     "snaremic": {
+      "gain_db": -0.42,
+      "level_db": -22.97,
+      "invert": true,
+      "contrib_db": -2.0
+     },
+     "mid": {
+      "gain_db": -8.03,
+      "level_db": -18.36,
+      "invert": false,
+      "contrib_db": -5.0
+     },
+     "room": {
+      "gain_db": -12.05,
+      "level_db": -18.33,
+      "invert": false,
+      "contrib_db": -9.0
+     }
+    },
+    "recipe": {
+     "oh": 0,
+     "snaremic": -2,
+     "mid": -5,
+     "room": -9
+    },
+    "ref": "oh"
+   },
+   "snare.buzz": {
+    "pan": 0.165,
+    "bal": 0.082,
+    "mics": {
+     "oh": {
+      "gain_db": 0.0,
+      "level_db": -21.38,
+      "invert": false,
+      "contrib_db": 0.0
+     },
+     "snaremic": {
+      "gain_db": -0.42,
+      "level_db": -22.97,
+      "invert": true,
+      "contrib_db": -2.0
+     },
+     "mid": {
+      "gain_db": -8.03,
+      "level_db": -18.36,
+      "invert": false,
+      "contrib_db": -5.0
+     },
+     "room": {
+      "gain_db": -12.05,
+      "level_db": -18.33,
+      "invert": false,
+      "contrib_db": -9.0
+     }
+    },
+    "recipe": {
+     "oh": 0,
+     "snaremic": -2,
+     "mid": -5,
+     "room": -9
+    },
+    "ref": "oh"
+   },
+   "snare.offcenter": {
+    "pan": 0.165,
+    "bal": 0.082,
+    "mics": {
+     "oh": {
+      "gain_db": 0.0,
+      "level_db": -21.38,
+      "invert": false,
+      "contrib_db": 0.0
+     },
+     "snaremic": {
+      "gain_db": -0.42,
+      "level_db": -22.97,
+      "invert": true,
+      "contrib_db": -2.0
+     },
+     "mid": {
+      "gain_db": -8.03,
+      "level_db": -18.36,
+      "invert": false,
+      "contrib_db": -5.0
+     },
+     "room": {
+      "gain_db": -12.05,
+      "level_db": -18.33,
+      "invert": false,
+      "contrib_db": -9.0
+     }
+    },
+    "recipe": {
+     "oh": 0,
+     "snaremic": -2,
+     "mid": -5,
+     "room": -9
+    },
+    "ref": "oh"
+   },
+   "hat.closed": {
+    "pan": 0.364,
+    "bal": 0.184,
+    "mics": {
+     "oh": {
+      "gain_db": 0.0,
+      "level_db": -35.49,
+      "invert": false,
+      "contrib_db": 0.0
+     },
+     "mid": {
+      "gain_db": -4.75,
+      "level_db": -34.74,
+      "invert": false,
+      "contrib_db": -4.0
+     },
+     "room": {
+      "gain_db": -13.87,
+      "level_db": -29.62,
+      "invert": false,
+      "contrib_db": -8.0
+     }
+    },
+    "recipe": {
+     "oh": 0,
+     "mid": -4,
+     "room": -8
+    },
+    "ref": "oh"
+   },
+   "hat.half": {
+    "pan": 0.364,
+    "bal": 0.184,
+    "mics": {
+     "oh": {
+      "gain_db": 0.0,
+      "level_db": -35.49,
+      "invert": false,
+      "contrib_db": 0.0
+     },
+     "mid": {
+      "gain_db": -4.75,
+      "level_db": -34.74,
+      "invert": false,
+      "contrib_db": -4.0
+     },
+     "room": {
+      "gain_db": -13.87,
+      "level_db": -29.62,
+      "invert": false,
+      "contrib_db": -8.0
+     }
+    },
+    "recipe": {
+     "oh": 0,
+     "mid": -4,
+     "room": -8
+    },
+    "ref": "oh"
+   },
+   "hat.open34": {
+    "pan": 0.364,
+    "bal": 0.184,
+    "mics": {
+     "oh": {
+      "gain_db": 0.0,
+      "level_db": -35.49,
+      "invert": false,
+      "contrib_db": 0.0
+     },
+     "mid": {
+      "gain_db": -4.75,
+      "level_db": -34.74,
+      "invert": false,
+      "contrib_db": -4.0
+     },
+     "room": {
+      "gain_db": -13.87,
+      "level_db": -29.62,
+      "invert": false,
+      "contrib_db": -8.0
+     }
+    },
+    "recipe": {
+     "oh": 0,
+     "mid": -4,
+     "room": -8
+    },
+    "ref": "oh"
+   },
+   "hat.open": {
+    "pan": 0.364,
+    "bal": 0.184,
+    "mics": {
+     "oh": {
+      "gain_db": 0.0,
+      "level_db": -35.49,
+      "invert": false,
+      "contrib_db": 0.0
+     },
+     "mid": {
+      "gain_db": -4.75,
+      "level_db": -34.74,
+      "invert": false,
+      "contrib_db": -4.0
+     },
+     "room": {
+      "gain_db": -13.87,
+      "level_db": -29.62,
+      "invert": false,
+      "contrib_db": -8.0
+     }
+    },
+    "recipe": {
+     "oh": 0,
+     "mid": -4,
+     "room": -8
+    },
+    "ref": "oh"
+   },
+   "hat.pedal": {
+    "pan": 0.364,
+    "bal": 0.184,
+    "mics": {
+     "oh": {
+      "gain_db": 0.0,
+      "level_db": -35.49,
+      "invert": false,
+      "contrib_db": 0.0
+     },
+     "mid": {
+      "gain_db": -4.75,
+      "level_db": -34.74,
+      "invert": false,
+      "contrib_db": -4.0
+     },
+     "room": {
+      "gain_db": -13.87,
+      "level_db": -29.62,
+      "invert": false,
+      "contrib_db": -8.0
+     }
+    },
+    "recipe": {
+     "oh": 0,
+     "mid": -4,
+     "room": -8
+    },
+    "ref": "oh"
+   },
+   "hat.splash": {
+    "pan": 0.364,
+    "bal": 0.184,
+    "mics": {
+     "oh": {
+      "gain_db": 0.0,
+      "level_db": -35.49,
+      "invert": false,
+      "contrib_db": 0.0
+     },
+     "mid": {
+      "gain_db": -4.75,
+      "level_db": -34.74,
+      "invert": false,
+      "contrib_db": -4.0
+     },
+     "room": {
+      "gain_db": -13.87,
+      "level_db": -29.62,
+      "invert": false,
+      "contrib_db": -8.0
+     }
+    },
+    "recipe": {
+     "oh": 0,
+     "mid": -4,
+     "room": -8
+    },
+    "ref": "oh"
+   },
+   "ride.bow": {
+    "pan": -0.477,
+    "bal": -0.246,
+    "mics": {
+     "oh": {
+      "gain_db": 0.0,
+      "level_db": -40.48,
+      "invert": false,
+      "contrib_db": 0.0
+     },
+     "mid": {
+      "gain_db": -5.89,
+      "level_db": -38.59,
+      "invert": false,
+      "contrib_db": -4.0
+     },
+     "room": {
+      "gain_db": -13.06,
+      "level_db": -35.42,
+      "invert": false,
+      "contrib_db": -8.0
+     }
+    },
+    "recipe": {
+     "oh": 0,
+     "mid": -4,
+     "room": -8
+    },
+    "ref": "oh"
+   },
+   "ride.bell": {
+    "pan": -0.477,
+    "bal": -0.246,
+    "mics": {
+     "oh": {
+      "gain_db": 0.0,
+      "level_db": -40.48,
+      "invert": false,
+      "contrib_db": 0.0
+     },
+     "mid": {
+      "gain_db": -5.89,
+      "level_db": -38.59,
+      "invert": false,
+      "contrib_db": -4.0
+     },
+     "room": {
+      "gain_db": -13.06,
+      "level_db": -35.42,
+      "invert": false,
+      "contrib_db": -8.0
+     }
+    },
+    "recipe": {
+     "oh": 0,
+     "mid": -4,
+     "room": -8
+    },
+    "ref": "oh"
+   },
+   "ride2.bow": {
+    "pan": 0.314,
+    "bal": 0.158,
+    "mics": {
+     "oh": {
+      "gain_db": 0.0,
+      "level_db": -38.76,
+      "invert": false,
+      "contrib_db": 0.0
+     },
+     "mid": {
+      "gain_db": -2.65,
+      "level_db": -40.1,
+      "invert": false,
+      "contrib_db": -4.0
+     },
+     "room": {
+      "gain_db": -12.94,
+      "level_db": -33.82,
+      "invert": false,
+      "contrib_db": -8.0
+     }
+    },
+    "recipe": {
+     "oh": 0,
+     "mid": -4,
+     "room": -8
+    },
+    "ref": "oh"
+   },
+   "ride2.crash": {
+    "pan": 0.314,
+    "bal": 0.158,
+    "mics": {
+     "oh": {
+      "gain_db": 0.0,
+      "level_db": -38.76,
+      "invert": false,
+      "contrib_db": 0.0
+     },
+     "mid": {
+      "gain_db": -2.65,
+      "level_db": -40.1,
+      "invert": false,
+      "contrib_db": -4.0
+     },
+     "room": {
+      "gain_db": -12.94,
+      "level_db": -33.82,
+      "invert": false,
+      "contrib_db": -8.0
+     }
+    },
+    "recipe": {
+     "oh": 0,
+     "mid": -4,
+     "room": -8
+    },
+    "ref": "oh"
+   },
+   "crash1.edge": {
+    "pan": -0.137,
+    "bal": -0.068,
+    "mics": {
+     "oh": {
+      "gain_db": 0.0,
+      "level_db": -29.34,
+      "invert": false,
+      "contrib_db": 0.0
+     },
+     "mid": {
+      "gain_db": -6.92,
+      "level_db": -26.42,
+      "invert": false,
+      "contrib_db": -4.0
+     },
+     "room": {
+      "gain_db": -12.5,
+      "level_db": -24.84,
+      "invert": false,
+      "contrib_db": -8.0
+     }
+    },
+    "recipe": {
+     "oh": 0,
+     "mid": -4,
+     "room": -8
+    },
+    "ref": "oh"
+   },
+   "crash2.edge": {
+    "pan": -0.091,
+    "bal": -0.045,
+    "mics": {
+     "oh": {
+      "gain_db": 0.0,
+      "level_db": -29.23,
+      "invert": false,
+      "contrib_db": 0.0
+     },
+     "mid": {
+      "gain_db": -6.95,
+      "level_db": -26.28,
+      "invert": false,
+      "contrib_db": -4.0
+     },
+     "room": {
+      "gain_db": -12.37,
+      "level_db": -24.86,
+      "invert": false,
+      "contrib_db": -8.0
+     }
+    },
+    "recipe": {
+     "oh": 0,
+     "mid": -4,
+     "room": -8
+    },
+    "ref": "oh"
+   },
+   "tomh.center": {
+    "pan": 0.182,
+    "bal": 0.09,
+    "mics": {
+     "oh": {
+      "gain_db": 0.0,
+      "level_db": -19.02,
+      "invert": false,
+      "contrib_db": 0.0
+     },
+     "mid": {
+      "gain_db": -3.01,
+      "level_db": -19.01,
+      "invert": false,
+      "contrib_db": -3.0
+     },
+     "room": {
+      "gain_db": -8.22,
+      "level_db": -18.8,
+      "invert": false,
+      "contrib_db": -8.0
+     }
+    },
+    "recipe": {
+     "oh": 0,
+     "mid": -3,
+     "room": -8
+    },
+    "ref": "oh"
+   },
+   "toml.center": {
+    "pan": -0.119,
+    "bal": -0.058,
+    "mics": {
+     "oh": {
+      "gain_db": 0.0,
+      "level_db": -22.35,
+      "invert": false,
+      "contrib_db": 0.0
+     },
+     "mid": {
+      "gain_db": -7.23,
+      "level_db": -18.12,
+      "invert": false,
+      "contrib_db": -3.0
+     },
+     "room": {
+      "gain_db": -11.6,
+      "level_db": -18.75,
+      "invert": false,
+      "contrib_db": -8.0
+     }
+    },
+    "recipe": {
+     "oh": 0,
+     "mid": -3,
+     "room": -8
+    },
+    "ref": "oh"
+   }
+  }
+ },
+ "choke_groups": {
+  "hat": {
+   "choked": [
+    "open",
+    "open34",
+    "half",
+    "splash"
+   ],
+   "choked_by": [
+    "closed",
+    "pedal"
+   ],
+   "note": "a closed, tight or pedal hit stops any ringing open/half/loose/splash voice (fade about 30-60 ms)"
+  }
+ },
+ "missing": [
+  "brushes (this library is sticks only; the existing kits/br brush set stays the brush source)",
+  "mid tom (two toms: tomh, toml)",
+  "hat tight/loose",
+  "crash choke samples"
+ ],
+ "drums": {
+  "crash1": {
+   "main_articulation": "edge",
+   "choke_group": "crash1",
+   "pan_of_close_mics": -0.137,
+   "articulations": {
+    "edge": {
+     "art_rel_db": 0.0,
+     "layers": [
+      {
+       "layer": 1,
+       "vel_lo": 1,
+       "vel_hi": 38,
+       "natural_rel_db": -11.03,
+       "stored_rel_db": -11.03,
+       "gain_trim_db": 0.0,
+       "rms_db": -28.2,
+       "peak_db": -14.83,
+       "centroid_hz": 5362,
+       "files": [
+        "crash1_edge_1_1.mp3",
+        "crash1_edge_1_2.mp3",
+        "crash1_edge_1_3.mp3"
+       ]
+      },
+      {
+       "layer": 2,
+       "vel_lo": 39,
+       "vel_hi": 84,
+       "natural_rel_db": -5.69,
+       "stored_rel_db": -5.69,
+       "gain_trim_db": 0.0,
+       "rms_db": -23.5,
+       "peak_db": -10.6,
+       "centroid_hz": 4658,
+       "files": [
+        "crash1_edge_2_1.mp3",
+        "crash1_edge_2_2.mp3",
+        "crash1_edge_2_3.mp3"
+       ]
+      },
+      {
+       "layer": 3,
+       "vel_lo": 85,
+       "vel_hi": 127,
+       "natural_rel_db": 0.0,
+       "stored_rel_db": 0.0,
+       "gain_trim_db": 0.0,
+       "rms_db": -16.9,
+       "peak_db": -3.0,
+       "centroid_hz": 4627,
+       "files": [
+        "crash1_edge_3_1.mp3",
+        "crash1_edge_3_2.mp3",
+        "crash1_edge_3_3.mp3"
+       ]
+      }
+     ],
+     "round_robins": 3,
+     "max_len_s": 4.8,
+     "mix": "crash1.edge"
+    }
+   },
+   "overhead_balance_db": -8.0
+  },
+  "crash2": {
+   "main_articulation": "edge",
+   "choke_group": "crash2",
+   "pan_of_close_mics": -0.091,
+   "articulations": {
+    "edge": {
+     "art_rel_db": 0.0,
+     "layers": [
+      {
+       "layer": 1,
+       "vel_lo": 1,
+       "vel_hi": 33,
+       "natural_rel_db": -12.12,
+       "stored_rel_db": -12.12,
+       "gain_trim_db": 0.0,
+       "rms_db": -30.5,
+       "peak_db": -17.39,
+       "centroid_hz": 5370,
+       "files": [
+        "crash2_edge_1_1.mp3",
+        "crash2_edge_1_2.mp3"
+       ]
+      },
+      {
+       "layer": 2,
+       "vel_lo": 34,
+       "vel_hi": 73,
+       "natural_rel_db": -8.48,
+       "stored_rel_db": -8.48,
+       "gain_trim_db": 0.0,
+       "rms_db": -26.9,
+       "peak_db": -14.49,
+       "centroid_hz": 5135,
+       "files": [
+        "crash2_edge_2_1.mp3",
+        "crash2_edge_2_2.mp3"
+       ]
+      },
+      {
+       "layer": 3,
+       "vel_lo": 74,
+       "vel_hi": 127,
+       "natural_rel_db": 0.0,
+       "stored_rel_db": 0.0,
+       "gain_trim_db": 0.0,
+       "rms_db": -18.4,
+       "peak_db": -3.0,
+       "centroid_hz": 5042,
+       "files": [
+        "crash2_edge_3_1.mp3",
+        "crash2_edge_3_2.mp3"
+       ]
+      }
+     ],
+     "round_robins": 2,
+     "max_len_s": 4.8,
+     "mix": "crash2.edge"
+    }
+   },
+   "overhead_balance_db": -7.9
+  },
+  "hat": {
+   "main_articulation": "closed",
+   "choke_group": "hat",
+   "pan_of_close_mics": 0.364,
+   "articulations": {
+    "closed": {
+     "art_rel_db": 0.0,
+     "layers": [
+      {
+       "layer": 1,
+       "vel_lo": 1,
+       "vel_hi": 34,
+       "natural_rel_db": -28.49,
+       "stored_rel_db": -24.0,
+       "gain_trim_db": -4.49,
+       "rms_db": -53.5,
+       "peak_db": -21.55,
+       "centroid_hz": 5714,
+       "files": [
+        "hat_closed_1_1.mp3",
+        "hat_closed_1_2.mp3",
+        "hat_closed_1_3.mp3",
+        "hat_closed_1_4.mp3"
+       ]
+      },
+      {
+       "layer": 2,
+       "vel_lo": 35,
+       "vel_hi": 53,
+       "natural_rel_db": -18.75,
+       "stored_rel_db": -15.79,
+       "gain_trim_db": -2.96,
+       "rms_db": -45.0,
+       "peak_db": -14.05,
+       "centroid_hz": 7535,
+       "files": [
+        "hat_closed_2_1.mp3",
+        "hat_closed_2_2.mp3",
+        "hat_closed_2_3.mp3",
+        "hat_closed_2_4.mp3"
+       ]
+      },
+      {
+       "layer": 3,
+       "vel_lo": 54,
+       "vel_hi": 89,
+       "natural_rel_db": -12.78,
+       "stored_rel_db": -10.76,
+       "gain_trim_db": -2.01,
+       "rms_db": -40.3,
+       "peak_db": -10.72,
+       "centroid_hz": 8275,
+       "files": [
+        "hat_closed_3_1.mp3",
+        "hat_closed_3_2.mp3",
+        "hat_closed_3_3.mp3",
+        "hat_closed_3_4.mp3"
+       ]
+      },
+      {
+       "layer": 4,
+       "vel_lo": 90,
+       "vel_hi": 127,
+       "natural_rel_db": 0.0,
+       "stored_rel_db": 0.0,
+       "gain_trim_db": 0.0,
+       "rms_db": -29.6,
+       "peak_db": -1.0,
+       "centroid_hz": 9662,
+       "files": [
+        "hat_closed_4_1.mp3",
+        "hat_closed_4_2.mp3",
+        "hat_closed_4_3.mp3",
+        "hat_closed_4_4.mp3"
+       ]
+      }
+     ],
+     "round_robins": 4,
+     "max_len_s": 0.6,
+     "mix": "hat.closed"
+    },
+    "half": {
+     "art_rel_db": -8.2,
+     "layers": [
+      {
+       "layer": 1,
+       "vel_lo": 1,
+       "vel_hi": 35,
+       "natural_rel_db": -18.64,
+       "stored_rel_db": -18.64,
+       "gain_trim_db": 0.0,
+       "rms_db": -35.0,
+       "peak_db": -20.72,
+       "centroid_hz": 7735,
+       "files": [
+        "hat_half_1_1.mp3",
+        "hat_half_1_2.mp3",
+        "hat_half_1_3.mp3"
+       ]
+      },
+      {
+       "layer": 2,
+       "vel_lo": 36,
+       "vel_hi": 59,
+       "natural_rel_db": -11.97,
+       "stored_rel_db": -11.97,
+       "gain_trim_db": 0.0,
+       "rms_db": -28.4,
+       "peak_db": -13.96,
+       "centroid_hz": 8403,
+       "files": [
+        "hat_half_2_1.mp3",
+        "hat_half_2_2.mp3",
+        "hat_half_2_3.mp3"
+       ]
+      },
+      {
+       "layer": 3,
+       "vel_lo": 60,
+       "vel_hi": 99,
+       "natural_rel_db": -5.93,
+       "stored_rel_db": -5.93,
+       "gain_trim_db": 0.0,
+       "rms_db": -22.6,
+       "peak_db": -7.38,
+       "centroid_hz": 8859,
+       "files": [
+        "hat_half_3_1.mp3",
+        "hat_half_3_2.mp3",
+        "hat_half_3_3.mp3"
+       ]
+      },
+      {
+       "layer": 4,
+       "vel_lo": 100,
+       "vel_hi": 127,
+       "natural_rel_db": 0.0,
+       "stored_rel_db": 0.0,
+       "gain_trim_db": 0.0,
+       "rms_db": -16.8,
+       "peak_db": -1.0,
+       "centroid_hz": 8826,
+       "files": [
+        "hat_half_4_1.mp3",
+        "hat_half_4_2.mp3",
+        "hat_half_4_3.mp3"
+       ]
+      }
+     ],
+     "round_robins": 3,
+     "max_len_s": 1.4,
+     "mix": "hat.half"
+    },
+    "open34": {
+     "art_rel_db": -6.0,
+     "layers": [
+      {
+       "layer": 1,
+       "vel_lo": 1,
+       "vel_hi": 35,
+       "natural_rel_db": -17.01,
+       "stored_rel_db": -17.01,
+       "gain_trim_db": 0.0,
+       "rms_db": -34.6,
+       "peak_db": -16.35,
+       "centroid_hz": 7011,
+       "files": [
+        "hat_open34_1_1.mp3",
+        "hat_open34_1_2.mp3",
+        "hat_open34_1_3.mp3"
+       ]
+      },
+      {
+       "layer": 2,
+       "vel_lo": 36,
+       "vel_hi": 78,
+       "natural_rel_db": -10.54,
+       "stored_rel_db": -10.54,
+       "gain_trim_db": 0.0,
+       "rms_db": -27.7,
+       "peak_db": -13.73,
+       "centroid_hz": 7994,
+       "files": [
+        "hat_open34_2_1.mp3",
+        "hat_open34_2_2.mp3",
+        "hat_open34_2_3.mp3"
+       ]
+      },
+      {
+       "layer": 3,
+       "vel_lo": 79,
+       "vel_hi": 127,
+       "natural_rel_db": 0.0,
+       "stored_rel_db": 0.0,
+       "gain_trim_db": 0.0,
+       "rms_db": -17.2,
+       "peak_db": -1.0,
+       "centroid_hz": 8561,
+       "files": [
+        "hat_open34_3_1.mp3",
+        "hat_open34_3_2.mp3",
+        "hat_open34_3_3.mp3"
+       ]
+      }
+     ],
+     "round_robins": 3,
+     "max_len_s": 1.9,
+     "mix": "hat.open34"
+    },
+    "open": {
+     "art_rel_db": 3.8,
+     "layers": [
+      {
+       "layer": 1,
+       "vel_lo": 1,
+       "vel_hi": 32,
+       "natural_rel_db": -29.27,
+       "stored_rel_db": -24.0,
+       "gain_trim_db": -5.27,
+       "rms_db": -46.6,
+       "peak_db": -18.94,
+       "centroid_hz": 6702,
+       "files": [
+        "hat_open_1_1.mp3",
+        "hat_open_1_2.mp3",
+        "hat_open_1_3.mp3"
+       ]
+      },
+      {
+       "layer": 2,
+       "vel_lo": 33,
+       "vel_hi": 46,
+       "natural_rel_db": -21.89,
+       "stored_rel_db": -17.95,
+       "gain_trim_db": -3.94,
+       "rms_db": -40.5,
+       "peak_db": -15.0,
+       "centroid_hz": 6907,
+       "files": [
+        "hat_open_2_1.mp3",
+        "hat_open_2_2.mp3",
+        "hat_open_2_3.mp3"
+       ]
+      },
+      {
+       "layer": 3,
+       "vel_lo": 47,
+       "vel_hi": 83,
+       "natural_rel_db": -15.53,
+       "stored_rel_db": -12.74,
+       "gain_trim_db": -2.8,
+       "rms_db": -35.9,
+       "peak_db": -9.34,
+       "centroid_hz": 7187,
+       "files": [
+        "hat_open_3_1.mp3",
+        "hat_open_3_2.mp3",
+        "hat_open_3_3.mp3"
+       ]
+      },
+      {
+       "layer": 4,
+       "vel_lo": 84,
+       "vel_hi": 127,
+       "natural_rel_db": 0.0,
+       "stored_rel_db": 0.0,
+       "gain_trim_db": 0.0,
+       "rms_db": -22.7,
+       "peak_db": -1.0,
+       "centroid_hz": 7541,
+       "files": [
+        "hat_open_4_1.mp3",
+        "hat_open_4_2.mp3",
+        "hat_open_4_3.mp3"
+       ]
+      }
+     ],
+     "round_robins": 3,
+     "max_len_s": 2.6,
+     "mix": "hat.open"
+    },
+    "pedal": {
+     "art_rel_db": -15.2,
+     "layers": [
+      {
+       "layer": 1,
+       "vel_lo": 1,
+       "vel_hi": 44,
+       "natural_rel_db": -13.84,
+       "stored_rel_db": -13.84,
+       "gain_trim_db": 0.0,
+       "rms_db": -33.7,
+       "peak_db": -14.16,
+       "centroid_hz": 7904,
+       "files": [
+        "hat_pedal_1_1.mp3",
+        "hat_pedal_1_2.mp3",
+        "hat_pedal_1_3.mp3"
+       ]
+      },
+      {
+       "layer": 2,
+       "vel_lo": 45,
+       "vel_hi": 97,
+       "natural_rel_db": -4.76,
+       "stored_rel_db": -4.76,
+       "gain_trim_db": 0.0,
+       "rms_db": -25.4,
+       "peak_db": -4.9,
+       "centroid_hz": 8106,
+       "files": [
+        "hat_pedal_2_1.mp3",
+        "hat_pedal_2_2.mp3",
+        "hat_pedal_2_3.mp3"
+       ]
+      },
+      {
+       "layer": 3,
+       "vel_lo": 98,
+       "vel_hi": 127,
+       "natural_rel_db": 0.0,
+       "stored_rel_db": 0.0,
+       "gain_trim_db": 0.0,
+       "rms_db": -20.1,
+       "peak_db": -1.0,
+       "centroid_hz": 7272,
+       "files": [
+        "hat_pedal_3_1.mp3",
+        "hat_pedal_3_2.mp3",
+        "hat_pedal_3_3.mp3"
+       ]
+      }
+     ],
+     "round_robins": 3,
+     "max_len_s": 0.5,
+     "mix": "hat.pedal"
+    },
+    "splash": {
+     "art_rel_db": -24.8,
+     "layers": [
+      {
+       "layer": 1,
+       "vel_lo": 1,
+       "vel_hi": 121,
+       "natural_rel_db": -0.35,
+       "stored_rel_db": -0.35,
+       "gain_trim_db": 0.0,
+       "rms_db": -16.9,
+       "peak_db": -1.51,
+       "centroid_hz": 9327,
+       "files": [
+        "hat_splash_1_1.mp3",
+        "hat_splash_1_2.mp3"
+       ]
+      },
+      {
+       "layer": 2,
+       "vel_lo": 122,
+       "vel_hi": 127,
+       "natural_rel_db": 0.0,
+       "stored_rel_db": 0.0,
+       "gain_trim_db": 0.0,
+       "rms_db": -16.5,
+       "peak_db": -1.0,
+       "centroid_hz": 9115,
+       "files": [
+        "hat_splash_2_1.mp3",
+        "hat_splash_2_2.mp3"
+       ]
+      }
+     ],
+     "round_robins": 2,
+     "max_len_s": 2.0,
+     "mix": "hat.splash"
+    }
+   },
+   "overhead_balance_db": -14.1
+  },
+  "kick": {
+   "main_articulation": "center",
+   "choke_group": null,
+   "pan_of_close_mics": 0.0,
+   "articulations": {
+    "center": {
+     "art_rel_db": 0.0,
+     "layers": [
+      {
+       "layer": 1,
+       "vel_lo": 1,
+       "vel_hi": 36,
+       "natural_rel_db": -27.24,
+       "stored_rel_db": -24.0,
+       "gain_trim_db": -3.24,
+       "rms_db": -38.2,
+       "peak_db": -27.28,
+       "centroid_hz": 605,
+       "files": [
+        "kick_center_1_1.mp3",
+        "kick_center_1_2.mp3",
+        "kick_center_1_3.mp3"
+       ]
+      },
+      {
+       "layer": 2,
+       "vel_lo": 37,
+       "vel_hi": 68,
+       "natural_rel_db": -16.2,
+       "stored_rel_db": -14.27,
+       "gain_trim_db": -1.93,
+       "rms_db": -28.3,
+       "peak_db": -18.93,
+       "centroid_hz": 396,
+       "files": [
+        "kick_center_2_1.mp3",
+        "kick_center_2_2.mp3",
+        "kick_center_2_3.mp3"
+       ]
+      },
+      {
+       "layer": 3,
+       "vel_lo": 69,
+       "vel_hi": 108,
+       "natural_rel_db": -5.42,
+       "stored_rel_db": -4.78,
+       "gain_trim_db": -0.65,
+       "rms_db": -18.9,
+       "peak_db": -7.98,
+       "centroid_hz": 940,
+       "files": [
+        "kick_center_3_1.mp3",
+        "kick_center_3_2.mp3",
+        "kick_center_3_3.mp3"
+       ]
+      },
+      {
+       "layer": 4,
+       "vel_lo": 109,
+       "vel_hi": 127,
+       "natural_rel_db": 0.0,
+       "stored_rel_db": 0.0,
+       "gain_trim_db": 0.0,
+       "rms_db": -14.1,
+       "peak_db": -1.0,
+       "centroid_hz": 1098,
+       "files": [
+        "kick_center_4_1.mp3",
+        "kick_center_4_2.mp3",
+        "kick_center_4_3.mp3"
+       ]
+      }
+     ],
+     "round_robins": 3,
+     "max_len_s": 1.2,
+     "mix": "kick.center"
+    }
+   },
+   "overhead_balance_db": -14.3
+  },
+  "ride": {
+   "main_articulation": "bow",
+   "choke_group": "ride",
+   "pan_of_close_mics": -0.477,
+   "articulations": {
+    "bell": {
+     "art_rel_db": -3.4,
+     "layers": [
+      {
+       "layer": 1,
+       "vel_lo": 1,
+       "vel_hi": 42,
+       "natural_rel_db": -20.01,
+       "stored_rel_db": -20.01,
+       "gain_trim_db": 0.0,
+       "rms_db": -43.8,
+       "peak_db": -21.2,
+       "centroid_hz": 7049,
+       "files": [
+        "ride_bell_1_1.mp3",
+        "ride_bell_1_2.mp3",
+        "ride_bell_1_3.mp3"
+       ]
+      },
+      {
+       "layer": 2,
+       "vel_lo": 43,
+       "vel_hi": 92,
+       "natural_rel_db": -8.03,
+       "stored_rel_db": -8.03,
+       "gain_trim_db": 0.0,
+       "rms_db": -32.1,
+       "peak_db": -7.41,
+       "centroid_hz": 8010,
+       "files": [
+        "ride_bell_2_1.mp3",
+        "ride_bell_2_2.mp3",
+        "ride_bell_2_3.mp3"
+       ]
+      },
+      {
+       "layer": 3,
+       "vel_lo": 93,
+       "vel_hi": 127,
+       "natural_rel_db": 0.0,
+       "stored_rel_db": 0.0,
+       "gain_trim_db": 0.0,
+       "rms_db": -23.9,
+       "peak_db": -3.0,
+       "centroid_hz": 6023,
+       "files": [
+        "ride_bell_3_1.mp3",
+        "ride_bell_3_2.mp3",
+        "ride_bell_3_3.mp3"
+       ]
+      }
+     ],
+     "round_robins": 3,
+     "max_len_s": 3.8,
+     "mix": "ride.bell"
+    },
+    "bow": {
+     "art_rel_db": 0.0,
+     "layers": [
+      {
+       "layer": 1,
+       "vel_lo": 1,
+       "vel_hi": 45,
+       "natural_rel_db": -15.72,
+       "stored_rel_db": -15.72,
+       "gain_trim_db": 0.0,
+       "rms_db": -48.9,
+       "peak_db": -20.96,
+       "centroid_hz": 6916,
+       "files": [
+        "ride_bow_1_1.mp3",
+        "ride_bow_1_2.mp3",
+        "ride_bow_1_3.mp3",
+        "ride_bow_1_4.mp3"
+       ]
+      },
+      {
+       "layer": 2,
+       "vel_lo": 46,
+       "vel_hi": 99,
+       "natural_rel_db": -4.84,
+       "stored_rel_db": -4.84,
+       "gain_trim_db": 0.0,
+       "rms_db": -37.2,
+       "peak_db": -9.57,
+       "centroid_hz": 8144,
+       "files": [
+        "ride_bow_2_1.mp3",
+        "ride_bow_2_2.mp3",
+        "ride_bow_2_3.mp3",
+        "ride_bow_2_4.mp3"
+       ]
+      },
+      {
+       "layer": 3,
+       "vel_lo": 100,
+       "vel_hi": 127,
+       "natural_rel_db": 0.0,
+       "stored_rel_db": 0.0,
+       "gain_trim_db": 0.0,
+       "rms_db": -32.0,
+       "peak_db": -3.0,
+       "centroid_hz": 8272,
+       "files": [
+        "ride_bow_3_1.mp3",
+        "ride_bow_3_2.mp3",
+        "ride_bow_3_3.mp3",
+        "ride_bow_3_4.mp3"
+       ]
+      }
+     ],
+     "round_robins": 4,
+     "max_len_s": 4.2,
+     "mix": "ride.bow"
+    }
+   },
+   "overhead_balance_db": -19.1
+  },
+  "ride2": {
+   "main_articulation": "bow",
+   "choke_group": "ride2",
+   "pan_of_close_mics": 0.314,
+   "articulations": {
+    "bow": {
+     "art_rel_db": 0.0,
+     "layers": [
+      {
+       "layer": 1,
+       "vel_lo": 1,
+       "vel_hi": 39,
+       "natural_rel_db": -12.14,
+       "stored_rel_db": -12.14,
+       "gain_trim_db": 0.0,
+       "rms_db": -46.0,
+       "peak_db": -14.0,
+       "centroid_hz": 9509,
+       "files": [
+        "ride2_bow_1_1.mp3",
+        "ride2_bow_1_2.mp3",
+        "ride2_bow_1_3.mp3"
+       ]
+      },
+      {
+       "layer": 2,
+       "vel_lo": 40,
+       "vel_hi": 87,
+       "natural_rel_db": -5.86,
+       "stored_rel_db": -5.86,
+       "gain_trim_db": 0.0,
+       "rms_db": -39.1,
+       "peak_db": -9.04,
+       "centroid_hz": 9809,
+       "files": [
+        "ride2_bow_2_1.mp3",
+        "ride2_bow_2_2.mp3",
+        "ride2_bow_2_3.mp3"
+       ]
+      },
+      {
+       "layer": 3,
+       "vel_lo": 88,
+       "vel_hi": 127,
+       "natural_rel_db": 0.0,
+       "stored_rel_db": 0.0,
+       "gain_trim_db": 0.0,
+       "rms_db": -33.6,
+       "peak_db": -3.0,
+       "centroid_hz": 9871,
+       "files": [
+        "ride2_bow_3_1.mp3",
+        "ride2_bow_3_2.mp3",
+        "ride2_bow_3_3.mp3"
+       ]
+      }
+     ],
+     "round_robins": 3,
+     "max_len_s": 4.2,
+     "mix": "ride2.bow"
+    },
+    "crash": {
+     "art_rel_db": -3.1,
+     "layers": [
+      {
+       "layer": 1,
+       "vel_lo": 1,
+       "vel_hi": 104,
+       "natural_rel_db": -1.54,
+       "stored_rel_db": -1.54,
+       "gain_trim_db": 0.0,
+       "rms_db": -20.9,
+       "peak_db": -5.35,
+       "centroid_hz": 7026,
+       "files": [
+        "ride2_crash_1_1.mp3",
+        "ride2_crash_1_2.mp3"
+       ]
+      },
+      {
+       "layer": 2,
+       "vel_lo": 105,
+       "vel_hi": 127,
+       "natural_rel_db": 0.0,
+       "stored_rel_db": 0.0,
+       "gain_trim_db": 0.0,
+       "rms_db": -19.3,
+       "peak_db": -3.0,
+       "centroid_hz": 7331,
+       "files": [
+        "ride2_crash_2_1.mp3",
+        "ride2_crash_2_2.mp3"
+       ]
+      }
+     ],
+     "round_robins": 2,
+     "max_len_s": 4.5,
+     "mix": "ride2.crash"
+    }
+   },
+   "overhead_balance_db": -17.4
+  },
+  "snare": {
+   "main_articulation": "center",
+   "choke_group": null,
+   "pan_of_close_mics": 0.165,
+   "articulations": {
+    "buzz": {
+     "art_rel_db": -4.0,
+     "layers": [
+      {
+       "layer": 1,
+       "vel_lo": 1,
+       "vel_hi": 39,
+       "natural_rel_db": -26.8,
+       "stored_rel_db": -24.0,
+       "gain_trim_db": -2.8,
+       "rms_db": -40.8,
+       "peak_db": -21.83,
+       "centroid_hz": 3726,
+       "files": [
+        "snare_buzz_1_1.mp3",
+        "snare_buzz_1_2.mp3",
+        "snare_buzz_1_3.mp3"
+       ]
+      },
+      {
+       "layer": 2,
+       "vel_lo": 40,
+       "vel_hi": 85,
+       "natural_rel_db": -13.43,
+       "stored_rel_db": -12.03,
+       "gain_trim_db": -1.4,
+       "rms_db": -30.6,
+       "peak_db": -12.8,
+       "centroid_hz": 3429,
+       "files": [
+        "snare_buzz_2_1.mp3",
+        "snare_buzz_2_2.mp3",
+        "snare_buzz_2_3.mp3"
+       ]
+      },
+      {
+       "layer": 3,
+       "vel_lo": 86,
+       "vel_hi": 127,
+       "natural_rel_db": 0.0,
+       "stored_rel_db": 0.0,
+       "gain_trim_db": 0.0,
+       "rms_db": -19.4,
+       "peak_db": -1.0,
+       "centroid_hz": 3258,
+       "files": [
+        "snare_buzz_3_1.mp3",
+        "snare_buzz_3_2.mp3",
+        "snare_buzz_3_3.mp3"
+       ]
+      }
+     ],
+     "round_robins": 3,
+     "max_len_s": 1.2,
+     "mix": "snare.buzz"
+    },
+    "center": {
+     "art_rel_db": 0.0,
+     "layers": [
+      {
+       "layer": 1,
+       "vel_lo": 1,
+       "vel_hi": 31,
+       "natural_rel_db": -22.43,
+       "stored_rel_db": -22.43,
+       "gain_trim_db": 0.0,
+       "rms_db": -42.8,
+       "peak_db": -22.99,
+       "centroid_hz": 4306,
+       "files": [
+        "snare_center_1_1.mp3",
+        "snare_center_1_2.mp3",
+        "snare_center_1_3.mp3",
+        "snare_center_1_4.mp3"
+       ]
+      },
+      {
+       "layer": 2,
+       "vel_lo": 32,
+       "vel_hi": 43,
+       "natural_rel_db": -17.05,
+       "stored_rel_db": -17.05,
+       "gain_trim_db": 0.0,
+       "rms_db": -36.5,
+       "peak_db": -18.25,
+       "centroid_hz": 4304,
+       "files": [
+        "snare_center_2_1.mp3",
+        "snare_center_2_2.mp3",
+        "snare_center_2_3.mp3",
+        "snare_center_2_4.mp3"
+       ]
+      },
+      {
+       "layer": 3,
+       "vel_lo": 44,
+       "vel_hi": 56,
+       "natural_rel_db": -13.78,
+       "stored_rel_db": -13.78,
+       "gain_trim_db": 0.0,
+       "rms_db": -33.5,
+       "peak_db": -14.82,
+       "centroid_hz": 4171,
+       "files": [
+        "snare_center_3_1.mp3",
+        "snare_center_3_2.mp3",
+        "snare_center_3_3.mp3",
+        "snare_center_3_4.mp3"
+       ]
+      },
+      {
+       "layer": 4,
+       "vel_lo": 57,
+       "vel_hi": 77,
+       "natural_rel_db": -9.33,
+       "stored_rel_db": -9.33,
+       "gain_trim_db": 0.0,
+       "rms_db": -29.0,
+       "peak_db": -10.26,
+       "centroid_hz": 4173,
+       "files": [
+        "snare_center_4_1.mp3",
+        "snare_center_4_2.mp3",
+        "snare_center_4_3.mp3",
+        "snare_center_4_4.mp3"
+       ]
+      },
+      {
+       "layer": 5,
+       "vel_lo": 78,
+       "vel_hi": 107,
+       "natural_rel_db": -4.81,
+       "stored_rel_db": -4.81,
+       "gain_trim_db": 0.0,
+       "rms_db": -24.5,
+       "peak_db": -5.62,
+       "centroid_hz": 3965,
+       "files": [
+        "snare_center_5_1.mp3",
+        "snare_center_5_2.mp3",
+        "snare_center_5_3.mp3",
+        "snare_center_5_4.mp3"
+       ]
+      },
+      {
+       "layer": 6,
+       "vel_lo": 108,
+       "vel_hi": 127,
+       "natural_rel_db": 0.0,
+       "stored_rel_db": 0.0,
+       "gain_trim_db": 0.0,
+       "rms_db": -19.5,
+       "peak_db": -1.0,
+       "centroid_hz": 3935,
+       "files": [
+        "snare_center_6_1.mp3",
+        "snare_center_6_2.mp3",
+        "snare_center_6_3.mp3",
+        "snare_center_6_4.mp3"
+       ]
+      }
+     ],
+     "round_robins": 4,
+     "max_len_s": 1.3,
+     "mix": "snare.center"
+    },
+    "offcenter": {
+     "art_rel_db": 0.2,
+     "layers": [
+      {
+       "layer": 1,
+       "vel_lo": 1,
+       "vel_hi": 38,
+       "natural_rel_db": -21.1,
+       "stored_rel_db": -21.1,
+       "gain_trim_db": 0.0,
+       "rms_db": -41.2,
+       "peak_db": -22.08,
+       "centroid_hz": 4206,
+       "files": [
+        "snare_offcenter_1_1.mp3",
+        "snare_offcenter_1_2.mp3",
+        "snare_offcenter_1_3.mp3"
+       ]
+      },
+      {
+       "layer": 2,
+       "vel_lo": 39,
+       "vel_hi": 84,
+       "natural_rel_db": -11.08,
+       "stored_rel_db": -11.08,
+       "gain_trim_db": 0.0,
+       "rms_db": -31.7,
+       "peak_db": -13.59,
+       "centroid_hz": 4019,
+       "files": [
+        "snare_offcenter_2_1.mp3",
+        "snare_offcenter_2_2.mp3",
+        "snare_offcenter_2_3.mp3"
+       ]
+      },
+      {
+       "layer": 3,
+       "vel_lo": 85,
+       "vel_hi": 127,
+       "natural_rel_db": 0.0,
+       "stored_rel_db": 0.0,
+       "gain_trim_db": 0.0,
+       "rms_db": -19.8,
+       "peak_db": -1.0,
+       "centroid_hz": 3538,
+       "files": [
+        "snare_offcenter_3_1.mp3",
+        "snare_offcenter_3_2.mp3",
+        "snare_offcenter_3_3.mp3"
+       ]
+      }
+     ],
+     "round_robins": 3,
+     "max_len_s": 1.2,
+     "mix": "snare.offcenter"
+    },
+    "rimshot": {
+     "art_rel_db": 0.3,
+     "layers": [
+      {
+       "layer": 1,
+       "vel_lo": 1,
+       "vel_hi": 44,
+       "natural_rel_db": -16.22,
+       "stored_rel_db": -16.22,
+       "gain_trim_db": 0.0,
+       "rms_db": -38.1,
+       "peak_db": -15.31,
+       "centroid_hz": 3640,
+       "files": [
+        "snare_rimshot_1_1.mp3",
+        "snare_rimshot_1_2.mp3",
+        "snare_rimshot_1_3.mp3"
+       ]
+      },
+      {
+       "layer": 2,
+       "vel_lo": 45,
+       "vel_hi": 98,
+       "natural_rel_db": -5.29,
+       "stored_rel_db": -5.29,
+       "gain_trim_db": 0.0,
+       "rms_db": -27.5,
+       "peak_db": -5.48,
+       "centroid_hz": 3421,
+       "files": [
+        "snare_rimshot_2_1.mp3",
+        "snare_rimshot_2_2.mp3",
+        "snare_rimshot_2_3.mp3"
+       ]
+      },
+      {
+       "layer": 3,
+       "vel_lo": 99,
+       "vel_hi": 127,
+       "natural_rel_db": 0.0,
+       "stored_rel_db": 0.0,
+       "gain_trim_db": 0.0,
+       "rms_db": -21.7,
+       "peak_db": -1.0,
+       "centroid_hz": 3384,
+       "files": [
+        "snare_rimshot_3_1.mp3",
+        "snare_rimshot_3_2.mp3",
+        "snare_rimshot_3_3.mp3"
+       ]
+      }
+     ],
+     "round_robins": 3,
+     "max_len_s": 1.4,
+     "mix": "snare.rimshot"
+    },
+    "sidestick": {
+     "art_rel_db": -5.3,
+     "layers": [
+      {
+       "layer": 1,
+       "vel_lo": 1,
+       "vel_hi": 42,
+       "natural_rel_db": -18.36,
+       "stored_rel_db": -18.36,
+       "gain_trim_db": 0.0,
+       "rms_db": -43.9,
+       "peak_db": -18.25,
+       "centroid_hz": 3529,
+       "files": [
+        "snare_sidestick_1_1.mp3",
+        "snare_sidestick_1_2.mp3",
+        "snare_sidestick_1_3.mp3"
+       ]
+      },
+      {
+       "layer": 2,
+       "vel_lo": 43,
+       "vel_hi": 94,
+       "natural_rel_db": -7.0,
+       "stored_rel_db": -7.0,
+       "gain_trim_db": 0.0,
+       "rms_db": -33.5,
+       "peak_db": -7.67,
+       "centroid_hz": 3843,
+       "files": [
+        "snare_sidestick_2_1.mp3",
+        "snare_sidestick_2_2.mp3",
+        "snare_sidestick_2_3.mp3"
+       ]
+      },
+      {
+       "layer": 3,
+       "vel_lo": 95,
+       "vel_hi": 127,
+       "natural_rel_db": 0.0,
+       "stored_rel_db": 0.0,
+       "gain_trim_db": 0.0,
+       "rms_db": -26.1,
+       "peak_db": -1.0,
+       "centroid_hz": 3809,
+       "files": [
+        "snare_sidestick_3_1.mp3",
+        "snare_sidestick_3_2.mp3",
+        "snare_sidestick_3_3.mp3"
+       ]
+      }
+     ],
+     "round_robins": 3,
+     "max_len_s": 0.6,
+     "mix": "snare.sidestick"
+    }
+   },
+   "overhead_balance_db": 0.0
+  },
+  "tomh": {
+   "main_articulation": "center",
+   "choke_group": null,
+   "pan_of_close_mics": 0.182,
+   "articulations": {
+    "center": {
+     "art_rel_db": 0.0,
+     "layers": [
+      {
+       "layer": 1,
+       "vel_lo": 1,
+       "vel_hi": 40,
+       "natural_rel_db": -19.41,
+       "stored_rel_db": -19.41,
+       "gain_trim_db": 0.0,
+       "rms_db": -37.2,
+       "peak_db": -22.48,
+       "centroid_hz": 944,
+       "files": [
+        "tomh_center_1_1.mp3",
+        "tomh_center_1_2.mp3",
+        "tomh_center_1_3.mp3"
+       ]
+      },
+      {
+       "layer": 2,
+       "vel_lo": 41,
+       "vel_hi": 70,
+       "natural_rel_db": -9.17,
+       "stored_rel_db": -9.17,
+       "gain_trim_db": 0.0,
+       "rms_db": -25.1,
+       "peak_db": -12.52,
+       "centroid_hz": 914,
+       "files": [
+        "tomh_center_2_1.mp3",
+        "tomh_center_2_2.mp3",
+        "tomh_center_2_3.mp3"
+       ]
+      },
+      {
+       "layer": 3,
+       "vel_lo": 71,
+       "vel_hi": 102,
+       "natural_rel_db": -5.46,
+       "stored_rel_db": -5.46,
+       "gain_trim_db": 0.0,
+       "rms_db": -20.4,
+       "peak_db": -6.45,
+       "centroid_hz": 1037,
+       "files": [
+        "tomh_center_3_1.mp3",
+        "tomh_center_3_2.mp3",
+        "tomh_center_3_3.mp3"
+       ]
+      },
+      {
+       "layer": 4,
+       "vel_lo": 103,
+       "vel_hi": 127,
+       "natural_rel_db": 0.0,
+       "stored_rel_db": 0.0,
+       "gain_trim_db": 0.0,
+       "rms_db": -15.6,
+       "peak_db": -1.0,
+       "centroid_hz": 1275,
+       "files": [
+        "tomh_center_4_1.mp3",
+        "tomh_center_4_2.mp3",
+        "tomh_center_4_3.mp3"
+       ]
+      }
+     ],
+     "round_robins": 3,
+     "max_len_s": 1.8,
+     "mix": "tomh.center"
+    }
+   },
+   "overhead_balance_db": 2.4
+  },
+  "toml": {
+   "main_articulation": "center",
+   "choke_group": null,
+   "pan_of_close_mics": -0.119,
+   "articulations": {
+    "center": {
+     "art_rel_db": 0.0,
+     "layers": [
+      {
+       "layer": 1,
+       "vel_lo": 1,
+       "vel_hi": 37,
+       "natural_rel_db": -23.25,
+       "stored_rel_db": -23.25,
+       "gain_trim_db": 0.0,
+       "rms_db": -39.3,
+       "peak_db": -25.65,
+       "centroid_hz": 685,
+       "files": [
+        "toml_center_1_1.mp3",
+        "toml_center_1_2.mp3",
+        "toml_center_1_3.mp3"
+       ]
+      },
+      {
+       "layer": 2,
+       "vel_lo": 38,
+       "vel_hi": 68,
+       "natural_rel_db": -12.74,
+       "stored_rel_db": -12.74,
+       "gain_trim_db": 0.0,
+       "rms_db": -27.9,
+       "peak_db": -13.17,
+       "centroid_hz": 607,
+       "files": [
+        "toml_center_2_1.mp3",
+        "toml_center_2_2.mp3",
+        "toml_center_2_3.mp3"
+       ]
+      },
+      {
+       "layer": 3,
+       "vel_lo": 69,
+       "vel_hi": 104,
+       "natural_rel_db": -5.79,
+       "stored_rel_db": -5.79,
+       "gain_trim_db": 0.0,
+       "rms_db": -21.2,
+       "peak_db": -7.11,
+       "centroid_hz": 723,
+       "files": [
+        "toml_center_3_1.mp3",
+        "toml_center_3_2.mp3",
+        "toml_center_3_3.mp3"
+       ]
+      },
+      {
+       "layer": 4,
+       "vel_lo": 105,
+       "vel_hi": 127,
+       "natural_rel_db": 0.0,
+       "stored_rel_db": 0.0,
+       "gain_trim_db": 0.0,
+       "rms_db": -15.5,
+       "peak_db": -1.0,
+       "centroid_hz": 937,
+       "files": [
+        "toml_center_4_1.mp3",
+        "toml_center_4_2.mp3",
+        "toml_center_4_3.mp3"
+       ]
+      }
+     ],
+     "round_robins": 3,
+     "max_len_s": 2.4,
+     "mix": "toml.center"
+    }
+   },
+   "overhead_balance_db": -1.0
+  }
+ }
+}
