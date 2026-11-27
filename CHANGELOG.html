@@ -44,6 +44,38 @@
 <h2>Modal Metronome — drum-machine/</h2>
 <p class="note">Started 2026-11-03 as "Groove Metronome"; renamed Modal Metronome 2026-11-05. Sound folders: <code>drum-machine/kits/</code>, <code>drum-machine/bass/</code>, <code>drum-machine/keys/</code>.</p>
 
+<h3>Version 2026-11-27.15 (beta 2026-11-27)</h3>
+<p class="note">Groove fix, pass 2: the band. Pass 1 corrected the drums and percussion; this pass gives the bass and the two keyboard players the parts the groove studies write for each groove, adds fills and section "gears" by style, and fixes the measured misses from pass 1. Folder <code>drum-machine/</code>, beta page <code>drum-machine-beta/</code>. Nothing was checked by ear.</p>
+<h4>Added</h4>
+<ul>
+  <li><strong>A bass line per groove</strong> where a study gives one (Bass style = Auto). Each is a fixed one- or two-bar line placed on that groove's own kick, moved through the chords by chord tone, with an approach note into the next chord: the James Brown type grooves (the One long, a note on each off-beat kick, a pickup into the One), the Cissy Strut type two-bar line, Look-Ka Py Py type, the laid-back pocket, go-go in two bars, Minneapolis octaves, half-time funk, the Not Fade Away type cell, partido alto (the bass plays the kick's melody), dembow, boom bap and neo-soul two-bar loops, the Immigrant Song type gallop, the Levee type riff rhythm, the 5/4 rock two-bar figure, Home at Last, and the new grooves below. Articulations, Bass licks and the 5-string still apply.</li>
+  <li><strong>A keys part per groove</strong> where a study gives one (Comping = Auto): Clavinet scratch and chank with a single organ stab for the James Brown type grooves; Clavinet with organ stabs on the kick for the Tower of Power type grooves; organ two-note answers for the New Orleans funk grooves; Motown piano on the quarter notes with the organ taking the chop on 2 and 4; cha-cha-cha, Afro-Cuban 6/8, baião (chords on the upbeats), partido alto, soca and ska upbeat stabs; samba figures cut from the two-bar tamborim phrase; a bossa cell that follows the drummer's own rim phrase (it turns with the Clave menu); stride-style quarter notes for New Orleans two-beat; sparse Basie answers for big band; held fourth-chords for the Elvin groove; anticipations only at fast swing; the Take Five type and 7/4 figures; Chicago shuffle stabs on the skip notes; the half-time shuffle figure; hammered triplets for the Hold the Line type groove; boom bap's two-bar chop; grand piano for the Stash type grooves.</li>
+  <li><strong>Six grooves the studies mark high confidence:</strong> Reggae Rockers, Ska, Half-Time Shuffle with the open hat on the skip (rock type), Rock Shuffle, Punk D-Beat, Motown Tom Backbeat (approx.).</li>
+  <li><strong>Fill families:</strong> James Brown type grooves get set-ups only (a ghost pickup, one open hat, two snares into the One: no tom runs); Tower of Power type grooves get 16th-note snare set-ups; reggae gets the high tight roll into the drop; the Cuban fills get the timbale abanico; jazz gets the bebop set-up (snare, snare, kick on the last 8th) and a one-bar trading figure; big band gets the crescendo set-up.</li>
+  <li><strong>Gears in the lifted eight bars</strong> (or the Chorus, with Song sections on): the blues shuffle bass walks in the verse and doubles the shuffle in the lift; the Texas shuffle goes from its one-bar figure to the two-bar walk; the two-feel bass walks four; the Stash type grooves thicken the piano and drive the last two bars in 8ths; pop alternates two bars of octaves with two bars of 8th-note roots.</li>
+  <li><strong>A third conga voice:</strong> in the Cuban two-bar grooves the two low open tones of the 3 side (the bombo and beat 3) are played on the lower drum, and turn with the Clave menu.</li>
+</ul>
+<h4>Changed</h4>
+<ul>
+  <li><strong>Jazz swing against tempo</strong> follows the jazz study's curve from records: 2:1 up to 90 BPM, widest (2.3:1) from 100 to 140, back to 2:1 at 200, 1.5:1 at 240 and 1.2:1 at 280. A fixed place for a tempo, never random. Keys on the swung 8th now land with the ride's skip note, and the jazz piano sits a share of the beat behind (5%, with a ceiling) in place of a fixed number of milliseconds; the neo-soul keys lag also scales with tempo.</li>
+  <li><strong>Brazilian lilt:</strong> in samba, partido alto and batucada the &amp; and the a of each beat sit early by a fixed share of a 16th (6% and 10% up to 105 BPM, half that to 125, none above); bossa gets half of it. The same in every bar, for the whole band; off on Machine pocket.</li>
+  <li><strong>Jazz balance:</strong> at jazz dynamics the Jazz kit's ride sat about 10 dB lower against the bass than the Vintage kit's ride playing the same part, and with the kick feathered (pass 1) the cymbal is the drummer. On the jazz grooves the Jazz kit's ride is up 6 dB, its hi-hat 4 dB and its snare 3.5 dB. The feathered kick is unchanged.</li>
+  <li><strong>Tumbao bass:</strong> the note on 4 rings to the next bombo; the slow grooves (Conga Tumbao, Son Montuno) state the root on 1 of the 2 side and the octave on 4 of the 3 side; songo adds the root on 1 and a pickup into the bombo; the invented third on the &amp; of 3 is gone. Bossa and samba bass take the fifth below the root where the range allows, play the pickups soft and short, and anticipate the next chord's root. In a two-bar groove only the last time round leads into the next chord (the first bar used to approach it a bar early).</li>
+  <li>Motown bass starts from the root-with-the-kick lines (the eight-8ths line is no longer the default). Ballad, Pop + Shaker and the breaks follow the kick. Samba, bossa, disco, afrobeat and Motown comping cells were rewritten from the studies.</li>
+</ul>
+<h4>Fixed</h4>
+<ul>
+  <li><strong>Trap:</strong> with the bass on, the bass IS the 808 (its sub on the kick, with glides); the 808 drum row no longer sounds under it.</li>
+  <li><strong>Ghost notes too soft to hear</strong> (26 to 28 dB under the backbeat on Basic Rock, Jazz-Funk, Home at Last, Rosanna and Black Dog type grooves) are lifted to about 23 dB; the order of strengths is kept.</li>
+  <li><strong>Kick and backbeat timing:</strong> a soft ceiling keeps every kick and backbeat stroke within 3.3 ms of its place at any Humanize setting (single strokes reached 5.9 ms).</li>
+  <li>Keys timing scatter is held to 3.3 ms (was 3.8).</li>
+  <li><strong>MP3 export:</strong> the level is set from the true peak (the peak between the samples as well), so the encoded file stays under full scale; a busy band reached +0.1 dBTP in testing. Exports with such peaks come out a fraction of a dB quieter.</li>
+</ul>
+<h4>Not changed</h4>
+<ul>
+  <li>No groove key was renamed or removed. No new saved setting. Saved settings, share links and <code>.metronome</code> files load as before.</li>
+</ul>
+
 <h3>Version 2026-11-27.14 (beta 2026-11-27)</h3>
 <p class="note">Groove fix, pass 1: every groove on the menu was checked against its groove study (ten family studies with sources and confidence labels) and fixed, replaced or taken off the menu. Folder <code>drum-machine/</code>, beta page <code>drum-machine-beta/</code>. Nothing was checked by ear.</p>
 <h4>Added</h4>
