@@ -44,6 +44,27 @@
 <h2>Modal Metronome — drum-machine/</h2>
 <p class="note">Started 2026-11-03 as "Groove Metronome"; renamed Modal Metronome 2026-11-05. Sound folders: <code>drum-machine/kits/</code>, <code>drum-machine/bass/</code>, <code>drum-machine/keys/</code>.</p>
 
+<h3>Version 2026-11-27.6 (beta 2026-11-27)</h3>
+<h4>Added</h4>
+<ul>
+  <li>Four new drum kits, each recorded with several microphones and played in stereo: <b>Studio (tight, modern)</b>, <b>Vintage (dry)</b>, <b>Jazz (open, sticks)</b> and <b>Rock (big room)</b>. Every drum has 3 to 6 loudness layers, each with 2 to 4 different takes, so no recording is ever played twice in a row. Folders: <code>drum-machine/kits/studio-drs/</code>, <code>vintage-rusty/</code>, <code>jazz-virtuosity/</code>, <code>rock-muldjord/</code> (each with a <code>manifest.json</code>).</li>
+  <li>Kit menu: <b>Auto</b> is the new default and picks the kit that fits the groove (jazz grooves get Jazz; rock, Led Zeppelin, prog and Phish get Rock; soul, blues, reggae, country, New Orleans and James Brown get Vintage; funk, pop, Latin and Steely Dan get Studio). With Verse / Chorus on, the verse groove picks the kit, so a song keeps one kit.</li>
+  <li>The drummer now uses different ways of striking each drum, chosen from the groove you already have (nothing new is saved): hi-hats tight on quiet strokes, closed normally, a little loose on accents and in lifted sections, open and half-open where the pattern opens them, a foot "chick" for the hat foot, and a rare foot splash at the end of a jazz section; snare centre for backbeats, a rimshot on the strongest backbeats in rock and funk (Vintage and Jazz kits), cross-stick where the groove has one, a recorded buzz stroke for buzz rolls and jazz comping (Jazz kit); ride bow, bell and edge by accent; the two crashes take turns. A kit that lacks a stroke falls back to its nearest one.</li>
+  <li>A closed or foot stroke stops a ringing open hat, a crash struck again takes over from its own ring, and a crash is caught by hand when a drop-out bar starts.</li>
+  <li>Kit-in-a-room mix for the new kits: drums stay where they were recorded left to right, the kick no longer goes to the plate reverb, kits recorded dry get a short room (it is also in the MP3 export), the snare wires answer the kick and toms very quietly, and the always-on master compressor is gentler (slower attack, 2:1). A soft clipper on the drum bus rounds the tallest stick attacks so the drums sit as loud as the older kits.</li>
+  <li>Loading: a new kit loads only when it is picked, shows its progress, and decodes only what the groove needs first (about 0.5 to 1.7 MB); fills, crashes and the rest follow. Files are kept in a new browser cache, <code>mm-kits-v1</code>. Long cymbal tails are capped and only one of these kits stays in memory at a time.</li>
+  <li>Credits for the four kits (DrumGizmo.org, CC BY 4.0, for Studio and Rock; Karoryfer Samples and Versilian Studios, CC0, for Vintage and Jazz).</li>
+</ul>
+<h4>Changed</h4>
+<ul>
+  <li>Owner feedback on .5 ("lacking liquidity ... more of an array of velocity for ghost notes"): strength is now continuous, and the meter is untouched (no note moved in time). Ghost notes have a real spread (about 0.07 to 0.5, was 0.19 to 0.49) and a shape: a run grows into the backbeat or tapers away from it, the ghost before a backbeat is a little stronger than the one after, the lead hand a touch stronger, one slot per groove is barely there, and each bar differs slightly. Grooves that play a real drummer's performance get that drummer's own ghost spread back (it had been stored squeezed).</li>
+  <li>Graded accents: backbeats run 0.88 to 1.0 with the last one of the bar the strongest; the kick has a strong downbeat with softer doubles and pickups; hats and ride follow a hand-motion wave with the up-stroke lifting into the next accent; drags sit under single ghosts.</li>
+  <li>Phrase dynamics: a gentle 4-bar and 8-bar rise and fall (about 3 to 5 percent), a lift into fills and a breath after the downbeat that follows; lifted sections are fuller through the cymbals.</li>
+  <li>Tone follows strength continuously: on the new kits a stroke between two recorded layers is an equal-power blend of both, a stroke softer than its layer is a little darker, and soft strokes ring a little shorter. The older kits get a continuous tone filter and shorter soft strokes on every drum. Hi-hat openness now drifts a little from hit to hit instead of repeating one closed sound.</li>
+  <li>Three kits were taken off the Kit menu: Pearl Studio, Acoustic Studio (classic) and Hybrid. Their files stay; a saved setting, link or <code>.metronome</code> file that used one of them loads as Black Pearl. A saved setting that still had the old default kit (Black Pearl, untouched) loads as Auto.</li>
+</ul>
+<p class="note">Publishing: the four kit folders were added to the live <code>drum-machine/kits/</code> folder because the beta page loads its samples from there. Nothing in the live <code>drum-machine/index.html</code> refers to them.</p>
+
 <h3>Version 2026-11-27.5 (beta 2026-11-27)</h3>
 <h4>Fixed</h4>
 <ul>
