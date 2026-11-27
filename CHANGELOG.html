@@ -44,6 +44,27 @@
 <h2>Modal Metronome — drum-machine/</h2>
 <p class="note">Started 2026-11-03 as "Groove Metronome"; renamed Modal Metronome 2026-11-05. Sound folders: <code>drum-machine/kits/</code>, <code>drum-machine/bass/</code>, <code>drum-machine/keys/</code>.</p>
 
+<h3>Version 2026-11-27.4 (beta 2026-11-27)</h3>
+<h4>Added</h4>
+<ul>
+  <li>65 grooves now play a real drummer's bars instead of one bar on repeat. For each one, the closest performance in the Groove MIDI Dataset (Google, CC BY 4.0, modified) was found and 2, 4 or 8 bars of it were snapped onto the groove's own grid and swing: how hard every hit is played, and which notes the drummer added or left out from bar to bar (ghost notes, kick pickups, open hats, skipped hat strokes). Only the notes and their strength come from the recording; the timing stays this app's tight pocket. Bar 1 is still the pattern you see in the grid. By source style: rock 18, funk 14, jazz 11, soul 6, Latin 5, hip-hop 4, pop 3, disco 2, reggae 1, country 1 (the Train Beat from 2026-11-27.2). After the first time round, the drummer's added licks come and go so the cycle does not repeat exactly. <code>drum-machine/index.html</code></li>
+  <li>The other grooves (odd meters, hand percussion, brushes, a few song grooves with no close match) get a written 8-bar development: every hit is shaded a little differently from bar to bar, ghost notes are added or left out, a soft kick pickup and an open hi-hat lead into bars 4 and 8. Grooves transcribed from records only get the shading; their notes stay as written.</li>
+  <li>Four limbs only. Before every step is played the app checks that a drummer could play it: never more than two hand notes at once, the hi-hat or ride stroke is dropped when that hand is on a crash, an open and a closed hi-hat never sound together, no hi-hat foot under an open or closed stroke, and fast two-handed 16th hi-hats (124 BPM and up) leave out the hat on the backbeat. Kick and hi-hat foot stay free. The Machine pocket is left alone.</li>
+  <li>It plays the song. In Verse / Chorus mode the chorus is played a touch harder (cymbals about 6%, kick and snare about 3%) with looser hi-hats on the beat; without it every other 8 bars gets the same small lift. The last bar before each 8-bar line or section end rises into it.</li>
+</ul>
+<h4>Changed</h4>
+<ul>
+  <li>Hi-hats and the Zildjian ride never play the same recording twice in a row (a repeat moves to the neighbouring layer; loudness still follows the stroke).</li>
+  <li>Fills sit in the groove's own pocket (a laid-back reggae or neo-soul snare stays laid back in the fill), and the crash and kick that end a fill land together even when the groove has its own crash on beat 1.</li>
+  <li>Kick and backbeat timing held under 2 ms spread at slow tempos too; the neo-soul kick wobble was cut from 4 ms to 1 ms.</li>
+  <li>The open hi-hat at the end of a phrase is now part of the 8-bar plan instead of a coin toss.</li>
+</ul>
+<h4>Checked</h4>
+<ul>
+  <li>Measured on the scheduled notes and rendered audio, 111 grooves x 64 bars at the default settings: kick spread 1.6 ms and backbeat 1.7 ms on average; 1,776 of 1,776 fills land on beat 1 with kick and crash 0 ms apart; 0 unplayable bars in 7,104; 0 bars repeated note for note; 0 repeated hi-hat recordings; ghost notes 17 to 21 dB under the backbeat in the exported audio. Saved settings, share links and .metronome files from the live version load unchanged.</li>
+  <li>Not in the samples yet: true tight, half-open and foot-splash hi-hat recordings. Left for the kits stage.</li>
+</ul>
+
 <h3>Version 2026-11-27.3 (beta 2026-11-27)</h3>
 <h4>Changed</h4>
 <ul>
