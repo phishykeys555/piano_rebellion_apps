@@ -1,8 +1,5 @@
 <!DOCTYPE html>
-<html><head>
-<base href="../drum-machine/">
-<meta name="robots" content="noindex,nofollow">
-<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Modal Metronome · Clarendon Hills Music Academy</title><meta name="description" content="A drum machine metronome with real grooves, bass lines and fills. Practice with a band, not a click."><meta property="og:type" content="website"><meta property="og:site_name" content="Clarendon Hills Music Academy"><meta property="og:title" content="Modal Metronome · Clarendon Hills Music Academy"><meta property="og:description" content="A drum machine metronome with real grooves, bass lines and fills. Practice with a band, not a click."><meta property="og:url" content="https://phishykeys555.github.io/piano_rebellion_apps/drum-machine/"><meta property="og:image" content="https://phishykeys555.github.io/piano_rebellion_apps/share/groove-metronome.png"><meta property="og:image:width" content="1200"><meta property="og:image:height" content="630"><meta property="og:image:alt" content="Modal Metronome · Clarendon Hills Music Academy"><meta name="twitter:card" content="summary_large_image"><meta name="twitter:title" content="Modal Metronome · Clarendon Hills Music Academy"><meta name="twitter:description" content="A drum machine metronome with real grooves, bass lines and fills. Practice with a band, not a click."><meta name="twitter:image" content="https://phishykeys555.github.io/piano_rebellion_apps/share/groove-metronome.png">
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="stylesheet" href="../shared/chma.css"><script src="../shared/brand.js"></script><style>
 :root{--bg:#fff;--fg:#37352f;--mut:#787774;--bd:#e3e2e0;--btn:#f7f6f3;--cell:#efeeec;--on:#2383e2;--acc:#e03e3e;--pan:#f7f6f3}
@@ -2891,11 +2888,13 @@ async function loadKeys(name){const K=KSET[name];if(!K||!ctx)return;if(kBuf[name
 // grand2 = Salamander Grand Piano V3 (Alexander Holm, CC BY 3.0), upright2 = VCSL Knight upright (CC0), wurli2 and pianet = Greg Sullivan's
 // E-Pianos (CC BY 3.0), rhodes73 = jRhodes3d by Jeff Learman, a 1977 Mark I Stage 73 (CC BY 4.0).
 // The sampler: neighbouring strengths cross-fade with equal power, a key struck again damps its old note, the damper falls with its own sound.
+// Held past the end of the recording, the note carries on by itself (k2Tail): the grand's files stop at
+// about 2.2 s at middle C with a fade on the end, so a held ballad chord used to simply stop.
 // vx = extra loudness from strength (sets whose layers were levelled), gain = level match (measured on rendered chords, see the CHANGELOG)
 const K2SET={
  grand2:{what:'Grand piano',kind:'L',lay:[4,8,12,16],lite:[4,10,16],lo:33,hi:99,rel:m=>m<48?0.2:m<72?0.13:0.09,tone:[50,-1.5,-1],trem:0,pre:0.0015,gain:2.45,vx:0.25,relA:'release_hammer',relG:1.6},
  upright2:{what:'Upright piano',kind:'L',lay:[1,2],lite:[1,2],lo:33,hi:99,rel:m=>m<48?0.18:m<72?0.12:0.09,tone:[60,-1,0],trem:0,pre:0.001,gain:3.66,vx:0.7,relA:'release',relG:0.5},
- rhodes73:{what:'Tine electric piano',kind:'R',lite:['v1','v3','v5'],lo:33,hi:93,rel:m=>m<55?0.1:0.075,tone:[60,-1.5,1.5],trem:0.3,gain:4.45,vx:1.15},
+ rhodes73:{what:'Tine electric piano',kind:'R',lite:['v1','v3','v5'],lo:33,hi:93,rel:m=>m<55?0.1:0.075,tone:[60,-1.5,1.5],trem:0.3,pre:0.0015,gain:5.6,vx:1.15,amp:1},
  wurli2:{what:'Reed electric piano',kind:'R',lo:33,hi:96,rel:()=>0.07,tone:[80,-2,-0.5],trem:0.12,pre:0.0005,gain:4.09,vx:1.1},
  pianet:{what:'Pianet',kind:'R',lo:33,hi:93,rel:()=>0.06,tone:[70,-1,0],trem:0,pre:0.001,gain:2.24,vx:0.9,relA:'release',relG:0.6}};
 const KMAP2={piano:'grand2',upright:'upright2',rhodes:'rhodes73',wurli:'wurli2'}; // sounds no longer on the menu (their files stay) -> what a saved setting loads now
@@ -2912,6 +2911,24 @@ function k2Man(id){const S=k2S[id]||(k2S[id]={id,buf:{},lay:{}});if(S.mp)return 
     return rs.sort((a,b)=>a.lovel-b.lovel).filter(r=>!seen[r.file]&&(seen[r.file]=1)).map(r=>({f:r.file,root:r.root,c:(r.lovel+r.hivel)/2,A:A(M.files[r.file].gain_db)}))}}
   S.M=1;return S})().catch(e=>{S.mp=null;throw e})}
 function k2Lay(S,m){return S.lay[m]||(S.lay[m]=S.key(m))}
+// Where a recording stops singing by itself, and the slice to loop when the chord is held past it.
+// Walking back from the end, the file's own fade-out falls faster than about 18 dB a second while the
+// instrument's real tail does not, so that is where the fade starts. We take a slice of the steady tail
+// safely before it - a whole number of cycles, so the splice lands on the same point of the wave - and
+// the rate that tail was decaying at, so the loop can carry the same rate on. Costs no download.
+function k2Tail(S,f,root){const T=S.tl||(S.tl={});if(T[f]!==undefined)return T[f];const b=S.buf[f];if(!b||b.duration<0.8)return T[f]=null;
+ const sr=b.sampleRate,d=b.getChannelData(0),W=Math.round(sr*0.025),N=Math.floor(b.length/W),e=[];
+ for(let i=0;i<N;i++){let s=0;for(let j=i*W;j<(i+1)*W;j++)s+=d[j]*d[j];e.push(10*Math.log10(s/W+1e-12))}
+ let i=N-1;while(i>8&&(e[i-4]-e[i])/0.1>18)i--;
+ const le=(i-4)*0.025;if(le<0.5)return T[f]=null;const j=Math.round(le/0.025);
+ const dec=Math.max(3.5,Math.min(14,(e[Math.max(0,j-24)]-e[Math.max(1,j-4)])/0.5)),f0=440*Math.pow(2,((root||60)-69)/12),per=1/f0;
+ let len=Math.min(0.3,Math.max(0.05,1.1/dec));len=Math.max(2,Math.round(len/per))*per;
+ if(le-len<0.3)return T[f]=null;
+ // and the exact step between the two splice points, measured rather than worked out, so the hand-over
+ // is level however lumpy the recording's own tail happens to be
+ const rms=(t0)=>{const a=Math.floor(t0*sr),n2=Math.floor(0.05*sr);let q=0;for(let k=0;k<n2;k++)q+=d[a+k]*d[a+k];return 10*Math.log10(q/n2+1e-12)};
+ const comp=Math.pow(10,(rms(le-0.055)-rms(le-len))/20);
+ return T[f]={ls:le-len,le,dec,comp:Math.max(0.3,Math.min(1.6,comp))}}
 function k2File(S,f){if(S.buf[f])return Promise.resolve(S.buf[f]);return (async()=>{try{const b=await k2Dec(await k2Get(k2Url(S.id,f)));S.buf[f]=b;return b}catch(e){return null}})()}
 async function k2Click(id){if(k2Dly!=null)return;try{const b=await k2Dec(await k2Get(k2Url(id,'_click.mp3'))),d=b.getChannelData(0);let mx=0;for(let i=0;i<d.length;i++)mx=Math.max(mx,Math.abs(d[i]));let k=0;while(k<d.length&&Math.abs(d[k])<mx*0.5)k++;k2Dly=mx>0&&k/b.sampleRate<0.06?Math.max(0,k/b.sampleRate-0.00005):0}catch(e){k2Dly=0}}
 function kLoadUI(name,p){const e=$('kst');if(!e)return;const w=(K2SET[name]||KSET[name]||{what:name==='clav'?'Clav':'sound'}).what.toLowerCase();e.textContent=p>=1||p<0?'':(name==='clav'?'Building ':'Loading ')+w+'… '+Math.round(p*100)+'%';if(p<1&&p>=0)status(e.textContent)}
@@ -2928,14 +2945,26 @@ function kVoiceOK(t,stop){if(kAct.length>200||(kAct.length&&kAct[0].c!==ctx))kAc
 function k2Note(P,name,t,m,vel,end,a,dst){const K=K2SET[name],S=k2S[name];if(!S||!S.ok){k2Load(name);return false}const L=k2Lay(S,m).filter(x=>S.buf[x.f]);if(!L.length)return false;
  const v=Math.max(1,Math.min(127,vel*127));let i=0;while(i<L.length-1&&v>L[i+1].c)i++;let w=0,T;
  if(v<=L[0].c){i=0;T=L[0].A*Math.pow(v/L[0].c,1.2)}else if(i>=L.length-1){T=L[i].A*Math.pow(v/L[i].c,0.5)}else{w=(v-L[i].c)/(L[i+1].c-L[i].c);T=Math.exp(Math.log(L[i].A)*(1-w)+Math.log(L[i+1].A)*w)}
- T*=K.gain*a*Math.pow(v/127,K.vx||0);const w2=Math.max(0,Math.min(1,(w-0.2)/0.6)),pr=w2<=0?[[L[i],1]]:w2>=1?[[L[i+1],1]]:[[L[i],Math.cos(w2*Math.PI/2)],[L[i+1],Math.sin(w2*Math.PI/2)]];
+ T*=K.gain*a*Math.pow(v/127,K.vx||0);const w2=Math.max(0,Math.min(1,(w-0.35)/0.3)),pr=w2<=0?[[L[i],1]]:w2>=1?[[L[i+1],1]]:[[L[i],Math.cos(w2*Math.PI/2)],[L[i+1],Math.sin(w2*Math.PI/2)]];
  const old=kVc[P][m];if(old&&old.end>t){for(const g of old.g)try{g.gain.cancelScheduledValues(t);g.gain.setTargetAtTime(0,t,0.03)}catch(e){}for(const s of old.s)try{s.stop(t+0.25)}catch(e){}}
  const rel=K.rel(m),V={g:[],s:[],end:end+rel*3},dt=(Math.random()-.5)*2.4;if(!kVoiceOK(t,end+rel*4))return false;
+ // is the chord held past the end of the recording? then the tail of whichever layer is actually
+ // carrying the note (not merely the top one of the pair) takes it on from there
+ const x0=pr.reduce((a,b)=>b[1]>a[1]?b:a)[0],rate0=Math.pow(2,((m-x0.root)*100+dt)/1200),TL=K.tail===0?null:k2Tail(S,x0.f,x0.root),tx=TL?t+(TL.le-0.03-(k2Dly||0))/rate0:0,tail=!!TL&&end>tx+0.06&&kVoiceOK(t,end+rel*4);
  for(const [x,gw] of pr){const s=ctx.createBufferSource(),g=ctx.createGain(),pk=T*gw;s.buffer=S.buf[x.f];s.playbackRate.value=Math.pow(2,((m-x.root)*100+dt)/1200);
-  g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(pk,t+0.002);g.gain.setValueAtTime(pk,end);g.gain.setTargetAtTime(0,end,rel);s.connect(g);g.connect(dst);s.start(t,k2Dly||0);s.stop(Math.min(end+rel*8,t+s.buffer.duration/s.playbackRate.value+0.05));V.g.push(g);V.s.push(s);kVN++}
+  g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(pk,t+0.002);
+  if(tail){g.gain.setValueAtTime(pk,tx);g.gain.linearRampToValueAtTime(0,tx+0.03)}else{g.gain.setValueAtTime(pk,end);g.gain.setTargetAtTime(0,end,rel)}
+  s.connect(g);g.connect(dst);s.start(t,k2Dly||0);s.stop(tail?tx+0.05:Math.min(end+rel*8,t+s.buffer.duration/s.playbackRate.value+0.05));V.g.push(g);V.s.push(s);kVN++}
+ if(tail){const s=ctx.createBufferSource(),g=ctx.createGain();s.buffer=S.buf[x0.f];s.playbackRate.value=rate0;s.loop=true;s.loopStart=TL.ls;s.loopEnd=TL.le;
+  // the loop starts a little earlier in the file than where the recording left off, where it was that
+  // much louder, so the hand-over is level (the step was measured, see k2Tail); from there the decay
+  // carries on at the rate that tail was decaying at
+  const pk=T*TL.comp,lo=Math.max(pk*0.012,pk*Math.pow(10,-TL.dec*(end-tx-0.03)/20));
+  g.gain.setValueAtTime(0,tx);g.gain.linearRampToValueAtTime(pk,tx+0.03);g.gain.exponentialRampToValueAtTime(lo,end);g.gain.setTargetAtTime(0,end,rel);
+  s.connect(g);g.connect(dst);s.start(tx,TL.ls);s.stop(end+rel*8);V.g.push(g);V.s.push(s);kVN++}
  kVc[P][m]=V;
  // the damper coming down: its own little sound, louder after a hard note
- if(K.relA){let rn=null,bd=9;for(const n in S.rel){const d=Math.abs(+n-m);if(d<bd&&S.buf[S.rel[n].f]){bd=d;rn=S.rel[n]}}if(rn&&bd<=3){const s=ctx.createBufferSource(),g=ctx.createGain();s.buffer=S.buf[rn.f];g.gain.value=rn.A*K.relG*K.gain*a*(0.35+0.65*vel);s.connect(g);g.connect(dst);s.start(end,k2Dly||0)}}
+ if(K.relA&&vel>0.22){let rn=null,bd=9;for(const n in S.rel){const d=Math.abs(+n-m);if(d<bd&&S.buf[S.rel[n].f]){bd=d;rn=S.rel[n]}}if(rn&&bd<=3){const s=ctx.createBufferSource(),g=ctx.createGain();s.buffer=S.buf[rn.f];g.gain.value=rn.A*K.relG*K.gain*a*(0.35+0.65*vel);s.connect(g);g.connect(dst);s.start(end,k2Dly||0)}}
  return true}
 // ----- Clav: a string model of a Hohner D6-style clavinet, rendered once per key -----
 // The string is a delay loop (one pole of loss, an allpass for exact tuning) struck near its end by the key's pad. Two pickups read it at
@@ -2984,14 +3013,19 @@ function clavWah(X,t,vel,beatLen,onBeat){const p=X.p.offset;if(X.mode==='env'){c
  else if(X.mode==='rock'&&onBeat){p.setTargetAtTime(0.92,t-0.01,0.018);p.setTargetAtTime(0.16,t+beatLen*0.3,beatLen*0.2)}}
 function clavNote(P,t,m,vel,end,a,dst,gh){if(!CLV.ok){clavBuild();return false}while(m<CLV.lo)m+=12;while(m>CLV.hi)m-=12;const b=CLV.buf[m];if(!b)return false;
  if(gh&&CLV.gh[m]){if(!kVoiceOK(t,t+0.1))return false;const s=ctx.createBufferSource(),g=ctx.createGain();s.buffer=CLV.gh[m];g.gain.value=CLG*a*Math.pow(vel,1.3)*1.5;s.connect(g);g.connect(dst);s.start(t);kVN++;return true}
- if(!kVoiceOK(t,end+0.05))return false;const s=ctx.createBufferSource(),f=ctx.createBiquadFilter(),g=ctx.createGain(),pk=CLG*a*Math.pow(vel,1.3);s.buffer=b;s.detune&&(s.detune.value=(Math.random()-.5)*5);f.type='lowpass';f.Q.value=0.5;f.frequency.value=Math.min(16000,700*Math.pow(2,vel*4.2));
+ if(!kVoiceOK(t,end+0.05))return false;const s=ctx.createBufferSource(),f=ctx.createBiquadFilter(),g=ctx.createGain(),pk=CLG*a*Math.pow(vel,1.3)*(0.94+Math.random()*0.12);s.buffer=b;s.detune&&(s.detune.value=(Math.random()-.5)*9);f.type='lowpass';f.Q.value=0.5;
+ // no two strikes land the same: the pad hits the string a little differently every time, so the first
+ // few ms are brighter by a different amount, the tone sits a little high or low, and the level moves
+ const fc=Math.min(16000,700*Math.pow(2,vel*4.2))*(0.82+Math.random()*0.36);f.frequency.setValueAtTime(Math.min(19000,fc*(1.1+Math.random()*1.1)),t);f.frequency.linearRampToValueAtTime(fc,t+0.003+Math.random()*0.007);
  const old=kVc[P]['c'+m];if(old&&old.end>t){try{old.g.gain.cancelScheduledValues(t);old.g.gain.setTargetAtTime(0,t,0.004)}catch(e){}}
- g.gain.setValueAtTime(pk,t);g.gain.setValueAtTime(pk,end);g.gain.setTargetAtTime(0,end,0.012);s.connect(f);f.connect(g);g.connect(dst);s.start(t);s.stop(Math.min(end+0.1,t+b.duration));kVc[P]['c'+m]={g,end:end+0.03};kVN++;
- const r=CLV.rel[m];if(r){const rs=ctx.createBufferSource(),rg=ctx.createGain();rs.buffer=r;rg.gain.value=pk*0.15*(0.5+0.5*Math.min(1,(end-t)/0.15))+0.01*a;rs.connect(rg);rg.connect(dst);rs.start(end)}return true}
-// ----- Tonewheel organ: 79 free-running wheels (the manual's 13 to 91), nine key contacts per key, drawbars, percussion, scanner chorus, tube amp, Leslie -----
+ g.gain.setValueAtTime(pk,t);g.gain.setValueAtTime(pk,end);g.gain.setTargetAtTime(0,end,0.012);s.connect(f);f.connect(g);g.connect(dst);s.start(t,Math.random()*0.00012);s.stop(Math.min(end+0.1,t+b.duration));kVc[P]['c'+m]={g,end:end+0.03};kVN++;
+ // the yarn damper coming back down: never twice the same cluck
+ const r=CLV.rel[m];if(r){const rs=ctx.createBufferSource(),rg=ctx.createGain();rs.buffer=r;rs.detune&&(rs.detune.value=(Math.random()-.5)*70);rg.gain.value=(pk*0.15*(0.5+0.5*Math.min(1,(end-t)/0.15))+0.01*a)*(0.78+Math.random()*0.44);rs.connect(rg);rg.connect(dst);rs.start(end+Math.random()*0.004)}return true}
+// ----- Tonewheel organ: the manual's 79 wheels (13 to 91), nine key contacts per key, drawbars, percussion, scanner chorus, tube amp, Leslie -----
 // Wheel pitch comes from the real gear ratios (A = 440 exactly, the rest a hair off equal temperament, as on the instrument). A key closes up to
 // nine contacts, a few ms apart and bouncing, onto wheels that never stop turning: wherever each wheel happens to be is where its sound starts,
-// and that is the key click. The top drawbars fold back an octave where the wheels run out. Percussion borrows the 2nd or 3rd harmonic and
+// and that is the key click. A contact is built when the key goes down and dropped when it comes up, starting at the phase its wheel would be at
+// by then (2026-11-27.12), so nothing is left running between notes and the cost no longer grows with every key played. The top drawbars fold back an octave where the wheels run out. Percussion borrows the 2nd or 3rd harmonic and
 // only fires when no key was down (single trigger). C3 is the scanner: a moving delay tap mixed with the straight sound.
 const OGEAR=[[85,104],[71,82],[67,73],[105,108],[103,100],[84,77],[74,64],[98,80],[96,74],[88,64],[67,46],[108,70]],OOFF=[-12,7,0,12,19,24,28,31,36];
 const OREG={jazz:{db:'888000000',perc:3,vib:1,drv:1.3,what:'Jazz (first three drawbars, percussion)'},rock:{db:'888800000',perc:0,vib:0,drv:1.6,what:'Rock and soul (first four drawbars)'},full:{db:'888888888',perc:0,vib:1,drv:2,what:'Full organ (all drawbars out)'},
@@ -2999,16 +3033,28 @@ const OREG={jazz:{db:'888000000',perc:3,vib:1,drv:1.3,what:'Jazz (first three dr
  bubble:{db:'008000000',perc:0,vib:0,drv:1,what:'Reggae bubble (one drawbar)'},stabs:{db:'880000220',perc:0,vib:1,drv:1.6,what:'Earthy stabs'},whistle:{db:'888000008',perc:0,vib:1,drv:1.2,what:'Whistle'},
  lord:{db:'888800000',perc:2,vib:0,drv:4.2,g:0.88,what:'Overdriven rock'},simmer:{db:'830000378',perc:0,vib:0,drv:1.2,what:'Simmer'}};
 const ORG={organ:{reg:'jazz'},rockorgan:{reg:'lord'}};
-let OGN=0.074,CLG=4.4;const KPRE={organ:0.0055,rockorgan:0.0055,clav:0.0025}; // seconds a sound is sent early so it starts with the kick (measured on rendered notes)
+let OGN=0.074,CLG=4.4;const KPRE={organ:0.004,rockorgan:0.004,clav:0.0025}; // seconds a sound is sent early so it starts with the kick (measured on rendered notes)
 const oWheelF=n=>{const pc=(n-1)%12,oc=Math.floor((n-1)/12);if(n>84){const G=OGEAR[(pc+5)%12];return 20*G[0]/G[1]*192}const G=OGEAR[pc];return 20*G[0]/G[1]*(2<<oc)};
 const oWheel=(m,off)=>{let w=m-23+off;while(w>91)w-=12;while(w<13)w+=12;return w};
-function orgBuild(K){if(K.o)return K.o;const C=ctx,O={k:{},reg:'jazz',db:[8,8,8,0,0,0,0,0,0],held:0,pt:-1},G=v=>{const g=C.createGain();g.gain.value=v;return g},B=(ty,f,q,g)=>{const b=C.createBiquadFilter();b.type=ty;b.frequency.value=f;if(q!=null)b.Q.value=q;if(g!=null)b.gain.value=g;return b};
+// The wheels are no longer kept turning. A key's contacts are made when the key goes down and thrown
+// away when it comes up, and each contact starts at the phase its wheel WOULD have reached by then
+// (a wheel turns from the moment the sound is switched on, whether anyone plays or not), so a note
+// still starts in the middle of a cycle - that is the key click - and two keys sharing a wheel still
+// line up. Why: the old shape left 79 oscillators and nine gates per key in the graph for the whole
+// session, so the cost grew with every new key played and never came back down. That is the stutter.
+const oWLv=n=>Math.pow(10,(n<=48?0:n<=60?1.5*(n-48)/12:n<=72?1.5*(72-n)/12:-4*(n-72)/19)/20); // the wheel's own level (the generator's loudness curve)
+const OCAP=96; // contacts sounding at once; past this the quietest drawbars of a new note are left out
+// Where the wheel would be. A wheel turns from the moment the sound is switched on, so at time t its
+// phase is 2*pi*f*t. An oscillator always starts at phase zero, so we start it part of one cycle early
+// (gain still at zero) and by t it has turned to exactly that phase. Cheaper than a one-partial
+// periodic wave per phase, and exact rather than rounded to a step.
+const oPh=(f,t)=>{const fr=(f*t-Math.floor(f*t))/f,ts=t-fr;return ts>ctx.currentTime?ts:t};
+function orgBuild(K){if(K.o)return K.o;const C=ctx,O={v:{},k:{},reg:'jazz',db:[8,8,8,0,0,0,0,0,0],perc:0,held:0,pt:-1},G=v=>{const g=C.createGain();g.gain.value=v;return g},B=(ty,f,q,g)=>{const b=C.createBiquadFilter();b.type=ty;b.frequency.value=f;if(q!=null)b.Q.value=q;if(g!=null)b.gain.value=g;return b};
  O.all=[];const N=x=>{O.all.push(x);return x},t0=C.currentTime+0.01;
- O.man=N(G(1));O.pb=N(G(1));O.pv=N(G(0));O.wg={};
- for(let n=13;n<=91;n++){const o=C.createOscillator(),g=N(G(Math.pow(10,(n<=48?0:n<=60?1.5*(n-48)/12:n<=72?1.5*(72-n)/12:-4*(n-72)/19)/20)));o.frequency.value=oWheelF(n);o.connect(g);o.start(t0);K.rot.push(o);O.wg[n]=g}
+ O.man=N(G(1));O.pb=N(G(1));O.pv=N(G(0));
  // scanner chorus / vibrato: the tap runs up and back along a delay line about 6.9 times a second (C3 = deepest, mixed with the straight sound)
  const sd=N(C.createDelay(0.01)),sl=C.createOscillator(),sg=N(G(0.0003)),slp=N(B('lowpass',7200,0.5)),slg=N(G(1700));O.dry=N(G(1));O.wet=N(G(0));sd.delayTime.value=0.0005;sl.type='triangle';sl.frequency.value=412/60;sl.connect(sg);sg.connect(sd.delayTime);sl.connect(slg);slg.connect(slp.frequency);sl.start(t0);K.rot.push(sl);
- O.pre=N(G(1));O.man.connect(O.dry);O.man.connect(sd);sd.connect(slp);slp.connect(O.wet);const chs=N(B('highshelf',3000,null,0));O.chs=chs;O.dry.connect(chs);O.wet.connect(chs);chs.connect(O.pre);O.pb.connect(O.pv);O.pv.connect(O.pre);
+ O.pre=N(G(1));O.man.connect(O.dry);O.sd=sd;sd.connect(slp);slp.connect(O.wet);const chs=N(B('highshelf',3000,null,0));O.chs=chs;O.dry.connect(chs);O.wet.connect(chs);chs.connect(O.pre);O.pb.connect(O.pv);O.pv.connect(O.pre);
  // swell pedal, then the Leslie's tube amp: it grinds when pushed (uneven clipping), and sits before the speakers as on the real cabinet
  O.sw=N(G(0.7));O.pre.connect(O.sw);const a1=N(B('highpass',60,0.6)),a2=N(B('highshelf',1500,null,4)),a5=N(B('highpass',20,0.5)),a6=N(B('highshelf',1500,null,-4)),a7=N(B('lowpass',6500,0.6));O.drv=N(G(1));O.sh=N(C.createWaveShaper());O.mk=N(G(1));O.sh.oversample='2x';
  {const c=new Float32Array(2048),k=2.2,d0=Math.tanh(0.12*k);for(let i=0;i<2048;i++){const x=(i/1023.5-1)*2;c[i]=(Math.tanh(k*(x+0.12))-d0)/1.05}O.sh.curve=c;O.pg=N(G(0.5))}
@@ -3033,36 +3079,78 @@ function orgLeslie(K,mode,t){const O=orgBuild(K);if(O.les===mode)return;O.les=mo
   const up=tg>w,T90=mode==='stop'?(R.up<2?1.2:5):up?R.up:R.dn,tau=T90/4.07,D=Math.abs(tg-w)||1,n=16,h=T90*2.2/n,pts=[[t,w]];let x=w;for(let i=1;i<=n;i++){for(let j=0;j<8;j++)x+=(tg-x)/tau*(0.35+0.65*Math.abs(tg-x)/D)*h/8;pts.push([t+i*h,i===n?tg:x])}
   for(const o of [R.s,R.c]){const f=o.frequency;try{f.cancelScheduledValues(t)}catch(e){}f.setValueAtTime(w,t);for(let i=1;i<pts.length;i++)f.linearRampToValueAtTime(pts[i][1],pts[i][0])}R.pts=pts})}
 function orgReg(K,name,t,o){const O=orgBuild(K),R=OREG[name]||OREG.jazz,vib=o&&o.vib!=null?o.vib:R.vib,drv=o&&o.drv?o.drv:R.drv,key=name+'|'+vib+'|'+drv;if(O.rk===key)return;O.rk=key;O.reg=name;O.db=R.db.split('').map(Number);O.perc=R.perc;
+ // with the vibrato off the scanner's delay line is unhooked: left hooked up it still costs a
+ // sample-by-sample moving tap and a swept filter, for a tap that is turned down to nothing
+ if(vib&&!O.vibOn){O.man.connect(O.sd);O.vibOn=1}else if(!vib&&O.vibOn){try{O.man.disconnect(O.sd)}catch(e){}O.vibOn=0}
  O.dry.gain.setTargetAtTime(vib?0.707:1,t,0.01);O.wet.gain.setTargetAtTime(vib?0.707:0,t,0.01);O.chs.gain.setTargetAtTime(vib?2:0,t,0.01);O.drv.gain.setTargetAtTime(drv,t,0.02);try{O.sh.oversample=drv>=3?'2x':'none'}catch(e){}O.mk.gain.setTargetAtTime(1.9/Math.pow(drv,0.75),t,0.02);
  O.nrm=1/Math.pow(O.db.reduce((a,x)=>a+(x?Math.pow(10,-3*(8-x)/10):0),0),0.42)}
-function orgKey(O,m){let k=O.k[m];if(k)return k;k={c:[],end:-1};for(let d=0;d<9;d++){const g=ctx.createGain();g.gain.value=0;O.wg[oWheel(m,OOFF[d])].connect(g);g.connect(O.man);k.c.push(g);O.all.push(g)}
- k.p2=ctx.createGain();k.p3=ctx.createGain();k.p2.gain.value=k.p3.gain.value=0;O.wg[oWheel(m,12)].connect(k.p2);O.wg[oWheel(m,19)].connect(k.p3);k.p2.connect(O.pb);k.p3.connect(O.pb);
- k.lk=ctx.createGain();k.lk.gain.value=0;{const w=oWheel(m,0),w2=w+48<=91?w+48:w-48;O.wg[w2>=13?w2:w].connect(k.lk);k.lk.connect(O.man)}O.all.push(k.p2,k.p3,k.lk);O.k[m]=k;return k}
+// which contacts a key closes: the drawbars that are out (percussion takes the 1' drawbar, as on the instrument)
+function orgDraws(O){const ds=[];O.db.forEach((s,d)=>{if(s&&!(O.perc&&d===8))ds.push(d)});return ds}
+// how many contacts are sounding right now, and a tidy-up of keys long finished
+function orgLive(O,t){let n=0;for(const m in O.v){const v=O.v[m];if(v.end>t)n+=v.o.length;else if(v.end<t-2)delete O.v[m]}return n}
+function orgOff(O,v,t){for(const g of v.g){try{g.gain.cancelScheduledValues(t)}catch(e){}g.gain.setValueAtTime(g.gain.value,t);g.gain.linearRampToValueAtTime(0,t+0.0004)}
+ for(const o of v.o){try{o.stop(t+0.01)}catch(e){}}v.end=t}
+// the key goes down: one oscillator per closed contact, each landing where its wheel happens to be
+function orgDown(O,m,t,end,lv,ds,use,leg){const C=ctx,v={o:[],g:[],on:t,end:end,L:[]};
+ for(const d of ds){const w=oWheel(m,OOFF[d]),f=oWheelF(w),s=O.db[d],L=lv*Math.pow(10,-3*(8-s)/20)*oWLv(w)/(1+0.03*((use[w]||1)-1));
+  const o=C.createOscillator();o.frequency.value=f;
+  const g=C.createGain();g.gain.value=0;o.connect(g);g.connect(O.man);
+  const r=leg?0.001:Math.random()*0.004*(0.4+0.6*d/8),ta=t+r;
+  if(leg){g.gain.setTargetAtTime(L,ta,0.004)}
+  else{g.gain.setValueAtTime(0,ta);g.gain.linearRampToValueAtTime(L,ta+0.00015);
+   if(Math.random()<0.55){const tb=ta+0.0004+Math.random()*0.002,wd=0.0002+Math.random()*0.0004;g.gain.setValueAtTime(L,tb);g.gain.linearRampToValueAtTime(0,tb+0.0001);g.gain.setValueAtTime(0,tb+wd);g.gain.linearRampToValueAtTime(L,tb+wd+0.00015)}}
+  const te=end+Math.random()*0.003;g.gain.setValueAtTime(L,te);g.gain.linearRampToValueAtTime(0,te+0.0002);
+  o.start(oPh(f,t));o.stop(te+0.02);v.o.push(o);v.g.push(g);v.L.push(L)}
+ if(O.perc){const w=oWheel(m,O.perc===2?12:19),f=oWheelF(w),o=C.createOscillator(),g=C.createGain();
+  o.frequency.value=f;g.gain.value=0;o.connect(g);g.connect(O.pb);
+  g.gain.setValueAtTime(oWLv(w),t);g.gain.setValueAtTime(oWLv(w),end);g.gain.linearRampToValueAtTime(0,end+0.001);o.start(oPh(f,t));o.stop(end+0.02);v.o.push(o);v.g.push(g);v.L.push(oWLv(w))}
+ // the wheel's leakage: a thin tone four octaves up, there all the while the key is down. A stab is
+ // too short for it to be heard under the click, so a short note does not pay for it.
+ if(end-t>=0.2){const w0=oWheel(m,0),w2=w0+48<=91?w0+48:w0-48,w=w2>=13?w2:w0,f=oWheelF(w),o=C.createOscillator(),g=C.createGain();
+  o.frequency.value=f;g.gain.value=0;o.connect(g);g.connect(O.man);
+  const Lk=lv*0.006*oWLv(w);g.gain.setValueAtTime(Lk,t);g.gain.setValueAtTime(Lk,end);g.gain.linearRampToValueAtTime(0,end+0.001);o.start(oPh(f,t));o.stop(end+0.02);v.o.push(o);v.g.push(g);v.L.push(Lk)}
+ O.v[m]=v;return v}
+// the key stays down into the next bar: hold what is already sounding, nothing new is struck
+function orgHold(O,v,t,end){for(let i=0;i<v.g.length;i++){const g=v.g[i];try{g.gain.cancelScheduledValues(t)}catch(e){}g.gain.setValueAtTime(v.L[i],t);g.gain.setValueAtTime(v.L[i],end);g.gain.linearRampToValueAtTime(0,end+0.0002)}
+ for(const o of v.o){try{o.stop(end+0.02)}catch(e){}}v.end=end}
 // one chord on the manual. vel moves the swell pedal a little (an organ key has no touch); leg = fingers already down: no click, no percussion
 function orgChord(K,t,ms,vel,end,a,leg){const O=orgBuild(K),lv=OGN*a*O.nrm*(OREG[O.reg].g||1),use={};ms=ms.map(m=>{while(m<36)m+=12;while(m>96)m-=12;return m});
- ms.forEach(m=>O.db.forEach((s,d)=>{if(s){const w=oWheel(m,OOFF[d]);use[w]=(use[w]||0)+1}}));
+ let ds=orgDraws(O);const live=orgLive(O,t);
+ if(end-t<0.18&&ds.length>2){const q=ds.filter(d=>O.db[d]>2);if(q.length>=2)ds=q} // a stab is over before a drawbar 18 dB down can be heard
+ if(live+ds.length*ms.length>OCAP&&ds.length>3){const by=ds.slice().sort((x,y)=>O.db[y]-O.db[x]||x-y);ds=by.slice(0,Math.max(3,Math.floor((OCAP-live)/Math.max(1,ms.length)))).sort((x,y)=>x-y)}
+ ms.forEach(m=>ds.forEach(d=>{const w=oWheel(m,OOFF[d]);use[w]=(use[w]||0)+1}));
  O.sw.gain.setTargetAtTime(0.42+0.55*vel,t,0.05);const pOn=O.perc&&t>O.held+0.015&&!leg;
  if(pOn){O.pv.gain.cancelScheduledValues(t);O.pv.gain.setValueAtTime(0.7*lv,t);O.pv.gain.setTargetAtTime(0,t,0.2)}
- ms.forEach(m=>{const k=orgKey(O,m);if(k.end>t+0.004&&k.on<t-0.004){k.end=Math.max(k.end,end);k.c.concat([k.p2,k.p3,k.lk]).forEach(g=>{try{g.gain.cancelScheduledValues(t)}catch(e){}});}
-  O.db.forEach((s,d)=>{const g=k.c[d].gain;if(!s||(O.perc&&d===8)){g.cancelScheduledValues(t);g.setValueAtTime(0,t);return}
-   const L=lv*Math.pow(10,-3*(8-s)/20)/(1+0.03*(use[oWheel(m,OOFF[d])]-1)),r=leg?0.001:Math.random()*0.004*(0.4+0.6*d/8),ta=t+r;g.cancelScheduledValues(t);
-   if(leg){g.setTargetAtTime(L,ta,0.004)}else{g.setValueAtTime(0,ta);g.linearRampToValueAtTime(L,ta+0.00015);if(Math.random()<0.55){const tb=ta+0.0004+Math.random()*0.002,wd=0.0002+Math.random()*0.0004;g.setValueAtTime(L,tb);g.linearRampToValueAtTime(0,tb+0.0001);g.setValueAtTime(0,tb+wd);g.linearRampToValueAtTime(L,tb+wd+0.00015)}}
-   const te=end+Math.random()*0.003;g.setValueAtTime(L,te);g.linearRampToValueAtTime(0,te+0.0002)});
-  const pg=(O.perc===2?k.p2:k.p3).gain;pg.cancelScheduledValues(t);pg.setValueAtTime(1,t);pg.setValueAtTime(1,end);pg.linearRampToValueAtTime(0,end+0.001);
-  k.lk.gain.cancelScheduledValues(t);k.lk.gain.setValueAtTime(lv*0.006,t);k.lk.gain.setValueAtTime(lv*0.006,end);k.lk.gain.linearRampToValueAtTime(0,end+0.001);k.on=t;k.end=end});
+ ms.forEach(m=>{const v=O.v[m];
+  if(v&&v.end>t-0.002&&leg){orgHold(O,v,t,Math.max(end,v.end));return}
+  if(v&&v.end>t)orgOff(O,v,t);
+  orgDown(O,m,t,end,lv,ds,use,leg)});
  O.held=Math.max(O.held,end);kVN+=ms.length;return true}
 // ----- the keys channel: each part has its own strip (EP tremolo, tone, place left or right); organ and clav feed their part's strip -----
 let keysChain=null;
 function buildKeysChain(dest,rev){const C=ctx,K={P:[],rot:[]},G=v=>{const g=C.createGain();g.gain.value=v;return g};K.bus=G(0.8);K.inp=K.bus;K.org=G(0);
  const cmp=C.createDynamicsCompressor(),mk=G(0.8),send=G(0.5);cmp.threshold.value=-20;cmp.ratio.value=2;cmp.attack.value=0.015;cmp.release.value=0.25;cmp.knee.value=10;K.bus.connect(cmp);cmp.connect(mk);mk.connect(dest);if(rev){mk.connect(send);send.connect(rev)}Object.assign(K,{cmp,mk,send});
  for(let p=0;p<2;p++){const S={in:G(1),kv:''},hp=C.createBiquadFilter(),mud=C.createBiquadFilter(),hs=C.createBiquadFilter(),lv=G(1);hp.type='highpass';hp.Q.value=0.6;hp.frequency.value=55;mud.type='peaking';mud.frequency.value=320;mud.Q.value=0.9;hs.type='highshelf';hs.frequency.value=7500;
-  if(C.createStereoPanner){const pn=C.createStereoPanner(),lfo=C.createOscillator(),dep=G(0),pl=C.createStereoPanner();lfo.frequency.value=4.3+p*0.5;lfo.connect(dep);dep.connect(pn.pan);lfo.start();S.in.connect(pn);pn.connect(hp);lv.connect(pl);pl.connect(K.bus);S.trem=dep;S.pl=pl;S.pn=pn;K.rot.push(lfo)}else{S.in.connect(hp);lv.connect(K.bus)}
+  if(C.createStereoPanner){const pn=C.createStereoPanner(),pl=C.createStereoPanner();S.in.connect(pn);pn.connect(hp);lv.connect(pl);pl.connect(K.bus);S.pl=pl;S.pn=pn;S.tdep=0;
+   // the tremolo wheel is only built, and only wired to the panner, for a sound that has tremolo: a wheel
+   // turning into a depth of zero still costs the audio thread a sample-by-sample pan on every block
+   S.trem=d=>{if(!d&&!S.tlfo)return;if(!S.tlfo){const lfo=C.createOscillator(),dep=G(0);lfo.frequency.value=4.3+p*0.5;lfo.connect(dep);lfo.start();S.tlfo=lfo;S.tg=dep;K.rot.push(lfo)}
+    if(!!d!==!!S.tdep){try{S.tg.disconnect()}catch(e){}if(d)S.tg.connect(pn.pan)}S.tdep=d;S.tg.gain.value=d}}else{S.in.connect(hp);lv.connect(K.bus)}
   hp.connect(mud);mud.connect(hs);hs.connect(lv);Object.assign(S,{hp,mud,hs,lv});K.P.push(S)}
  K.kill=()=>{try{K.rot.forEach(o=>{try{o.stop()}catch(e){}});if(K.o)K.o.all.forEach(n=>{try{n.disconnect()}catch(e){}});if(K.clv)K.clv.nodes.concat([K.clv.in,K.clv.bp,K.clv.out,K.clv.tone,K.clv.tg]).forEach(n=>{try{n.disconnect()}catch(e){}});K.P.forEach(S=>{try{S.lv.disconnect()}catch(e){}})}catch(e){}};
  keysChain=K;return K.bus}
+// A tine piano through a combo amp. The recording is direct out of the instrument, so on its own it is a
+// dry tine with tremolo and nothing around it. This is the speaker end: cabinet thump, the mid scoop, cone
+// presence, a little power-stage squeeze and the 12-inch roll-off. Built only for a sound that asks for it.
+function keysAmp(S,on){on=!!on;if(!!S.ampOn===on)return;S.ampOn=on;const C=ctx,B=(ty,f,q,g)=>{const b=C.createBiquadFilter();b.type=ty;b.frequency.value=f;if(q!=null)b.Q.value=q;if(g!=null)b.gain.value=g;return b};
+ if(on&&!S.amp){const e1=B('lowshelf',120,null,1.5),e2=B('peaking',520,0.8,-3.5),e3=B('peaking',2200,1.1,3),pre=C.createGain(),sh=C.createWaveShaper(),post=C.createGain(),c1=B('lowpass',5600,0.6),c2=B('lowpass',5600,1.2);
+  pre.gain.value=1.6;post.gain.value=1/1.6;sh.curve=shaperCurve(1.1);try{sh.oversample='none'}catch(e){} // 2x here puts the whole part a couple of ms late (the up/down-sampling filters), and this drive is gentle enough not to need it
+  e1.connect(e2);e2.connect(e3);e3.connect(pre);pre.connect(sh);sh.connect(post);post.connect(c1);c1.connect(c2);S.amp={in:e1,out:c2}}
+ try{S.hs.disconnect()}catch(e){}
+ if(on){S.hs.connect(S.amp.in);try{S.amp.out.disconnect()}catch(e){}S.amp.out.connect(S.lv)}else S.hs.connect(S.lv)}
 // a part's strip set for its sound: tone, tremolo, where it sits; organ and clav are wired in when first used
 function keysTone(p,kv,t,pan){const K=keysChain;if(!K||!K.P)return;const S=K.P[p],k=kv+'|'+pan;if(S.kv===k)return;S.kv=k;const Q=K2SET[kv]||KSET[kv],org=ORG[kv],T=Q?Q.tone:org?[45,-1,-1.5]:kv==='clav'?[60,0,0]:[60,-1,-1];
- S.hp.frequency.setValueAtTime(T[0],t);S.mud.gain.setValueAtTime(T[1],t);S.hs.gain.setValueAtTime(T[2],t);if(S.trem)S.trem.gain.setValueAtTime(Q&&Q.trem?Q.trem:0,t);if(S.pl)S.pl.pan.setTargetAtTime(org?pan*0.3:pan,t,0.05);
+ S.hp.frequency.setValueAtTime(T[0],t);S.mud.gain.setValueAtTime(T[1],t);S.hs.gain.setValueAtTime(T[2],t);if(S.trem)S.trem(Q&&Q.trem?Q.trem:0);keysAmp(S,Q&&Q.amp);if(S.pl)S.pl.pan.setTargetAtTime(org?pan*0.3:pan,t,0.05);
  if(org){const O=orgBuild(K);try{O.out.disconnect()}catch(e){}O.out.connect(S.hp)}if(kv==='clav'){const X=clavChain(K);try{X.out.disconnect()}catch(e){}X.out.connect(S.in)}}
 // ----- voicings by the book
 // Low-interval limits: no 2nds or 3rds below E-flat 3, no 4ths or tritones below B-flat 2, no 6ths or 7ths below F2, no 5ths below B-flat 1.
@@ -3138,7 +3226,7 @@ let keysPrev=-1,keysTied=false,kRng=null;
 // place per style plus a tiny seeded scatter (SD about 2.5 ms, never past 4 ms). Everything comes from the seed, so the same seed plays the
 // same part and "Copy auto to roll" gets the same notes.
 let KS=kFresh();
-function kFresh(){return {R:null,prev:[null,null],prevL:[null,null],tied:[0,0],cell:[null,null],fo:1,lastFill:-9,lastOrn:[-9,-9],land:[0,0],wah:'env',les:'slow',lesBar:-9,pad:[null,null],seq:[0,0],log:null}}
+function kFresh(){return {R:null,prev:[null,null],prevL:[null,null],tied:[0,0],cell:[null,null],fo:1,lastFill:-9,lastOrn:[-9,-9],land:[0,0],wah:'env',les:'slow',lesBar:-9,pad:[null,null],seq:[0,0],log:null,coll:{n:0,up:0,thin:0,shift:0,drop:0},fk:[0,0]}}
 // ----- which style, which pair -----
 const KJAZZ=/jazz|swing|bebop|basie|twofeel|uptempo|bigband|mjelvin|mjtony|mjbroken|mjstraight|brmed|brfast|snapswing/;
 const KOLD={charleston:'jazz',quarters:'motown'}; // older Comping menu values
@@ -3218,6 +3306,21 @@ const KST={pop:{fam:'pop',gate:[.55,.5,.45,.35],lag:2,ped:1,roll:.03,orn:.04,fil
 // its centre, which rises a little toward the middle of an eight-bar phrase and comes back. No coin flips.
 const KFR={pop:{b:[57,67],t:[67,79],c:69},motown:{b:[57,67],t:[67,77],c:68},reggae:{b:[55,64],t:[62,72],c:63},ballad:{b:[55,67],t:[67,79],c:68},jazz4:{b:[52,63],t:[64,75],c:62},jazz3:{b:[51,62],t:[60,72],c:60},
  quartal:{b:[52,64],t:[62,76],c:63},soul:{b:[55,67],t:[64,77],c:66},gospel:{b:[58,70],t:[69,84],c:71},funk:{b:[60,69],t:[67,81],c:70},bossa:{b:[60,69],t:[64,76],c:68},pad:{b:[60,70],t:[64,79],c:70},organ:{b:[55,67],t:[62,77],c:65}};
+// What a player reaches for on a dominant when the chart just says 7. Jazz, gospel, blues and jam
+// players alter it as a matter of course; pop, rock, reggae, Motown and country never do, so they are
+// not on the list. The chart's own colours always win: a chord written with tensions is left alone.
+const KALT=/^(jazz|jwaltz|jballad|gospel|shuffle|slowblues|jam|soul|nola)$/;
+function kDomAlt(ch,sty,seed){if(!KALT.test(sty||''))return null;if(ch.x)return null;
+ const cs=chordScale(ch),dom=ch.sev==='7'||(ch.q==='maj'&&cs[6]===10);if(!dom)return null;
+ const pool=/gospel|shuffle|slowblues|nola/.test(sty)?[[13,8],[9,3],[13,8]]:/jam|soul/.test(sty)?[[11,6],[9,3],[13,8]]:[[9,1],[9,3],[13,8],[11,6]];
+ return pool[(ch.pc*7+(seed||0))%pool.length]}
+// the recipe's degrees as semitones, with the style's colour swapped in where the recipe asks for that degree
+function kIvs(ch,r,alt){const iv=tn(ch,r);if(!alt)return iv;const [dg,sm]=alt;let hit=-1;
+ for(let i=0;i<r.length;i++)if(r[i]===dg)hit=i;
+ if(hit<0&&(dg===13||dg===11)){for(let i=0;i<r.length;i++)if(r[i]===5)hit=i} // a b13 or a #11 can take the 5th's place
+ if(hit<0)return iv;const out=iv.slice();out[hit]=sm+(r[hit]===5?0:12);
+ for(let i=1;i<out.length;i++)while(out[i]<=out[i-1])out[i]+=12;
+ return out}
 function kRecipes(ch,fam,pn){const cs=chordScale(ch),lit=chLiteral&&!ch.sev,dom=ch.sev==='7'||(!lit&&ch.q==='maj'&&cs[6]===10&&!/^(pop|motown|reggae|ballad|organ)$/.test(fam)),min=ch.q==='min',dim=ch.q==='dim',has7=!!(ch.sev&&ch.sev!=='add9'&&ch.sev!=='6'),add=ch.sev==='add9'?9:ch.sev==='6'?13:0;
  const rot=a=>a.map((_,r)=>a.slice(r).concat(a.slice(0,r))),tri=[1,3,5].concat(has7?[7]:[]).concat(add?[add]:[]);let rh,lh=null;
  if(lit&&!/^(pad|organ|bossa)$/.test(fam))fam=fam==='gospel'||fam==='motown'||fam==='reggae'?fam:'pop';
@@ -3233,7 +3336,9 @@ function kRecipes(ch,fam,pn){const cs=chordScale(ch),lit=chLiteral&&!ch.sev,dom=
   case 'gospel':rh=dom?[[3,13,7,9],[7,9,3,13],[3,7,9],[5,7,1,3]]:min?[[3,11,7,9],[5,1,3,5],[7,3,5,7],[3,5,1,3]]:dim?rot([1,3,5,7]):[[5,1,3,5],[3,5,1,3],[1,3,5,1],[5,1,9,3]];lh=[[1,7],[1,5]];break;
   case 'funk':rh=dom?[[3,7,9],[7,9,3],[7,3,13]]:min?[[7,9,3],[11,7,3],[3,5,7]]:dim?[[3,5,7],[1,3,5]]:[[3,5,9],[5,1,3],[9,3,5]];break;
   case 'bossa':rh=dom?[[9,13],[13,9],[9,5]]:dim?[[1,5],[5,1]]:[[9,5],[5,9],[5,1]];lh=[[3,7],[7,3]];break;
-  case 'pad':rh=pn?(dom||has7?[[7,9],[5,9],[1,5]]:[[5,1],[5,9],[1,5]]):(dom||has7?[[3,7],[7,3],[3,7,9]]:[[3,5],[5,3],[3,5,1],[5,1,3]]);break;
+  // A pad holds the chord's colour, not its root: the 3rd and the 7th, a 9th over the 5th, the 13th on a
+  // dominant. Root and fifth only where the chord really is a bare power chord (2026-11-27.12).
+  case 'pad':rh=pn?(dom?[[7,9],[3,13],[7,3],[9,3]]:has7?[[3,7],[7,3],[7,9],[9,5]]:min?[[3,7],[5,9],[9,3]]:[[3,5],[5,9],[9,3],[5,3]]):(dom?[[3,7,9],[7,9,3],[7,3,13],[3,13,9]]:has7?[[3,7,9],[7,9,3],[5,7,9],[3,5,7]]:[[3,5,9],[5,9,3],[9,3,5],[3,5,1]]);break;
   case 'organ':rh=dom||has7?[[3,7,9],[7,3,5],[3,5,7]]:rot([1,3,5]);break;
   default:rh=rot(tri);if(!has7&&!add&&ch.q==='maj'&&!lit)rh=rh.concat([[5,1,9,3]]);lh=[[1,5],[1]]}
  return {rh,lh,fam}}
@@ -3246,7 +3351,8 @@ function kVoice(p,ch,fam,o){o=o||{};const F=KFR[fam]||KFR.pop,bassOn=$('bon').ch
  if(ch.x){const lowpc=mod12((ch.bass!=null?ch.bass:ch.pc)-ch.pc),n=ch.pow?3:fam==='pad'?(o.pn?2:3):/^(funk|jazz3|organ|reggae|quartal)$/.test(fam)?3:/^(pop|motown|ballad)$/.test(fam)?Math.min(5,1+(ch.t3!=null?1:0)+(ch.t7!=null||ch.t6!=null?1:0)+Math.min(2,xMembers(ch).filter(q=>q[3]).length)+(ch.t5!=null?1:0)):4;
   rc=ch.pow?stack(ch,[0,7,0],b0,b1,tmax):xStack(ch,n,/^(pop|motown|ballad|reggae)$/.test(fam),b0,b1,tmax);
   if(/^(pop|ballad|gospel|soul|bossa)$/.test(fam)&&!o.noL){const l0=bassOn?low:36;lc=stack(ch,[lowpc],l0,l0+11,l0+11)}}
- else{const Q=kRecipes(ch,fam,o.pn);Q.rh.forEach((r,k)=>{stack(ch,tn(ch,r),b0,b1,tmax).forEach(ms=>{ms.rk=k;rc.push(ms)})});
+ else{const Q=kRecipes(ch,fam,o.pn),alt=kDomAlt(ch,o.sty,o.seed);Q.rh.forEach((r,k)=>{stack(ch,kIvs(ch,r,alt),b0,b1,tmax).forEach(ms=>{ms.rk=k;rc.push(ms)});
+   if(alt)stack(ch,tn(ch,r),b0,b1,tmax).forEach(ms=>{ms.rk=k+4;rc.push(ms)})}); // the plain reading stays available if no altered voicing fits the hand
   if(Q.lh&&!o.noL){if(bassOn){if(/^(soul|bossa|gospel)$/.test(Q.fam))Q.lh.forEach(r=>{lc=lc.concat(stack(ch,tn(ch,r),low,low+9,low+21))})}else Q.lh.forEach(r=>{lc=lc.concat(stack(ch,tn(ch,r),36,47,60))})}}
  let rh=sc(rc.filter(ms=>lilOK(ms)),prev,F.c+ro+arch,[F.t[0]+ro,F.t[1]+ro]);
  if(!rh.length){const fb=stack(ch,ch.x?[0].concat(ch.t3!=null?[ch.t3]:[]).concat(ch.t5!=null?[ch.t5]:[7]):tn(ch,[1,3,5]),Math.max(low,53),Math.max(low,53)+11,84);rh=fb[0]||[60+ch.pc,67+ch.pc]}
@@ -3267,7 +3373,7 @@ const kNear=(pcs,m,dir)=>{for(let k=1;k<12;k++){if(pcs.includes(mod12(m+dir*k)))
 function kPart(p,C,o){const R=KS.R,S=KST[C.sty]||KST.pop,n=steps(),dt=60/bpm/sub,ev=[],bpc=Math.max(1,+$('bpc').value),pb=barN%8,isO=!!ORG[C.snd],role=C.role;
  const ro=C.reg==='low'?-7:C.reg==='high'?8:0,fam0=keysFam(),fam=isO&&role!=='pad'?(/^(jazz4|jazz3|soul|gospel|funk|quartal)$/.test(fam0)?(fam0==='jazz4'?'jazz3':fam0==='soul'||fam0==='gospel'?'organ':fam0):'organ'):fam0;
  const tiedIn=KS.tied[p];KS.tied[p]=0;const land=KS.land[p];KS.land[p]=0;
- const chAt=s=>{for(const g of o.segs)if(s>=g[0]&&s<g[1])return g;return o.segs[o.segs.length-1]},VC=new Map(),voice=(ch,f,x)=>{const k=ch.label+'|'+f;if(!VC.has(k))VC.set(k,kVoice(p,ch,f,Object.assign({ro,bt:o.bt,jz:/jazz|bossa|soul|quartal/.test(f)},x||{})));return VC.get(k)};
+ const chAt=s=>{for(const g of o.segs)if(s>=g[0]&&s<g[1])return g;return o.segs[o.segs.length-1]},VC=new Map(),voice=(ch,f,x)=>{const k=ch.label+'|'+f+'|'+((x&&x.pn)?1:0)+((x&&x.noL)?'L':'');if(!VC.has(k))VC.set(k,kVoice(p,ch,f,Object.assign({ro,bt:o.bt,sty:C.sty,seed:KS.cell[p]?KS.cell[p].fx:0,jz:/jazz|bossa|soul|quartal/.test(f)},x||{})));return VC.get(k)};
  const push=e=>{e.P=p;e.x=1;e.lag=e.lag==null?kLag(S,R):e.lag;ev.push(e);return e},cellBar=arr=>{const c=arr[KS.cell[p].i%arr.length];return beats===8?c[0].concat(c[1].map(h=>({b:h.b+4,k:h.k,f:h.f}))):beats===2?c[Math.floor(barN/2)%2].filter(h=>Math.floor(h.b/2)===barN%2).map(h=>({b:h.b-2*(barN%2),k:h.k,f:h.f})):c[barN%2]};
  if(!KS.cell[p]||pb===0||KS.cell[p].sty!==C.sty+role+C.snd)KS.cell[p]={sty:C.sty+role+C.snd,i:Math.floor(R()*12),alt:R()<0.6,cl:Math.floor(R()*12),fx:Math.floor(R()*100)};if(pb===4&&KS.cell[p].alt&&!KS.cell[p].d){KS.cell[p].i++;KS.cell[p].d=1}
  // --- pad / hold: a thin chord per change, common notes carried over without a new attack; an organ's "fill" is its Leslie and its swell ---
@@ -3326,7 +3432,14 @@ function kPart(p,C,o){const R=KS.R,S=KST[C.sty]||KST.pop,n=steps(),dt=60/bpm/sub
   push(e)}
  if(orn)KS.lastOrn[p]=barN;if(isO)kLesPlan(p,ev,n,pb,C);return ev}
 const kLow=(ch,bt)=>{let m=Math.max(48,Math.min(55,(bt||36)+12));while(mod12(m-ch.pc)!==0&&mod12(m-ch.pc)!==7)m++;return m};
-// ----- fills and licks: single lines, sixths, runs and octave lines from the chord's own scale, always walking into the next chord's top note -----
+// ----- fills and licks: runs, enclosures, chromatic walk-ins, double stops in sixths and thirds,
+// repeated-note motifs, triplet answers, octave lines, organ smears and the gospel 4-to-3, from the
+// chord's own scale, always walking into the next chord's top note -----
+const KSHAPE={funk:['oct','encl','rep','thirds'],jbfunk:['oct','rep','chrom'],jam:['oct','encl','g43','thirds'],disco:['oct','thirds','rep'],afro:['oct','encl','rep'],
+ gospel:['run','sixths','trip','g43','encl','thirds'],nola:['run','sixths','chrom','g43'],shuffle:['run','sixths','trip','chrom','g43'],slowblues:['run','chrom','sixths','encl'],
+ soul:['run','encl','thirds','g43'],country:['sixths','thirds','rep','chrom'],motown:['sixths','thirds','rep'],jazz:['trip','encl','chrom','thirds'],jwaltz:['trip','encl','chrom'],
+ bossa:['trip','encl','thirds'],samba:['trip','encl','rep'],latin:['trip','encl'],ballad:['arp','encl','thirds','run'],jballad:['arp','trip','encl'],
+ pop:['pick','encl','thirds','rep'],rock:['pick','rep','oct','chrom'],waltz:['pick','encl'],reggae:['pick','rep'],sustain:['pick']};
 function kFill(p,C,o,S,push,voice,fam,ro){const R=KS.R,n=steps(),dt=60/bpm/sub,g=o.segs[o.segs.length-1],ch=g[2],nx=g[3]||ch;if(!ch)return null;const isO=!!ORG[C.snd],small=o.fill.small,st=C.sty;
  const pcs=kPool(ch),V=voice(ch,fam,{}),top=V.rh[V.rh.length-1]+(top0=>top0<67?12:0)(V.rh[V.rh.length-1]),KI=KS.cell[p].fx,v0=0.5,up=(KI%3)!==0;
  // the target: the nearest tone of the next chord to where the line is heading
@@ -3338,12 +3451,23 @@ function kFill(p,C,o,S,push,voice,fam,ro){const R=KS.R,n=steps(),dt=60/bpm/sub,g
   if(small||!/gospel|shuffle|slowblues|rock|soul|funk|jbfunk|nola|motown/.test(st)){KS.land[p]=0;return null}const cnt=7,W=[0,2,4,5,7,9,11],a=[];let m=T-1;while(a.length<cnt){if(W.includes(mod12(m)))a.unshift(m);m--}const span=Math.min(0.26,sub*dt*0.9),s0=n-span/dt;
   a.forEach((mm,i)=>{const pos=s0+i*span/dt/cnt,s=Math.floor(pos);push({s,d:Math.max(0.2,span/cnt*1.3/dt),ms:[mm],v:0.4+0.05*i,vs:[1],off:[0],lag:(pos-s)*dt,k:'f',tail:0,leg:i>0})});return Math.floor(s0)}
  if(small)return put(line(2,up?1:-1),d8,v0,0.9);
- const kind=/funk|jbfunk|jam|disco|afro/.test(st)?'oct':/gospel|nola|shuffle|slowblues/.test(st)?['run','sixths','trip'][KI%3]:/soul/.test(st)?'run':/country|motown/.test(st)?'sixths':/jazz|jwaltz|bossa|samba|latin/.test(st)?'trip':st==='ballad'||st==='jballad'?'arp':'pick';
+ // Which shape this one is. Each style keeps its own handful and they come round in turn, so two fills
+ // in a row are never the same shape: a run, an enclosure round the target, a chromatic walk-in, double
+ // stops in sixths or thirds, a repeated-note motif, a triplet answer, an octave line, the gospel 4-to-3.
+ const lst=KSHAPE[st]||KSHAPE.pop,kind=lst[(KI+KS.fk[p])%lst.length];KS.fk[p]=(KS.fk[p]+1)%12;
+ if(o.fill)o.fill.kind=kind;
  if(kind==='oct'){const l=line(4,up?1:-1).map(m=>m<64?m+12:m);return put([[l[0]-12,l[0]],[l[1]],[l[2]-12,l[2]],[l[3]]],den,0.56,0.6)}
  if(kind==='run'){const cnt=sub===3?6:sub===2?4:6,l=line(cnt,-1);return put(l,sub===3?3:sub===2?2:4,0.48,1,{leg:1})} // down from above into the target
  if(kind==='sixths'){const l=line(3,up?1:-1),cs=chordScale(ch).map(x=>mod12(ch.pc+x));return put(l.map(m=>{let lo=m-8;while(!cs.includes(mod12(lo)))lo--;return m-lo>10?[m]:[lo,m]}),d8,0.52,0.95)}
  if(kind==='trip'){const l=line(3,up?1:-1);return put(l,sub===2?2:3,0.5,0.8)}
  if(kind==='arp'){const tones=V.rh.concat(V.rh.map(m=>m+12)).filter(m=>m>=60&&m<=88).slice(0,5);if(tones.length<3)return put(line(2,1),d8);const s0=put(tones,d8,0.42,2.5);return s0}
+ if(kind==='encl'){const a=kNear(pcs,T,1);return put([[a],[T-1],[T]],sub===3?3:den,0.5,0.9)} // round the target: over it, a half step under it, then the note
+ if(kind==='chrom'){const cnt=sub===3?3:4,a=[];for(let k=cnt;k>=1;k--)a.push([T-k]);a.push([T]);return put(a,den,0.46,0.95,{leg:1})} // walked in a half step at a time
+ if(kind==='thirds'){const l=line(3,up?1:-1),cs=chordScale(ch).map(x=>mod12(ch.pc+x));
+  return put(l.map(m=>{let lo=m-3;for(let k=0;k<3&&!cs.includes(mod12(lo));k++)lo--;return m-lo>5?[m]:[lo,m]}),d8,0.52,0.95)} // double stops a third apart, the way a horn section answers
+ if(kind==='rep'){const a=kNear(pcs,T,-1);return put([[a],[a],[a],[T]],den,0.5,0.6)} // one note said three times and answered
+ if(kind==='g43'){const fo=mod12(ch.pc+5),t3=third(ch);let m4=T;for(let k=0;k<12&&mod12(m4)!==fo;k++)m4++;const m3=m4-(5-t3);
+  return put([[m4-12,m4],[m3-12,m3]],sub===3?3:2,0.56,1.05,{leg:1})} // the gospel 4 to 3, both hands
  return put(line(R()<0.5?2:3,up?1:-1),d8,v0,0.9)}
 // the Leslie: fast into the phrase end and through a fill, back to slow two beats into the next phrase; the menu can hold it on one speed
 function kLesPlan(p,ev,n,pb,C){const m=$('orgles')?$('orgles').value:'auto';if(m!=='auto'){if(KS.les!==m){ev.push({s:0,les:m,P:p,ms:[],d:0,v:0});KS.les=m}return}
@@ -3363,11 +3487,17 @@ const KCLV={SF1:['X--x-oX--x-oX-x-','--l-l--l--l--l-l','X--x-oX--xx--X--','--l-l
  RB1:['---oX------oX---','--L---L---L---L-','---oX------oX--o','--L---L---L---L-'],RB3:['-o-oX--o-o-oX--o','--L---L---L---L-','-o-oX--o-o-oXo-o','--L---L---L---L-']};
 function kClav(p,C,o,ev,push,voice){const R=KS.R,n=steps(),dt=60/bpm/sub,st=C.sty,S=KST[st]||KST.funk,pb=barN%8,cl=KS.cell[p].cl;
  const list=sub===3?['SW2']:st==='reggae'?['RB1','RB3']:st==='rock'||st==='country'||st==='pop'?['RK1','RK3']:st==='jam'?['SF4','SF3','SF1']:bpm<86?['SW3','SW1']:st==='jbfunk'?['SF3','SF5']:swNow()>=0.54?['SW1','SF1']:['SF1','SF5','SF6','SF1'];
- let name=list[cl%list.length];if(st==='jam')name=list[Math.min(2,Math.floor((barN%24)/8))];const cell=KCLV[name],per=name==='SW2'?3:4,cb=beats===8?null:(beats===2?Math.floor(barN/2):barN)%2;
+ // the jam figure used to sit on one cell for eight bars at a time; now it moves every two bars
+ let name=list[cl%list.length];if(st==='jam')name=list[(cl+Math.floor(barN/2))%list.length];const cell=KCLV[name],per=name==='SW2'?3:4,cb=beats===8?null:(beats===2?Math.floor(barN/2):barN)%2;
+ // and one stab a bar is turned into a mute or a rest, and one rest into a mute, from this bar's own
+ // seeded draw, so the same two-bar figure never comes round twice the same
+ const nk=cell[0].length,E=/RK|RB/.test(name)?null:[Math.floor(R()*nk),R()<0.5?'o':'-',Math.floor(R()*nk)];
  KS.wah=st==='jam'?'rock':/RK|RB/.test(name)?'off':'env';
  const fb=o.fill&&o.fill.p===p&&!o.fill.small?2:0,fk=KS.cell[p].fx%3;if(fb)KS.land[p]=1;let ham=0;
  for(let s=0;s<n;s++){const pos=s/sub,bar=cb==null?Math.floor(pos/4)%2:cb,cpos=(beats===2?pos+2*(barN%2):pos)%4,ci=cpos*per,frac=ci-Math.floor(ci+1e-6);if(frac>1e-6||cell[0].length<=Math.floor(ci+1e-6))continue;const k=Math.floor(ci+1e-6);
-  let r=cell[bar*2][k],l=cell[bar*2+1][k];const g=o.segs.find(q=>s>=q[0]&&s<q[1])||o.segs[0],ch=g[2];if(!ch)continue;const inFill=fb&&s>=n-fb*sub;
+  let r=cell[bar*2][k],l=cell[bar*2+1][k];
+  if(E){if(k===E[0]&&r!=='-')r=E[1];else if(k===E[2]&&r==='-'&&l==='-')r='o'}
+  const g=o.segs.find(q=>s>=q[0]&&s<q[1])||o.segs[0],ch=g[2];if(!ch)continue;const inFill=fb&&s>=n-fb*sub;
   if(inFill){if(fk===2){continue} // the silent fill: out for two beats, back on the 1
    if(fk===1){const lo=kLow(ch,o.bt),alt=(s-(n-fb*sub))%2;push({s,d:0.8,ms:[alt?lo+12:lo],v:0.5+0.3*(s-(n-fb*sub))/(fb*sub),vs:[1],off:[0],k:'s',tail:0});continue}
    const pcs=kPool(ch),i2=s-(n-fb*sub),tot=fb*sub;if(i2>=tot-6){let mm=kLow(ch,o.bt)+12;for(let q=0;q<tot-i2;q++)mm=kNear(pcs,mm,1);push({s,d:0.8,ms:[mm],v:0.56+0.04*(i2-(tot-6)),vs:[1],off:[0],k:'f',tail:0})}continue}
@@ -3402,10 +3532,20 @@ function genKeys(){if(!$('kon').checked){KS.tied=[0,0];return []}if(barN===0||!K
  for(let p=0;p<2;p++){if(!C[p].on)continue;o.other=C[1-p];o.busy=p?new Set(ev.filter(e=>e.P===0&&e.ms.length&&e.k!=='p').map(e=>e.s)):null;o.top=p&&ev.length?(x=>x?mod12(x.ms[x.ms.length-1]):null)(ev.find(e=>e.P===0&&e.ms.length&&e.k!=='g')):null;
   let pe=kPart(p,C[p],o);
   // two parts on one step: a held chord and a short one live together; two short ones do not (the rhythm part keeps it, at a kick+bass hit both stay, thinned)
-  if(p===1&&o.busy&&C[1].role!=='pad'&&C[1].snd!=='clav'&&!(C[0].role==='rhythm'&&C[1].role==='rhythm')){const pri=false;pe=pe.filter(e=>{if(!e.ms.length||e.k==='f'||e.k==='g'||e.k==='h'||!o.busy.has(e.s))return true;const a=ev.find(q=>q.P===0&&q.s===e.s&&q.ms.length);if(!a||a.k==='h'||a.k==='f')return true;
-    if(a.cls==='U'){e.ms=e.ms.slice(-2);e.vs=e.vs.slice(-2);e.off=e.off.slice(-2);return true}if(pri){a.ms=[];return true}return false})}
+  // Two players on the same step. The second one gets out of the way rather than vanishing: up an
+  // octave if that clears the top of the other chord, else down to its top two notes, else off the step
+  // by a 16th into a hole. Dropping the hit is the last resort (2026-11-27.12).
+  if(p===1&&o.busy&&C[1].role!=='pad'&&C[1].snd!=='clav'&&!(C[0].role==='rhythm'&&C[1].role==='rhythm')){const hi=84+(C[1].reg==='low'?-7:C[1].reg==='high'?8:0);
+   pe=pe.filter(e=>{if(!e.ms.length||e.k==='f'||e.k==='g'||e.k==='h'||!o.busy.has(e.s))return true;const a=ev.find(q=>q.P===0&&q.s===e.s&&q.ms.length);if(!a||a.k==='h'||a.k==='f')return true;
+    KS.coll.n++;
+    if(a.cls==='U'){e.ms=e.ms.slice(-2);e.vs=e.vs.slice(-2);e.off=e.off.slice(-2);KS.coll.thin++;return true}
+    const up=e.ms.map(m=>m+12),atop=a.ms[a.ms.length-1];
+    if(e.ms[0]<=atop&&up[up.length-1]<=hi&&!up.some(m=>a.ms.includes(m))){e.ms=up;KS.coll.up++;return true}
+    if(e.ms.length>2){const t2=e.ms.slice(-2);if(!t2.some(m=>a.ms.includes(m))){e.ms=t2;e.vs=e.vs.slice(-2);e.off=e.off.slice(-2);KS.coll.thin++;return true}}
+    for(const d of [1,-1,2]){const s2=e.s+d;if(s2>0&&s2<n&&!o.busy.has(s2)&&!pe.some(q=>q!==e&&q.s===s2)&&!ev.some(q=>q.P===0&&q.s===s2&&q.ms.length)){e.s=s2;e.v*=0.95;KS.coll.shift++;return true}}
+    KS.coll.drop++;return false})}
   for(const e of pe)ev.push(e)}
- const out=ev.filter(e=>e.ms.length||e.les);if(window.KLOG)window.KLOG.push({bar:barN,K:[...K],S:[...S],B:[...B],bt,bp,fill,sty:C[0].sty,cfg:C.map(c=>[c.snd,c.role,c.on]),ev:out.map(e=>({P:e.P,s:e.s,d:e.d,ms:e.ms,v:e.v,vs:e.vs,off:e.off,lag:e.lag,k:e.k,cls:e.cls,orn:e.orn,tail:e.tail,les:e.les,hand:e.hand}))});
+ const out=ev.filter(e=>e.ms.length||e.les);if(window.KLOG)window.KLOG.push({bar:barN,K:[...K],S:[...S],B:[...B],bt,bp,fill,coll:Object.assign({},KS.coll),chs:segs.map(g=>[g[0],g[1],g[2]?g[2].label:null,g[2]?g[2].pc:null,g[2]?g[2].sev||'':'']),sty:C[0].sty,cfg:C.map(c=>[c.snd,c.role,c.on]),ev:out.map(e=>({P:e.P,s:e.s,d:e.d,ms:e.ms,v:e.v,vs:e.vs,off:e.off,lag:e.lag,k:e.k,cls:e.cls,orn:e.orn,tail:e.tail,les:e.les,hand:e.hand}))});
  return out}
 // ----- from a bar's events to sounding notes: one function for playback and for "Copy auto to roll", so the two can never differ -----
 function kNotes(e,dt){const dur=e.x?e.d*dt:e.d*dt*(e.push||e.tail?1:0.97),X=Math.max(e.k==='g'||e.k==='q'?0.02:0.05,dur+(e.tail||0));
@@ -4359,7 +4499,7 @@ prInit();prDraw();
   if(sp.get('xp')){setSel($('xlen'),sp.get('xp'));history.replaceState(null,'',location.pathname);$('xst').textContent='Your settings from Notion are loaded. Tap Export to build and save your MP3.';setTimeout(()=>{if(window.mmShowTab)mmShowTab('Export');$('xbtn').scrollIntoView({block:'center'});$('xbtn').focus()},300)}}})();
 ['xby','xtimes','xci','bon','kon','arr','ab','cb','av','ac','prog','cprog','bpc','fe','bmode','kmode','rbars','pre','ts'].forEach(id=>{const e=$(id);if(e)e.addEventListener('change',()=>setTimeout(xInfo,0))});xInfo();
 
-</script><script>(function(){const C=['#e8412c','#f28c28','#f6c33b','#efe6d2'];document.querySelectorAll('.sec>h4').forEach((h,i)=>h.style.setProperty('--band',C[i%4]))})();</script><p class="appver" style="text-align:center;font-size:11px;opacity:.6;margin:18px 0 10px;font-family:ui-monospace,Menlo,monospace">Modal Metronome · Version 2026-11-27.11</p>
+</script><script>(function(){const C=['#e8412c','#f28c28','#f6c33b','#efe6d2'];document.querySelectorAll('.sec>h4').forEach((h,i)=>h.style.setProperty('--band',C[i%4]))})();</script><p class="appver" style="text-align:center;font-size:11px;opacity:.6;margin:18px 0 10px;font-family:ui-monospace,Menlo,monospace">Modal Metronome · Version 2026-11-27.12</p>
 <script>/* Setting help: hover the name on a computer, tap it on a phone or iPad */
 (function(){const T={"xby": "Choose how long the MP3 is: Times through plays the whole loop a set number of times (the chord loop, or verse + chorus in Verse / Chorus mode) and ends on the one. Minutes plays for a set time.", "xtimes": "How many times the whole loop plays in the MP3. Once through = the full chord loop, or verse + chorus when Verse / Chorus is on. The file ends back on the one with the last chord ringing out.", "xci": "Adds the count-in clicks at the start of the MP3, so you know when to come in. Off = the band starts right away.", "bmode": "Auto: the app writes the bass line for you, fresh as it plays. Manual: the bass plays the notes in the piano roll (an empty roll plays the auto line). Switching back to Auto keeps your roll notes saved.", "kmode": "Auto: the app plays the chords for you in the comping style you picked. Manual: the keys play the notes in the piano roll. Switching back to Auto keeps your roll notes saved.", "rsec": "With Verse / Chorus on, the verse and the chorus can each have their own part. Shared = one part for both. A section with no notes of its own plays the shared part.", "rbars": "How long the part is before it repeats: 1, 2, 4 or 8 bars. Making it shorter hides the later bars; their notes come back when you make it longer again.", "rlock": "Scale lock: a note you tap snaps to the nearest note of the key and mode, so a wrong note can't sneak in. The light rows are the notes in the key. Turn it off to add any note, like a chromatic passing note.", "rchord": "Chord stamp (keys): tap anywhere in a bar to drop in that bar's chord, voiced the way the auto keys play it and held to the next chord change. Then change the notes one by one.", "rcopy": "Copies what Auto plays right now (this progression, this groove, this style) into the roll as notes you can change. It switches the part to Manual, and it sounds just like Auto until you edit it.", "rundo": "Takes back the last change in the piano roll.", "rclr": "Removes every note in this part. You get asked first, and Undo brings them back.", "mv": "Master volume for everything: drums, bass and keys. Saved on this device only, not in presets or links.", "xlen": "How many minutes the MP3 lasts when you export by minutes. It records the groove, bass, chords, fills and tempo exactly as they are set now, so you can practice with it anywhere.", "ps": "Your saved setups. Pick one to load it. Type a name and tap Save to store everything you have set right now. Presets live on this device and never get erased by Reset.", "pre": "The drum pattern. Each groove is written the way real drummers play that style. Changing it also sets the time signature the groove is written in.", "ts": "Time signature: how many beats are in a bar and what kind. 4/4 = four quarter-note beats. 6/8, 9/8 (3+3+3) and 12/8 = beats split in three. In 5/8, 7/8, 9/8 (2+2+2+3) and 11/8 each beat is one 8th note, so the BPM counts 8ths.", "sdv": "Subdivide: the steady in-between notes that keep time. \"As written\" plays the groove's own hi-hat or ride part. Pick Quarter notes, 8ths, 16ths, Triplets or Off-beats to replace it with a steady pulse. Off = no subdivision at all, just the kick and snare.", "cy": "Subdivide with: the instrument that plays the subdivision. Hi-hat is tight and dry, ride is washy, ride bell cuts through, shaker and tambourine are soft and bright, cowbell, side stick, claves and woodblock are clicky and easy to hear.", "fb": "First beat: adds an extra sound on beat 1 of every bar so you always know where the bar starts. Great for odd meters like 7/8 and 9/8.", "sw": "Swing pushes every second note late. 50% = straight, even notes. About 67% = triplet swing, like jazz and blues shuffles.", "pkt": "Pocket: where the drummer sits on the beat. Auto uses the real feel of the groove, measured from real drummers: the hats land a hair after the snare and kick, and the time drifts a little and comes back, like a person. Machine = perfectly on the grid.", "gdyn": "Ghost notes are the very soft snare taps between the backbeats. \"4 levels\" plays them softer or louder depending on where they fall, like a real drummer. Flat = all the same.", "groll": "How often soft snare rolls show up: drags, ruffs, 5-stroke and short buzz rolls tucked in before the backbeat or onto the e and a. They sit below the ghost notes. Sprinkle = now and then, Some = about one a bar, Lots = a busy ghost-note feel.", "grst": "Natural mix = what a drummer reaches for: mostly drags and short ruffs, some buzzes, now and then a 7- or 9-stroke roll that builds into a fill. Stick strokes = no buzzes. Buzz and press rolls = only buzzed strokes.", "hu": "Humanize: how loose the drummer plays. The timing and touch are measured from real drummers; the default (30) is a tight pro, 100 is an average drummer. Zero = perfectly even.", "crash": "Plays a crash cymbal on beat 1 every 4 bars to mark the phrase.", "ci": "Count-in: clicks before the band starts so you can come in on time.", "do": "Drop-out: the drums and bass go silent for some bars while you keep playing. When they come back, you find out if you kept the time yourself.", "kcm": "Moves the parent key (the 1) on its own while you play. Circle of 5ths: C, G, D, A … Circle of 4ths: C, F, B♭, E♭ … the way jazz players drill ii – V – I. Chromatic: a half step up or down each time. The chords keep their numbers. Stop and the key goes back to where you started.", "kce": "How often the key moves: after each time through the chord progression (verse and chorus when that is on), or every 2, 4 or 8 bars.", "bigl": "Makes the beat light big and flashes the screen on every beat, so you can see the pulse from across the room.", "tr": "Tempo trainer: speeds the metronome up a little every few bars until it reaches your goal. It never slows down.", "trg": "The tempo the trainer stops at.", "tri": "How many BPM to add each time.", "trb": "How many bars to play before each speed-up.", "fe": "How often the drummer plays a fill (a short drum break) at the end of a phrase.", "fs": "The kind of fill: toms, snare, or a mix.", "fa": "How busy the fill is. Low = short and simple. High = full bar with doubles.", "fc": "Plays a crash on the beat right after every fill, like a drummer landing the fill.", "key": "The major parent key: the \"1\" of the scale. The studio names every mode from its parent major key.", "md": "The mode: which note of the parent key the music sits on. The bass and keys use it for passing notes and voicings.", "prog": "The chord progression the bass and keys play. Pick a mode first: the list then shows only that mode's progressions, in Roman numerals counted from the parent major key, always (D Dorian in C: ii – V = Dm – G), with the letters for your parent key.", "ctype": "The chords in the progressions from the list. Auto: 7th chords on modal and jazz progressions, triads on pop. Triads: three-note chords only. 7th chords: every chord gets its 7th. A Custom progression always plays exactly what you type: a 7th only where you write one (V7, IVmaj7, ii7).", "bpc": "How long each chord lasts. Normal = one bar. Double time = two chords per bar. Half time = each chord lasts two bars.", "cprog": "Type your own chords, separated by spaces (for example: ii7 V7 Imaj7 or Dm7 G7 Cmaj7). Every standard chord symbol works: 7ths, 6/9, 9, 11, 13, sus, add9, ♭9, ♯11, alt, slash chords like C/E, and V/V. Tap the (i) for the full list.", "bon": "Turns the bass player on. The bass follows the chords and the groove.", "bt": "The bass sound: electric, upright, synth and more. Auto picks the fingerstyle funk bass (real ghost notes and muted plucks) for funk, soul and R&B, and the clean studio bass for everything else.", "blick": "Bass licks: what the bass plays when the drums fill. Match plays a lick in the same beats and lands on beat 1 with the kick; Light adds a small pickup at the end of a phrase; Off keeps the line as it is.", "bmute": "Palm mute: short, thumpy notes with the hand resting on the strings. Auto mutes where the style does.", "b5": "5-string bass: adds the low B string, so low D, C and B roots can drop an octave. Auto uses it in ballads, reggae, modern pop and R&B.", "bfn": "Finger noise: the fingers sliding along the string between positions and letting go at the end of a note. 0 = none.", "bgh": "Ghost notes: muted thuds between the real notes, the way funk and soul bassists fill the 16ths. Auto uses as many as the style calls for. Sprinkle, Some and Lots set it yourself.", "bart": "How the bass player plays the notes: slides into a note, hammer-ons, octave pops, a chromatic note leading into the next chord tone, and now and then a fall-off at the end of a phrase. Auto = what suits the style. Off = plain notes.", "rart": "Pick a bass note in the roll, then choose how it is played: a ghost (dead) note, a slide in, a hammer-on, a pop or a fall-off. Copy auto to roll brings these over from the auto bass line.", "btone": "Shapes the bass like a mixing engineer: EQ and compression on the bass channel.", "bs": "How the bass plays: root notes, walking lines, pedal tones and more, matched to the style.", "bauto": "Writes a fresh bass line every few bars so it never gets repetitive.", "bvar": "How often the bass adds passing notes, octave jumps and pickups.", "bv": "Bass volume, separate from the drums.", "kon": "Turns the keyboard player on. The keys play the chords in the progression.", "ksnd": "The keyboard sound. Auto picks what a band would bring: grand piano for pop, ballads, jazz and Latin, a tine electric piano for neo-soul and funk, a tonewheel organ for gospel and blues shuffles. The sampled sounds load the first time you pick them.", "kcomp": "Comping = how the keys play the chords: held, pushed, stabs. Auto matches the groove.", "kvoice": "Voicing = which chord notes the keys play. Pop/rock: the root in the left hand, the triad in the right, moving to the closest notes. Jazz: rootless voicings (3-7-9, 7-3-13) between C3 and A4, the root left to the bass. Neo-soul and gospel add 9ths, 11ths and 13ths from the mode. Nothing muddy: no 3rds below E-flat 3.", "kv": "Keys volume, separate from the drums.", "kit": "Picks the whole drum kit at once. You can still change each drum below.", "kk": "The kick drum sound.", "sn": "The snare drum sound.", "rv": "The ride cymbal sound.", "hh": "The hi-hat sound.", "hfeel": "Tight = closed and choked. Loose = hats a little open and sloshy.", "sfeel": "Tight = damped, higher crack. Open = lower, fatter, more ring.", "kfeel": "Tight = short and punchy. Boomy = lower and longer.", "tm": "The tom sounds used in fills.", "pc": "The percussion sounds: shaker, tambourine, cowbell, congas and more.", "room": "How much room echo (reverb) is on the whole band.", "arr": "Song mode: switches between a verse groove and a chorus groove, so practice feels like a real song.", "av": "The groove for the verse.", "ac": "The groove for the chorus.", "ab": "How many bars the verse lasts.", "cb": "How many bars the chorus lasts.", "mode": "Direct is fastest. Pick Compatibility only if the sound crackles or won't play on your device.", "dev": "Which speaker or headphones the sound plays through.", "showall": "Shows every drum in the pattern grid, not just the drums this groove uses.", "gbpm": "Off (default): picking a new groove keeps your tempo. On: the song grooves and the brush grooves jump to their own tempo, the speed of the record or the style, so you hear them the way they go.", "gvl": "How many strengths a grid square can have. 4: accent, normal, soft, ghost. 3: accent, normal, ghost. 2: normal and ghost. Going down snaps every hit to the nearest level that is left; nothing is deleted. The grooves keep their exact strengths until you change them."};
  const tip=document.createElement('div');tip.id='tip';document.body.appendChild(tip);let cur=null;
@@ -4630,5 +4770,4 @@ document.addEventListener('click',function(e){var t=e.target&&e.target.closest&&
   toast('That groove link is broken or cut off, so your usual settings are loaded. Ask for the link again.','error');window.__mmGrooveLoaded=false;
   try{restore0()}catch(e){console.warn(e)}uiRefresh()})();
 })();</script>
-<div id="chma-beta" style="position:fixed;left:calc(8px + env(safe-area-inset-left,0px));top:calc(8px + env(safe-area-inset-top,0px));z-index:2147483647;background:#c4302b;color:#fff;font:700 12px/1 -apple-system,Helvetica,Arial,sans-serif;letter-spacing:.08em;padding:6px 9px;border-radius:6px;pointer-events:none;opacity:.92">BETA</div>
 </body></html>
