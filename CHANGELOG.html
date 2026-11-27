@@ -44,6 +44,15 @@
 <h2>Modal Metronome — drum-machine/</h2>
 <p class="note">Started 2026-11-03 as "Groove Metronome"; renamed Modal Metronome 2026-11-05. Sound folders: <code>drum-machine/kits/</code>, <code>drum-machine/bass/</code>, <code>drum-machine/keys/</code>.</p>
 
+<h3>Version 2026-11-27.2 (beta 2026-11-27)</h3>
+<h4>Changed</h4>
+<ul>
+  <li>Drums are tighter: pocket first (owner feedback on 2026-11-27.1: "to make it human you gave the drummers bad meter"). The random part of the timing is now tiny. At the default Humanize (30) the kick and the backbeat stay within about 2 ms of the beat (never more than 5), hats and ride within about 3 ms, ghost notes about 5 ms. Humanize 100 now tops out near the old default (hats about 9 ms) instead of the loose e-kit numbers. Slow tempos loosen by 30% at most. <code>drum-machine/index.html</code></li>
+  <li>What stays, because that is the pocket: the hats land a hair (about 3 ms) after the snare and kick, the style swing, and placements that are the same every bar. The human feel now comes from touch: the strength, ghost-note and tone changes on every hit are all kept.</li>
+  <li>Country Train Beat rebuilt from a real drummer (Groove MIDI Dataset, a country performance at 114 bpm) instead of a hand-written pattern. The old one was a half-time version: kick on 1 and 3, backbeat on 2 and 4. A real train beat has the accent on every "&amp;" (the right hand), soft ghost strokes on everything else, a soft kick on all four beats and the hat foot on the "&amp;"s, plus an extra accent on the "e" of 4 that pushes into the next bar. Drum-lesson sources (Drumeo, Modern Drummer) describe the same thing. The four bars you hear are four real bars from that performance, strength for strength, cycled; the lilt is the measured 54%. Meter is tight like every other groove. It now starts at 112 BPM. The every-second-bar extra kick and drag from 2026-11-27.1 are gone.</li>
+  <li>Country Train Beat with brushes: same fix. Accents on the "&amp;"s, kick on all four beats, hat foot on the "&amp;"s, the same light lilt.</li>
+</ul>
+
 <h3>Version 2026-11-27.1 (beta 2026-11-27)</h3>
 <h4>Changed</h4>
 <ul>
