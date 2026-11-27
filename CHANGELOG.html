@@ -44,6 +44,28 @@
 <h2>Modal Metronome — drum-machine/</h2>
 <p class="note">Started 2026-11-03 as "Groove Metronome"; renamed Modal Metronome 2026-11-05. Sound folders: <code>drum-machine/kits/</code>, <code>drum-machine/bass/</code>, <code>drum-machine/keys/</code>.</p>
 
+<h3>Version 2026-11-27.11 (beta 2026-11-27)</h3>
+<h4>Added</h4>
+<ul>
+  <li>Two keyboard players, Keys 1 and Keys 2. Each has its own sound, role (comp, pad / hold, rhythm, fills only, off), volume and register. A new &#8220;Keys band&#8221; menu holds twelve ready-made pairs (Piano + Organ pad, Rhodes + Clav, Organ + Piano fills, Wurli + Organ, Clav + Rhodes, Piano only, Organ only, Gospel piano + B3, Reggae skank + bubble, Montuno piano + Organ, Clav + Organ, Rhodes + Organ pad); Auto picks the pair for the groove. New settings (<code>kpair</code>, <code>k1role</code>, <code>k1v</code>, <code>k1reg</code>, <code>k2snd</code>, <code>k2role</code>, <code>k2v</code>, <code>k2reg</code>, <code>orgreg</code>, <code>orgles</code>, <code>orgvib</code>, <code>orgdrv</code>, <code>clvtone</code>, <code>clvwah</code>, <code>clvmute</code>) are additions only; a setup saved before them loads with safe defaults.</li>
+  <li>Five recorded keyboards, loaded only when picked, with a progress line (<code>drum-machine/keys/grand2</code>, <code>upright2</code>, <code>rhodes73</code>, <code>wurli2</code>, <code>pianet</code>; each folder has a <code>manifest.json</code>). Grand piano: Salamander Grand Piano V3 (CC BY 3.0), four strengths blended into each other. Tine electric piano: a real 1977 Rhodes Mark I Stage 73 from jRhodes3d by Jeff Learman (CC BY 4.0, credited in the app). Reed electric piano (Wurlitzer EP200) and Pianet T: Greg Sullivan (CC BY 3.0). Upright: VCSL Knight (CC0). A struck key damps its old note, and the pianos and the Pianet play the sound of the key coming up.</li>
+  <li>Clav: a string model of a Hohner D6-style clavinet (no samples). Four pickup and tone settings, the key-release cluck, a damper slider, an amp, and a wah that either follows the notes (auto-wah) or is rocked on the beat. It plays real clav parts: two hands on the 16ths, accents, short strokes and muted ghost notes, from thirteen two-bar figures (funk, swung funk, rock riff, reggae bubble).</li>
+  <li>Tonewheel organ rebuilt: 79 tonewheels at the real gear ratios that never stop turning, nine key contacts per key that close a few thousandths of a second apart (that is the key click), eleven drawbar settings chosen by style, percussion on the second or third harmonic that only fires when no key is down, the C3 chorus, a tube amp that grinds when pushed, and a Leslie with a separate horn and drum (different speeds, the horn changes speed in about a second, the drum in several). On Auto the Leslie goes fast into the end of a phrase and through a fill, then back to slow.</li>
+</ul>
+<h4>Changed</h4>
+<ul>
+  <li>How the keys play, rebuilt. Chords land together; a rolled chord is now a rare colour (ballads about 1 chord in 7, most styles none). Every chord has a written ending: held, snapped off on a grid line, choked, or lifted before the next one. Each style keeps a two-bar figure for the phrase, with fills and licks at phrase ends (single lines, sixths, runs, octave lines, organ smears) and a small budget of crushed grace notes, slides and tremolos. The two players take turns filling.</li>
+  <li>The keys listen to the drums and the bass: they read the bar&#8217;s real kick pattern and the bass line just written, hit with them, move stabs out of the kick&#8217;s way in funk, go with the bass when it pushes the next chord early, and stay above the bass.</li>
+  <li>Voicings by style: jazz rootless A and B forms (shells at fast tempos), stacked fourths on jam grooves, shell plus tensions for bossa, gospel and blues shapes with a doubled top, neo-soul clusters, two- and three-note funk shapes, Motown triads with a doubled top, close reggae triads, montuno octaves. The top note moves by step, and the hand drifts up and back over an eight-bar phrase. No coin flips.</li>
+  <li>Timing is locked: each style has one fixed place against the beat, plus a tiny seeded scatter (about 2.5 ms, never more than 4). The same seed always plays the same part; &#8220;Copy auto to roll&#8221; copies Keys 1 note for note, and Keys 2 keeps playing by itself under a hand-written roll.</li>
+  <li>Keys sound menu: the older grand, upright, tine and Wurlitzer entries now load the new recorded sets (their files stay). &#8220;Comping&#8221; is now &#8220;Feel&#8221;, with Rock, Blues shuffle, New Orleans, Latin, Disco and Country added. Each groove picks its own feel (Motown gets quarter-note piano, the James Brown grooves sparse stabs, Latin grooves a montuno, and so on).</li>
+  <li>Play waits for the keys sound to load, and an unloaded sound stays silent instead of playing the old one.</li>
+</ul>
+<h4>Fixed</h4>
+<ul>
+  <li>The Arpeggio settings row showed even when Arpeggio was not picked.</li>
+</ul>
+
 <h3>Version 2026-11-27.10 (beta 2026-11-27)</h3>
 <h4>Fixed</h4>
 <ul>
