@@ -41,10 +41,533 @@
 </ul>
 
 <!-- ============================================================ -->
+<h2>Scale Climber — scale-climber/</h2>
+
+<h3>Version 2026-11-26.1 (beta 2026-11-26)</h3>
+<h4>Added</h4>
+<ul>
+  <li>Microphone picker like Note Sprint's: choose the microphone, see the Level bar; the choice is remembered on this device. Student feedback.</li>
+  <li>Tempo -5, -1, +1, +5 and "Tap"; click sound picker and click volume (Rhythm Trainer's sounds; ringing pitched sounds switch to the classic click while you sing); count-in of 2 clicks, 1 bar or 2 bars; "Calibrate timing" in "Settings" (timing grade only). Owner request.</li>
+  <li>"Piano volume" slider next to "Hear it" (same setting as "Tone volume" in "Settings"). Student feedback.</li>
+  <li>"Share result" button on the results (hidden site-wide during beta), "How it works" panel, and keys: Space Start/Stop, H "Hear it", Enter "Next level", Esc "Back". Beta tester request.</li>
+  <li>Saved on this device: best climb per level and voice type, the last 10 climbs ("History" in "Settings", with "Clear"), practice-day streak; "New best!" on the results. Beta tester request.</li>
+  <li>"Settings": "Loop" (stay in the same key), "Sing with me (easier)", "Music on round screens", "Copy log". Student feedback.</li>
+</ul>
+<h4>Changed</h4>
+<ul>
+  <li>The pattern and reference notes are now a real grand piano (the Drum Machine's samples, <code>drum-machine/keys/grand/</code>), with low notes lifted automatically. Student feedback.</li>
+  <li>Respects reduced motion. Shared code moved to new files so the live apps and Ear Trainer are untouched until this goes live: <code>shared/voice-apps.js</code>, <code>shared/voice-pitch2.js</code>, <code>shared/voice-apps2.css</code>.</li>
+</ul>
+<h4>Fixed</h4>
+<ul>
+  <li>Stopping a climb early now stops the click and the notes already scheduled, and pressing "Start" again can never start a second metronome. Beta tester request.</li>
+</ul>
+<h3>Version 2026-11-24.1 (beta 2026-11-24)</h3>
+<h4>Added</h4>
+<ul>
+  <li>Favicon: its own icon in the browser tab, bookmarks and the home screen (<code>shared/icons/scale-climber.svg</code>, <code>-32.png</code>, <code>-180.png</code>). Beta tester request.</li>
+</ul>
+<h3>Version 2026-11-20.2</h3>
+<h4>Changed</h4>
+<ul>
+  <li>Button names in help text are now in quotes (e.g. Press "Start"), a house rule for every app.</li>
+</ul>
+
+<h3>Version 2026-11-20.1</h3>
+<h4>Added</h4>
+<ul>
+  <li>New singing app (Sing apps); shared voice pitch engine. Listed on the hub.</li>
+</ul>
+
+<!-- ============================================================ -->
+<h2>Hold Steady — hold-steady/</h2>
+
+<h3>Version 2026-11-26.1 (beta 2026-11-26)</h3>
+<h4>Added</h4>
+<ul>
+  <li>Microphone picker like Note Sprint's: choose the microphone, see the Level bar; the choice is remembered on this device. Student feedback.</li>
+  <li>"Piano volume" slider next to "Hear it" (same setting as "Tone volume" in "Settings"). Student feedback.</li>
+  <li>"Share result" button on the results (hidden site-wide during beta), "How it works" panel, and keys: Space Start/Stop, H "Hear it", Enter "Next level", Esc "Back". Beta tester request.</li>
+  <li>Saved on this device: best hold per level and voice type, the last 10 holds ("History" in "Settings", with "Clear"), practice-day streak; "New best!" on the results. Beta tester request.</li>
+  <li>"Settings": "Loop" (the same hold again until "Stop"), "Sing with me (easier)", "Drone" (your note an octave away on piano), "Music on round screens", "Copy log". Student feedback.</li>
+</ul>
+<h4>Changed</h4>
+<ul>
+  <li>The reference note is now a real grand piano (the Drum Machine's samples, <code>drum-machine/keys/grand/</code>), with low notes lifted automatically. Student feedback.</li>
+  <li>Respects reduced motion. Shared code moved to new files so the live apps and Ear Trainer are untouched until this goes live: <code>shared/voice-apps.js</code>, <code>shared/voice-pitch2.js</code>, <code>shared/voice-apps2.css</code>.</li>
+  <li>Note +/- buttons are locked while Loop is running.</li>
+</ul>
+<h3>Version 2026-11-24.1 (beta 2026-11-24)</h3>
+<h4>Added</h4>
+<ul>
+  <li>Favicon: its own icon in the browser tab, bookmarks and the home screen (<code>shared/icons/hold-steady.svg</code>, <code>-32.png</code>, <code>-180.png</code>). Beta tester request.</li>
+</ul>
+<h3>Version 2026-11-20.2</h3>
+<h4>Changed</h4>
+<ul>
+  <li>Button names in help text are now in quotes (e.g. Press "Start"), a house rule for every app.</li>
+</ul>
+
+<h3>Version 2026-11-20.1</h3>
+<h4>Added</h4>
+<ul>
+  <li>New singing app (Sing apps); shared voice pitch engine. Listed on the hub.</li>
+</ul>
+
+<h2>Match Point — match-point/</h2>
+
+<h3>Version 2026-11-26.1 (beta 2026-11-26)</h3>
+<h4>Added</h4>
+<ul>
+  <li>Microphone picker like Note Sprint's: choose the microphone, see the Level bar; the choice is remembered on this device. Student feedback.</li>
+  <li>"Piano volume" slider next to "Hear it" (same setting as "Tone volume" in "Settings"). Student feedback.</li>
+  <li>"Share result" button on the results (hidden site-wide during beta), "How it works" panel, and keys: Space Start/Stop, H "Hear it", Enter "Next level", Esc "Back". Beta tester request.</li>
+  <li>Saved on this device: best result per level and voice type, the last 10 rounds ("History" in "Settings", with "Clear"), practice-day streak; "New best!" on the results. Beta tester request.</li>
+  <li>"Settings": "Loop" (the same note all round), "Sing with me (easier)", "Drone" (the key note on piano, quietly all round), "Music on round screens" (<code>shared/hype.js</code>), "Copy log". Student feedback.</li>
+</ul>
+<h4>Changed</h4>
+<ul>
+  <li>The reference note is now a real grand piano (the Drum Machine's samples, <code>drum-machine/keys/grand/</code>), with low notes lifted automatically. Student feedback.</li>
+  <li>Respects reduced motion. Shared code moved to new files so the live apps and Ear Trainer are untouched until this goes live: <code>shared/voice-apps.js</code>, <code>shared/voice-pitch2.js</code>, <code>shared/voice-apps2.css</code>.</li>
+</ul>
+<h3>Version 2026-11-24.1 (beta 2026-11-24)</h3>
+<h4>Added</h4>
+<ul>
+  <li>Favicon: its own icon in the browser tab, bookmarks and the home screen (<code>shared/icons/match-point.svg</code>, <code>-32.png</code>, <code>-180.png</code>). Beta tester request.</li>
+</ul>
+<h3>Version 2026-11-20.2</h3>
+<h4>Changed</h4>
+<ul>
+  <li>Button names in help text are now in quotes (e.g. Press "Start"), a house rule for every app.</li>
+</ul>
+
+<h3>Version 2026-11-20.1</h3>
+<h4>Added</h4>
+<ul>
+  <li>New singing app (one of three "Sing apps"); uses <code>shared/voice-pitch.js</code> and <code>shared/voice-apps.css</code>. Listed on the hub.</li>
+</ul>
+
+<h2>Piano Strobe Tuner — piano-tuner/ (not on the hub)</h2>
+
+<p class="note">Built 2026-11-26 from the Guitar Revolution Strobe Tuner engine. Reference tone uses the grand piano samples in <code>drum-machine/keys/grand/</code>.</p>
+
+<h3>Version 2026-11-26.1 (beta 2026-11-26)</h3>
+<h4>Added</h4>
+<ul>
+  <li>New app: a strobe tuner for all 88 piano keys, A0 to C8. It has every Strobe Tuner feature (strobe, A4 calibrate, in-tune window, sharps or flats, microphone level bar, no-sound warning). It finds the note on its own and shows its octave (A4). An 88-key strip lights the key it hears. Owner request. <code>piano-tuner/index.html</code>, <code>piano-tuner/tuner-worklet.js</code></li>
+  <li>Built for piano sound: the bass notes read correctly even when their lowest tone is weak (it works them out from the higher partials and allows for string stiffness), the top notes up to C8 read correctly, and the last reading stays on screen while a key fades out. Owner request.</li>
+  <li>"Hear" and tapping a key on the strip play the note on the grand piano recordings. Tuning check lists every key held until it settled, with its cents. How it works lists the keyboard shortcuts. Settings and the tuning check are saved on the device. The microphone picker matches Note Sprint's. Owner request.</li>
+  <li>Favicon: its own icon in the browser tab, bookmarks and the home screen (<code>shared/icons/piano-tuner.svg</code>, <code>-32.png</code>, <code>-180.png</code>).</li>
+</ul>
+
+<h2>Guitar Revolution Strobe Tuner — guitar-tuner/</h2>
+
+<h3>Version 2026-11-26.1 (beta 2026-11-26)</h3>
+<h4>Changed</h4>
+<ul>
+  <li>Settings, Microphone: now follows Note Sprint's picker. Every input is listed by name with the one in use selected, and a Level meter sits under the list with a line where the tuner starts hearing. The chosen microphone is still remembered on this device. Owner request. <code>guitar-tuner/index.html</code></li>
+</ul>
+
+<h3>Version 2026-11-24.2 (beta 2026-11-24)</h3>
+<h4>Added</h4>
+<ul>
+  <li>Microphone level bar next to the status line, so you can see at once whether the guitar reaches the tuner. <code>guitar-tuner/index.html</code></li>
+  <li>Settings: "Microphone" picker (every input the browser sees; the choice is remembered; an unplugged mic falls back to the default). Derek request: the tuner did not hear the guitar on a computer.</li>
+  <li>After 5 seconds of total silence the status says no sound is reaching the tuner and points to the picker.</li>
+</ul>
+<h3>Version 2026-11-24.1 (beta 2026-11-24)</h3>
+<h4>Added</h4>
+<ul>
+  <li>Favicon: its own icon in the browser tab, bookmarks and the home screen (<code>shared/icons/guitar-tuner.svg</code>, <code>-32.png</code>, <code>-180.png</code>). Beta tester request.</li>
+  <li>Page title now ends in "Clarendon Hills Music Academy". Beta tester request.</li>
+</ul>
+<h3>Version 2026-11-20.1</h3>
+<h4>Changed</h4>
+<ul>
+  <li>Button names in help text are now in quotes (e.g. Press "Start"), a house rule for every app.</li>
+</ul>
+
+<h3>Version 2026-11-13.1</h3>
+<h4>Added</h4>
+<ul>
+  <li>Share button.</li>
+</ul>
+<h3>Version 2026-11-12.1</h3>
+<h4>Changed</h4>
+<ul>
+  <li>One screen, always on, always auto (no power switch, no string picking, no reference tone).</li>
+</ul>
+<h3>Versions 2026-11-11.2 to 2026-11-11.6</h3>
+<h4>Added</h4>
+<ul>
+  <li>11.2: first release, true strobe display.</li>
+</ul>
+<h4>Fixed</h4>
+<ul>
+  <li>11.5: hum rejection, inharmonicity correction, quiet input, sympathetic strings.</li>
+  <li>11.6: wake lock release, mic cancel and resume on tap.</li>
+</ul>
+
+<!-- ============================================================ -->
+<h2>Note Sprint — note-sprint/</h2>
+
+<h3>Version 2026-11-26.1 (beta 2026-11-26)</h3>
+<h4>Changed</h4>
+<ul>
+  <li>Footer line (app name, academy link, version, Send feedback) now matches the other apps: 11 px monospace, faded, centered (was 14 px). Beta tester request. <code>note-sprint/index.html</code></li>
+</ul>
+
+<h3>Version 2026-11-24.1 (beta 2026-11-24)</h3>
+<h4>Added</h4>
+<ul>
+  <li>Favicon: its own icon in the browser tab, bookmarks and the home screen (<code>shared/icons/note-sprint.svg</code>, <code>-32.png</code>, <code>-180.png</code>). Beta tester request.</li>
+  <li>Page title now ends in "Clarendon Hills Music Academy". Beta tester request.</li>
+</ul>
+<h3>Version 2026-11-20.1</h3>
+<h4>Changed</h4>
+<ul>
+  <li>Button names in help text are now in quotes (e.g. Press "Start"), a house rule for every app.</li>
+  <li>"Paste it to your teacher" now says "instructor".</li>
+</ul>
+
+<h3>Version 2026-11-19.4</h3>
+<h4>Changed</h4>
+<ul>
+  <li>Space levels include the spaces just below and above the staff (committed 2026-11-20).</li>
+</ul>
+
+<h3>Versions 2026-11-19.1 to 2026-11-19.3</h3>
+<h4>Added</h4>
+<ul>
+  <li>19.2: preset levels (treble / bass spaces, lines, all; upper / lower ledgers; all + ledgers).</li>
+  <li>19.3: Middle C zone level; Both hands at level 7.</li>
+</ul>
+<h4>Changed</h4>
+<ul>
+  <li>19.1: Challenge rebuilt as an arcade ladder (fixed running-total targets, points carry over, no warm-up baseline).</li>
+  <li>19.3: ledger levels capped at 2 lines.</li>
+</ul>
+
+<h3>Versions 2026-11-18.1 to 2026-11-18.3</h3>
+<h4>Added</h4>
+<ul>
+  <li>18.1: MIDI activity light.</li>
+</ul>
+<h4>Changed</h4>
+<ul>
+  <li>18.2: Custom settings in one clean column.</li>
+  <li>18.3: no note sounds in MIDI mode.</li>
+</ul>
+
+<h3>Versions 2026-11-13.1 to 2026-11-13.4</h3>
+<h4>Added</h4>
+<ul>
+  <li>13.1: levels Treble spaces, Bass spaces, Treble ledgers, Bass ledgers; Ledger-lines-only option in Custom.</li>
+  <li>13.2 / 13.3: MIDI input (shared MIDI block v1.1).</li>
+  <li>13.4: Share result button (hidden during beta since 2026-11-19).</li>
+</ul>
+
+<h3>Versions 2026-11-11.12 and 2026-11-12.1 (mic rebuild)</h3>
+<h4>Added</h4>
+<ul>
+  <li>11.12: music on round screens (<code>shared/hype.js</code>); the mic ignores it while it plays.</li>
+</ul>
+<h4>Changed</h4>
+<ul>
+  <li>Mic recognition rebuilt for digital pianos (tail-aware pitch, clipped strikes, low bass, F5 / G5); two-column layout. Published as 2026-11-12.1; the 11.13 build was the in-progress step.</li>
+</ul>
+
+<h3>Versions 2026-11-11.1 to 2026-11-11.11</h3>
+<h4>Changed</h4>
+<ul>
+  <li>11.1: restyled to the shared CHMA design system.</li>
+  <li>11.8: round targets softened to 1.05x (Derek's call).</li>
+  <li>11.9: 60-second sprint removed; Challenge only.</li>
+  <li>11.10: Retry round removed from challenge results (Derek).</li>
+  <li>11.11: round screens stay up long enough to read; second try off by default.</li>
+</ul>
+<h4>Fixed</h4>
+<ul>
+  <li>11.2 to 11.7: audit and fuzz rounds (accidental collisions, enharmonic feedback, iOS resize, Notion mic with "Open full screen", timer races, challenge score leaking into the practice board).</li>
+</ul>
+
+<h3>Versions 2026-11-10.1 to 2026-11-10.3</h3>
+<h4>Changed</h4>
+<ul>
+  <li>10.1: name field removed and any stored name cleared (privacy).</li>
+  <li>10.2: talking never counts as a note.</li>
+  <li>10.3: faster, steadier mic.</li>
+</ul>
+
+<h3>Versions 2026-11-05.4 to 2026-11-05.10</h3>
+<h4>Added</h4>
+<ul>
+  <li>05.4: visible version tag.</li>
+  <li>05.9: Lines only / Spaces only setting; fireworks at 90%+ accuracy.</li>
+</ul>
+<h4>Changed</h4>
+<ul>
+  <li>05.5: academy name linked to the studio website.</li>
+  <li>05.6 / 05.7: challenge targets ramp round to round.</li>
+  <li>05.10: mic status messages in a calm, readable card.</li>
+</ul>
+
+<h3>(version not recorded) 2026-11-03 to 2026-11-05</h3>
+<h4>Added</h4>
+<ul>
+  <li>First release on GitHub Pages: stopwatch countdown, register-exact keyboard, key signatures, mic mode, Intervals level.</li>
+  <li>Challenge mode (arcade rounds, rising pace), per-clef note ranges, landmark notes, Try again / Show me.</li>
+  <li>Mic pitch detection (YIN) that learns the piano's tuning; keyboard at finger size centred on the notes in play.</li>
+</ul>
+
+<!-- ============================================================ -->
+<h2>Key Finder — key-finder/</h2>
+
+<h3>Version 2026-11-26.1 (beta 2026-11-26)</h3>
+<h4>Changed</h4>
+<ul>
+  <li>Footer line (app name, academy link, version, Send feedback) now matches the other apps: 11 px, faded, centered (was 14 px). Beta tester request. <code>key-finder/index.html</code></li>
+</ul>
+<h3>Version 2026-11-24.1 (beta 2026-11-24)</h3>
+<h4>Changed</h4>
+<ul>
+  <li>The Level button row starts 16 px in from the left edge, like Note Sprint's, and stays there when it scrolls (scroll padding). Beta tester request. <code>key-finder/index.html</code></li>
+</ul>
+<h4>Added</h4>
+<ul>
+  <li>Favicon: its own icon in the browser tab, bookmarks and the home screen (<code>shared/icons/key-finder.svg</code>, <code>-32.png</code>, <code>-180.png</code>). Beta tester request.</li>
+</ul>
+<h3>Version 2026-11-20.1</h3>
+<h4>Changed</h4>
+<ul>
+  <li>Button names in help text are now in quotes (e.g. Press "Start"), a house rule for every app.</li>
+  <li>"Paste it to your teacher" now says "instructor".</li>
+</ul>
+
+<h3>Version 2026-11-18.1</h3>
+<h4>Added</h4>
+<ul>
+  <li>MIDI activity light.</li>
+</ul>
+<h3>Versions 2026-11-13.1 to 2026-11-13.3</h3>
+<h4>Added</h4>
+<ul>
+  <li>13.1: MIDI input; "Play my piano".</li>
+  <li>13.3: Share result button (hidden during beta since 2026-11-19).</li>
+</ul>
+<h4>Fixed</h4>
+<ul>
+  <li>13.2: shared MIDI block v1.1.</li>
+</ul>
+<h3>Version 2026-11-12.1</h3>
+<h4>Changed</h4>
+<ul>
+  <li>Layout pass: main button always on screen.</li>
+</ul>
+<h3>Versions 2026-11-11.1 to 2026-11-11.11</h3>
+<h4>Added</h4>
+<ul>
+  <li>11.8: Challenge mode (replaces the 60-second sprint).</li>
+  <li>11.11: music on round screens (<code>shared/hype.js</code>), on by default.</li>
+</ul>
+<h4>Changed</h4>
+<ul>
+  <li>11.1: restyled to the shared CHMA design system.</li>
+  <li>11.9: Retry round removed (Derek).</li>
+  <li>11.10: round screens stay up long enough to read.</li>
+</ul>
+<h4>Fixed</h4>
+<ul>
+  <li>11.2 to 11.7: audit and fuzz rounds (glowing key always in view, black-key labels with octave, iOS resize, timer races).</li>
+</ul>
+<h3>Version 2026-11-05.1</h3>
+<h4>Added</h4>
+<ul>
+  <li>First release: piano key identification game (no staff); name the glowing key or find the named key; 5 levels.</li>
+</ul>
+
+<!-- ============================================================ -->
+<h2>Meter Master — meter-master/</h2>
+
+<h3>Version 2026-11-26.1 (beta 2026-11-26)</h3>
+<h4>Changed</h4>
+<ul>
+  <li>Footer line (app name, academy link, version, Send feedback) now matches the other apps: 11 px, faded, centered (was 14 px). Beta tester request. <code>meter-master/index.html</code></li>
+</ul>
+<h3>Version 2026-11-24.1 (beta 2026-11-24)</h3>
+<h4>Changed</h4>
+<ul>
+  <li>The Level button row starts 16 px in from the left edge, like Note Sprint's, and stays there when it scrolls (scroll padding); the tempo row lines up with it. Beta tester request. <code>meter-master/index.html</code></li>
+</ul>
+<h4>Added</h4>
+<ul>
+  <li>Favicon: its own icon in the browser tab, bookmarks and the home screen (<code>shared/icons/meter-master.svg</code>, <code>-32.png</code>, <code>-180.png</code>). Beta tester request.</li>
+</ul>
+<h3>Version 2026-11-21.1 (beta 2026-11-21, live 2026-11-23)</h3>
+<h4>Fixed</h4>
+<ul>
+  <li>Nothing on the page selects as text, however fast you tap; typing boxes still work. Beta tester request. <code>meter-master/index.html</code></li>
+</ul>
+<h3>Version 2026-11-20.1</h3>
+<h4>Changed</h4>
+<ul>
+  <li>Button names in help text are now in quotes (e.g. Press "Start"), a house rule for every app.</li>
+</ul>
+
+<h3>Version 2026-11-20.2</h3>
+<h4>Fixed</h4>
+<ul>
+  <li>Fast taps on the pad no longer select the text below it ("Your taps in this bar") on phones.</li>
+  <li>The page no longer slides up and down while a run is going; the game card scrolls into view when a run starts.</li>
+</ul>
+
+<h3>Version 2026-11-19.1</h3>
+<h4>Changed</h4>
+<ul>
+  <li>Real recorded cowbell.</li>
+</ul>
+<h3>Version 2026-11-18.1</h3>
+<h4>Added</h4>
+<ul>
+  <li>MIDI activity light.</li>
+</ul>
+<h3>Versions 2026-11-13.1 to 2026-11-13.4</h3>
+<h4>Added</h4>
+<ul>
+  <li>13.1: Clap or snap and One note mic modes.</li>
+  <li>13.3: Share result button (hidden during beta since 2026-11-19).</li>
+</ul>
+<h4>Fixed</h4>
+<ul>
+  <li>13.2: MIDI field fix, automatic latency.</li>
+  <li>13.4: clean rapid taps on phones.</li>
+</ul>
+<h3>Version 2026-11-12.1</h3>
+<h4>Added</h4>
+<ul>
+  <li>First release: internal-clock trainer (keep quarter notes through silent gaps, graded against the audio clock).</li>
+</ul>
+
+<!-- ============================================================ -->
+<h2>Ear Trainer — ear-trainer/</h2>
+
+<h3>Version 2026-11-26.1 (beta 2026-11-26)</h3>
+<h4>Changed</h4>
+<ul>
+  <li>Footer line (app name, academy link, version, Send feedback) now matches the other apps: 11 px, faded, centered (was 14 px). Beta tester request. <code>ear-trainer/index.html</code></li>
+</ul>
+
+<h3>Version 2026-11-25.1 (beta 2026-11-25, live 2026-11-26)</h3>
+<h4>Added</h4>
+<ul>
+  <li>Volume section: separate sliders for the reference note (and the I - IV - V - I) and the mystery note, 0 to 150 percent, remembered on the device (<code>et-volref</code>, <code>et-volmys</code>); moving a slider plays a short C4 so you hear the level. Default 100 percent is the old loudness. Student feedback. <code>ear-trainer/index.html</code></li>
+  <li>Microphone picker, shown with Answer with: Microphone, same idea as Note Sprint: a Microphone menu lists the inputs once the mic is on, switching restarts the mic on the chosen input, the level meter is shown, and the choice is remembered (<code>et-micdev</code>; an unplugged mic falls back to the default). Student feedback. <code>ear-trainer/index.html</code></li>
+</ul>
+<h4>Changed</h4>
+<ul>
+  <li>"Hear the pair" button sits on its own line under the explanation text instead of beside it. Beta tester request. <code>ear-trainer/index.html</code></li>
+</ul>
+<h4>Fixed</h4>
+<ul>
+  <li>Mystery note with On screen (for example Level 2, Five notes): no answer buttons showed, only an unmarked keyboard, so there was nothing obvious to press. Levels with 13 or fewer possible notes now show a row of answer buttons (C4, D4, E4 and so on) under the keyboard; tap a key or a button. The button you pressed turns red on a miss and the right one turns green. Levels with more notes (up and down, chromatic, any reference) keep the keyboard only. Student feedback. <code>ear-trainer/index.html</code></li>
+</ul>
+<h3>Version 2026-11-24.2 (beta 2026-11-24)</h3>
+<h4>Added</h4>
+<ul>
+  <li>"Answer with: Microphone": sing the answer or play it on your piano. Any octave counts; a note held steady for about a tenth of a second is the answer. The mic ignores the app's own notes and their ring. Uses <code>shared/voice-pitch.js</code>. Derek request. <code>ear-trainer/index.html</code></li>
+</ul>
+<h3>Version 2026-11-24.1 (beta 2026-11-24)</h3>
+<h4>Changed</h4>
+<ul>
+  <li>The Level button row starts 16 px in from the left edge, like Note Sprint's, and stays there when it scrolls (scroll padding). Beta tester request. <code>ear-trainer/index.html</code></li>
+</ul>
+<h4>Added</h4>
+<ul>
+  <li>Favicon: its own icon in the browser tab, bookmarks and the home screen (<code>shared/icons/ear-trainer.svg</code>, <code>-32.png</code>, <code>-180.png</code>). Beta tester request.</li>
+</ul>
+<h3>Version 2026-11-20.1</h3>
+<h4>Changed</h4>
+<ul>
+  <li>Button names in help text are now in quotes (e.g. Press "Start"), a house rule for every app.</li>
+</ul>
+
+<h3>Version 2026-11-18.1</h3>
+<h4>Added</h4>
+<ul>
+  <li>MIDI activity light.</li>
+</ul>
+<h3>Versions 2026-11-13.1 to 2026-11-13.4</h3>
+<h4>Added</h4>
+<ul>
+  <li>13.2 / 13.3: MIDI input (shared MIDI block v1.1).</li>
+  <li>13.4: Share button.</li>
+</ul>
+<h4>Changed</h4>
+<ul>
+  <li>13.1: parent-key numerals.</li>
+</ul>
+<h3>Version 2026-11-12.1</h3>
+<h4>Added</h4>
+<ul>
+  <li>First release: relative pitch with reference notes (mystery note, scale degree, interval).</li>
+</ul>
+
+<!-- ============================================================ -->
+<h2>Riff Simon Says — riff-says/</h2>
+
+<h3>Version 2026-11-26.1 (beta 2026-11-26)</h3>
+<h4>Changed</h4>
+<ul>
+  <li>Footer line (app name, academy link, version, Send feedback) now matches the other apps: regular weight, 11 px, faded, centered (was bold 14 px). Beta tester request. <code>riff-says/index.html</code></li>
+</ul>
+<p class="note">Test files in <code>riff-says/tests/</code>.</p>
+<h3>Version 2026-11-24.1 (beta 2026-11-24)</h3>
+<h4>Fixed</h4>
+<ul>
+  <li>Holding a piano key on an iPhone no longer brings up the text magnifier (touchstart and the long-press menu are cancelled on the keys, as on the tap pads). Beta tester follow-up. <code>riff-says/index.html</code></li>
+</ul>
+<h4>Added</h4>
+<ul>
+  <li>Favicon: its own icon in the browser tab, bookmarks and the home screen (<code>shared/icons/riff-says.svg</code>, <code>-32.png</code>, <code>-180.png</code>). Beta tester request.</li>
+</ul>
+<h3>Version 2026-11-23.1 (beta 2026-11-23)</h3>
+<h4>Fixed</h4>
+<ul>
+  <li>Playing the piano keys fast never selects text on the page any more (nothing on the page selects as text; typing boxes still work). Beta tester request. <code>riff-says/index.html</code></li>
+</ul>
+<h3>Version 2026-11-20.1</h3>
+<h4>Changed</h4>
+<ul>
+  <li>Button names in help text are now in quotes (e.g. Press "Start"), a house rule for every app.</li>
+</ul>
+
+<h3>Version 2026-11-18.1</h3>
+<h4>Added</h4>
+<ul>
+  <li>MIDI activity light.</li>
+</ul>
+<h3>Versions 2026-11-13.1 to 2026-11-13.5</h3>
+<h4>Added</h4>
+<ul>
+  <li>13.2 / 13.3: MIDI input (shared MIDI block v1.1).</li>
+  <li>13.4: a real rhythm section in every style with the call on top; automatic latency; octave feedback.</li>
+  <li>13.5: Share result button (hidden during beta since 2026-11-19).</li>
+</ul>
+<h4>Changed</h4>
+<ul>
+  <li>13.1: parent-key numerals.</li>
+</ul>
+<h3>Version 2026-11-12.1</h3>
+<h4>Added</h4>
+<ul>
+  <li>First release: call-and-response improv trainer.</li>
+</ul>
+
+<!-- ============================================================ -->
 <h2>Modal Metronome — drum-machine/</h2>
 <p class="note">Started 2026-11-03 as "Groove Metronome"; renamed Modal Metronome 2026-11-05. Sound folders: <code>drum-machine/kits/</code>, <code>drum-machine/bass/</code>, <code>drum-machine/keys/</code>.</p>
 
-<h3>Version 2026-11-25.1 (beta 2026-11-25)</h3>
+<h3>Version 2026-11-25.1 (beta 2026-11-25, live 2026-11-26)</h3>
 <h4>Changed</h4>
 <ul>
   <li>Tempo Trainer layout (Practice tab): "Increase by ... BPM" and "every ... bars" share one line, and the end-speed box has its own line below. "Goal" is now "Final speed", which says that the trainer stops there. The "every" menu is as tall as the number boxes (40 px, width unchanged). Fits on one line down to a 360 px phone. Beta tester request. <code>drum-machine/index.html</code></li>
@@ -406,7 +929,7 @@
 <!-- ============================================================ -->
 <h2>Hanon Speed Trainer — hanon-player/</h2>
 <p class="note">Tracks in <code>hanon-player/ex1/</code> and <code>hanon-player/ex2/</code>.</p>
-<h3>Version 2026-11-25.1 (beta 2026-11-25)</h3>
+<h3>Version 2026-11-25.1 (beta 2026-11-25, live 2026-11-26)</h3>
 <h4>Added</h4>
 <ul>
   <li>Fine tempo: -5, -1, +1 and +5 buttons (Shift with an arrow key is 1 BPM). Between two recorded tracks the nearest track is stretched with the pitch kept (playback rate), and a small line says which track it is stretched from. Playing keeps going and keeps its place. Instructor feedback. <code>hanon-player/index.html</code></li>
@@ -449,64 +972,6 @@
 <h4>Fixed</h4>
 <ul>
   <li>11.3 to 11.7: audit rounds (tempo steps, lock / call recovery, 320 px level row, tap targets, fractional level crash).</li>
-</ul>
-
-<!-- ============================================================ -->
-<h2>Ear Trainer — ear-trainer/</h2>
-
-<h3>Version 2026-11-25.1 (beta 2026-11-25)</h3>
-<h4>Added</h4>
-<ul>
-  <li>Volume section: separate sliders for the reference note (and the I - IV - V - I) and the mystery note, 0 to 150 percent, remembered on the device (<code>et-volref</code>, <code>et-volmys</code>); moving a slider plays a short C4 so you hear the level. Default 100 percent is the old loudness. Student feedback. <code>ear-trainer/index.html</code></li>
-  <li>Microphone picker, shown with Answer with: Microphone, same idea as Note Sprint: a Microphone menu lists the inputs once the mic is on, switching restarts the mic on the chosen input, the level meter is shown, and the choice is remembered (<code>et-micdev</code>; an unplugged mic falls back to the default). Student feedback. <code>ear-trainer/index.html</code></li>
-</ul>
-<h4>Changed</h4>
-<ul>
-  <li>"Hear the pair" button sits on its own line under the explanation text instead of beside it. Beta tester request. <code>ear-trainer/index.html</code></li>
-</ul>
-<h4>Fixed</h4>
-<ul>
-  <li>Mystery note with On screen (for example Level 2, Five notes): no answer buttons showed, only an unmarked keyboard, so there was nothing obvious to press. Levels with 13 or fewer possible notes now show a row of answer buttons (C4, D4, E4 and so on) under the keyboard; tap a key or a button. The button you pressed turns red on a miss and the right one turns green. Levels with more notes (up and down, chromatic, any reference) keep the keyboard only. Student feedback. <code>ear-trainer/index.html</code></li>
-</ul>
-<h3>Version 2026-11-24.2 (beta 2026-11-24)</h3>
-<h4>Added</h4>
-<ul>
-  <li>"Answer with: Microphone": sing the answer or play it on your piano. Any octave counts; a note held steady for about a tenth of a second is the answer. The mic ignores the app's own notes and their ring. Uses <code>shared/voice-pitch.js</code>. Derek request. <code>ear-trainer/index.html</code></li>
-</ul>
-<h3>Version 2026-11-24.1 (beta 2026-11-24)</h3>
-<h4>Changed</h4>
-<ul>
-  <li>The Level button row starts 16 px in from the left edge, like Note Sprint's, and stays there when it scrolls (scroll padding). Beta tester request. <code>ear-trainer/index.html</code></li>
-</ul>
-<h4>Added</h4>
-<ul>
-  <li>Favicon: its own icon in the browser tab, bookmarks and the home screen (<code>shared/icons/ear-trainer.svg</code>, <code>-32.png</code>, <code>-180.png</code>). Beta tester request.</li>
-</ul>
-<h3>Version 2026-11-20.1</h3>
-<h4>Changed</h4>
-<ul>
-  <li>Button names in help text are now in quotes (e.g. Press "Start"), a house rule for every app.</li>
-</ul>
-
-<h3>Version 2026-11-18.1</h3>
-<h4>Added</h4>
-<ul>
-  <li>MIDI activity light.</li>
-</ul>
-<h3>Versions 2026-11-13.1 to 2026-11-13.4</h3>
-<h4>Added</h4>
-<ul>
-  <li>13.2 / 13.3: MIDI input (shared MIDI block v1.1).</li>
-  <li>13.4: Share button.</li>
-</ul>
-<h4>Changed</h4>
-<ul>
-  <li>13.1: parent-key numerals.</li>
-</ul>
-<h3>Version 2026-11-12.1</h3>
-<h4>Added</h4>
-<ul>
-  <li>First release: relative pitch with reference notes (mystery note, scale degree, interval).</li>
 </ul>
 
 <!-- ============================================================ -->
@@ -854,273 +1319,6 @@
 </ul>
 
 <!-- ============================================================ -->
-<h2>Riff Simon Says — riff-says/</h2>
-<p class="note">Test files in <code>riff-says/tests/</code>.</p>
-<h3>Version 2026-11-24.1 (beta 2026-11-24)</h3>
-<h4>Fixed</h4>
-<ul>
-  <li>Holding a piano key on an iPhone no longer brings up the text magnifier (touchstart and the long-press menu are cancelled on the keys, as on the tap pads). Beta tester follow-up. <code>riff-says/index.html</code></li>
-</ul>
-<h4>Added</h4>
-<ul>
-  <li>Favicon: its own icon in the browser tab, bookmarks and the home screen (<code>shared/icons/riff-says.svg</code>, <code>-32.png</code>, <code>-180.png</code>). Beta tester request.</li>
-</ul>
-<h3>Version 2026-11-23.1 (beta 2026-11-23)</h3>
-<h4>Fixed</h4>
-<ul>
-  <li>Playing the piano keys fast never selects text on the page any more (nothing on the page selects as text; typing boxes still work). Beta tester request. <code>riff-says/index.html</code></li>
-</ul>
-<h3>Version 2026-11-20.1</h3>
-<h4>Changed</h4>
-<ul>
-  <li>Button names in help text are now in quotes (e.g. Press "Start"), a house rule for every app.</li>
-</ul>
-
-<h3>Version 2026-11-18.1</h3>
-<h4>Added</h4>
-<ul>
-  <li>MIDI activity light.</li>
-</ul>
-<h3>Versions 2026-11-13.1 to 2026-11-13.5</h3>
-<h4>Added</h4>
-<ul>
-  <li>13.2 / 13.3: MIDI input (shared MIDI block v1.1).</li>
-  <li>13.4: a real rhythm section in every style with the call on top; automatic latency; octave feedback.</li>
-  <li>13.5: Share result button (hidden during beta since 2026-11-19).</li>
-</ul>
-<h4>Changed</h4>
-<ul>
-  <li>13.1: parent-key numerals.</li>
-</ul>
-<h3>Version 2026-11-12.1</h3>
-<h4>Added</h4>
-<ul>
-  <li>First release: call-and-response improv trainer.</li>
-</ul>
-
-<!-- ============================================================ -->
-<h2>Meter Master — meter-master/</h2>
-<h3>Version 2026-11-24.1 (beta 2026-11-24)</h3>
-<h4>Changed</h4>
-<ul>
-  <li>The Level button row starts 16 px in from the left edge, like Note Sprint's, and stays there when it scrolls (scroll padding); the tempo row lines up with it. Beta tester request. <code>meter-master/index.html</code></li>
-</ul>
-<h4>Added</h4>
-<ul>
-  <li>Favicon: its own icon in the browser tab, bookmarks and the home screen (<code>shared/icons/meter-master.svg</code>, <code>-32.png</code>, <code>-180.png</code>). Beta tester request.</li>
-</ul>
-<h3>Version 2026-11-21.1 (beta 2026-11-21, live 2026-11-23)</h3>
-<h4>Fixed</h4>
-<ul>
-  <li>Nothing on the page selects as text, however fast you tap; typing boxes still work. Beta tester request. <code>meter-master/index.html</code></li>
-</ul>
-<h3>Version 2026-11-20.1</h3>
-<h4>Changed</h4>
-<ul>
-  <li>Button names in help text are now in quotes (e.g. Press "Start"), a house rule for every app.</li>
-</ul>
-
-<h3>Version 2026-11-20.2</h3>
-<h4>Fixed</h4>
-<ul>
-  <li>Fast taps on the pad no longer select the text below it ("Your taps in this bar") on phones.</li>
-  <li>The page no longer slides up and down while a run is going; the game card scrolls into view when a run starts.</li>
-</ul>
-
-<h3>Version 2026-11-19.1</h3>
-<h4>Changed</h4>
-<ul>
-  <li>Real recorded cowbell.</li>
-</ul>
-<h3>Version 2026-11-18.1</h3>
-<h4>Added</h4>
-<ul>
-  <li>MIDI activity light.</li>
-</ul>
-<h3>Versions 2026-11-13.1 to 2026-11-13.4</h3>
-<h4>Added</h4>
-<ul>
-  <li>13.1: Clap or snap and One note mic modes.</li>
-  <li>13.3: Share result button (hidden during beta since 2026-11-19).</li>
-</ul>
-<h4>Fixed</h4>
-<ul>
-  <li>13.2: MIDI field fix, automatic latency.</li>
-  <li>13.4: clean rapid taps on phones.</li>
-</ul>
-<h3>Version 2026-11-12.1</h3>
-<h4>Added</h4>
-<ul>
-  <li>First release: internal-clock trainer (keep quarter notes through silent gaps, graded against the audio clock).</li>
-</ul>
-
-<!-- ============================================================ -->
-<h2>Key Finder — key-finder/</h2>
-<h3>Version 2026-11-24.1 (beta 2026-11-24)</h3>
-<h4>Changed</h4>
-<ul>
-  <li>The Level button row starts 16 px in from the left edge, like Note Sprint's, and stays there when it scrolls (scroll padding). Beta tester request. <code>key-finder/index.html</code></li>
-</ul>
-<h4>Added</h4>
-<ul>
-  <li>Favicon: its own icon in the browser tab, bookmarks and the home screen (<code>shared/icons/key-finder.svg</code>, <code>-32.png</code>, <code>-180.png</code>). Beta tester request.</li>
-</ul>
-<h3>Version 2026-11-20.1</h3>
-<h4>Changed</h4>
-<ul>
-  <li>Button names in help text are now in quotes (e.g. Press "Start"), a house rule for every app.</li>
-  <li>"Paste it to your teacher" now says "instructor".</li>
-</ul>
-
-<h3>Version 2026-11-18.1</h3>
-<h4>Added</h4>
-<ul>
-  <li>MIDI activity light.</li>
-</ul>
-<h3>Versions 2026-11-13.1 to 2026-11-13.3</h3>
-<h4>Added</h4>
-<ul>
-  <li>13.1: MIDI input; "Play my piano".</li>
-  <li>13.3: Share result button (hidden during beta since 2026-11-19).</li>
-</ul>
-<h4>Fixed</h4>
-<ul>
-  <li>13.2: shared MIDI block v1.1.</li>
-</ul>
-<h3>Version 2026-11-12.1</h3>
-<h4>Changed</h4>
-<ul>
-  <li>Layout pass: main button always on screen.</li>
-</ul>
-<h3>Versions 2026-11-11.1 to 2026-11-11.11</h3>
-<h4>Added</h4>
-<ul>
-  <li>11.8: Challenge mode (replaces the 60-second sprint).</li>
-  <li>11.11: music on round screens (<code>shared/hype.js</code>), on by default.</li>
-</ul>
-<h4>Changed</h4>
-<ul>
-  <li>11.1: restyled to the shared CHMA design system.</li>
-  <li>11.9: Retry round removed (Derek).</li>
-  <li>11.10: round screens stay up long enough to read.</li>
-</ul>
-<h4>Fixed</h4>
-<ul>
-  <li>11.2 to 11.7: audit and fuzz rounds (glowing key always in view, black-key labels with octave, iOS resize, timer races).</li>
-</ul>
-<h3>Version 2026-11-05.1</h3>
-<h4>Added</h4>
-<ul>
-  <li>First release: piano key identification game (no staff); name the glowing key or find the named key; 5 levels.</li>
-</ul>
-
-<!-- ============================================================ -->
-<h2>Note Sprint — note-sprint/</h2>
-
-<h3>Version 2026-11-24.1 (beta 2026-11-24)</h3>
-<h4>Added</h4>
-<ul>
-  <li>Favicon: its own icon in the browser tab, bookmarks and the home screen (<code>shared/icons/note-sprint.svg</code>, <code>-32.png</code>, <code>-180.png</code>). Beta tester request.</li>
-  <li>Page title now ends in "Clarendon Hills Music Academy". Beta tester request.</li>
-</ul>
-<h3>Version 2026-11-20.1</h3>
-<h4>Changed</h4>
-<ul>
-  <li>Button names in help text are now in quotes (e.g. Press "Start"), a house rule for every app.</li>
-  <li>"Paste it to your teacher" now says "instructor".</li>
-</ul>
-
-<h3>Version 2026-11-19.4</h3>
-<h4>Changed</h4>
-<ul>
-  <li>Space levels include the spaces just below and above the staff (committed 2026-11-20).</li>
-</ul>
-
-<h3>Versions 2026-11-19.1 to 2026-11-19.3</h3>
-<h4>Added</h4>
-<ul>
-  <li>19.2: preset levels (treble / bass spaces, lines, all; upper / lower ledgers; all + ledgers).</li>
-  <li>19.3: Middle C zone level; Both hands at level 7.</li>
-</ul>
-<h4>Changed</h4>
-<ul>
-  <li>19.1: Challenge rebuilt as an arcade ladder (fixed running-total targets, points carry over, no warm-up baseline).</li>
-  <li>19.3: ledger levels capped at 2 lines.</li>
-</ul>
-
-<h3>Versions 2026-11-18.1 to 2026-11-18.3</h3>
-<h4>Added</h4>
-<ul>
-  <li>18.1: MIDI activity light.</li>
-</ul>
-<h4>Changed</h4>
-<ul>
-  <li>18.2: Custom settings in one clean column.</li>
-  <li>18.3: no note sounds in MIDI mode.</li>
-</ul>
-
-<h3>Versions 2026-11-13.1 to 2026-11-13.4</h3>
-<h4>Added</h4>
-<ul>
-  <li>13.1: levels Treble spaces, Bass spaces, Treble ledgers, Bass ledgers; Ledger-lines-only option in Custom.</li>
-  <li>13.2 / 13.3: MIDI input (shared MIDI block v1.1).</li>
-  <li>13.4: Share result button (hidden during beta since 2026-11-19).</li>
-</ul>
-
-<h3>Versions 2026-11-11.12 and 2026-11-12.1 (mic rebuild)</h3>
-<h4>Added</h4>
-<ul>
-  <li>11.12: music on round screens (<code>shared/hype.js</code>); the mic ignores it while it plays.</li>
-</ul>
-<h4>Changed</h4>
-<ul>
-  <li>Mic recognition rebuilt for digital pianos (tail-aware pitch, clipped strikes, low bass, F5 / G5); two-column layout. Published as 2026-11-12.1; the 11.13 build was the in-progress step.</li>
-</ul>
-
-<h3>Versions 2026-11-11.1 to 2026-11-11.11</h3>
-<h4>Changed</h4>
-<ul>
-  <li>11.1: restyled to the shared CHMA design system.</li>
-  <li>11.8: round targets softened to 1.05x (Derek's call).</li>
-  <li>11.9: 60-second sprint removed; Challenge only.</li>
-  <li>11.10: Retry round removed from challenge results (Derek).</li>
-  <li>11.11: round screens stay up long enough to read; second try off by default.</li>
-</ul>
-<h4>Fixed</h4>
-<ul>
-  <li>11.2 to 11.7: audit and fuzz rounds (accidental collisions, enharmonic feedback, iOS resize, Notion mic with "Open full screen", timer races, challenge score leaking into the practice board).</li>
-</ul>
-
-<h3>Versions 2026-11-10.1 to 2026-11-10.3</h3>
-<h4>Changed</h4>
-<ul>
-  <li>10.1: name field removed and any stored name cleared (privacy).</li>
-  <li>10.2: talking never counts as a note.</li>
-  <li>10.3: faster, steadier mic.</li>
-</ul>
-
-<h3>Versions 2026-11-05.4 to 2026-11-05.10</h3>
-<h4>Added</h4>
-<ul>
-  <li>05.4: visible version tag.</li>
-  <li>05.9: Lines only / Spaces only setting; fireworks at 90%+ accuracy.</li>
-</ul>
-<h4>Changed</h4>
-<ul>
-  <li>05.5: academy name linked to the studio website.</li>
-  <li>05.6 / 05.7: challenge targets ramp round to round.</li>
-  <li>05.10: mic status messages in a calm, readable card.</li>
-</ul>
-
-<h3>(version not recorded) 2026-11-03 to 2026-11-05</h3>
-<h4>Added</h4>
-<ul>
-  <li>First release on GitHub Pages: stopwatch countdown, register-exact keyboard, key signatures, mic mode, Intervals level.</li>
-  <li>Challenge mode (arcade rounds, rising pace), per-clef note ranges, landmark notes, Try again / Show me.</li>
-  <li>Mic pitch detection (YIN) that learns the piano's tuning; keyboard at finger size centred on the notes in play.</li>
-</ul>
-
-<!-- ============================================================ -->
 <h2>Symbol Memory — symbol-memory/</h2>
 <p class="note">Fonts in <code>symbol-memory/fonts/</code>.</p>
 <h3>Version 2026-11-24.1 (beta 2026-11-24)</h3>
@@ -1192,61 +1390,6 @@
 </ul>
 
 <!-- ============================================================ -->
-<h2>Match Point — match-point/</h2>
-<h3>Version 2026-11-24.1 (beta 2026-11-24)</h3>
-<h4>Added</h4>
-<ul>
-  <li>Favicon: its own icon in the browser tab, bookmarks and the home screen (<code>shared/icons/match-point.svg</code>, <code>-32.png</code>, <code>-180.png</code>). Beta tester request.</li>
-</ul>
-<h3>Version 2026-11-20.2</h3>
-<h4>Changed</h4>
-<ul>
-  <li>Button names in help text are now in quotes (e.g. Press "Start"), a house rule for every app.</li>
-</ul>
-
-<h3>Version 2026-11-20.1</h3>
-<h4>Added</h4>
-<ul>
-  <li>New singing app (one of three "Sing apps"); uses <code>shared/voice-pitch.js</code> and <code>shared/voice-apps.css</code>. Listed on the hub.</li>
-</ul>
-
-<h2>Hold Steady — hold-steady/</h2>
-<h3>Version 2026-11-24.1 (beta 2026-11-24)</h3>
-<h4>Added</h4>
-<ul>
-  <li>Favicon: its own icon in the browser tab, bookmarks and the home screen (<code>shared/icons/hold-steady.svg</code>, <code>-32.png</code>, <code>-180.png</code>). Beta tester request.</li>
-</ul>
-<h3>Version 2026-11-20.2</h3>
-<h4>Changed</h4>
-<ul>
-  <li>Button names in help text are now in quotes (e.g. Press "Start"), a house rule for every app.</li>
-</ul>
-
-<h3>Version 2026-11-20.1</h3>
-<h4>Added</h4>
-<ul>
-  <li>New singing app (Sing apps); shared voice pitch engine. Listed on the hub.</li>
-</ul>
-
-<h2>Scale Climber — scale-climber/</h2>
-<h3>Version 2026-11-24.1 (beta 2026-11-24)</h3>
-<h4>Added</h4>
-<ul>
-  <li>Favicon: its own icon in the browser tab, bookmarks and the home screen (<code>shared/icons/scale-climber.svg</code>, <code>-32.png</code>, <code>-180.png</code>). Beta tester request.</li>
-</ul>
-<h3>Version 2026-11-20.2</h3>
-<h4>Changed</h4>
-<ul>
-  <li>Button names in help text are now in quotes (e.g. Press "Start"), a house rule for every app.</li>
-</ul>
-
-<h3>Version 2026-11-20.1</h3>
-<h4>Added</h4>
-<ul>
-  <li>New singing app (Sing apps); shared voice pitch engine. Listed on the hub.</li>
-</ul>
-
-<!-- ============================================================ -->
 <h2>Song Dissector — song-player/</h2>
 <p class="note">Named Song Player until 2026-11-11.12; URL unchanged. Audio in <code>song-player/audio/</code>, stem models in <code>song-player/models/</code>, libraries in <code>song-player/vendor/</code>.</p>
 <h3>Version 2026-11-24.1 (beta 2026-11-24)</h3>
@@ -1314,49 +1457,6 @@
 <h4>Added</h4>
 <ul>
   <li>First release: play-along with speed without pitch change, key shift, A-B loop and speed-up trainer; one pilot song.</li>
-</ul>
-
-<!-- ============================================================ -->
-<h2>Guitar Revolution Strobe Tuner — guitar-tuner/</h2>
-
-<h3>Version 2026-11-24.2 (beta 2026-11-24)</h3>
-<h4>Added</h4>
-<ul>
-  <li>Microphone level bar next to the status line, so you can see at once whether the guitar reaches the tuner. <code>guitar-tuner/index.html</code></li>
-  <li>Settings: "Microphone" picker (every input the browser sees; the choice is remembered; an unplugged mic falls back to the default). Derek request: the tuner did not hear the guitar on a computer.</li>
-  <li>After 5 seconds of total silence the status says no sound is reaching the tuner and points to the picker.</li>
-</ul>
-<h3>Version 2026-11-24.1 (beta 2026-11-24)</h3>
-<h4>Added</h4>
-<ul>
-  <li>Favicon: its own icon in the browser tab, bookmarks and the home screen (<code>shared/icons/guitar-tuner.svg</code>, <code>-32.png</code>, <code>-180.png</code>). Beta tester request.</li>
-  <li>Page title now ends in "Clarendon Hills Music Academy". Beta tester request.</li>
-</ul>
-<h3>Version 2026-11-20.1</h3>
-<h4>Changed</h4>
-<ul>
-  <li>Button names in help text are now in quotes (e.g. Press "Start"), a house rule for every app.</li>
-</ul>
-
-<h3>Version 2026-11-13.1</h3>
-<h4>Added</h4>
-<ul>
-  <li>Share button.</li>
-</ul>
-<h3>Version 2026-11-12.1</h3>
-<h4>Changed</h4>
-<ul>
-  <li>One screen, always on, always auto (no power switch, no string picking, no reference tone).</li>
-</ul>
-<h3>Versions 2026-11-11.2 to 2026-11-11.6</h3>
-<h4>Added</h4>
-<ul>
-  <li>11.2: first release, true strobe display.</li>
-</ul>
-<h4>Fixed</h4>
-<ul>
-  <li>11.5: hum rejection, inharmonicity correction, quiet input, sympathetic strings.</li>
-  <li>11.6: wake lock release, mic cancel and resume on tap.</li>
 </ul>
 
 <!-- ============================================================ -->
@@ -1453,6 +1553,12 @@
 
 <!-- ============================================================ -->
 <h2>Shared and site</h2>
+
+<h3>Hub (index.html) Version 2026-11-26.1 (beta 2026-11-26)</h3>
+<h4>Changed</h4>
+<ul>
+  <li><code>index.html</code>: footer line now matches the apps: regular weight, 11 px, faded (was bold 14 px). Footer only; the app list and the Instructors feedback button are unchanged. Beta tester request.</li>
+</ul>
 
 <h3>2026-11-24 (app icons)</h3>
 <h4>Added</h4>
