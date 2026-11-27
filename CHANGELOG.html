@@ -44,6 +44,40 @@
 <h2>Modal Metronome — drum-machine/</h2>
 <p class="note">Started 2026-11-03 as "Groove Metronome"; renamed Modal Metronome 2026-11-05. Sound folders: <code>drum-machine/kits/</code>, <code>drum-machine/bass/</code>, <code>drum-machine/keys/</code>.</p>
 
+<h3>Version 2026-11-27.8 (beta 2026-11-27)</h3>
+<h4>Added</h4>
+<ul>
+  <li>Hand percussion is now recorded strokes, played the way a percussionist plays them. A new kit (<code>drum-machine/kits/perc-2026/</code>, 311 small files, fetched only for the instruments a groove uses) replaces the single drum-machine samples and the synthesized cowbell, claves, woodblock and snap. Percussion on "Synth" still plays the older synthesized sounds.</li>
+  <li>Shaker: the arm never stops. Forward strokes fall on the counted notes and back strokes between them, each from its own recordings, and an accent is its own longer recording. No recording plays twice in a row. The loudest point of each stroke lands on the grid (the recordings start a little early). The tempo picks the shaker: a small one when the strokes are fast, a large one when they are slow. The triangle carries the Baião, a cabasa the Disco 8ths, maracas the Conga Tumbao.</li>
+  <li>Tambourine: the backbeat is a strike against the hand. Where a groove has only that strike on 2 and 4, soft 8th-note shakes now run between the hits. Maqsum and Saidi use the dry hand tambourine with jingle ticks.</li>
+  <li>Congas: the written row now picks real hand strokes. Strong notes on the high row are slaps, soft notes are the heel and tip of the rocking hand (heel on the beat, tip between, at the quiet level they were recorded), and the low row is the open tone, the first of two the stronger. Salsa, Conga Tumbao, Cha-cha-chá and the Latin Jam now play the tumbao: heel, tip, slap, tip, heel, tip, open, open.</li>
+  <li>Bells, clave, güiro, woodblock, bongos, claps and snaps: Salsa and Songo play the bell's low mouth on the strong strokes and its dry body between; Cha-cha-chá uses a cha-cha bell; other cowbells are a recorded cowbell (open on the beat, muted between). Clave strokes are one level. The güiro plays one long scrape and two short ones. Claps on the backbeat are a group of people; snaps are five different takes.</li>
+  <li>Three new grooves from the funk study: Popcorn and Got the Feelin' (James Brown group, Clyde Stubblefield, both with the backbeat moved off 2 and 4) and Oakland Stroke type (Funk group, from David Garibaldi's own chart).</li>
+  <li>Two new Stash grooves in the Phish group: verse / calypso (92 BPM) and jam peak (98 BPM). Both are marked approximate, and their notes say which parts are a best guess.</li>
+  <li>Two dynamics modes a groove can ask for. Three levels (accent, medium, ghost) for Clyde Stubblefield's grooves, where the medium notes stay clearly above the ghost notes. Two levels only (accent and whisper) for the David Garibaldi grooves. A groove can also name its drummer and take that drummer's usual swing: Clyde Stubblefield nearly straight (52%), Jabo Starks swung (55 to 59%).</li>
+</ul>
+<h4>Changed</h4>
+<ul>
+  <li>Funky Drummer (both menu entries are now the same two bars): the first open hat moved to where most sources have it (a soft one on the e of 2 and one on the a of 2 in bar 1), the snare on the a of 2 is soft, the snare on the a of 4 is added, the kick on the & of 1 is the loudest, swing 52%.</li>
+  <li>Machine: swing 59% and a kick on the & of 4. Cold Sweat: same notes, quieter ghost notes, even hats and a full kick on the first beat. Soul Power: swing 56%.</li>
+  <li>On the One: rebuilt from Jabo Starks' hand pattern (hat with open barks on the & of 1 and & of 3, foot on 2 and 4, kick on 1, the & of 3 and the & of 4, swing 57%). The tambourine is gone.</li>
+  <li>Tower of Power groove: now two bars, with layered hat and snare, a backbeat that moves in bar 2, an open hat the foot closes, and only two levels of loudness. The earlier rule that no two drums may ever sound together was stricter than David Garibaldi's own charts and is dropped. The menu name is now "Layered 16ths, 2 bars".</li>
+  <li>These changed funk grooves play as written (their own levels are the point); they no longer borrow strengths from another drummer's recording.</li>
+  <li>Stash, jam (owner: "Phish Stash is embarrassing"): the tempo is 92 BPM, not 128, and the band is back. The hi-hat pattern stays; a kick pattern, one cross-stick on 4, and a few snare, tom, woodblock and cowbell hits are added. The bass now plays a Stash line (it was one root note a bar) and the keys play light off-beat piano chords (they were pop 8ths). The ride-bell idea from the study is left out because it is a guess.</li>
+  <li>Limb by Limb: each drum has its own level instead of one flat strength, and the bass plays a 6/8 line.</li>
+  <li>Cow Funk (Phish): replaced with a sparser two-bar groove at 96 BPM: 8th-note hats, a fat backbeat, fewer kicks, one open hat.</li>
+  <li>Not Fade Away: the kick no longer doubles every floor-tom hit.</li>
+  <li>The Kick, Snare and Toms menus now offer the kit's own drum or a drum machine. The old kit names are gone from them; a saved setting that names one loads the kit's own drum.</li>
+</ul>
+<h4>Fixed</h4>
+<ul>
+  <li>Pressing Play no longer lets another kit sound for a moment while the chosen kit loads: Play waits for the first bar's sounds (the loading line shows the progress). If the kit is changed while the music plays, a soft click keeps the beat until the new kit is in.</li>
+  <li>Keys on Auto: the Grateful Dead two-beat and the Whipping Post grooves no longer get funk chords on an electric piano (the rule that looked for "jb" caught them by mistake). Shakedown Street gets a disco octave bass instead of four root notes.</li>
+  <li>Rock kit level brought to within 1 dB of the kit it replaced.</li>
+  <li>A saved setup, share link or .metronome file that still holds the old, untouched pattern of a corrected groove loads the corrected one (a saved Stash at its old 128 BPM takes the new tempo); a pattern that was edited stays exactly as saved.</li>
+</ul>
+<p class="note">Percussion credits: Versilian Community Sample Library (CC0), FreePats World Percussion (CC0), Freesound users Sassaby, lafashion and MeanRaccoon (CC0); conga strokes "Natal Quinto" by ramjac (CC BY 4.0); pandeiro by CWBudde (CC BY 4.0). Not yet used by any groove: agogô, tamborim, timbales, pandeiro (no checked pattern or no grid row yet).</p>
+
 <h3>Version 2026-11-27.7 (beta 2026-11-27)</h3>
 <h4>Added</h4>
 <ul>
