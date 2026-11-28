@@ -37,11 +37,11 @@
 .clkrow input[type=range]{width:100%;accent-color:var(--c-act);height:32px;margin:0}
 .clkrow .stamp{grid-column:1/-1;font-weight:500}
 </style>
-<link rel="icon" type="image/svg+xml" href="../shared/icons/scale-climber.svg"><link rel="icon" type="image/png" sizes="32x32" href="../shared/icons/scale-climber-32.png"><link rel="apple-touch-icon" href="../shared/icons/scale-climber-180.png">
+<link rel="icon" type="image/svg+xml" href="../shared/icons/scale-climber-v2.svg"><link rel="icon" type="image/png" sizes="32x32" href="../shared/icons/scale-climber-v2-32.png"><link rel="apple-touch-icon" href="../shared/icons/scale-climber-v2-180.png">
 </head>
 <body>
 <div class="wrap">
-  <div data-chma-head data-ver="Version 2026-11-26.1"></div>
+  <div data-chma-head data-ver="Version 2026-11-28.1"></div>
   <div class="setup">
   <header>
     <h1>Scale <em>Climber</em></h1>
@@ -164,7 +164,7 @@
   const L=()=>LEVELS.find(x=>x.id===level)||LEVELS[0], top=()=>Math.max(...L().pat);
   const fmtC=c=>{ if(c==null) return '–'; const r=Math.round(c); return (r>0?'+':r<0?'−':'')+Math.abs(r)+'¢' };
   const plot=VP.plot($('plot')); plot.span=6; plot.nowX=0.4;
-  const VA=window.VA.make({app:APP,slug:'scale-climber',prefix:'sc-',ver:'2026-11-26.1'});
+  const VA=window.VA.make({app:APP,slug:'scale-climber',prefix:'sc-',ver:'2026-11-28.1'});
   // practice switches (saved): Loop = stay in the same key; Sing with me = in "Hear, then sing" the pattern plays softly under your voice
   const loopOn=VA.toggle('loop','loop',false), withMe=VA.toggle('withme','withme',false);
   const lvName=lv=>'L'+lv.id+' '+lv.name;
@@ -332,7 +332,7 @@
   window.__sc={va:VA,run:()=>run,cal:()=>cal,calOn:()=>calOn,bpm:()=>bpm,levels:()=>LEVELS,state:()=>run&&{key:run.key,bpm:run.bpm,clean:run.clean.length,tries:run.tries,cur:run.cur&&{k:run.cur.k,S:run.cur.S,b:run.cur.b,notes:run.cur.notes}},level:()=>level};
 })();
 </script>
-<p class="appver">Scale Climber · Version 2026-11-26.1</p>
+<p class="appver">Scale Climber · Version 2026-11-28.1</p>
 <div id="chma-beta" style="position:fixed;left:calc(8px + env(safe-area-inset-left,0px));top:calc(8px + env(safe-area-inset-top,0px));z-index:2147483647;background:#c4302b;color:#fff;font:700 12px/1 -apple-system,Helvetica,Arial,sans-serif;letter-spacing:.08em;padding:6px 9px;border-radius:6px;pointer-events:none;opacity:.92">BETA</div>
 </body>
 </html>
