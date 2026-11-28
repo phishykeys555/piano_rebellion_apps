@@ -28,11 +28,11 @@
 .holdbar .tr i.full{background:var(--c-ok)}
 .holdbar b{font:700 18px var(--f-num);font-variant-numeric:tabular-nums;min-width:96px;text-align:right}
 </style>
-<link rel="icon" type="image/svg+xml" href="../shared/icons/hold-steady.svg"><link rel="icon" type="image/png" sizes="32x32" href="../shared/icons/hold-steady-32.png"><link rel="apple-touch-icon" href="../shared/icons/hold-steady-180.png">
+<link rel="icon" type="image/svg+xml" href="../shared/icons/hold-steady-v2.svg"><link rel="icon" type="image/png" sizes="32x32" href="../shared/icons/hold-steady-v2-32.png"><link rel="apple-touch-icon" href="../shared/icons/hold-steady-v2-180.png">
 </head>
 <body>
 <div class="wrap">
-  <div data-chma-head data-ver="Version 2026-11-26.1"></div>
+  <div data-chma-head data-ver="Version 2026-11-28.1"></div>
   <div class="setup">
   <header>
     <h1>Hold <em>Steady</em></h1>
@@ -140,7 +140,7 @@
   const L=()=>LEVELS.find(x=>x.id===level)||LEVELS[0];
   const fmtC=c=>{ if(c==null) return '–'; const r=Math.round(c); return (r>0?'+':r<0?'−':'')+Math.abs(r)+'¢' };
   const plot=VP.plot($('plot')); plot.span=6;
-  const VA=window.VA.make({app:APP,slug:'hold-steady',prefix:'hs-',ver:'2026-11-26.1'});
+  const VA=window.VA.make({app:APP,slug:'hold-steady',prefix:'hs-',ver:'2026-11-28.1'});
   // practice switches (saved): Loop = the same hold again until "Stop"; Sing with me = the note keeps sounding softly; Drone = your note an octave away, quietly all round
   const loopOn=VA.toggle('loop','loop',false), withMe=VA.toggle('withme','withme',false), droneOn=VA.toggle('drone','drone',false);
   const lvName=lv=>'L'+lv.id+' · '+lv.secs+' s ±'+lv.win+'¢';
@@ -262,6 +262,6 @@
   window.__hs={va:VA,att:()=>att,loopT:()=>loopT,levels:()=>LEVELS,state:()=>att&&{target:att.target,listenAt:att.listenAt,cur:att.cur&&{t0:att.cur.t0,t1:att.cur.t1}},level:()=>level,note:()=>note};
 })();
 </script>
-<p class="appver">Hold Steady · Version 2026-11-26.1</p>
+<p class="appver">Hold Steady · Version 2026-11-28.1</p>
 </body>
 </html>

@@ -11,11 +11,11 @@
 <script src="../shared/voice-apps.js"></script>
 <script src="../shared/hype.js"></script>
 <script src="../shared/share.js"></script>
-<link rel="icon" type="image/svg+xml" href="../shared/icons/match-point.svg"><link rel="icon" type="image/png" sizes="32x32" href="../shared/icons/match-point-32.png"><link rel="apple-touch-icon" href="../shared/icons/match-point-180.png">
+<link rel="icon" type="image/svg+xml" href="../shared/icons/match-point-v2.svg"><link rel="icon" type="image/png" sizes="32x32" href="../shared/icons/match-point-v2-32.png"><link rel="apple-touch-icon" href="../shared/icons/match-point-v2-180.png">
 </head>
 <body>
 <div class="wrap">
-  <div data-chma-head data-ver="Version 2026-11-26.1"></div>
+  <div data-chma-head data-ver="Version 2026-11-28.1"></div>
   <div class="setup">
   <header>
     <h1>Match <em>Point</em></h1>
@@ -122,7 +122,7 @@
   const L=()=>LEVELS.find(x=>x.id===level)||LEVELS[0];
   const fmtC=c=>{ if(c==null) return '–'; const r=Math.round(c); return (r>0?'+':r<0?'−':'')+Math.abs(r)+'¢' };
   const plot=VP.plot($('plot')); plot.span=4;
-  const VA=window.VA.make({app:APP,slug:'match-point',prefix:'mp-',ver:'2026-11-26.1'});
+  const VA=window.VA.make({app:APP,slug:'match-point',prefix:'mp-',ver:'2026-11-28.1'});
   // practice switches (saved): Loop = the same note all round; Sing with me = the note keeps sounding softly while you sing; Drone = the key note quietly all round
   const loopOn=VA.toggle('loop','loop',false), withMe=VA.toggle('withme','withme',false), droneOn=VA.toggle('drone','drone',false);
   const lvName=lv=>'L'+lv.id+' '+lv.name;
@@ -243,6 +243,6 @@
   window.__mp={va:VA,run:()=>run,levels:()=>LEVELS,state:()=>run&&{reps:run.reps.slice(),rep:run.rep&&{target:run.rep.target,listenAt:run.rep.listenAt,lockAt:run.rep.lockAt,phase:run.rep.phase}},level:()=>level,voice:()=>voice,pool};
 })();
 </script>
-<p class="appver">Match Point · Version 2026-11-26.1</p>
+<p class="appver">Match Point · Version 2026-11-28.1</p>
 </body>
 </html>

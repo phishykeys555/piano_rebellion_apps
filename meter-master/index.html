@@ -183,7 +183,7 @@ input,textarea,select,[contenteditable]{-webkit-user-select:text!important;user-
 </style>
 <style>/* 2026-11-26.1 (beta tester request): the footer line matches the other apps: small, regular weight, faded, centered */
 .appver.appver{text-align:center;font:400 11px ui-monospace,Menlo,monospace;color:inherit;opacity:.6;margin:18px 0 10px}</style>
-<link rel="icon" type="image/svg+xml" href="../shared/icons/meter-master.svg"><link rel="icon" type="image/png" sizes="32x32" href="../shared/icons/meter-master-32.png"><link rel="apple-touch-icon" href="../shared/icons/meter-master-180.png">
+<link rel="icon" type="image/svg+xml" href="../shared/icons/meter-master-v2.svg"><link rel="icon" type="image/png" sizes="32x32" href="../shared/icons/meter-master-v2-32.png"><link rel="apple-touch-icon" href="../shared/icons/meter-master-v2-180.png">
 </head>
 <body class="chma-page">
 <div class="wrap">
@@ -242,7 +242,7 @@ input,textarea,select,[contenteditable]{-webkit-user-select:text!important;user-
         <details id="dbgBox" style="margin-top:8px"><summary>Show details</summary><div class="dbg" id="dbg">No mic events yet.</div></details>
       </div>
     </details>
-    <p class="appver" id="appVer">Meter Master · Version 2026-11-26.1</p>
+    <p class="appver" id="appVer">Meter Master · Version 2026-11-28.1</p>
   </section>
 
   <section class="play">
@@ -298,7 +298,7 @@ input,textarea,select,[contenteditable]{-webkit-user-select:text!important;user-
 <script>
 (()=>{
 'use strict';
-const VER="2026-11-26.1";
+const VER="2026-11-28.1";
 const $=id=>document.getElementById(id);
 const store={get(k,d){try{const v=localStorage.getItem("mm-"+k);return v==null?d:JSON.parse(v)}catch(e){return d}},set(k,v){try{localStorage.setItem("mm-"+k,JSON.stringify(v))}catch(e){}}};
 const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));

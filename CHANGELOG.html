@@ -41,43 +41,14 @@
 </ul>
 
 <!-- ============================================================ -->
-<h2>Moonbeam Cartridge Club — arcade/ (not on the hub)</h2>
-<p class="note">Personal retro arcade, unlisted and noindex. Version line sits at the bottom of the menu panel (the three-line button), since the game fills the screen.</p>
-
-<h3>Version 2026-11-28.1 (beta 2026-11-28)</h3>
-<h4>Fixed</h4>
-<ul>
-  <li>Added the standard footer line <code>Moonbeam Cartridge Club · Version YYYY-MM-DD.N</code> to the menu panel in <code>arcade/index.html</code>, so the page version can be checked against this file (nightly scan finding). No game change.</li>
-</ul>
-<h3>(version not recorded) 2026-11-18</h3>
-<h4>Added</h4>
-<ul>
-  <li>Comet Corsair: rocket launcher, rift forks with a high-reward path, icon touch buttons, mouse fire, breakable shields, nebula backdrop.</li>
-</ul>
-<h4>Changed</h4>
-<ul>
-  <li>Comet Corsair: wider rift paths, fuel only from the rift, smaller stars, bigger bullets, no enemy fire from behind.</li>
-</ul>
-<h3>(version not recorded) 2026-11-15</h3>
-<h4>Added</h4>
-<ul>
-  <li>Named high scores in every cartridge; laptop mode and key commands.</li>
-  <li>Comet Corsair: speed modes, ship computer voice, fuel rift, wormhole obstacle run.</li>
-  <li>Paint Patrol: power-ups and hidden gifts; refreshed look.</li>
-</ul>
-<h4>Fixed</h4>
-<ul>
-  <li>Voice crackle and audio unlock on tap.</li>
-</ul>
-<h3>(version not recorded) 2026-11-14</h3>
-<h4>Added</h4>
-<ul>
-  <li>First release (unlisted, noindex, not linked from the hub).</li>
-</ul>
-
-<!-- ============================================================ -->
 <h2>Modal Metronome — drum-machine/</h2>
 <p class="note">Started 2026-11-03 as "Groove Metronome"; renamed Modal Metronome 2026-11-05. Sound folders: <code>drum-machine/kits/</code>, <code>drum-machine/bass/</code>, <code>drum-machine/keys/</code>.</p>
+
+<h3>Version 2026-11-28.1 (beta 2026-11-28)</h3>
+<h4>Changed</h4>
+<ul>
+  <li>New picture favicon and home-screen icon in place of the two-letter one (beta tester request): <code>shared/icons/drum-machine-v2.svg</code>, <code>-v2-32.png</code>, <code>-v2-180.png</code>, linked from <code>drum-machine/index.html</code>. Same colour as before; the old icon files stay in place. Looks only; nothing else changed.</li>
+</ul>
 
 <h3>Version 2026-11-27.15 (beta 2026-11-27)</h3>
 <p class="note">Groove fix, pass 2: the band. Pass 1 corrected the drums and percussion; this pass gives the bass and the two keyboard players the parts the groove studies write for each groove, adds fills and section "gears" by style, and fixes the measured misses from pass 1. Folder <code>drum-machine/</code>, beta page <code>drum-machine-beta/</code>. Nothing was checked by ear.</p>
@@ -770,46 +741,150 @@
 </ul>
 
 <!-- ============================================================ -->
-<h2>Scale Climber — scale-climber/</h2>
+<h2>Ear Trainer — ear-trainer/</h2>
+
+<h3>Version 2026-11-28.1 (beta 2026-11-28)</h3>
+<h4>Changed</h4>
+<ul>
+  <li>New picture favicon and home-screen icon in place of the two-letter one (beta tester request): <code>shared/icons/ear-trainer-v2.svg</code>, <code>-v2-32.png</code>, <code>-v2-180.png</code>, linked from <code>ear-trainer/index.html</code>. Same colour as before; the old icon files stay in place. Looks only; nothing else changed.</li>
+</ul>
 
 <h3>Version 2026-11-26.1 (beta 2026-11-26, live 2026-11-27)</h3>
+<h4>Changed</h4>
+<ul>
+  <li>Footer line (app name, academy link, version, Send feedback) now matches the other apps: 11 px, faded, centered (was 14 px). Beta tester request. <code>ear-trainer/index.html</code></li>
+</ul>
+
+<h3>Version 2026-11-25.1 (beta 2026-11-25, live 2026-11-26)</h3>
 <h4>Added</h4>
 <ul>
-  <li>Microphone picker like Note Sprint's: choose the microphone, see the Level bar; the choice is remembered on this device. Student feedback.</li>
-  <li>Tempo -5, -1, +1, +5 and "Tap"; click sound picker and click volume (Rhythm Trainer's sounds; ringing pitched sounds switch to the classic click while you sing); count-in of 2 clicks, 1 bar or 2 bars; "Calibrate timing" in "Settings" (timing grade only). Owner request.</li>
-  <li>"Piano volume" slider next to "Hear it" (same setting as "Tone volume" in "Settings"). Student feedback.</li>
-  <li>"Share result" button on the results (hidden site-wide during beta), "How it works" panel, and keys: Space Start/Stop, H "Hear it", Enter "Next level", Esc "Back". Beta tester request.</li>
-  <li>Saved on this device: best climb per level and voice type, the last 10 climbs ("History" in "Settings", with "Clear"), practice-day streak; "New best!" on the results. Beta tester request.</li>
-  <li>"Settings": "Loop" (stay in the same key), "Sing with me (easier)", "Music on round screens", "Copy log". Student feedback.</li>
+  <li>Volume section: separate sliders for the reference note (and the I - IV - V - I) and the mystery note, 0 to 150 percent, remembered on the device (<code>et-volref</code>, <code>et-volmys</code>); moving a slider plays a short C4 so you hear the level. Default 100 percent is the old loudness. Student feedback. <code>ear-trainer/index.html</code></li>
+  <li>Microphone picker, shown with Answer with: Microphone, same idea as Note Sprint: a Microphone menu lists the inputs once the mic is on, switching restarts the mic on the chosen input, the level meter is shown, and the choice is remembered (<code>et-micdev</code>; an unplugged mic falls back to the default). Student feedback. <code>ear-trainer/index.html</code></li>
 </ul>
 <h4>Changed</h4>
 <ul>
-  <li>The pattern and reference notes are now a real grand piano (the Drum Machine's samples, <code>drum-machine/keys/grand/</code>), with low notes lifted automatically. Student feedback.</li>
-  <li>Respects reduced motion. Shared code moved to new files so the live apps and Ear Trainer are untouched until this goes live: <code>shared/voice-apps.js</code>, <code>shared/voice-pitch2.js</code>, <code>shared/voice-apps2.css</code>.</li>
+  <li>"Hear the pair" button sits on its own line under the explanation text instead of beside it. Beta tester request. <code>ear-trainer/index.html</code></li>
 </ul>
 <h4>Fixed</h4>
 <ul>
-  <li>Stopping a climb early now stops the click and the notes already scheduled, and pressing "Start" again can never start a second metronome. Beta tester request.</li>
+  <li>Mystery note with On screen (for example Level 2, Five notes): no answer buttons showed, only an unmarked keyboard, so there was nothing obvious to press. Levels with 13 or fewer possible notes now show a row of answer buttons (C4, D4, E4 and so on) under the keyboard; tap a key or a button. The button you pressed turns red on a miss and the right one turns green. Levels with more notes (up and down, chromatic, any reference) keep the keyboard only. Student feedback. <code>ear-trainer/index.html</code></li>
 </ul>
-<h3>Version 2026-11-24.1 (beta 2026-11-24)</h3>
+<h3>Version 2026-11-24.2 (beta 2026-11-24)</h3>
 <h4>Added</h4>
 <ul>
-  <li>Favicon: its own icon in the browser tab, bookmarks and the home screen (<code>shared/icons/scale-climber.svg</code>, <code>-32.png</code>, <code>-180.png</code>). Beta tester request.</li>
+  <li>"Answer with: Microphone": sing the answer or play it on your piano. Any octave counts; a note held steady for about a tenth of a second is the answer. The mic ignores the app's own notes and their ring. Uses <code>shared/voice-pitch.js</code>. Derek request. <code>ear-trainer/index.html</code></li>
 </ul>
-<h3>Version 2026-11-20.2</h3>
+<h3>Version 2026-11-24.1 (beta 2026-11-24)</h3>
+<h4>Changed</h4>
+<ul>
+  <li>The Level button row starts 16 px in from the left edge, like Note Sprint's, and stays there when it scrolls (scroll padding). Beta tester request. <code>ear-trainer/index.html</code></li>
+</ul>
+<h4>Added</h4>
+<ul>
+  <li>Favicon: its own icon in the browser tab, bookmarks and the home screen (<code>shared/icons/ear-trainer.svg</code>, <code>-32.png</code>, <code>-180.png</code>). Beta tester request.</li>
+</ul>
+<h3>Version 2026-11-20.1</h3>
 <h4>Changed</h4>
 <ul>
   <li>Button names in help text are now in quotes (e.g. Press "Start"), a house rule for every app.</li>
 </ul>
 
-<h3>Version 2026-11-20.1</h3>
+<h3>Version 2026-11-18.1</h3>
 <h4>Added</h4>
 <ul>
-  <li>New singing app (Sing apps); shared voice pitch engine. Listed on the hub.</li>
+  <li>MIDI activity light.</li>
+</ul>
+<h3>Versions 2026-11-13.1 to 2026-11-13.4</h3>
+<h4>Added</h4>
+<ul>
+  <li>13.2 / 13.3: MIDI input (shared MIDI block v1.1).</li>
+  <li>13.4: Share button.</li>
+</ul>
+<h4>Changed</h4>
+<ul>
+  <li>13.1: parent-key numerals.</li>
+</ul>
+<h3>Version 2026-11-12.1</h3>
+<h4>Added</h4>
+<ul>
+  <li>First release: relative pitch with reference notes (mystery note, scale degree, interval).</li>
+</ul>
+
+<!-- ============================================================ -->
+<h2>Fab Fours — fab-fours/</h2>
+<p class="note">Renamed from Groupies; the old folder <code>groupies/</code> is now a redirect (not on the hub) so old links and Notion embeds keep working.</p>
+<h3>Version 2026-11-28.1 (beta 2026-11-28)</h3>
+<h4>Changed</h4>
+<ul>
+  <li>New picture favicon and home-screen icon in place of the two-letter one (beta tester request): <code>shared/icons/fab-fours-v2.svg</code>, <code>-v2-32.png</code>, <code>-v2-180.png</code>, linked from <code>fab-fours/index.html</code>. Same colour as before; the old icon files stay in place. Looks only; nothing else changed.</li>
+</ul>
+
+<h3>Version 2026-11-24.1 (beta 2026-11-24)</h3>
+<h4>Changed</h4>
+<ul>
+  <li>Practice is now Archive: it lists only past Daily puzzles (newest first, with their dates), so nobody can play a Daily early. A replay uses that day's tile order and never counts toward the Daily streak. A <code>?date=</code> in the future and an old <code>?p=</code> link to a puzzle that has not been a Daily yet both open today's Daily. Beta tester request. <code>fab-fours/index.html</code></li>
+  <li>Group explanations never point at another group by name or hint any more: a word that fits elsewhere "has another home" (41 explanations in <code>fab-fours/puzzles.json</code>). Beta tester request.</li>
+</ul>
+<h4>Added</h4>
+<ul>
+  <li>Favicon: its own icon in the browser tab, bookmarks and the home screen (<code>shared/icons/fab-fours.svg</code>, <code>-32.png</code>, <code>-180.png</code>). Beta tester request.</li>
+</ul>
+<h3>Version 2026-11-20.1</h3>
+<h4>Changed</h4>
+<ul>
+  <li>Button names in help text are now in quotes (e.g. Press "Start"), a house rule for every app.</li>
+</ul>
+
+<h3>Version 2026-11-19.1</h3>
+<h4>Added</h4>
+<ul>
+  <li>Musicals topic with 7 new puzzles.</li>
+</ul>
+<h3>Version 2026-11-13.7</h3>
+<h4>Added</h4>
+<ul>
+  <li>Share result button (hidden during beta since 2026-11-19).</li>
+</ul>
+<h3>Version 2026-11-13.6</h3>
+<h4>Changed</h4>
+<ul>
+  <li>Renamed Groupies to Fab Fours; <code>groupies/</code> redirects.</li>
+</ul>
+<h3>Versions 2026-11-12.1 to 2026-11-13.5 (as Groupies, groupies/)</h3>
+<h4>Added</h4>
+<ul>
+  <li>12.1: original find-four-groups music word puzzle (40 puzzles, daily + practice).</li>
+</ul>
+<h4>Changed</h4>
+<ul>
+  <li>13.1: parent-key numerals.</li>
+  <li>13.2 to 13.4: every group about music, design pass, honest overlaps and wordplay purples in all 40 puzzles.</li>
+</ul>
+<h4>Fixed</h4>
+<ul>
+  <li>13.5: share result works everywhere.</li>
 </ul>
 
 <!-- ============================================================ -->
 <h2>Hold Steady — hold-steady/</h2>
+
+<h3>Version 2026-11-28.1 (beta 2026-11-28)</h3>
+<h4>Changed</h4>
+<ul>
+  <li>New picture favicon and home-screen icon in place of the two-letter one (beta tester request): <code>shared/icons/guitar-tuner-v2.svg</code>, <code>-v2-32.png</code>, <code>-v2-180.png</code>, linked from <code>guitar-tuner/index.html</code>. Same colour as before; the old icon files stay in place. Looks only; nothing else changed.</li>
+</ul>
+
+<h3>Version 2026-11-28.1 (beta 2026-11-28)</h3>
+<h4>Changed</h4>
+<ul>
+  <li>New picture favicon and home-screen icon in place of the two-letter one (beta tester request): <code>shared/icons/hold-steady-v2.svg</code>, <code>-v2-32.png</code>, <code>-v2-180.png</code>, linked from <code>hold-steady/index.html</code>. Same colour as before; the old icon files stay in place. Looks only; nothing else changed.</li>
+</ul>
+
+<h3>Version 2026-11-28.1 (beta 2026-11-28)</h3>
+<h4>Changed</h4>
+<ul>
+  <li>New picture favicon and home-screen icon in place of the two-letter one (beta tester request): <code>shared/icons/match-point-v2.svg</code>, <code>-v2-32.png</code>, <code>-v2-180.png</code>, linked from <code>match-point/index.html</code>. Same colour as before; the old icon files stay in place. Looks only; nothing else changed.</li>
+</ul>
 
 <h3>Version 2026-11-26.1 (beta 2026-11-26, live 2026-11-27)</h3>
 <h4>Added</h4>
@@ -938,7 +1013,207 @@
 </ul>
 
 <!-- ============================================================ -->
+<h2>Hanon Speed Trainer — hanon-player/</h2>
+<p class="note">Tracks in <code>hanon-player/ex1/</code> and <code>hanon-player/ex2/</code>.</p>
+<h3>Version 2026-11-28.1 (beta 2026-11-28)</h3>
+<h4>Changed</h4>
+<ul>
+  <li>New picture favicon and home-screen icon in place of the two-letter one (beta tester request): <code>shared/icons/hanon-player-v2.svg</code>, <code>-v2-32.png</code>, <code>-v2-180.png</code>, linked from <code>hanon-player/index.html</code>. Same colour as before; the old icon files stay in place. Looks only; nothing else changed.</li>
+</ul>
+
+<h3>Version 2026-11-25.1 (beta 2026-11-25, live 2026-11-26)</h3>
+<h4>Added</h4>
+<ul>
+  <li>Fine tempo: -5, -1, +1 and +5 buttons (Shift with an arrow key is 1 BPM). Between two recorded tracks the nearest track is stretched with the pitch kept (playback rate), and a small line says which track it is stretched from. Playing keeps going and keeps its place. Instructor feedback. <code>hanon-player/index.html</code></li>
+  <li>Tap tempo: tap the beat four times or more to set the tempo (also the T key); taps more than 2 seconds apart start over.</li>
+  <li>Volume slider, remembered on the device (hidden on browsers that do not allow page volume, such as iPhone).</li>
+  <li>My progress card, saved on the device only (<code>hanon_best</code>, <code>hanon_hist</code>, <code>hanon_days</code>, <code>hanon_secs</code>, <code>hanon_vol</code>): "I played it clean" logs the tempo, best clean tempo per exercise and hand shown against the level goal, the last 5 runs, a practice-day streak (a day with 30 seconds of a track playing or a logged run), Clear history with a second tap to confirm, and Share result through <code>shared/share.js</code>.</li>
+  <li>How it works panel with the keyboard shortcuts (Space, arrows, Shift+arrow, L loop, R start over, T tap, C played it clean).</li>
+  <li>Not added on purpose: microphone picker, timing calibration (the app does not listen or grade), count-in and click sounds (the tracks have no click), sound choices (the tracks are fixed recordings).</li>
+</ul>
+<h4>Changed</h4>
+<ul>
+  <li>Tempo can now be any whole BPM from 50 to 280, not only multiples of 10. Saved tempos from older versions still load; the goal line counts BPM to go instead of tracks to go.</li>
+  <li>Removed the level stop indicator (the small vertical bar on the tempo buttons and its legend line); the colored goal dots already show where each level starts and stops. Beta tester request. <code>hanon-player/index.html</code></li>
+</ul>
+<h3>Version 2026-11-24.1 (beta 2026-11-24)</h3>
+<h4>Added</h4>
+<ul>
+  <li>Favicon: its own icon in the browser tab, bookmarks and the home screen (<code>shared/icons/hanon-player.svg</code>, <code>-32.png</code>, <code>-180.png</code>). Beta tester request.</li>
+</ul>
+<h3>Version 2026-11-20.1</h3>
+<h4>Changed</h4>
+<ul>
+  <li>Button names in help text are now in quotes (e.g. Press "Start"), a house rule for every app.</li>
+</ul>
+
+<h3>Version 2026-11-13.1</h3>
+<h4>Added</h4>
+<ul>
+  <li>Share button.</li>
+</ul>
+<h3>Versions 2026-11-11.1 to 2026-11-11.7</h3>
+<h4>Added</h4>
+<ul>
+  <li>11.1: first release, one player per exercise, 24 tempos, age-level goals.</li>
+</ul>
+<h4>Changed</h4>
+<ul>
+  <li>11.2: restyled to the shared CHMA design system.</li>
+</ul>
+<h4>Fixed</h4>
+<ul>
+  <li>11.3 to 11.7: audit rounds (tempo steps, lock / call recovery, 320 px level row, tap targets, fractional level crash).</li>
+</ul>
+
+<!-- ============================================================ -->
+<h2>Key Finder — key-finder/</h2>
+
+<h3>Version 2026-11-28.1 (beta 2026-11-28)</h3>
+<h4>Changed</h4>
+<ul>
+  <li>New picture favicon and home-screen icon in place of the two-letter one (beta tester request): <code>shared/icons/key-finder-v2.svg</code>, <code>-v2-32.png</code>, <code>-v2-180.png</code>, linked from <code>key-finder/index.html</code>. Same colour as before; the old icon files stay in place. Looks only; nothing else changed.</li>
+</ul>
+
+<h3>Version 2026-11-26.1 (beta 2026-11-26, live 2026-11-27)</h3>
+<h4>Changed</h4>
+<ul>
+  <li>Footer line (app name, academy link, version, Send feedback) now matches the other apps: 11 px, faded, centered (was 14 px). Beta tester request. <code>key-finder/index.html</code></li>
+</ul>
+<h3>Version 2026-11-24.1 (beta 2026-11-24)</h3>
+<h4>Changed</h4>
+<ul>
+  <li>The Level button row starts 16 px in from the left edge, like Note Sprint's, and stays there when it scrolls (scroll padding). Beta tester request. <code>key-finder/index.html</code></li>
+</ul>
+<h4>Added</h4>
+<ul>
+  <li>Favicon: its own icon in the browser tab, bookmarks and the home screen (<code>shared/icons/key-finder.svg</code>, <code>-32.png</code>, <code>-180.png</code>). Beta tester request.</li>
+</ul>
+<h3>Version 2026-11-20.1</h3>
+<h4>Changed</h4>
+<ul>
+  <li>Button names in help text are now in quotes (e.g. Press "Start"), a house rule for every app.</li>
+  <li>"Paste it to your teacher" now says "instructor".</li>
+</ul>
+
+<h3>Version 2026-11-18.1</h3>
+<h4>Added</h4>
+<ul>
+  <li>MIDI activity light.</li>
+</ul>
+<h3>Versions 2026-11-13.1 to 2026-11-13.3</h3>
+<h4>Added</h4>
+<ul>
+  <li>13.1: MIDI input; "Play my piano".</li>
+  <li>13.3: Share result button (hidden during beta since 2026-11-19).</li>
+</ul>
+<h4>Fixed</h4>
+<ul>
+  <li>13.2: shared MIDI block v1.1.</li>
+</ul>
+<h3>Version 2026-11-12.1</h3>
+<h4>Changed</h4>
+<ul>
+  <li>Layout pass: main button always on screen.</li>
+</ul>
+<h3>Versions 2026-11-11.1 to 2026-11-11.11</h3>
+<h4>Added</h4>
+<ul>
+  <li>11.8: Challenge mode (replaces the 60-second sprint).</li>
+  <li>11.11: music on round screens (<code>shared/hype.js</code>), on by default.</li>
+</ul>
+<h4>Changed</h4>
+<ul>
+  <li>11.1: restyled to the shared CHMA design system.</li>
+  <li>11.9: Retry round removed (Derek).</li>
+  <li>11.10: round screens stay up long enough to read.</li>
+</ul>
+<h4>Fixed</h4>
+<ul>
+  <li>11.2 to 11.7: audit and fuzz rounds (glowing key always in view, black-key labels with octave, iOS resize, timer races).</li>
+</ul>
+<h3>Version 2026-11-05.1</h3>
+<h4>Added</h4>
+<ul>
+  <li>First release: piano key identification game (no staff); name the glowing key or find the named key; 5 levels.</li>
+</ul>
+
+<!-- ============================================================ -->
+<h2>Meter Master — meter-master/</h2>
+
+<h3>Version 2026-11-28.1 (beta 2026-11-28)</h3>
+<h4>Changed</h4>
+<ul>
+  <li>New picture favicon and home-screen icon in place of the two-letter one (beta tester request): <code>shared/icons/meter-master-v2.svg</code>, <code>-v2-32.png</code>, <code>-v2-180.png</code>, linked from <code>meter-master/index.html</code>. Same colour as before; the old icon files stay in place. Looks only; nothing else changed.</li>
+</ul>
+
+<h3>Version 2026-11-26.1 (beta 2026-11-26, live 2026-11-27)</h3>
+<h4>Changed</h4>
+<ul>
+  <li>Footer line (app name, academy link, version, Send feedback) now matches the other apps: 11 px, faded, centered (was 14 px). Beta tester request. <code>meter-master/index.html</code></li>
+</ul>
+<h3>Version 2026-11-24.1 (beta 2026-11-24)</h3>
+<h4>Changed</h4>
+<ul>
+  <li>The Level button row starts 16 px in from the left edge, like Note Sprint's, and stays there when it scrolls (scroll padding); the tempo row lines up with it. Beta tester request. <code>meter-master/index.html</code></li>
+</ul>
+<h4>Added</h4>
+<ul>
+  <li>Favicon: its own icon in the browser tab, bookmarks and the home screen (<code>shared/icons/meter-master.svg</code>, <code>-32.png</code>, <code>-180.png</code>). Beta tester request.</li>
+</ul>
+<h3>Version 2026-11-21.1 (beta 2026-11-21, live 2026-11-23)</h3>
+<h4>Fixed</h4>
+<ul>
+  <li>Nothing on the page selects as text, however fast you tap; typing boxes still work. Beta tester request. <code>meter-master/index.html</code></li>
+</ul>
+<h3>Version 2026-11-20.1</h3>
+<h4>Changed</h4>
+<ul>
+  <li>Button names in help text are now in quotes (e.g. Press "Start"), a house rule for every app.</li>
+</ul>
+
+<h3>Version 2026-11-20.2</h3>
+<h4>Fixed</h4>
+<ul>
+  <li>Fast taps on the pad no longer select the text below it ("Your taps in this bar") on phones.</li>
+  <li>The page no longer slides up and down while a run is going; the game card scrolls into view when a run starts.</li>
+</ul>
+
+<h3>Version 2026-11-19.1</h3>
+<h4>Changed</h4>
+<ul>
+  <li>Real recorded cowbell.</li>
+</ul>
+<h3>Version 2026-11-18.1</h3>
+<h4>Added</h4>
+<ul>
+  <li>MIDI activity light.</li>
+</ul>
+<h3>Versions 2026-11-13.1 to 2026-11-13.4</h3>
+<h4>Added</h4>
+<ul>
+  <li>13.1: Clap or snap and One note mic modes.</li>
+  <li>13.3: Share result button (hidden during beta since 2026-11-19).</li>
+</ul>
+<h4>Fixed</h4>
+<ul>
+  <li>13.2: MIDI field fix, automatic latency.</li>
+  <li>13.4: clean rapid taps on phones.</li>
+</ul>
+<h3>Version 2026-11-12.1</h3>
+<h4>Added</h4>
+<ul>
+  <li>First release: internal-clock trainer (keep quarter notes through silent gaps, graded against the audio clock).</li>
+</ul>
+
+<!-- ============================================================ -->
 <h2>Note Sprint — note-sprint/</h2>
+
+<h3>Version 2026-11-28.1 (beta 2026-11-28)</h3>
+<h4>Changed</h4>
+<ul>
+  <li>New picture favicon and home-screen icon in place of the two-letter one (beta tester request): <code>shared/icons/note-sprint-v2.svg</code>, <code>-v2-32.png</code>, <code>-v2-180.png</code>, linked from <code>note-sprint/index.html</code>. Same colour as before; the old icon files stay in place. Looks only; nothing else changed.</li>
+</ul>
 
 <h3>Version 2026-11-26.1 (beta 2026-11-26, live 2026-11-27)</h3>
 <h4>Changed</h4>
@@ -1050,403 +1325,14 @@
 </ul>
 
 <!-- ============================================================ -->
-<h2>Key Finder — key-finder/</h2>
-
-<h3>Version 2026-11-26.1 (beta 2026-11-26, live 2026-11-27)</h3>
-<h4>Changed</h4>
-<ul>
-  <li>Footer line (app name, academy link, version, Send feedback) now matches the other apps: 11 px, faded, centered (was 14 px). Beta tester request. <code>key-finder/index.html</code></li>
-</ul>
-<h3>Version 2026-11-24.1 (beta 2026-11-24)</h3>
-<h4>Changed</h4>
-<ul>
-  <li>The Level button row starts 16 px in from the left edge, like Note Sprint's, and stays there when it scrolls (scroll padding). Beta tester request. <code>key-finder/index.html</code></li>
-</ul>
-<h4>Added</h4>
-<ul>
-  <li>Favicon: its own icon in the browser tab, bookmarks and the home screen (<code>shared/icons/key-finder.svg</code>, <code>-32.png</code>, <code>-180.png</code>). Beta tester request.</li>
-</ul>
-<h3>Version 2026-11-20.1</h3>
-<h4>Changed</h4>
-<ul>
-  <li>Button names in help text are now in quotes (e.g. Press "Start"), a house rule for every app.</li>
-  <li>"Paste it to your teacher" now says "instructor".</li>
-</ul>
-
-<h3>Version 2026-11-18.1</h3>
-<h4>Added</h4>
-<ul>
-  <li>MIDI activity light.</li>
-</ul>
-<h3>Versions 2026-11-13.1 to 2026-11-13.3</h3>
-<h4>Added</h4>
-<ul>
-  <li>13.1: MIDI input; "Play my piano".</li>
-  <li>13.3: Share result button (hidden during beta since 2026-11-19).</li>
-</ul>
-<h4>Fixed</h4>
-<ul>
-  <li>13.2: shared MIDI block v1.1.</li>
-</ul>
-<h3>Version 2026-11-12.1</h3>
-<h4>Changed</h4>
-<ul>
-  <li>Layout pass: main button always on screen.</li>
-</ul>
-<h3>Versions 2026-11-11.1 to 2026-11-11.11</h3>
-<h4>Added</h4>
-<ul>
-  <li>11.8: Challenge mode (replaces the 60-second sprint).</li>
-  <li>11.11: music on round screens (<code>shared/hype.js</code>), on by default.</li>
-</ul>
-<h4>Changed</h4>
-<ul>
-  <li>11.1: restyled to the shared CHMA design system.</li>
-  <li>11.9: Retry round removed (Derek).</li>
-  <li>11.10: round screens stay up long enough to read.</li>
-</ul>
-<h4>Fixed</h4>
-<ul>
-  <li>11.2 to 11.7: audit and fuzz rounds (glowing key always in view, black-key labels with octave, iOS resize, timer races).</li>
-</ul>
-<h3>Version 2026-11-05.1</h3>
-<h4>Added</h4>
-<ul>
-  <li>First release: piano key identification game (no staff); name the glowing key or find the named key; 5 levels.</li>
-</ul>
-
-<!-- ============================================================ -->
-<h2>Meter Master — meter-master/</h2>
-
-<h3>Version 2026-11-26.1 (beta 2026-11-26, live 2026-11-27)</h3>
-<h4>Changed</h4>
-<ul>
-  <li>Footer line (app name, academy link, version, Send feedback) now matches the other apps: 11 px, faded, centered (was 14 px). Beta tester request. <code>meter-master/index.html</code></li>
-</ul>
-<h3>Version 2026-11-24.1 (beta 2026-11-24)</h3>
-<h4>Changed</h4>
-<ul>
-  <li>The Level button row starts 16 px in from the left edge, like Note Sprint's, and stays there when it scrolls (scroll padding); the tempo row lines up with it. Beta tester request. <code>meter-master/index.html</code></li>
-</ul>
-<h4>Added</h4>
-<ul>
-  <li>Favicon: its own icon in the browser tab, bookmarks and the home screen (<code>shared/icons/meter-master.svg</code>, <code>-32.png</code>, <code>-180.png</code>). Beta tester request.</li>
-</ul>
-<h3>Version 2026-11-21.1 (beta 2026-11-21, live 2026-11-23)</h3>
-<h4>Fixed</h4>
-<ul>
-  <li>Nothing on the page selects as text, however fast you tap; typing boxes still work. Beta tester request. <code>meter-master/index.html</code></li>
-</ul>
-<h3>Version 2026-11-20.1</h3>
-<h4>Changed</h4>
-<ul>
-  <li>Button names in help text are now in quotes (e.g. Press "Start"), a house rule for every app.</li>
-</ul>
-
-<h3>Version 2026-11-20.2</h3>
-<h4>Fixed</h4>
-<ul>
-  <li>Fast taps on the pad no longer select the text below it ("Your taps in this bar") on phones.</li>
-  <li>The page no longer slides up and down while a run is going; the game card scrolls into view when a run starts.</li>
-</ul>
-
-<h3>Version 2026-11-19.1</h3>
-<h4>Changed</h4>
-<ul>
-  <li>Real recorded cowbell.</li>
-</ul>
-<h3>Version 2026-11-18.1</h3>
-<h4>Added</h4>
-<ul>
-  <li>MIDI activity light.</li>
-</ul>
-<h3>Versions 2026-11-13.1 to 2026-11-13.4</h3>
-<h4>Added</h4>
-<ul>
-  <li>13.1: Clap or snap and One note mic modes.</li>
-  <li>13.3: Share result button (hidden during beta since 2026-11-19).</li>
-</ul>
-<h4>Fixed</h4>
-<ul>
-  <li>13.2: MIDI field fix, automatic latency.</li>
-  <li>13.4: clean rapid taps on phones.</li>
-</ul>
-<h3>Version 2026-11-12.1</h3>
-<h4>Added</h4>
-<ul>
-  <li>First release: internal-clock trainer (keep quarter notes through silent gaps, graded against the audio clock).</li>
-</ul>
-
-<!-- ============================================================ -->
-<h2>Ear Trainer — ear-trainer/</h2>
-
-<h3>Version 2026-11-26.1 (beta 2026-11-26, live 2026-11-27)</h3>
-<h4>Changed</h4>
-<ul>
-  <li>Footer line (app name, academy link, version, Send feedback) now matches the other apps: 11 px, faded, centered (was 14 px). Beta tester request. <code>ear-trainer/index.html</code></li>
-</ul>
-
-<h3>Version 2026-11-25.1 (beta 2026-11-25, live 2026-11-26)</h3>
-<h4>Added</h4>
-<ul>
-  <li>Volume section: separate sliders for the reference note (and the I - IV - V - I) and the mystery note, 0 to 150 percent, remembered on the device (<code>et-volref</code>, <code>et-volmys</code>); moving a slider plays a short C4 so you hear the level. Default 100 percent is the old loudness. Student feedback. <code>ear-trainer/index.html</code></li>
-  <li>Microphone picker, shown with Answer with: Microphone, same idea as Note Sprint: a Microphone menu lists the inputs once the mic is on, switching restarts the mic on the chosen input, the level meter is shown, and the choice is remembered (<code>et-micdev</code>; an unplugged mic falls back to the default). Student feedback. <code>ear-trainer/index.html</code></li>
-</ul>
-<h4>Changed</h4>
-<ul>
-  <li>"Hear the pair" button sits on its own line under the explanation text instead of beside it. Beta tester request. <code>ear-trainer/index.html</code></li>
-</ul>
-<h4>Fixed</h4>
-<ul>
-  <li>Mystery note with On screen (for example Level 2, Five notes): no answer buttons showed, only an unmarked keyboard, so there was nothing obvious to press. Levels with 13 or fewer possible notes now show a row of answer buttons (C4, D4, E4 and so on) under the keyboard; tap a key or a button. The button you pressed turns red on a miss and the right one turns green. Levels with more notes (up and down, chromatic, any reference) keep the keyboard only. Student feedback. <code>ear-trainer/index.html</code></li>
-</ul>
-<h3>Version 2026-11-24.2 (beta 2026-11-24)</h3>
-<h4>Added</h4>
-<ul>
-  <li>"Answer with: Microphone": sing the answer or play it on your piano. Any octave counts; a note held steady for about a tenth of a second is the answer. The mic ignores the app's own notes and their ring. Uses <code>shared/voice-pitch.js</code>. Derek request. <code>ear-trainer/index.html</code></li>
-</ul>
-<h3>Version 2026-11-24.1 (beta 2026-11-24)</h3>
-<h4>Changed</h4>
-<ul>
-  <li>The Level button row starts 16 px in from the left edge, like Note Sprint's, and stays there when it scrolls (scroll padding). Beta tester request. <code>ear-trainer/index.html</code></li>
-</ul>
-<h4>Added</h4>
-<ul>
-  <li>Favicon: its own icon in the browser tab, bookmarks and the home screen (<code>shared/icons/ear-trainer.svg</code>, <code>-32.png</code>, <code>-180.png</code>). Beta tester request.</li>
-</ul>
-<h3>Version 2026-11-20.1</h3>
-<h4>Changed</h4>
-<ul>
-  <li>Button names in help text are now in quotes (e.g. Press "Start"), a house rule for every app.</li>
-</ul>
-
-<h3>Version 2026-11-18.1</h3>
-<h4>Added</h4>
-<ul>
-  <li>MIDI activity light.</li>
-</ul>
-<h3>Versions 2026-11-13.1 to 2026-11-13.4</h3>
-<h4>Added</h4>
-<ul>
-  <li>13.2 / 13.3: MIDI input (shared MIDI block v1.1).</li>
-  <li>13.4: Share button.</li>
-</ul>
-<h4>Changed</h4>
-<ul>
-  <li>13.1: parent-key numerals.</li>
-</ul>
-<h3>Version 2026-11-12.1</h3>
-<h4>Added</h4>
-<ul>
-  <li>First release: relative pitch with reference notes (mystery note, scale degree, interval).</li>
-</ul>
-
-<!-- ============================================================ -->
-<h2>Riff Simon Says — riff-says/</h2>
-
-<h3>Version 2026-11-26.1 (beta 2026-11-26)</h3>
-<h4>Changed</h4>
-<ul>
-  <li>Footer line (app name, academy link, version, Send feedback) now matches the other apps: regular weight, 11 px, faded, centered (was bold 14 px). Beta tester request. <code>riff-says/index.html</code></li>
-</ul>
-<p class="note">Test files in <code>riff-says/tests/</code>.</p>
-<h3>Version 2026-11-24.1 (beta 2026-11-24)</h3>
-<h4>Fixed</h4>
-<ul>
-  <li>Holding a piano key on an iPhone no longer brings up the text magnifier (touchstart and the long-press menu are cancelled on the keys, as on the tap pads). Beta tester follow-up. <code>riff-says/index.html</code></li>
-</ul>
-<h4>Added</h4>
-<ul>
-  <li>Favicon: its own icon in the browser tab, bookmarks and the home screen (<code>shared/icons/riff-says.svg</code>, <code>-32.png</code>, <code>-180.png</code>). Beta tester request.</li>
-</ul>
-<h3>Version 2026-11-23.1 (beta 2026-11-23)</h3>
-<h4>Fixed</h4>
-<ul>
-  <li>Playing the piano keys fast never selects text on the page any more (nothing on the page selects as text; typing boxes still work). Beta tester request. <code>riff-says/index.html</code></li>
-</ul>
-<h3>Version 2026-11-20.1</h3>
-<h4>Changed</h4>
-<ul>
-  <li>Button names in help text are now in quotes (e.g. Press "Start"), a house rule for every app.</li>
-</ul>
-
-<h3>Version 2026-11-18.1</h3>
-<h4>Added</h4>
-<ul>
-  <li>MIDI activity light.</li>
-</ul>
-<h3>Versions 2026-11-13.1 to 2026-11-13.5</h3>
-<h4>Added</h4>
-<ul>
-  <li>13.2 / 13.3: MIDI input (shared MIDI block v1.1).</li>
-  <li>13.4: a real rhythm section in every style with the call on top; automatic latency; octave feedback.</li>
-  <li>13.5: Share result button (hidden during beta since 2026-11-19).</li>
-</ul>
-<h4>Changed</h4>
-<ul>
-  <li>13.1: parent-key numerals.</li>
-</ul>
-<h3>Version 2026-11-12.1</h3>
-<h4>Added</h4>
-<ul>
-  <li>First release: call-and-response improv trainer.</li>
-</ul>
-
-<!-- ============================================================ -->
-<h2>Hanon Speed Trainer — hanon-player/</h2>
-<p class="note">Tracks in <code>hanon-player/ex1/</code> and <code>hanon-player/ex2/</code>.</p>
-<h3>Version 2026-11-25.1 (beta 2026-11-25, live 2026-11-26)</h3>
-<h4>Added</h4>
-<ul>
-  <li>Fine tempo: -5, -1, +1 and +5 buttons (Shift with an arrow key is 1 BPM). Between two recorded tracks the nearest track is stretched with the pitch kept (playback rate), and a small line says which track it is stretched from. Playing keeps going and keeps its place. Instructor feedback. <code>hanon-player/index.html</code></li>
-  <li>Tap tempo: tap the beat four times or more to set the tempo (also the T key); taps more than 2 seconds apart start over.</li>
-  <li>Volume slider, remembered on the device (hidden on browsers that do not allow page volume, such as iPhone).</li>
-  <li>My progress card, saved on the device only (<code>hanon_best</code>, <code>hanon_hist</code>, <code>hanon_days</code>, <code>hanon_secs</code>, <code>hanon_vol</code>): "I played it clean" logs the tempo, best clean tempo per exercise and hand shown against the level goal, the last 5 runs, a practice-day streak (a day with 30 seconds of a track playing or a logged run), Clear history with a second tap to confirm, and Share result through <code>shared/share.js</code>.</li>
-  <li>How it works panel with the keyboard shortcuts (Space, arrows, Shift+arrow, L loop, R start over, T tap, C played it clean).</li>
-  <li>Not added on purpose: microphone picker, timing calibration (the app does not listen or grade), count-in and click sounds (the tracks have no click), sound choices (the tracks are fixed recordings).</li>
-</ul>
-<h4>Changed</h4>
-<ul>
-  <li>Tempo can now be any whole BPM from 50 to 280, not only multiples of 10. Saved tempos from older versions still load; the goal line counts BPM to go instead of tracks to go.</li>
-  <li>Removed the level stop indicator (the small vertical bar on the tempo buttons and its legend line); the colored goal dots already show where each level starts and stops. Beta tester request. <code>hanon-player/index.html</code></li>
-</ul>
-<h3>Version 2026-11-24.1 (beta 2026-11-24)</h3>
-<h4>Added</h4>
-<ul>
-  <li>Favicon: its own icon in the browser tab, bookmarks and the home screen (<code>shared/icons/hanon-player.svg</code>, <code>-32.png</code>, <code>-180.png</code>). Beta tester request.</li>
-</ul>
-<h3>Version 2026-11-20.1</h3>
-<h4>Changed</h4>
-<ul>
-  <li>Button names in help text are now in quotes (e.g. Press "Start"), a house rule for every app.</li>
-</ul>
-
-<h3>Version 2026-11-13.1</h3>
-<h4>Added</h4>
-<ul>
-  <li>Share button.</li>
-</ul>
-<h3>Versions 2026-11-11.1 to 2026-11-11.7</h3>
-<h4>Added</h4>
-<ul>
-  <li>11.1: first release, one player per exercise, 24 tempos, age-level goals.</li>
-</ul>
-<h4>Changed</h4>
-<ul>
-  <li>11.2: restyled to the shared CHMA design system.</li>
-</ul>
-<h4>Fixed</h4>
-<ul>
-  <li>11.3 to 11.7: audit rounds (tempo steps, lock / call recovery, 320 px level row, tap targets, fractional level crash).</li>
-</ul>
-
-<!-- ============================================================ -->
-<h2>Simple Metronome — simple-metronome/</h2>
-<h3>Version 2026-11-24.1 (beta 2026-11-24)</h3>
-<h4>Added</h4>
-<ul>
-  <li>Sound menu: Claves, Side stick, Tambourine, Hand clap and Shaker join Click, Woodblock, Sticks, Hi-hat, Ride, More Cowbell and Drum beat. Tambourine and hand clap are the Modal Metronome's recordings (<code>simple-metronome/sounds/tambourine.mp3</code>, <code>clap.mp3</code>). Beta tester request.</li>
-  <li>Subdivision sound: a second menu on the Subdivision line picks the sound between the beats ("Same sound" by default; greyed out on quarters). Saved with the other settings as <code>subS</code>; old saved settings still load. Beta tester request.</li>
-  <li>Favicon: its own icon in the browser tab, bookmarks and the home screen (<code>shared/icons/simple-metronome.svg</code>, <code>-32.png</code>, <code>-180.png</code>). Beta tester request.</li>
-</ul>
-<h4>Changed</h4>
-<ul>
-  <li>1st beat menu now offers every sound in the app. Old choices (Kick, Cowbell, Side stick, Woodblock, Beep) keep working. Beta tester request.</li>
-  <li>Woodblock: the Modal Metronome's cleaner woodblock recipe (a pitched triangle tone plus a soft overtone) replaces the old one, which had a snare-like edge. Beta tester request. <code>simple-metronome/index.html</code></li>
-</ul>
-<h3>Version 2026-11-20.1</h3>
-<h4>Added</h4>
-<ul>
-  <li>"1st beat" menu, always visible: Nothing extra, Kick, Cowbell, Side stick, Woodblock, Beep.</li>
-  <li>"Additional sound" menu for the Drum beat: Shaker (8ths), Side stick, or both. Greyed out unless the sound is Drum beat.</li>
-  <li>Big round slider thumb that reads "BPM".</li>
-  <li>SVG mute and speaker icons on the volume slider.</li>
-</ul>
-<h4>Changed</h4>
-<ul>
-  <li>Every option (time signature, subdivision, sound) is a dropdown, to cut scrolling on phones. The only buttons left are Start/Stop, Tap tempo and the minus and plus buttons.</li>
-  <li>"Tap tempo" sits right under the tempo number.</li>
-  <li>The volume slider sits under the speed slider.</li>
-  <li>The "Kick on 1" button is gone; a saved Kick on 1 setting, or ?kick=1 in a link, now selects Kick in "1st beat".</li>
-</ul>
-
-<h3>Version 2026-11-19.2</h3>
-<h4>Added</h4>
-<ul>
-  <li>Keeps playing in the background on iPad / iPhone, with lock-screen controls.</li>
-</ul>
-<h3>Version 2026-11-19.1</h3>
-<h4>Added</h4>
-<ul>
-  <li>Shaker and Side stick options for the Drum beat.</li>
-</ul>
-<h3>Versions 2026-11-18.1 to 2026-11-18.7</h3>
-<p class="note">18.6 not recorded.</p>
-<h4>Added</h4>
-<ul>
-  <li>18.1: first release, a one-screen metronome for song pages.</li>
-  <li>18.2: time signatures, subdivisions, drum sounds.</li>
-  <li>18.3: song pages keep their Modal Metronome feel.</li>
-  <li>18.4: real cowbell; button renamed "More Cowbell".</li>
-</ul>
-<h4>Changed</h4>
-<ul>
-  <li>18.5: fits a Notion embed box with no scrolling.</li>
-  <li>18.7: title with logo, recorded cowbell, Kick on 1.</li>
-</ul>
-
-<!-- ============================================================ -->
-<h2>Fab Fours — fab-fours/</h2>
-<p class="note">Renamed from Groupies; the old folder <code>groupies/</code> is now a redirect (not on the hub) so old links and Notion embeds keep working.</p>
-<h3>Version 2026-11-24.1 (beta 2026-11-24)</h3>
-<h4>Changed</h4>
-<ul>
-  <li>Practice is now Archive: it lists only past Daily puzzles (newest first, with their dates), so nobody can play a Daily early. A replay uses that day's tile order and never counts toward the Daily streak. A <code>?date=</code> in the future and an old <code>?p=</code> link to a puzzle that has not been a Daily yet both open today's Daily. Beta tester request. <code>fab-fours/index.html</code></li>
-  <li>Group explanations never point at another group by name or hint any more: a word that fits elsewhere "has another home" (41 explanations in <code>fab-fours/puzzles.json</code>). Beta tester request.</li>
-</ul>
-<h4>Added</h4>
-<ul>
-  <li>Favicon: its own icon in the browser tab, bookmarks and the home screen (<code>shared/icons/fab-fours.svg</code>, <code>-32.png</code>, <code>-180.png</code>). Beta tester request.</li>
-</ul>
-<h3>Version 2026-11-20.1</h3>
-<h4>Changed</h4>
-<ul>
-  <li>Button names in help text are now in quotes (e.g. Press "Start"), a house rule for every app.</li>
-</ul>
-
-<h3>Version 2026-11-19.1</h3>
-<h4>Added</h4>
-<ul>
-  <li>Musicals topic with 7 new puzzles.</li>
-</ul>
-<h3>Version 2026-11-13.7</h3>
-<h4>Added</h4>
-<ul>
-  <li>Share result button (hidden during beta since 2026-11-19).</li>
-</ul>
-<h3>Version 2026-11-13.6</h3>
-<h4>Changed</h4>
-<ul>
-  <li>Renamed Groupies to Fab Fours; <code>groupies/</code> redirects.</li>
-</ul>
-<h3>Versions 2026-11-12.1 to 2026-11-13.5 (as Groupies, groupies/)</h3>
-<h4>Added</h4>
-<ul>
-  <li>12.1: original find-four-groups music word puzzle (40 puzzles, daily + practice).</li>
-</ul>
-<h4>Changed</h4>
-<ul>
-  <li>13.1: parent-key numerals.</li>
-  <li>13.2 to 13.4: every group about music, design pass, honest overlaps and wordplay purples in all 40 puzzles.</li>
-</ul>
-<h4>Fixed</h4>
-<ul>
-  <li>13.5: share result works everywhere.</li>
-</ul>
-
-<!-- ============================================================ -->
 <h2>Rhythm Trainer — rhythm-trainer/</h2>
 <p class="note">Counting voice clips live in <code>rhythm-trainer/count/</code>; <code>rhythm-trainer/count/preview.html</code> is a voice preview page (not on the hub).</p>
+
+<h3>Version 2026-11-28.1 (beta 2026-11-28)</h3>
+<h4>Changed</h4>
+<ul>
+  <li>New picture favicon and home-screen icon in place of the two-letter one (beta tester request): <code>shared/icons/rhythm-trainer-v2.svg</code>, <code>-v2-32.png</code>, <code>-v2-180.png</code>, linked from <code>rhythm-trainer/index.html</code>. Same colour as before; the old icon files stay in place. Looks only; nothing else changed.</li>
+</ul>
 
 <h3>Version 2026-11-25.2 (built 2026-11-25)</h3>
 <h4>Added</h4>
@@ -1685,17 +1571,33 @@
 </ul>
 
 <!-- ============================================================ -->
-<h2>Symbol Memory — symbol-memory/</h2>
-<p class="note">Fonts in <code>symbol-memory/fonts/</code>.</p>
-<h3>Version 2026-11-24.1 (beta 2026-11-24)</h3>
-<h4>Added</h4>
+<h2>Riff Simon Says — riff-says/</h2>
+
+<h3>Version 2026-11-28.1 (beta 2026-11-28)</h3>
+<h4>Changed</h4>
 <ul>
-  <li>Favicon: its own icon in the browser tab, bookmarks and the home screen (<code>shared/icons/symbol-memory.svg</code>, <code>-32.png</code>, <code>-180.png</code>). Beta tester request.</li>
+  <li>New picture favicon and home-screen icon in place of the two-letter one (beta tester request): <code>shared/icons/riff-says-v2.svg</code>, <code>-v2-32.png</code>, <code>-v2-180.png</code>, linked from <code>riff-says/index.html</code>. Same colour as before; the old icon files stay in place. Looks only; nothing else changed.</li>
 </ul>
-<h3>Version 2026-11-23.1 (beta 2026-11-23, live 2026-11-24)</h3>
+
+<h3>Version 2026-11-26.1 (beta 2026-11-26)</h3>
+<h4>Changed</h4>
+<ul>
+  <li>Footer line (app name, academy link, version, Send feedback) now matches the other apps: regular weight, 11 px, faded, centered (was bold 14 px). Beta tester request. <code>riff-says/index.html</code></li>
+</ul>
+<p class="note">Test files in <code>riff-says/tests/</code>.</p>
+<h3>Version 2026-11-24.1 (beta 2026-11-24)</h3>
 <h4>Fixed</h4>
 <ul>
-  <li>The bottom row of cards no longer tucks under the buttons on phones: the board leaves 10 px more room. Beta tester request. <code>symbol-memory/index.html</code></li>
+  <li>Holding a piano key on an iPhone no longer brings up the text magnifier (touchstart and the long-press menu are cancelled on the keys, as on the tap pads). Beta tester follow-up. <code>riff-says/index.html</code></li>
+</ul>
+<h4>Added</h4>
+<ul>
+  <li>Favicon: its own icon in the browser tab, bookmarks and the home screen (<code>shared/icons/riff-says.svg</code>, <code>-32.png</code>, <code>-180.png</code>). Beta tester request.</li>
+</ul>
+<h3>Version 2026-11-23.1 (beta 2026-11-23)</h3>
+<h4>Fixed</h4>
+<ul>
+  <li>Playing the piano keys fast never selects text on the page any more (nothing on the page selects as text; typing boxes still work). Beta tester request. <code>riff-says/index.html</code></li>
 </ul>
 <h3>Version 2026-11-20.1</h3>
 <h4>Changed</h4>
@@ -1703,61 +1605,82 @@
   <li>Button names in help text are now in quotes (e.g. Press "Start"), a house rule for every app.</li>
 </ul>
 
-<h3>Version 2026-11-19.1</h3>
+<h3>Version 2026-11-18.1</h3>
 <h4>Added</h4>
 <ul>
-  <li>The symbol's meaning pops up and is read aloud after every match.</li>
+  <li>MIDI activity light.</li>
 </ul>
-<h3>Version 2026-11-13.5</h3>
+<h3>Versions 2026-11-13.1 to 2026-11-13.5</h3>
 <h4>Added</h4>
 <ul>
-  <li>Classic pairs mode; Share button.</li>
+  <li>13.2 / 13.3: MIDI input (shared MIDI block v1.1).</li>
+  <li>13.4: a real rhythm section in every style with the call on top; automatic latency; octave feedback.</li>
+  <li>13.5: Share result button (hidden during beta since 2026-11-19).</li>
 </ul>
-<h3>Versions 2026-11-13.1 to 2026-11-13.3</h3>
-<p class="note">13.4 not recorded.</p>
 <h4>Changed</h4>
 <ul>
-  <li>13.1: matched pairs show the symbol and its name on both cards.</li>
-  <li>13.2: most natural voice on the device (with a Voice picker); music terms said the way an instructor says them.</li>
-</ul>
-<h4>Fixed</h4>
-<ul>
-  <li>13.3: phone layout fits the real visible screen in in-app browsers.</li>
+  <li>13.1: parent-key numerals.</li>
 </ul>
 <h3>Version 2026-11-12.1</h3>
 <h4>Added</h4>
 <ul>
-  <li>First release: memory card game matching 53 music symbols to their names (Learn, Play, Challenge).</li>
+  <li>First release: call-and-response improv trainer.</li>
 </ul>
 
 <!-- ============================================================ -->
-<h2>Pop Quiz — trivia/</h2>
-<p class="note">Question bank in <code>trivia/questions.json</code>.</p>
+<h2>Scale Climber — scale-climber/</h2>
+
+<h3>Version 2026-11-28.1 (beta 2026-11-28)</h3>
+<h4>Changed</h4>
+<ul>
+  <li>New picture favicon and home-screen icon in place of the two-letter one (beta tester request): <code>shared/icons/scale-climber-v2.svg</code>, <code>-v2-32.png</code>, <code>-v2-180.png</code>, linked from <code>scale-climber/index.html</code>. Same colour as before; the old icon files stay in place. Looks only; nothing else changed.</li>
+</ul>
+
+<h3>Version 2026-11-26.1 (beta 2026-11-26, live 2026-11-27)</h3>
+<h4>Added</h4>
+<ul>
+  <li>Microphone picker like Note Sprint's: choose the microphone, see the Level bar; the choice is remembered on this device. Student feedback.</li>
+  <li>Tempo -5, -1, +1, +5 and "Tap"; click sound picker and click volume (Rhythm Trainer's sounds; ringing pitched sounds switch to the classic click while you sing); count-in of 2 clicks, 1 bar or 2 bars; "Calibrate timing" in "Settings" (timing grade only). Owner request.</li>
+  <li>"Piano volume" slider next to "Hear it" (same setting as "Tone volume" in "Settings"). Student feedback.</li>
+  <li>"Share result" button on the results (hidden site-wide during beta), "How it works" panel, and keys: Space Start/Stop, H "Hear it", Enter "Next level", Esc "Back". Beta tester request.</li>
+  <li>Saved on this device: best climb per level and voice type, the last 10 climbs ("History" in "Settings", with "Clear"), practice-day streak; "New best!" on the results. Beta tester request.</li>
+  <li>"Settings": "Loop" (stay in the same key), "Sing with me (easier)", "Music on round screens", "Copy log". Student feedback.</li>
+</ul>
+<h4>Changed</h4>
+<ul>
+  <li>The pattern and reference notes are now a real grand piano (the Drum Machine's samples, <code>drum-machine/keys/grand/</code>), with low notes lifted automatically. Student feedback.</li>
+  <li>Respects reduced motion. Shared code moved to new files so the live apps and Ear Trainer are untouched until this goes live: <code>shared/voice-apps.js</code>, <code>shared/voice-pitch2.js</code>, <code>shared/voice-apps2.css</code>.</li>
+</ul>
+<h4>Fixed</h4>
+<ul>
+  <li>Stopping a climb early now stops the click and the notes already scheduled, and pressing "Start" again can never start a second metronome. Beta tester request.</li>
+</ul>
 <h3>Version 2026-11-24.1 (beta 2026-11-24)</h3>
 <h4>Added</h4>
 <ul>
-  <li>Favicon: its own icon in the browser tab, bookmarks and the home screen (<code>shared/icons/trivia.svg</code>, <code>-32.png</code>, <code>-180.png</code>). Beta tester request.</li>
+  <li>Favicon: its own icon in the browser tab, bookmarks and the home screen (<code>shared/icons/scale-climber.svg</code>, <code>-32.png</code>, <code>-180.png</code>). Beta tester request.</li>
 </ul>
-<h3>Version 2026-11-20.1</h3>
+<h3>Version 2026-11-20.2</h3>
 <h4>Changed</h4>
 <ul>
   <li>Button names in help text are now in quotes (e.g. Press "Start"), a house rule for every app.</li>
 </ul>
 
-<h3>Version 2026-11-13.2</h3>
-<h4>Changed</h4>
-<ul>
-  <li>Renamed Music Trivia to Pop Quiz (owner's pick); listed on the hub.</li>
-</ul>
-<h3>Version 2026-11-13.1</h3>
+<h3>Version 2026-11-20.1</h3>
 <h4>Added</h4>
 <ul>
-  <li>First release as Music Trivia: Daily 10, Quick Play, Streak Run, Party; 540-question bank.</li>
+  <li>New singing app (Sing apps); shared voice pitch engine. Listed on the hub.</li>
 </ul>
 
 <!-- ============================================================ -->
 <h2>Song Dissector — song-player/</h2>
 <p class="note">Named Song Player until 2026-11-11.12; URL unchanged. Audio in <code>song-player/audio/</code>, stem models in <code>song-player/models/</code>, libraries in <code>song-player/vendor/</code>.</p>
+<h3>Version 2026-11-28.1 (beta 2026-11-28)</h3>
+<h4>Changed</h4>
+<ul>
+  <li>New picture favicon and home-screen icon in place of the two-letter one (beta tester request): <code>shared/icons/song-player-v2.svg</code>, <code>-v2-32.png</code>, <code>-v2-180.png</code>, linked from <code>song-player/index.html</code>. Same colour as before; the old icon files stay in place. Looks only; nothing else changed.</li>
+</ul>
+
 <h3>Version 2026-11-24.1 (beta 2026-11-24)</h3>
 <h4>Added</h4>
 <ul>
@@ -1823,6 +1746,179 @@
 <h4>Added</h4>
 <ul>
   <li>First release: play-along with speed without pitch change, key shift, A-B loop and speed-up trainer; one pilot song.</li>
+</ul>
+
+<!-- ============================================================ -->
+<h2>Symbol Memory — symbol-memory/</h2>
+<p class="note">Fonts in <code>symbol-memory/fonts/</code>.</p>
+<h3>Version 2026-11-28.1 (beta 2026-11-28)</h3>
+<h4>Changed</h4>
+<ul>
+  <li>New picture favicon and home-screen icon in place of the two-letter one (beta tester request): <code>shared/icons/symbol-memory-v2.svg</code>, <code>-v2-32.png</code>, <code>-v2-180.png</code>, linked from <code>symbol-memory/index.html</code>. Same colour as before; the old icon files stay in place. Looks only; nothing else changed.</li>
+</ul>
+
+<h3>Version 2026-11-24.1 (beta 2026-11-24)</h3>
+<h4>Added</h4>
+<ul>
+  <li>Favicon: its own icon in the browser tab, bookmarks and the home screen (<code>shared/icons/symbol-memory.svg</code>, <code>-32.png</code>, <code>-180.png</code>). Beta tester request.</li>
+</ul>
+<h3>Version 2026-11-23.1 (beta 2026-11-23, live 2026-11-24)</h3>
+<h4>Fixed</h4>
+<ul>
+  <li>The bottom row of cards no longer tucks under the buttons on phones: the board leaves 10 px more room. Beta tester request. <code>symbol-memory/index.html</code></li>
+</ul>
+<h3>Version 2026-11-20.1</h3>
+<h4>Changed</h4>
+<ul>
+  <li>Button names in help text are now in quotes (e.g. Press "Start"), a house rule for every app.</li>
+</ul>
+
+<h3>Version 2026-11-19.1</h3>
+<h4>Added</h4>
+<ul>
+  <li>The symbol's meaning pops up and is read aloud after every match.</li>
+</ul>
+<h3>Version 2026-11-13.5</h3>
+<h4>Added</h4>
+<ul>
+  <li>Classic pairs mode; Share button.</li>
+</ul>
+<h3>Versions 2026-11-13.1 to 2026-11-13.3</h3>
+<p class="note">13.4 not recorded.</p>
+<h4>Changed</h4>
+<ul>
+  <li>13.1: matched pairs show the symbol and its name on both cards.</li>
+  <li>13.2: most natural voice on the device (with a Voice picker); music terms said the way an instructor says them.</li>
+</ul>
+<h4>Fixed</h4>
+<ul>
+  <li>13.3: phone layout fits the real visible screen in in-app browsers.</li>
+</ul>
+<h3>Version 2026-11-12.1</h3>
+<h4>Added</h4>
+<ul>
+  <li>First release: memory card game matching 53 music symbols to their names (Learn, Play, Challenge).</li>
+</ul>
+
+<!-- ============================================================ -->
+<h2>Pop Quiz — trivia/</h2>
+<p class="note">Question bank in <code>trivia/questions.json</code>.</p>
+<h3>Version 2026-11-28.1 (beta 2026-11-28)</h3>
+<h4>Changed</h4>
+<ul>
+  <li>New picture favicon and home-screen icon in place of the two-letter one (beta tester request): <code>shared/icons/trivia-v2.svg</code>, <code>-v2-32.png</code>, <code>-v2-180.png</code>, linked from <code>trivia/index.html</code>. Same colour as before; the old icon files stay in place. Looks only; nothing else changed.</li>
+</ul>
+
+<h3>Version 2026-11-24.1 (beta 2026-11-24)</h3>
+<h4>Added</h4>
+<ul>
+  <li>Favicon: its own icon in the browser tab, bookmarks and the home screen (<code>shared/icons/trivia.svg</code>, <code>-32.png</code>, <code>-180.png</code>). Beta tester request.</li>
+</ul>
+<h3>Version 2026-11-20.1</h3>
+<h4>Changed</h4>
+<ul>
+  <li>Button names in help text are now in quotes (e.g. Press "Start"), a house rule for every app.</li>
+</ul>
+
+<h3>Version 2026-11-13.2</h3>
+<h4>Changed</h4>
+<ul>
+  <li>Renamed Music Trivia to Pop Quiz (owner's pick); listed on the hub.</li>
+</ul>
+<h3>Version 2026-11-13.1</h3>
+<h4>Added</h4>
+<ul>
+  <li>First release as Music Trivia: Daily 10, Quick Play, Streak Run, Party; 540-question bank.</li>
+</ul>
+
+<!-- ============================================================ -->
+<h2>Moonbeam Cartridge Club — arcade/ (not on the hub)</h2>
+<p class="note">Personal retro arcade, unlisted and noindex. Version line sits at the bottom of the menu panel (the three-line button), since the game fills the screen.</p>
+
+<h3>Version 2026-11-28.1 (beta 2026-11-28)</h3>
+<h4>Fixed</h4>
+<ul>
+  <li>Added the standard footer line <code>Moonbeam Cartridge Club · Version YYYY-MM-DD.N</code> to the menu panel in <code>arcade/index.html</code>, so the page version can be checked against this file (nightly scan finding). No game change.</li>
+</ul>
+<h3>(version not recorded) 2026-11-18</h3>
+<h4>Added</h4>
+<ul>
+  <li>Comet Corsair: rocket launcher, rift forks with a high-reward path, icon touch buttons, mouse fire, breakable shields, nebula backdrop.</li>
+</ul>
+<h4>Changed</h4>
+<ul>
+  <li>Comet Corsair: wider rift paths, fuel only from the rift, smaller stars, bigger bullets, no enemy fire from behind.</li>
+</ul>
+<h3>(version not recorded) 2026-11-15</h3>
+<h4>Added</h4>
+<ul>
+  <li>Named high scores in every cartridge; laptop mode and key commands.</li>
+  <li>Comet Corsair: speed modes, ship computer voice, fuel rift, wormhole obstacle run.</li>
+  <li>Paint Patrol: power-ups and hidden gifts; refreshed look.</li>
+</ul>
+<h4>Fixed</h4>
+<ul>
+  <li>Voice crackle and audio unlock on tap.</li>
+</ul>
+<h3>(version not recorded) 2026-11-14</h3>
+<h4>Added</h4>
+<ul>
+  <li>First release (unlisted, noindex, not linked from the hub).</li>
+</ul>
+
+<!-- ============================================================ -->
+<h2>Simple Metronome — simple-metronome/</h2>
+<h3>Version 2026-11-24.1 (beta 2026-11-24)</h3>
+<h4>Added</h4>
+<ul>
+  <li>Sound menu: Claves, Side stick, Tambourine, Hand clap and Shaker join Click, Woodblock, Sticks, Hi-hat, Ride, More Cowbell and Drum beat. Tambourine and hand clap are the Modal Metronome's recordings (<code>simple-metronome/sounds/tambourine.mp3</code>, <code>clap.mp3</code>). Beta tester request.</li>
+  <li>Subdivision sound: a second menu on the Subdivision line picks the sound between the beats ("Same sound" by default; greyed out on quarters). Saved with the other settings as <code>subS</code>; old saved settings still load. Beta tester request.</li>
+  <li>Favicon: its own icon in the browser tab, bookmarks and the home screen (<code>shared/icons/simple-metronome.svg</code>, <code>-32.png</code>, <code>-180.png</code>). Beta tester request.</li>
+</ul>
+<h4>Changed</h4>
+<ul>
+  <li>1st beat menu now offers every sound in the app. Old choices (Kick, Cowbell, Side stick, Woodblock, Beep) keep working. Beta tester request.</li>
+  <li>Woodblock: the Modal Metronome's cleaner woodblock recipe (a pitched triangle tone plus a soft overtone) replaces the old one, which had a snare-like edge. Beta tester request. <code>simple-metronome/index.html</code></li>
+</ul>
+<h3>Version 2026-11-20.1</h3>
+<h4>Added</h4>
+<ul>
+  <li>"1st beat" menu, always visible: Nothing extra, Kick, Cowbell, Side stick, Woodblock, Beep.</li>
+  <li>"Additional sound" menu for the Drum beat: Shaker (8ths), Side stick, or both. Greyed out unless the sound is Drum beat.</li>
+  <li>Big round slider thumb that reads "BPM".</li>
+  <li>SVG mute and speaker icons on the volume slider.</li>
+</ul>
+<h4>Changed</h4>
+<ul>
+  <li>Every option (time signature, subdivision, sound) is a dropdown, to cut scrolling on phones. The only buttons left are Start/Stop, Tap tempo and the minus and plus buttons.</li>
+  <li>"Tap tempo" sits right under the tempo number.</li>
+  <li>The volume slider sits under the speed slider.</li>
+  <li>The "Kick on 1" button is gone; a saved Kick on 1 setting, or ?kick=1 in a link, now selects Kick in "1st beat".</li>
+</ul>
+
+<h3>Version 2026-11-19.2</h3>
+<h4>Added</h4>
+<ul>
+  <li>Keeps playing in the background on iPad / iPhone, with lock-screen controls.</li>
+</ul>
+<h3>Version 2026-11-19.1</h3>
+<h4>Added</h4>
+<ul>
+  <li>Shaker and Side stick options for the Drum beat.</li>
+</ul>
+<h3>Versions 2026-11-18.1 to 2026-11-18.7</h3>
+<p class="note">18.6 not recorded.</p>
+<h4>Added</h4>
+<ul>
+  <li>18.1: first release, a one-screen metronome for song pages.</li>
+  <li>18.2: time signatures, subdivisions, drum sounds.</li>
+  <li>18.3: song pages keep their Modal Metronome feel.</li>
+  <li>18.4: real cowbell; button renamed "More Cowbell".</li>
+</ul>
+<h4>Changed</h4>
+<ul>
+  <li>18.5: fits a Notion embed box with no scrolling.</li>
+  <li>18.7: title with logo, recorded cowbell, Kick on 1.</li>
 </ul>
 
 <!-- ============================================================ -->
