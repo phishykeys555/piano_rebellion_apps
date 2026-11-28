@@ -6,13 +6,16 @@
 <title>Match Point · Clarendon Hills Music Academy</title><meta name="description" content="Pitch matching for singers: hear a note, sing it back, and see how close you landed in cents. Ten notes a round, four levels."><meta property="og:type" content="website"><meta property="og:site_name" content="Clarendon Hills Music Academy"><meta property="og:title" content="Match Point · Clarendon Hills Music Academy"><meta property="og:description" content="Pitch matching for singers: hear a note, sing it back, and see how close you landed in cents."><meta property="og:url" content="https://phishykeys555.github.io/piano_rebellion_apps/match-point/">
 <link rel="stylesheet" href="../shared/chma.css">
 <script src="../shared/brand.js"></script>
-<link rel="stylesheet" href="../shared/voice-apps.css">
-<script src="../shared/voice-pitch.js"></script>
+<link rel="stylesheet" href="../shared/voice-apps2.css">
+<script src="../shared/voice-pitch2.js"></script>
+<script src="../shared/voice-apps.js"></script>
+<script src="../shared/hype.js"></script>
+<script src="../shared/share.js"></script>
 <link rel="icon" type="image/svg+xml" href="../shared/icons/match-point.svg"><link rel="icon" type="image/png" sizes="32x32" href="../shared/icons/match-point-32.png"><link rel="apple-touch-icon" href="../shared/icons/match-point-180.png">
 </head>
 <body>
 <div class="wrap">
-  <div data-chma-head data-ver="Version 2026-11-24.1"></div>
+  <div data-chma-head data-ver="Version 2026-11-26.1"></div>
   <div class="setup">
   <header>
     <h1>Match <em>Point</em></h1>
@@ -23,9 +26,14 @@
   <p class="tip" id="voiceTip">Not sure? Men usually start with Baritone, women and kids with Alto. Your Instructor can tell you.</p>
   <p class="sec">Level</p>
   <div class="levels" id="levels" role="group" aria-label="Level"></div>
+  <p class="bestline" id="bestLine" hidden></p>
   <div class="micbox">
-    <div class="mrow"><button class="ghost" id="micBtn" type="button">Turn on the microphone</button><div class="lvlbar" aria-hidden="true"><i id="micLvl"></i></div></div>
+    <div class="mrow"><button class="ghost" id="micBtn" type="button">Turn on the microphone</button></div>
     <a class="mopen" id="micOpen" href="./" target="_blank" rel="noopener" hidden>Open full screen</a>
+    <div class="micctl" id="micCtl" hidden>
+      <label for="micSel">Microphone</label><select id="micSel"></select>
+      <span>Level</span><div class="lvlbar" aria-hidden="true"><i id="micLvl"></i></div>
+    </div>
     <p class="mstat" id="micStat" role="status" aria-live="polite"></p>
   </div>
   <details>
@@ -34,6 +42,18 @@
       <label for="sens">Mic sensitivity <input type="range" id="sens" min="0" max="100" step="1"></label>
       <label for="vol">Tone volume <input type="range" id="vol" min="10" max="100" step="1"></label>
       <span class="stamp">Sensitivity: raise it if a quiet voice doesn't move the level bar green; lower it in a noisy room.</span>
+      <label class="ck"><input type="checkbox" id="loop"> Loop: the same note all round</label>
+      <label class="ck"><input type="checkbox" id="withme"> Sing with me (easier): the note keeps sounding softly while you sing</label>
+      <label class="ck"><input type="checkbox" id="drone"> Drone: the key note (piano) quietly all round</label>
+      <label class="ck"><input type="checkbox" id="hypeOn" checked> Music on round screens</label>
+      <span class="stamp">Loop and "Sing with me" are practice modes: graded the same way, but they don't unlock levels or set a best. "Sing with me" and the drone keep the piano playing while you sing, so use headphones (the mic can hear the speaker). Changes apply from the next "Start".</span>
+      <p class="sub2">History (last 10)</p>
+      <ol class="hist" id="hist"></ol>
+      <div class="row"><button class="ghost" id="histClear" type="button">Clear</button></div>
+      <p class="sub2">Problems?</p>
+      <div class="row"><button class="ghost" id="logCopy" type="button">Copy log</button><span class="stamp" id="logStat" role="status" aria-live="polite"></span></div>
+      <span class="stamp">"Copy log" copies your browser, microphone, sample rate and the last errors, to paste in a message to your Instructor. Nothing is sent anywhere by the app.</span>
+      <pre class="logout" id="logOut" hidden></pre>
     </div>
   </details>
   </div>
@@ -52,13 +72,22 @@
     <canvas class="plot" id="plot" role="img" aria-label="Your pitch over time against the target note"></canvas>
     <div class="msg" id="msg" role="status" aria-live="polite"><div class="v">Press Start</div><div class="c">A note plays. Sing it back on "ah" and hold it.</div></div>
     <p class="phones" data-vp-phones hidden>Use headphones: the mic can hear the speaker.</p>
+    <label class="volrow" for="vol2">Piano volume <input type="range" id="vol2" min="10" max="100" step="1"></label>
     <div class="row actions">
       <button class="ghost" id="hear" type="button"><span aria-hidden="true">▶</span> Hear it</button>
       <button class="primary" id="go" type="button">Start</button>
     </div>
+    <details class="how"><summary>How it works</summary>
+      <p class="tip"><b>What it measures.</b> A piano note plays. Sing it back on "ah" and hold it. Once your voice stays within 50¢ of the note for a moment, the app locks on and listens for 2 seconds: your score is the middle (median) of your pitch in that time, in cents (100¢ = one half step), and how much of the 2 seconds stayed inside the level's window (±25¢, or ±10¢ on Level 3). A hit = the score inside the window and at least half the time inside it. Ten notes a round.</p>
+      <p class="tip"><b>The colors.</b> <span class="swatch" style="background:var(--c-ok)"></span>Green = inside the window. <span class="swatch" style="background:var(--c-warn)"></span>Orange = close (within 50¢). <span class="swatch" style="background:var(--c-bad)"></span>Red = further off. On the plot, the blue band is the target and your voice is the line.</p>
+      <p class="tip"><b>Levels.</b> 8 hits out of 10 passes a level and shows "Next level". Each voice type keeps its own passes. Practice modes (Loop, "Sing with me") don't unlock levels.</p>
+      <p class="tip"><b>Headphones</b> are best: the mic can hear the speaker. Without them, keep the volume moderate and sing after the note stops.</p>
+      <p class="tip"><b>Keys.</b> <kbd>Space</kbd> Start or Stop · <kbd>H</kbd> "Hear it" · <kbd>Enter</kbd> on the results: "Next level" · <kbd>Esc</kbd> "Back".</p>
+    </details>
 
     <div class="results" id="results" role="region" aria-label="Results" hidden>
       <h2 id="rTitle" tabindex="-1" style="outline:none">Round done</h2>
+      <span class="newbest" id="rNew" hidden>New best!</span>
       <div class="big" id="rBig">–</div>
       <div class="pass" id="rPass"></div>
       <div class="rgrid">
@@ -70,7 +99,8 @@
         <div><b id="rWorst">–</b><span>Worst note</span></div>
       </div>
       <div class="stamp" id="rStamp"></div>
-      <p class="tip">Screenshot this screen and send it to your Instructor.</p>
+      <button class="primary sharebtn" id="shareBtn" type="button">Share result</button>
+      <p class="tip shint">Tip: a screenshot of this screen works too.</p>
       <div class="credit">Match Point · Created by Derek Berg · <a href="https://clarendonhillsmusicacademy.com/" target="_blank" rel="noopener">Clarendon Hills Music Academy</a></div>
       <div class="row"><button class="ghost" id="rBack" type="button">Back</button><button class="ghost" id="rNext" type="button" hidden>Next level</button><button class="primary" id="rAgain" type="button">Play again</button></div>
     </div>
@@ -92,14 +122,21 @@
   const L=()=>LEVELS.find(x=>x.id===level)||LEVELS[0];
   const fmtC=c=>{ if(c==null) return '–'; const r=Math.round(c); return (r>0?'+':r<0?'−':'')+Math.abs(r)+'¢' };
   const plot=VP.plot($('plot')); plot.span=4;
+  const VA=window.VA.make({app:APP,slug:'match-point',prefix:'mp-',ver:'2026-11-26.1'});
+  // practice switches (saved): Loop = the same note all round; Sing with me = the note keeps sounding softly while you sing; Drone = the key note quietly all round
+  const loopOn=VA.toggle('loop','loop',false), withMe=VA.toggle('withme','withme',false), droneOn=VA.toggle('drone','drone',false);
+  const lvName=lv=>'L'+lv.id+' '+lv.name;
+  // the drone sits an octave under the key note (below every note this voice type is asked to sing), so it can never pass for your voice
+  const droneMidi=()=>voice?(voice.l1-12>=33?voice.l1-12:voice.l1):null;
 
   function msg(cls,v,c){ const m=$('msg'); m.className='msg'+(cls?' '+cls:''); m.querySelector('.v').textContent=v; m.querySelector('.c').textContent=c||'' }
   function passed(lv){ return !!(voice&&store.get('pass-'+voice.id+'-'+lv,false)) }
   function drawLevels(){ $('levels').innerHTML=LEVELS.map(x=>`<button class="lvl" type="button" data-l="${x.id}" aria-pressed="${x.id===level}"><b>L${x.id}</b><span>${x.name}</span><span>${x.sub}</span>${passed(x.id)?'<span class="done">✓ passed</span>':''}</button>`).join('');
-    $('levels').querySelectorAll('.lvl').forEach(b=>b.addEventListener('click',()=>{ if(run) stopRound(); level=+b.dataset.l; store.set('level',level); drawLevels(); idleView() })) }
+    $('levels').querySelectorAll('.lvl').forEach(b=>b.addEventListener('click',()=>{ if(run) stopRound(); level=+b.dataset.l; store.set('level',level); drawLevels(); idleView() }));
+    VA.bestLine(voice,level,lvName(L())) }
   function onVoice(v){ voice=v; $('voices').classList.remove('need'); $('voiceTip').hidden=true; if(run) stopRound(); drawLevels(); idleView() }
   VP.voicePicker($('voices'),onVoice); if(voice) $('voiceTip').hidden=true;
-  const mp=VP.micPanel(APP,{btn:'micBtn',open:'micOpen',stat:'micStat',lvl:'micLvl',sens:'sens',vol:'vol',
+  const mp=VP.micPanel(APP,{btn:'micBtn',open:'micOpen',stat:'micStat',lvl:'micLvl',sens:'sens',vol:'vol',vol2:'vol2',ctl:'micCtl',sel:'micSel',
     idle:'"Start" asks for the microphone. Tap "Allow" when your device asks.',on:'Listening. Sing any note: the level bar turns green.'});
 
   function pool(){ const v=voice; if(level===1) return [0,2,4,5,7].map(d=>v.l1+d); const a=[]; for(let m=v.lo;m<=v.hi;m++) a.push(m); return a }
@@ -112,12 +149,20 @@
     $('sHits').textContent=r.filter(x=>x.hit).length }
 
   // ---------- one round: 10 notes ----------
-  async function startRound(){ if(!voice){ $('voices').classList.add('need'); $('voices').scrollIntoView({block:'center',behavior:'smooth'}); msg('bad','Pick your voice type first','Tap the one that fits you, then press "Start".'); return }
-    VP.ctx(); const ok=await mp.go(); if(!ok){ msg('bad','The microphone is off','See the note under the microphone button.'); return }
-    if(innerWidth<900) try{ $('card').scrollIntoView({behavior:'smooth',block:'start'}) }catch(e){}
-    run={reps:[],rep:null,timer:0}; $('results').hidden=true; $('go').textContent='Stop'; stats(); nextRep() }
-  function stopRound(){ if(!run) return; clearTimeout(run.timer); run=null; $('go').textContent='Start'; plot.targets=[]; stats(); msg('','Stopped','Press "Start" for a new round.') }
-  function pickTarget(){ const p=pool().filter(m=>m!==prevT); return p[Math.floor(Math.random()*p.length)] }
+  let starting=false;
+  async function startRound(){ if(!voice){ $('voices').classList.add('need'); $('voices').scrollIntoView({block:'center',behavior:VA.smooth()}); msg('bad','Pick your voice type first','Tap the one that fits you, then press "Start".'); return }
+    if(starting||run) return; starting=true;
+    try{ VP.ctx(); const ok=await mp.go(); if(!ok){ msg('bad','The microphone is off','See the note under the microphone button.'); return }
+      $('results').hidden=true; await VA.quiet(); await VP.pianoReady(3000) }finally{ starting=false }
+    if(run) return;
+    if(innerWidth<900) try{ $('card').scrollIntoView({behavior:VA.smooth(),block:'start'}) }catch(e){}
+    run={reps:[],rep:null,timer:0,loop:loopOn(),withme:withMe(),drone:droneOn()&&droneMidi(),loopT:null,aidT:setInterval(aids,100),nextDrone:0}; $('results').hidden=true; $('go').textContent='Stop'; stats(); nextRep() }
+  function stopRound(){ if(!run) return; clearTimeout(run.timer); clearInterval(run.aidT); run=null; VP.hush(); $('go').textContent='Start'; plot.targets=[]; stats(); msg('','Stopped','Press "Start" for a new round.') }
+  // the drone and "Sing with me": soft piano strikes, scheduled a little ahead on the audio clock
+  function aids(){ if(!run) return; const now=VP.now();
+    if(run.drone){ if(!run.nextDrone) run.nextDrone=now+0.05; if(now>=run.nextDrone-0.15){ VP.tone(run.drone,2.6,Math.max(run.nextDrone,now+0.03),0.22); run.nextDrone=Math.max(run.nextDrone,now)+2.4 } }
+    const r=run.rep; if(run.withme&&r&&now>=r.listenAt-0.15){ if(!r.nextG||r.nextG<r.listenAt) r.nextG=r.listenAt; if(now>=r.nextG-0.15){ VP.tone(r.target,1.5,Math.max(r.nextG,now+0.03),0.3); r.nextG=Math.max(r.nextG,now)+1.6 } } }
+  function pickTarget(){ if(run&&run.loop&&run.loopT!=null) return run.loopT; const p=pool().filter(m=>m!==prevT), t=p[Math.floor(Math.random()*p.length)]; if(run&&run.loop) run.loopT=t; return t }
   function nextRep(){ if(!run) return; const lv=L(), target=pickTarget(); prevT=target;
     const ts=VP.now()+0.25, te=VP.tone(target,lv.tone,ts);
     run.rep={target,ts,te,listenAt:te+0.15+lv.gap,run0:null,runF:[],lockAt:null,win:[],sung:[],phase:'tone'};
@@ -128,7 +173,7 @@
     if(run&&run.rep&&run.rep.lockAt==null){ const r=run.rep, te=VP.tone(r.target,L().tone); r.listenAt=Math.max(r.listenAt,te+0.15+L().gap); r.run0=null; r.runF=[]; r.replays=(r.replays||0)+1; plot.targets[0].t1=r.listenAt+TIMEOUT; return }
     if(!run){ const t=center(); $('tName').textContent=VP.noteName(t); VP.tone(t,1) } }
 
-  function onFrame(f){ const r=run&&run.rep;
+  function onFrame(f){ if(run&&run.drone&&f.voiced&&Math.abs(f.midi-run.drone)<0.5) f=Object.assign({},f,{voiced:false,midi:null}); const r=run&&run.rep;
     const tgt=r?r.target:plot.cents, c=f.voiced?(f.midi-tgt)*100:null, win=L().win;
     plot.pts.push({t:f.t,m:f.midi,ok:c!=null&&Math.abs(c)<=win});
     const lc=$('lCents');
@@ -158,6 +203,7 @@
       msg('bad','Missed',why) }
     plot.targets.forEach(T=>T.state='done'); run.reps.push(out); stats();
     if(run.reps.length>=REPS) run.timer=setTimeout(results,1400); else run.timer=setTimeout(nextRep,1500) }
+  const ord=n=>n===1?'1 hit':n+' hits';
 
   function results(){ if(!run) return; const R=run.reps, lv=L(), lk=R.filter(x=>x.err!=null), hits=R.filter(x=>x.hit).length;
     const avg=lk.length?lk.reduce((a,x)=>a+Math.abs(x.err),0)/lk.length:null;
@@ -169,25 +215,34 @@
     const byErr=lk.slice().sort((a,b)=>Math.abs(a.err)-Math.abs(b.err)), miss=R.find(x=>x.err==null);
     $('rBest').textContent=byErr.length?VP.noteName(byErr[0].target)+' · '+fmtC(byErr[0].err):'–';
     const w=miss||byErr[byErr.length-1]; $('rWorst').textContent=w?VP.noteName(w.target)+' · '+(w.err==null?'missed':fmtC(w.err)):'–';
-    const pass=hits>=PASS; $('rPass').className='pass '+(pass?'yes':'no');
-    $('rPass').textContent=pass?`Level ${lv.id} passed: ${hits} of ${REPS} hits.`:`${hits} of ${REPS} hits. Pass = ${PASS} of ${REPS}.`;
-    if(pass){ store.set('pass-'+voice.id+'-'+lv.id,true); drawLevels() }
-    $('rNext').hidden=!(pass&&lv.id<LEVELS.length);
-    $('rStamp').textContent=voice.name+' · '+new Date().toLocaleString([], {dateStyle:'medium',timeStyle:'short'});
-    $('results').hidden=false; clearTimeout(run.timer); run=null; $('go').textContent='Start'; plot.targets=[]; try{ $('rTitle').focus({preventScroll:true}) }catch(e){} }
+    const aid=run.loop||run.withme, mode=[run.loop?'Loop':'',run.withme?'Sing with me':'',run.drone?'Drone':''].filter(Boolean).join(', ');
+    const pass=hits>=PASS; $('rPass').className='pass '+(pass&&!aid?'yes':'no');
+    $('rPass').textContent=aid?`${hits} of ${REPS} hits. Practice mode (${run.loop&&run.withme?'Loop, Sing with me':run.loop?'Loop':'Sing with me'}): levels unlock in a normal round.`:pass?`Level ${lv.id} passed: ${hits} of ${REPS} hits.`:`${hits} of ${REPS} hits. Pass = ${PASS} of ${REPS}.`;
+    if(pass&&!aid){ store.set('pass-'+voice.id+'-'+lv.id,true); drawLevels() }
+    $('rNext').hidden=!(pass&&!aid&&lv.id<LEVELS.length);
+    $('rStamp').textContent=voice.name+(mode?' · '+mode:'')+' · '+new Date().toLocaleString([], {dateStyle:'medium',timeStyle:'short'});
+    const main=`${hits} of ${REPS} hits`+(avg!=null?` · ${Math.round(avg)}¢`:'');
+    const isNew=VA.record({voice:voice.id,vname:voice.name,lv:lv.id,lvName:lvName(lv)+(aid?' ('+mode+')':''),rank:hits*1000-(avg==null?999:Math.min(999,avg)),s:main,aid});
+    VA.newBest(isNew); VA.bestLine(voice,level,lvName(L()));
+    VA.shareText=[`Match Point · ${lvName(lv)} · ${voice.name}`+(mode?` · ${mode}`:''),`${hits} of ${REPS} hits`+(avg!=null?` · ${Math.round(avg)}¢ average error`:''),
+      aid?'Practice round':pass?`Level ${lv.id} passed`:`Pass = ${PASS} of ${REPS}`].concat(isNew?['New best']:[]).join('\n');
+    $('results').hidden=false; clearTimeout(run.timer); clearInterval(run.aidT); run=null; $('go').textContent='Start'; plot.targets=[]; try{ $('rTitle').focus({preventScroll:true}) }catch(e){}
+    VA.hypePlay(lv.id) }
 
   $('go').addEventListener('click',()=>{ if(run) stopRound(); else startRound() });
   $('hear').addEventListener('click',hearAgain);
-  $('rBack').addEventListener('click',()=>{ $('results').hidden=true; stats(); msg('','Press Start','A note plays. Sing it back on "ah" and hold it.') });
+  $('rBack').addEventListener('click',()=>{ VA.hypeStop(); $('results').hidden=true; stats(); msg('','Press Start','A note plays. Sing it back on "ah" and hold it.'); try{ $('go').focus({preventScroll:true}) }catch(e){} });
   $('rAgain').addEventListener('click',()=>{ $('results').hidden=true; startRound() });
   $('rNext').addEventListener('click',()=>{ level=Math.min(LEVELS.length,level+1); store.set('level',level); drawLevels(); $('results').hidden=true; startRound() });
   VP.listen(onFrame); VP.on('stop',()=>{ if(run) stopRound() });
   (function loop(){ if(VP.isOn()||run){ plot.now=VP.now(); plot.trim(); plot.draw() } requestAnimationFrame(loop) })();
+  VA.keys({go:()=>$('go').click(),hear:()=>$('hear').click(),back:()=>$('rBack').click()});
+  VA.extra=()=>['Voice type: '+(voice?voice.name:'none')+' · Level: '+lvName(L()),'Loop: '+(loopOn()?'on':'off')+' · Sing with me: '+(withMe()?'on':'off')+' · Drone: '+(droneOn()?'on':'off')];
   drawLevels(); idleView(); stats(); plot.now=0; plot.draw();
   if(!voice) msg('','Pick your voice type','Then press Start.');
-  window.__mp={levels:()=>LEVELS,state:()=>run&&{reps:run.reps.slice(),rep:run.rep&&{target:run.rep.target,listenAt:run.rep.listenAt,lockAt:run.rep.lockAt,phase:run.rep.phase}},level:()=>level,voice:()=>voice,pool};
+  window.__mp={va:VA,run:()=>run,levels:()=>LEVELS,state:()=>run&&{reps:run.reps.slice(),rep:run.rep&&{target:run.rep.target,listenAt:run.rep.listenAt,lockAt:run.rep.lockAt,phase:run.rep.phase}},level:()=>level,voice:()=>voice,pool};
 })();
 </script>
-<p class="appver">Match Point · Version 2026-11-24.1</p>
+<p class="appver">Match Point · Version 2026-11-26.1</p>
 </body>
 </html>
