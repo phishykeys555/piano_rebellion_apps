@@ -196,6 +196,8 @@ details.how p{margin-top:6px}
 @media (min-width:900px) and (max-height:760px){ .wrap>.chma-headwrap{margin-bottom:-6px} }
 .card,.card *{-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}.card pre,.card input[type=text],.card textarea{-webkit-user-select:text;user-select:text}
 #pad{touch-action:none}html{overscroll-behavior-y:none}
+
+body.padflash #padCalTxt{color:#16a34a;font-weight:700} body.drummode .pad{letter-spacing:.06em} /* drum pad (2026-11-28.2) */
 </style>
 <style>/* 2026-11-21.1 (beta tester request): nothing on this page selects as text, however fast you tap. Typing boxes still work. */
 html,body,body *{-webkit-user-select:none!important;user-select:none!important;-webkit-touch-callout:none}
@@ -254,7 +256,7 @@ input,textarea,select,[contenteditable]{-webkit-user-select:text!important;user-
       <span class="stamp">On: every rhythm you play well nudges the tempo up (95%+: +2 BPM, 80%+: +1, under 60%: −2), up to 8% faster each round, never below where the round started. Off: one steady tempo. A change applies from the next "Start".</span>
       <label><input type="checkbox" id="clkBar"> One note: keep the click going while I play (headphones only)</label>
       <span class="stamp">"One note" listens with the microphone, so by default the click stops once your bar starts (you still hear the count-in, and the cursor shows the beat). Turn this on only with headphones: a click through the speaker can sound like a note, so any sound the mic hears right on a click is ignored.</span>
-      <label><input type="checkbox" id="holds" checked> Grade how long I hold (Tap, MIDI, One note)</label>
+      <label id="holdsRow"><input type="checkbox" id="holds" checked> Grade how long I hold (Tap, MIDI, One note)</label>
       <span class="stamp">"Tap", "MIDI" and "One note": quarter notes and longer, dotted and tied notes, and notes right before a rest are also graded on when you let go (the bar under each note shows how long you held it; the tick is where it ends). In "One note" the mic hears you let go (the damper stops the sound), so the hold windows are a little wider. "Clap or snap" grades only when each note starts.</span>
       <div class="row"><button class="ghost" id="cal">Calibrate timing</button><span class="stamp" id="calTxt" role="status" aria-live="polite"></span></div>
       <span class="stamp">Optional: "Tap" and "MIDI" come set up for most devices. Calibrate if notes you know are on time still read early or late, and again with Bluetooth headphones: tap (or clap, or play your note) along with 12 clicks. "Tap", "Clap" and "One note" each keep their own setting.</span>
@@ -274,7 +276,7 @@ input,textarea,select,[contenteditable]{-webkit-user-select:text!important;user-
     <div class="cxbar" id="cxBar" hidden title="How hard this rhythm is within the round"><span>COMPLEXITY</span><i><b id="cxFill"></b></i></div>
     <div class="paper" style="position:relative"><svg id="bar" role="img" aria-label="Rhythm to tap"></svg><div class="scoreflash" id="scoreFlash" aria-live="polite"></div><div class="cntflash" id="cntFlash" aria-hidden="true"></div></div>
     <div class="msg" id="msg" role="status" aria-live="polite"><div class="v">Press Start</div><div class="c">You'll hear one bar of clicks first. Start tapping on beat 1 of the next bar.</div></div>
-    <div class="seg" id="inSeg" role="group" aria-label="How you answer"><button data-in="tap"><span aria-hidden="true">👆</span> Tap</button><button data-in="clap"><span aria-hidden="true">👏</span> Clap or snap</button><button data-in="note"><span aria-hidden="true">🎹</span> One note</button><button data-in="midi"><span aria-hidden="true">🎛️</span> MIDI</button></div>
+    <div class="seg" id="inSeg" role="group" aria-label="How you answer"><button data-in="tap"><span aria-hidden="true">👆</span> Tap</button><button data-in="clap"><span aria-hidden="true">👏</span> Clap or snap</button><button data-in="drum" title="Drum pad: a stick on a practice pad. Graded on when each hit lands, never on how long."><svg aria-hidden="true" viewBox="0 0 20 20" width="15" height="15" style="vertical-align:-2px"><ellipse cx="9" cy="14" rx="8" ry="3.5" fill="currentColor" opacity=".55"/><path d="M5 2l7 10" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></svg> Drum pad</button><button data-in="note"><span aria-hidden="true">🎹</span> One note</button><button data-in="midi"><span aria-hidden="true">🎛️</span> MIDI</button></div>
     <div id="midiBox" hidden><div class="micp"><label for="midiSel">MIDI keyboard</label><select id="midiSel"><option value="all">All connected devices</option></select></div>
       <p class="tip" style="margin-top:6px"><span class="mled" id="midiLed" aria-hidden="true"></span><span id="midiKey">MIDI light: press a key and it flashes green when the device above is heard.</span></p>
       <p class="tip" id="midiStat" role="status" aria-live="polite" style="margin-top:6px">Plug in a MIDI keyboard and play any key with each note. Key down = the note starts, key up = you let go (long notes are graded on both).</p></div>
@@ -287,6 +289,8 @@ input,textarea,select,[contenteditable]{-webkit-user-select:text!important;user-
         <span>Level</span><div class="meter"><i id="meterFill"></i><span class="thr" id="thr"></span></div>
       </div>
       <p class="tip" id="micStat" role="status" aria-live="polite" style="margin-top:6px">Clap or snap once: the Level bar should jump past the line.</p>
+      <div class="drumonly" id="padCalBox" hidden style="margin-top:8px"><div class="row" style="justify-content:center"><button class="ghost" id="padCal">Tune the mic to my pad</button></div>
+        <p class="tip" id="padCalTxt" role="status" aria-live="polite" style="margin-top:6px;text-align:center">Stay quiet for a moment, then hit your pad 8 times: some soft, some loud. Do it again if you change Sensitivity or move the device.</p></div>
       <p class="tip noteonly" style="margin-top:2px"><a href="#" id="diagLink">Mic not catching hits? Show details</a></p>
       <div id="diag" class="diag" hidden><div class="row" style="justify-content:space-between"><b>What the mic decided (newest first)</b><button class="ghost" id="diagCopy">Copy log</button></div><pre id="diagRows"></pre></div>
       <p class="tip" style="margin-top:4px">"Clap or snap" grades when each note starts (a clap can't be held). "One note" also grades how long you hold each long note: let the key up on time.</p>
@@ -299,7 +303,7 @@ input,textarea,select,[contenteditable]{-webkit-user-select:text!important;user-
       <button class="ghost" id="again" hidden><span aria-hidden="true">↺</span> Retry</button>
       <button class="primary" id="go">Start</button>
     </div>
-    <details class="how"><summary>How it works</summary><p class="tip">Tap the pad or the space bar, or switch to "Clap or snap". Rests are silent: don't tap them. In "Tap", hold long notes down for their full length and let go on time. Clapping or playing with speakers? Headphones are best: the mic never hears the clicks at all.</p>
+    <details class="how"><summary>How it works</summary><p class="tip"><b>Drum pad.</b> Pick "Drum pad" (or open the link ending in ?mode=drums) and play with a stick on a practice pad. Only when each hit lands is graded: a half or whole note is one hit, and rests must stay silent. Tap "Tune the mic to my pad" once so soft hits count and stick bounce does not, then "Calibrate timing" to take out the mic delay.</p><p class="tip">Tap the pad or the space bar, or switch to "Clap or snap". Rests are silent: don't tap them. In "Tap", hold long notes down for their full length and let go on time. Clapping or playing with speakers? Headphones are best: the mic never hears the clicks at all.</p>
       <p class="tip"><b>How scoring works.</b> Each note scores by where it starts. Full credit within a small window of the beat (about 40 to 55 ms on MIDI, 40 to 60 ms on a tap, 50 to 75 ms on the microphone, a little wider at slow tempos), then credit slides down to zero about a tenth of a second later. A long note you hold for at least 75% of its length counts as fully held: lifting your finger between piano notes is normal. Under half its length, or held past the next note, loses a little. A missed note scores 0, and an extra tap costs half a note. Green = full credit, orange = partial (the coaching line says why), red = missed. In Challenge, a round is passed on its overall accuracy (75% in Round 2, rising to 80%, then 85% in the bonus round) with no more than 1 missed note, never on a count of perfect hits.</p></details>
 
     <div class="arcsplash" id="arcSplash" hidden><div class="pre" id="spP"></div><b id="spT"></b><em id="spB" hidden></em><span id="spS"></span><small class="sptap" id="spTap" hidden>Tap to start</small></div><div class="hitstamp" id="hitStamp">ON TARGET!</div>
@@ -395,6 +399,11 @@ input,textarea,select,[contenteditable]{-webkit-user-select:text!important;user-
   level=String(level); if(!LEVELS.some(L=>L.id===level)) level="1";
   bpm=+bpm; if(!tempoList().includes(bpm)) bpm=MT().compound?56:72;
   if(!["tap","clap","note","midi"].includes(inMode)) inMode="tap";
+  // Drum pad (2026-11-28.2, Derek): a stick on a practice pad. It runs on the Clap detector (attack-only: a drum hit is never held), with a shorter
+  // re-trigger lockout and a threshold learned from the pad. New saved keys only ("drum", "drumThr"); the saved "in" value stays "clap", so older versions read it fine.
+  let drum=store.get("drum",false)===true; let drumThr=+store.get("drumThr",0); if(!(drumThr>0&&drumThr<1)) drumThr=0;
+  try{ const q=new URLSearchParams(location.search).get("mode"); if(q==="drums"||q==="drum") drum=true }catch(e){}
+  if(drum) inMode="clap";
   latency=okLat(latency); latClap=okLat(latClap); latNote=okLat(latNote); latMidi=okLat(latMidi);
   const bestNum=k=>{ const v=store.get(k,null); return typeof v==="number"&&isFinite(v)&&v>=0?v:null };
 
@@ -518,7 +527,8 @@ input,textarea,select,[contenteditable]{-webkit-user-select:text!important;user-
         else if(e.d===8) h+=`<rect x="${x-7}" y="${LY-6}" width="15" height="6" fill="${ink}"/>`;
       } else {
         const open=e.d>=8, dotted=e.d===6||e.d===12||e.d===3;
-        h+=`<ellipse cx="${x}" cy="${LY}" rx="${open?7.9:7.5}" ry="${open?5.7:5.4}" transform="rotate(-20 ${x} ${LY})" fill="${open?"none":col}" stroke="${col}" stroke-width="${open?2.4:0}"/>`;
+        if(drum) h+=`<path d="M${x-6} ${LY-6}L${x+6} ${LY+6}M${x+6} ${LY-6}L${x-6} ${LY+6}" stroke="${col}" stroke-width="2.6" stroke-linecap="round"/>`+(open?`<circle cx="${x}" cy="${LY}" r="9.5" fill="none" stroke="${col}" stroke-width="1.8"/>`:""); // drum pad: x noteheads (a circled x for a half or whole note: one hit, no hold)
+        else h+=`<ellipse cx="${x}" cy="${LY}" rx="${open?7.9:7.5}" ry="${open?5.7:5.4}" transform="rotate(-20 ${x} ${LY})" fill="${open?"none":col}" stroke="${col}" stroke-width="${open?2.4:0}"/>`;
         if(dotted) h+=`<circle cx="${x+13}" cy="${LY-5}" r="2.3" fill="${col}"/>`;
         if(res&&res.focus&&res.focus.has(i)) h+=`<circle cx="${x}" cy="${LY}" r="16" fill="none" stroke="${col}" stroke-width="2" stroke-dasharray="4 3"/>`; // the note a coaching line talks about
         if(e.d<16){ h+=`<line x1="${x+SX}" x2="${x+SX}" y1="${LY-1}" y2="${sTop}" stroke="${col}" stroke-width="1.8"/>`;
@@ -693,7 +703,7 @@ input,textarea,select,[contenteditable]{-webkit-user-select:text!important;user-
     const hX=inMode==="note"?NOTE_HOLD_X:1, R=run={mode,start,end,t0,u:U,holds,tail,grace:Math.min(2,0.35+(endL?hX*holdWin(endL*U,SP).g+0.05+(inMode==="note"?REL_LATE:0):0))};
     if(mode==="test"&&inMode==="note") fxWins(bar.notes.map(n=>start+n.s*U),null,U,mlag); if(mode==="test"){ lastStart=start; lastU=U; lastHolds=holds; lastHoldX=hX } lockUI();
     const tick=()=>{ if(run!==R) return; /* this bar was stopped (or replaced): its frame loop ends here */ const now=a.currentTime; let px=null, pos=null;
-      if(now>=start&&now<=end){ pos=(now-start)/U; px=$("cursor").checked?xOf(pos):null; if(mode==="test"&&!run.go){ run.go=true; msg(null,"Go!",inMode==="clap"?"Clap or snap every note.":inMode==="note"?"Play your note for every note.":"Tap every note.") } }
+      if(now>=start&&now<=end){ pos=(now-start)/U; px=$("cursor").checked?xOf(pos):null; if(mode==="test"&&!run.go){ run.go=true; msg(null,"Go!",inMode==="clap"?(drum?"Hit the pad on every note.":"Clap or snap every note."):inMode==="note"?"Play your note for every note.":"Tap every note.") } }
       if(loopOn&&mode==="test"&&gmode==="practice"&&!R.q&&now>=end-0.3){ R.q=true; const LG=Math.ceil((R.tail+0.2)/SP)*SP; /* whole beats of room after your bar for the late-note wait and the grade, so the next count-in never starts before the screen is ready (2026-11-25.2: beat 1 was cut) */ loopAt=end+LG; countClicks(end+LG,M,SP) }
       if(now<start&&mode==="test"){ const n=M.compound?6:M.beats, step=M.compound?SP/3:SP, left=Math.ceil((start-now)/step); $("msg").querySelector(".v").textContent=left<=n?"Count in: "+(n+1-left):"Get ready";
         // the whole staff panel flashes each count-in beat with the big number (beat 1 in red), timed to the click
@@ -923,7 +933,7 @@ function lockUI(){ const on=!!(run||sess||arc); document.body.classList.toggle("
 
   const avgAcc=bars=>bars.length?Math.round(bars.reduce((a,b)=>a+b.score,0)/bars.length):null; // the same accuracy as the results screen
   const half=x=>Number.isInteger(x)?String(x):(Math.floor(x)||"")+"½";
-  function bestKey(steady){ return "best-"+gmode+"-"+level+"-"+bpm+"-"+inMode+(gmode==="chal"&&(steady!=null?steady:arc?!arc.ramp:!rampOn())?"-steady":"")+(MT().key?"-"+MT().key:"") } // a steady-tempo challenge keeps its own high score; each time signature keeps its own (4/4 keeps the old keys)
+  function bestKey(steady){ return "best-"+gmode+"-"+level+"-"+bpm+"-"+inMode+(drum?"-drum":"")+(gmode==="chal"&&(steady!=null?steady:arc?!arc.ramp:!rampOn())?"-steady":"")+(MT().key?"-"+MT().key:"") } // a steady-tempo challenge keeps its own high score; each time signature keeps its own (4/4 keeps the old keys)
   function stats(){ const S=sess, T=gmode==="practice";
     $("lRound").textContent=T?"Tries":"Time"; $("lScore").textContent=T?"Last":"Points"; $("lAvg").textContent=T?"Average":"Accuracy"; $("lBest").textContent=T?"Best":"High score";
     const hs=bestNum(bestKey());
@@ -956,7 +966,7 @@ function lockUI(){ const on=!!(run||sess||arc); document.body.classList.toggle("
     $("rTiming").textContent=!all.length?"–":Math.abs(mean)<15?"On time":Math.round(Math.abs(mean))+" ms "+(mean<0?"early":"late");
     $("rMissed").textContent=`${bars.reduce((a,b)=>a+b.missed,0)} / ${bars.reduce((a,b)=>a+b.extras,0)}`;
     const hN=bars.reduce((a,b)=>a+(b.holdN||0),0); $("rHoldBox").hidden=!hN; $("rHold").textContent=hN?`${bars.reduce((a,b)=>a+(b.holdOk||0),0)}/${hN}`:"–";
-    const L=LEVELS.find(x=>x.id===level), d=new Date(), how=inMode==="tap"?"Tap":inMode==="clap"?"Clap":inMode==="midi"?"MIDI":"One note";
+    const L=LEVELS.find(x=>x.id===level), d=new Date(), how=inMode==="tap"?"Tap":inMode==="clap"?(drum?"Drum pad":"Clap"):inMode==="midi"?"MIDI":"One note";
     $("rStamp").textContent=`${tag} · High score ${half(best)} · Level ${LEVELS.indexOf(L)+1} · ${lvlName(L)} · ${meterId} · ${tempoTxt||tl(bpm)} · ${how} · ${d.toLocaleDateString(undefined,{weekday:"short",month:"short",day:"numeric"})} ${d.toLocaleTimeString([],{hour:"numeric",minute:"2-digit"})}`;
     { const acc=bars.length?Math.round(bars.reduce((a,b)=>a+b.score,0)/bars.length):0, far=/ALL ROUNDS/.test(tag)?"All rounds cleared":/ROUND 6$/.test(tag)?"Bonus round":tag.replace(/^CHALLENGE · ROUND /,"Round ")+" of 5",
         sq=bars.map(b=>b.score>=90?"🟩":b.score>=70?"🟨":"🟥"), row=[]; for(let i=0;i<sq.length;i+=10) row.push(sq.slice(i,i+10).join(""));
@@ -1140,7 +1150,7 @@ function lockUI(){ const on=!!(run||sess||arc); document.body.classList.toggle("
   // A hit = the fast envelope jumps past the threshold AND 4x above the room's background AND 3x above its lowest point since the last hit
   // (so the ringing tail or room echo of one clap can never count as a second clap). Its time is the exact sample where that happens.
   // Inside the 70 ms hold after a hit, a sound 2.5x louder than that hit is a new hit: a clap right after the click (beat 1's louder click) is no longer swallowed or stamped late.
-  const DET_SRC=`class Onset extends AudioWorkletProcessor{constructor(){super();this.g=3;this.thr=0.05;this.port.onmessage=e=>Object.assign(this,e.data);
+  const DET_SRC=`class Onset extends AudioWorkletProcessor{constructor(){super();this.g=3;this.thr=0.05;this.hd=0.07;this.port.onmessage=e=>Object.assign(this,e.data);
     const w=2*Math.PI*2800/sampleRate,c=Math.cos(w),s=Math.sin(w);this.bq=[0.5412,1.3066].map(Q=>{const al=s/(2*Q),a0=1+al;return{b0:(1+c)/2/a0,b1:-(1+c)/a0,b2:(1+c)/2/a0,a1:-2*c/a0,a2:(1-al)/a0,x1:0,x2:0,y1:0,y2:0}});
     this.f=0;this.sl=0;this.hold=0;this.hp=0;this.mn=0;this.cap=null;this.lv=0;this.ln=0;this.rf=Math.exp(-1/(0.004*sampleRate));this.rs=Math.exp(-1/(0.3*sampleRate));this.warm=Math.round(0.3*sampleRate)}
    process(ins){const x=ins[0]&&ins[0][0];if(!x)return true;const g=this.g,thr=this.thr;
@@ -1148,8 +1158,8 @@ function lockUI(){ const on=!!(run||sess||arc); document.body.classList.toggle("
      const a=(v<0?-v:v)*g;this.f=a>this.f?a:this.f*this.rf;if(this.f>this.lv)this.lv=this.f;
      if(this.warm>0){this.warm--;this.sl=this.sl*this.rs+this.f*(1-this.rs);continue}
      if(this.cap){if(this.f>this.cap.pk)this.cap.pk=this.f;if(this.cap.k<512)this.cap.buf[this.cap.k++]=v;if(--this.cap.n<=0&&this.cap.k>=512){this.hp=this.cap.pk;this.port.postMessage({on:1,t:this.cap.t,pk:this.cap.pk,bg:this.cap.bg,buf:this.cap.buf},[this.cap.buf.buffer]);this.cap=null}}
-     if(this.hold>0){this.hold--;this.mn=this.f;if(!this.cap&&this.hp&&this.f>thr&&this.f>this.hp*(this.cal?1.4:2.5)){this.cap={t:currentTime+i/sampleRate,pk:this.f,bg:this.sl,n:Math.round(0.012*sampleRate),buf:new Float32Array(512),k:0};this.hold=Math.round((this.cal?0.006:0.07)*sampleRate)}continue}this.mn=this.f<this.mn?this.f:this.mn;
-     if(!this.cap&&this.f>thr&&this.f>this.sl*4&&this.f>this.mn*3){this.cap={t:currentTime+i/sampleRate,pk:this.f,bg:this.sl,n:Math.round(0.012*sampleRate),buf:new Float32Array(512),k:0};this.hold=Math.round((this.cal?0.006:0.07)*sampleRate);continue}
+     if(this.hold>0){this.hold--;this.mn=this.f;if(!this.cap&&this.hp&&this.f>thr&&this.f>this.hp*(this.cal?1.4:2.5)){this.cap={t:currentTime+i/sampleRate,pk:this.f,bg:this.sl,n:Math.round(0.012*sampleRate),buf:new Float32Array(512),k:0};this.hold=Math.round((this.cal?0.006:this.hd)*sampleRate)}continue}this.mn=this.f<this.mn?this.f:this.mn;
+     if(!this.cap&&this.f>thr&&this.f>this.sl*4&&this.f>this.mn*3){this.cap={t:currentTime+i/sampleRate,pk:this.f,bg:this.sl,n:Math.round(0.012*sampleRate),buf:new Float32Array(512),k:0};this.hold=Math.round((this.cal?0.006:this.hd)*sampleRate);continue}
      this.sl=this.sl*this.rs+this.f*(1-this.rs)}
     this.ln+=x.length;if(this.ln>=1536){this.port.postMessage({lv:this.lv});this.lv=0;this.ln=0}return true}}
   registerProcessor('rt-onset',Onset);
@@ -1327,6 +1337,8 @@ class NoteFlux{
   function micMsg(html){ $("micStat").innerHTML=html }
   function micHint(){ if(micPolicyOff()) micMsg(FRAMED_MSG+fullLink()+" to clap or play, or use \"Tap\" here."); else micMsg(inMode==="note"?"Turn on the microphone, then play your note once: the Level bar should jump.":"Turn on the microphone, then clap or snap once: the Level bar should jump past the line.") }
   function setThr(v){ thr=v; $("thr").style.left=Math.min(100,thr*300)+"%" }
+  // Drum pad: 50 ms re-trigger lockout (a stick bounce is one hit; 16ths at 140 BPM are 107 ms apart, so they and fast doubles still count) and the pad's own threshold
+  function detTune(det){ try{ det.port.postMessage({hd:drum?0.05:0.07,thr:drum&&drumThr?drumThr:DET_THR}) }catch(e){} }
   // ---------- One note detector (NoteFlux) wiring ----------
   const fxPost=m=>{ try{ if(mic&&mic.fx) mic.fx.port.postMessage(m) }catch(e){} };
   function fxSync(){ if(!mic||!mic.fx) return; const a=audio; const m={midi:+$("noteSel").value,clickF:tockF(),ckRanges:clkRanges(),g:+$("micGain").value}; if(!mic.fxLat){ m.ckLat=(a&&(a.outputLatency||0)+(a.baseLatency||0))||0; mic.fxLat=1 } fxPost(m) }
@@ -1389,7 +1401,7 @@ class NoteFlux{
         let j=jc; while(j>6&&e[j-1]>base*1.25+1e-5&&e[j-1]<e[j]*1.02) j--; return j<=6?null:now-(bbuf.length-j*B)/a.sampleRate-BAND_LAG/1000 };
       src.connect(hp); hp.connect(g); g.connect(an); an.connect(mute); mute.connect(a.destination);
       const buf=new Float32Array(an.fftSize), noteHist=[]; let last=0, prev=0, pend=null, ckR=0, ckN=0;
-      let det=null; try{ det=await detNode(a); src.connect(det); det.connect(mute); det.port.postMessage({g:+$("micGain").value,thr:DET_THR}) }catch(e){ det=null }
+      let det=null; try{ det=await detNode(a); src.connect(det); det.connect(mute); det.port.postMessage({g:+$("micGain").value,thr:DET_THR}); detTune(det) }catch(e){ det=null }
       let nd=null, fx=null; if(wantNote) try{ detURL=detURL||URL.createObjectURL(new Blob([DET_SRC],{type:"text/javascript"})); a.__det=a.__det||a.audioWorklet.addModule(detURL); await a.__det;
         try{ fx=new AudioWorkletNode(a,"rt-flux",{numberOfInputs:1,numberOfOutputs:1,outputChannelCount:[1]}); src.connect(fx); fx.connect(mute) }catch(e){ fx=null } // One note v3
         if(!fx){ nd=new AudioWorkletNode(a,"rt-note",{numberOfInputs:1,numberOfOutputs:1,outputChannelCount:[1]}); src.connect(nd); nd.connect(mute) } }catch(e){ nd=null; fx=null }
@@ -1455,7 +1467,8 @@ class NoteFlux{
         // two candidates within 80 ms are one strike (a small noise just before it, say): the sharper one counts, decided 90 ms later
         if(pick&&Math.abs(t-pick.t)<0.08){ if(m.s>pick.s) pick={t,s:m.s} } else { flushPick(); pick={t,s:m.s} } clearTimeout(pickT); pickT=setTimeout(flushPick,90) } }
       if(det){ mic.det=det; det.port.onmessage=e=>{ const m=e.data; if(inMode==="note") return;
-        if(m.lv!=null){ $("meterFill").style.width=Math.min(100,m.lv/DET_THR*15)+"%"; return }
+        if(m.lv!=null){ $("meterFill").style.width=Math.min(100,m.lv/DET_THR*15)+"%"; if(padC&&padC.phase==="quiet") padC.lvs.push(m.lv); return }
+        if(padC&&padC.phase==="hits"){ padHit(m.pk,hitFlat(m.buf,a.sampleRate)); return }
         const p={t:m.t,r:m.pk}, fl=hitFlat(m.buf,a.sampleRate), near=outT.some(o=>Math.abs(p.t-o)<0.06);
         if(fl<0.03) return; // a pure tone (a piano note, a beep) is not a clap or snap
         if(near&&!calHook){ if(run&&run.mode==="test"&&p.t<run.start-0.1){ mic.ownClick(p); return } // count-in: learn the click
@@ -1465,7 +1478,7 @@ class NoteFlux{
       $("micBtn").textContent="Microphone on"; $("micBtn").disabled=true; $("micCtl").hidden=false; setThr(thr); if(det&&inMode!=="note") $("thr").style.left="15%";
       const devs=(await navigator.mediaDevices.enumerateDevices()).filter(d=>d.kind==="audioinput"), cur=s.getAudioTracks()[0].getSettings().deviceId;
       $("micSel").innerHTML=devs.map((d,i)=>`<option value="${String(d.deviceId).replace(/[<>&"]/g,"")}">${(d.label||("Microphone "+(i+1))).replace(/[<>&"]/g,"")}</option>`).join(""); /* same escaping as Note Sprint's picker (2026-11-25.2) */ if(cur) $("micSel").value=cur;
-      $("micStat").textContent=inMode==="note"?"Listening. Play your note once: the bar should jump. Too low? Raise \"Sensitivity\".":"Listening. Clap or snap once: the bar should jump past the line. Too low? Raise \"Sensitivity\".";
+      $("micStat").textContent=drum?"Listening. Tap \"Tune the mic to my pad\" once, then hit the pad: the bar should jump past the line.":inMode==="note"?"Listening. Play your note once: the bar should jump. Too low? Raise \"Sensitivity\".":"Listening. Clap or snap once: the bar should jump past the line. Too low? Raise \"Sensitivity\".";
       // the mic can be taken away mid-session (unplugged, another app grabbed it, permission revoked)
       s.getAudioTracks().forEach(t=>t.addEventListener("ended",()=>{ if(mic&&mic.s===s){ micStop(); micMsg("The microphone stopped. Tap the button to turn it on again.") } }));
       micBusy=false; return true
@@ -1486,9 +1499,25 @@ class NoteFlux{
   $("volR").addEventListener("change",()=>{ const a=ctx(); if(a.state!=="running") a.resume(); if(!run&&!sess&&!arc&&!calHook) click(a.currentTime+0.03,true) });
   { const gv=+store.get("gain","3"); $("micGain").value=isFinite(gv)&&gv>=0.25&&gv<=12?String(gv):"3" } $("micGain").addEventListener("input",e=>{ if(mic){ mic.g.gain.value=+e.target.value; if(mic.det) mic.det.port.postMessage({g:+e.target.value}); fxSync() } store.set("gain",e.target.value) });
   const wideMQ=window.matchMedia?matchMedia("(min-width:900px)"):null;
+  // ---------- Drum pad: tune the mic to the pad (2026-11-28.2) ----------
+  // 1.2 s of quiet measures the room (its 85th-percentile level, with 4 soft clicks from the speaker, so the threshold sits above the click as the mic hears it
+  // and one stray bump in that second can't spoil it), then 8 hits.
+  // Threshold = the higher of 2.5x the loudest room/click level and 35% of the softest real hit, kept between 0.3x and 4x the default. Saved as "drumThr".
+  let padC=null;
+  function padHit(pk,fl){ if(!padC||fl<0.03||pk<padC.room*1.8) return; padC.pks.push(pk); $("pad").classList.add("hit"); setTimeout(()=>$("pad").classList.remove("hit"),90);
+    const b=document.body; b.classList.add("padflash"); setTimeout(()=>b.classList.remove("padflash"),110); $("padCalTxt").textContent=`Heard it: ${padC.pks.length} of 8`; if(padC.pks.length>=8) padDone() }
+  function padDone(){ if(!padC) return; const c=padC; padC=null; clearTimeout(c.to); if(mic&&mic.det) try{ mic.det.port.postMessage({cal:false}) }catch(e){} $("padCal").disabled=false;
+    if(c.pks.length<4){ $("padCalTxt").textContent=`Only ${c.pks.length} hit${c.pks.length===1?"":"s"} heard. Raise "Sensitivity" or move the device closer to the pad, then try again.`; if(mic&&mic.det) detTune(mic.det); return }
+    const k=c.pks.slice().sort((x,y)=>x-y), soft=k[k.length>=6?1:0]; let v=Math.max(c.room*2.5,soft*0.35); v=Math.min(DET_THR*4,Math.max(DET_THR*0.3,v)); drumThr=+v.toFixed(5); store.set("drumThr",drumThr); if(mic&&mic.det) detTune(mic.det);
+    $("padCalTxt").textContent=soft*0.35<c.room*2.5?"Tuned, but the room or the click is loud next to your soft hits. Hit a little harder, or turn the click down.":"Tuned to your pad. Soft and loud hits will both count; stick bounce will not." }
+  $("padCal").addEventListener("click",async()=>{ if(run||calHook||starting||sess||arc||padC) return; if(!mic||!mic.det){ if(!(await micStart($("micSel").value||undefined))||!mic||!mic.det){ $("padCalTxt").textContent="Turn on the microphone first."; return } }
+    const a=ctx(); await a.resume(); $("padCal").disabled=true; padC={phase:"quiet",room:0,lvs:[],pks:[],to:0}; try{ mic.det.port.postMessage({thr:DET_THR*0.3,hd:0.05}) }catch(e){} $("padCalTxt").textContent="Quiet for a moment…";
+    const t0=a.currentTime+0.15; for(let i=0;i<4;i++) click(t0+i*0.25,i===0,true);
+    setTimeout(()=>{ if(!padC) return; const L=padC.lvs.slice().sort((x,y)=>x-y); padC.room=L.length?L[Math.min(L.length-1,Math.floor(L.length*0.85))]:0; padC.phase="hits"; $("padCalTxt").textContent="Now hit your pad 8 times, some soft, some loud."; padC.to=setTimeout(padDone,15000) },1400) });
   function placeMic(){ const mb=$("micBox"); if(wideMQ&&wideMQ.matches){ if(mb.parentNode!==$("micSlot")) $("micSlot").appendChild(mb) } else if(mb.previousElementSibling!==$("inSeg")) $("inSeg").after(mb) }
   placeMic(); if(wideMQ){ try{ wideMQ.addEventListener("change",placeMic) }catch(e){ try{ wideMQ.addListener(placeMic) }catch(_){} } }
-  function setIn(m){ hypeStop(120); const was=inMode; inMode=m; if(mic&&m!=="tap"&&(was==="note")!==(m==="note")) micStart($("micSel").value||undefined); store.set("in",m); document.querySelectorAll("#inSeg button").forEach(b=>b.setAttribute("aria-pressed",String(b.dataset.in===m)));
+  function setIn(m){ hypeStop(120); const dm=m==="drum"; if(dm) m="clap"; if(dm!==drum){ drum=dm; store.set("drum",dm) } document.body.classList.toggle("drummode",drum); document.querySelectorAll(".drumonly").forEach(e=>e.hidden=!drum); if($("holdsRow")) $("holdsRow").hidden=drum; if(mic&&mic.det) detTune(mic.det); if(typeof stats==="function") try{ stats() }catch(e){} try{ if(bar&&!run) drawBar(curRes) }catch(e){}
+    const was=inMode; inMode=m; if(mic&&m!=="tap"&&(was==="note")!==(m==="note")) micStart($("micSel").value||undefined); store.set("in",m); document.querySelectorAll("#inSeg button").forEach(b=>b.setAttribute("aria-pressed",String(drum?b.dataset.in==="drum":b.dataset.in===m)));
     $("micBox").hidden=!micMode(); $("midiBox").hidden=m!=="midi"; if(micMode()&&!mic&&!micBusy) micHint(); document.querySelectorAll(".noteonly").forEach(e=>e.hidden=m!=="note"); $("pad").textContent="TAP"; $("pad").hidden=m!=="tap"; $("tapBox").hidden=m!=="tap"; tapPrep(); if(m!=="tap") releaseAll(); /* 2026-11-13.4: the pad shows in Tap only (Space still taps in MIDI) */ if(!micMode()) micStop(); if(m==="midi") midiStart(); calLabel(); if(typeof clkUI==="function") try{ clkUI() }catch(e){} }
   // ---------- MIDI input (Chrome, Edge, Opera; not Safari) ----------
   // note-on (velocity > 0) = a press, note-off = a release, each on the audio clock of what you heard (getOutputTimestamp), so holds are exact
@@ -1522,7 +1551,7 @@ class NoteFlux{
   $("tapVol").value=String(TVOL); $("tapVol").addEventListener("input",e=>{ TVOL=+e.target.value; store.set("tapvol",String(TVOL)) }); $("tapVol").addEventListener("change",()=>tapSound());
   document.addEventListener("pointerdown",()=>{ if(!audio&&inMode==="tap"){ ctx(); } tapPrep() },true); // the first touch anywhere creates the audio engine and loads the chosen tap sample, so the first pad tap is on time
   $("clkBar").checked=!!store.get("clkBar",false); $("clkBar").addEventListener("change",e=>store.set("clkBar",e.target.checked));
-  setIn(inMode); clkUI();
+  setIn(drum?"drum":inMode); clkUI();
 
   window.__rt={pool:(lv,m)=>{const km=meterId;if(m)meterId=m;try{return poolOf(lv).map(b=>({diff:b.diff,feat:Object.keys(b.feat),r:sig(b),ev:b.ev.map(e=>[e.d,e.r?1:0,e.tie?1:0])}))}finally{meterId=km}},deck:(r,lv,m,F)=>{const km=meterId,kl=level;if(m)meterId=m;if(lv)level=lv;try{return drawDeck(r,level,F||8).map(b=>({lv:b.lv,diff:b.diff}))}finally{meterId=km;level=kl}},rounds:()=>window.__rtRounds||[],meter:()=>meterId,setMeter:id=>setMeter(id),meters:()=>METERS,make:(lv,m)=>{const k=level,km=meterId;level=lv;if(m)meterId=m;try{return makeBar()}finally{level=k;meterId=km}},
     beams:(ev,m)=>{const km=meterId;if(m)meterId=m;try{return beamGroups(ev).map(g=>({idx:g.map(e=>e.i),sec:secBeams(g)}))}finally{meterId=km}},cnt:(s,m)=>{const km=meterId;if(m)meterId=m;try{return CNT(s)}finally{meterId=km}},
@@ -1533,6 +1562,6 @@ class NoteFlux{
   if(document.fonts) document.fonts.ready.then(()=>{ if(!run) drawBar(curRes) });
 })();
 </script>
-<p class="appver" style="text-align:center;font-size:11px;opacity:.6;margin:18px 0 10px;font-family:ui-monospace,Menlo,monospace">Rhythm Trainer · Version 2026-11-28.1</p>
+<p class="appver" style="text-align:center;font-size:11px;opacity:.6;margin:18px 0 10px;font-family:ui-monospace,Menlo,monospace">Rhythm Trainer · Version 2026-11-28.2</p>
 </body>
 </html>

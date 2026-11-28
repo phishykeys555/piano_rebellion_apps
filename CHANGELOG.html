@@ -41,6 +41,266 @@
 </ul>
 
 <!-- ============================================================ -->
+<h2>Rhythm Trainer — rhythm-trainer/</h2>
+<p class="note">Counting voice clips live in <code>rhythm-trainer/count/</code>; <code>rhythm-trainer/count/preview.html</code> is a voice preview page (not on the hub).</p>
+
+<h3>Version 2026-11-28.2 (beta 2026-11-28)</h3>
+<p class="note">Drum pad mode (Derek's request): drum students play hits on a practice pad, never held notes. Folder <code>rhythm-trainer/</code>.</p>
+<h4>Added</h4>
+<ul>
+  <li><strong>"Drum pad" answer mode</strong> next to Clap or snap, and a direct link <code>rhythm-trainer/?mode=drums</code> that opens straight into it. Graded on attacks only: a half, whole, dotted or tied note is one hit at its start; rests must stay silent; the "Grade how long I hold" option is hidden. Runs on the Clap detector (listens above about 2.8 kHz, so the app's woodblock click is ignored).</li>
+  <li><strong>"Tune the mic to my pad"</strong>: about a second of quiet (with 4 soft clicks from the speaker) measures the room and the click as the mic hears it, then 8 hits, soft and loud, with a live "Heard it: n of 8" count. The threshold becomes the higher of 2.5x the room/click level and 35% of the softest hit (kept between 0.3x and 4x the default).</li>
+  <li>A 50 ms re-trigger lockout in Drum pad mode (70 ms elsewhere, unchanged): a stick bounce is one hit, while 16ths at 140 BPM (107 ms apart) and fast doubles still count.</li>
+  <li>x noteheads on the staff in Drum pad mode (a circled x for a half or whole note). Drum pad bests are kept apart from Clap bests. "How it works" explains the mode.</li>
+</ul>
+<h4>Changed</h4>
+<ul>
+  <li>Saved settings: two NEW keys only (<code>rt-drum</code>, <code>rt-drumThr</code>). The saved answer mode stays <code>clap</code> while Drum pad is on, so older versions read it as Clap. Mic delay uses the existing "Calibrate timing" (the Clap offset).</li>
+</ul>
+
+<h3>Version 2026-11-28.1 (beta 2026-11-28)</h3>
+<h4>Changed</h4>
+<ul>
+  <li>New picture favicon and home-screen icon in place of the two-letter one (beta tester request): <code>shared/icons/rhythm-trainer-v2.svg</code>, <code>-v2-32.png</code>, <code>-v2-180.png</code>, linked from <code>rhythm-trainer/index.html</code>. Same colour as before; the old icon files stay in place. Looks only; nothing else changed.</li>
+</ul>
+
+<h3>Version 2026-11-25.2 (built 2026-11-25)</h3>
+<h4>Added</h4>
+<ul>
+  <li>Tap mode plays a chosen sound on every tap (Clap, Snap, Hand drum, Woodblock, Cowbell, Rimshot, Shaker, Tambourine or Off), with its own volume, separate from the click. The choice is remembered on the device. Instructor feedback. <code>rhythm-trainer/index.html</code></li>
+  <li>Coaching under the score: one to three short lines, worst problem first, each naming its note (early or late by how many ms, let go early, held too long, missed, extra sounds). The note is ringed on the staff. Hold-length lines show in One note and MIDI only. Instructor feedback.</li>
+  <li>Settings: "One note: keep the click going while I play (headphones only)". Off by default. Instructor feedback.</li>
+  <li>How it works now spells out the scoring rubric and the Challenge round rule in plain words. Instructor feedback.</li>
+</ul>
+<h4>Changed</h4>
+<ul>
+  <li>Challenge rounds are passed on overall accuracy (75% in Round 2, rising to 80%, then 85% in the bonus round) with no more than 1 missed note, not on a count of perfect hits. The rule shows on the round screen, in the round meter and on the results. A round shows one tempo range. Instructor feedback.</li>
+  <li>Separate timing windows for MIDI, tap and microphone; a note held for at least 75% of its written length counts as fully held (lifting a finger between piano notes is not penalized). Instructor feedback.</li>
+  <li>Loop mode leaves whole beats of room after your bar, so the full 1-2-3-4 count-in always shows and plays on the beat. Instructor feedback.</li>
+  <li>The Hear it / Hear + count / Retry / Start buttons are evenly spaced. Instructor feedback.</li>
+  <li>The microphone picker uses the same escaping as Note Sprint's picker (it was already there). Instructor feedback.</li>
+</ul>
+<h4>Fixed</h4>
+<ul>
+  <li>One note no longer counts the app's own click as extra notes: the click stops once your bar starts (unless the new setting is on), and a sound heard within 30 ms of a click is ignored. Instructor feedback.</li>
+  <li>A take with no notes heard says "No notes heard" and scores nothing: it is not counted in tries, averages or high scores. Instructor feedback.</li>
+  <li>The drum click now plays in Single tries (the first try started before the drum samples had loaded). Instructor feedback.</li>
+</ul>
+
+<h3>Version 2026-11-25.1 (live 2026-11-25)</h3>
+<h4>Changed</h4>
+<ul>
+  <li>Hear + count is voice only (no clap, no click): a spoken count-in bar, then every note, and "rest" said softly on a rest beat. Student feedback. <code>rhythm-trainer/index.html</code></li>
+  <li>New counting voice: every word spoken once by a neural voice, cut tight with no breath and no "t"/"th" tails, leveled, two lengths per word for fast tempos, scheduled on the audio clock so the vowel lands on the beat. <code>rhythm-trainer/count2/</code></li>
+</ul>
+<h4>Added</h4>
+<ul>
+  <li>Settings: Counting voice (warm woman, warm man, bright and friendly) and Count style (auto, beats, eighths, sixteenths). The count number lights up on the staff as it is spoken. <code>rhythm-trainer/index.html</code></li>
+</ul>
+
+<h3>Version 2026-11-24.1 (beta 2026-11-24)</h3>
+<h4>Fixed</h4>
+<ul>
+  <li>"Hear it" or "Hear + count" after a try no longer hides "Retry": you can still retry the same rhythm, and the hint says so. Beta tester request. <code>rhythm-trainer/index.html</code></li>
+</ul>
+<h4>Added</h4>
+<ul>
+  <li>Favicon: its own icon in the browser tab, bookmarks and the home screen (<code>shared/icons/rhythm-trainer.svg</code>, <code>-32.png</code>, <code>-180.png</code>). Beta tester request.</li>
+</ul>
+<h3>Version 2026-11-23.1 (beta 2026-11-23, live 2026-11-24)</h3>
+<h4>Changed</h4>
+<ul>
+  <li>Click, Volume and Voice controls line up in a tidy grid: Click on its own line, Volume and Voice side by side with equal sliders, Loop and 8th-note ticks side by side. Beta tester request. <code>rhythm-trainer/index.html</code></li>
+  <li>The play buttons stay on one line on phones: shorter names ("Hear + count", "Retry", "Next") and no icons under 520 px wide. Beta tester request.</li>
+</ul>
+<h3>Version 2026-11-21.1 (beta 2026-11-21, live 2026-11-23)</h3>
+<h4>Fixed</h4>
+<ul>
+  <li>Nothing on the page selects as text, however fast you tap; typing boxes still work. Beta tester request. <code>rhythm-trainer/index.html</code></li>
+</ul>
+<h3>Version 2026-11-20.10</h3>
+<h4>Changed</h4>
+<ul>
+  <li>Button names in help text are now in quotes (e.g. Press "Start"), a house rule for every app.</li>
+</ul>
+
+<h3>Version 2026-11-20.11</h3>
+<h4>Fixed</h4>
+<ul>
+  <li>Fast taps on the pad no longer select the "How it works" text below it on phones.</li>
+  <li>The page no longer slides while a rhythm is running; the pad ignores swipes.</li>
+</ul>
+
+<h3>Version 2026-11-20.9</h3>
+<h4>Added</h4>
+<ul>
+  <li>Pattern-based counting voice ships: one clip per beat pattern, full sets 60 to 132 BPM (20.8 was the work-in-progress step).</li>
+</ul>
+<h4>Changed</h4>
+<ul>
+  <li>Full-panel count-in flash; 0.9 s of quiet after Challenge round music.</li>
+</ul>
+<h4>Fixed</h4>
+<ul>
+  <li>Re-made voice clips that stretched too hard.</li>
+</ul>
+
+<h3>Version 2026-11-20.7</h3>
+<h4>Changed</h4>
+<ul>
+  <li>Drummer click plays the shaker on 8th-note ticks.</li>
+</ul>
+
+<h3>Version 2026-11-20.6</h3>
+<h4>Added</h4>
+<ul>
+  <li>One note mode grades how long each note is held.</li>
+</ul>
+
+<h3>Version 2026-11-20.5</h3>
+<h4>Changed</h4>
+<ul>
+  <li>Even gain structure: samples peak-normalized, master trimmed, woodblock and cowbell balanced.</li>
+</ul>
+
+<h3>Versions 2026-11-20.1 to 2026-11-20.4</h3>
+<h4>Added</h4>
+<ul>
+  <li>20.2: counting voice A (warm young voice), chosen from four candidate voices; preview page at <code>rhythm-trainer/count/preview.html</code> (not on the hub).</li>
+  <li>20.3: separate Voice volume.</li>
+</ul>
+<h4>Changed</h4>
+<ul>
+  <li>20.1: clearer spoken "and".</li>
+  <li>20.3: smooth spoken 16ths (quick clips, fades instead of cuts).</li>
+  <li>20.4: counting voice flow (natural stress, vowel on the beat).</li>
+</ul>
+
+<h3>Version 2026-11-19.10</h3>
+<h4>Added</h4>
+<ul>
+  <li>"Hear it + count": claps with a spoken count.</li>
+</ul>
+
+<h3>Versions 2026-11-19.1 to 2026-11-19.9</h3>
+<h4>Added</h4>
+<ul>
+  <li>19.2: volume slider.</li>
+  <li>19.4: practice loop (count, play, count, play until Stop).</li>
+  <li>19.6: Challenge flashes each rhythm's accuracy over the staff.</li>
+</ul>
+<h4>Changed</h4>
+<ul>
+  <li>19.1: more forgiving hold grading, lift allowance before the next note.</li>
+  <li>19.3: built-in 40 ms lead for Tap and MIDI so students rarely need to calibrate.</li>
+  <li>19.4: looser hit windows.</li>
+  <li>19.5: Kick + hat click = kick on 1, hi-hat on every quarter.</li>
+  <li>19.7: louder, brighter click.</li>
+  <li>19.8: volume back to 100% default, max 200%; quieter low end on the slider.</li>
+  <li>19.9: "More cowbell" uses a real recorded cowbell.</li>
+</ul>
+
+<h3>Version 2026-11-18.1</h3>
+<h4>Added</h4>
+<ul>
+  <li>MIDI activity light.</li>
+</ul>
+<h4>Fixed</h4>
+<ul>
+  <li>One note mode ignores claps.</li>
+</ul>
+
+<h3>Version 2026-11-13.4</h3>
+<h4>Fixed</h4>
+<ul>
+  <li>Clean rapid taps on phones; tap pad shows in Tap mode only.</li>
+</ul>
+
+<h3>Version 2026-11-13.3</h3>
+<h4>Added</h4>
+<ul>
+  <li>Share result button (<code>shared/share.js</code>); hidden during beta since 2026-11-19 (see Shared and site).</li>
+</ul>
+
+<h3>Version 2026-11-13.2</h3>
+<h4>Fixed</h4>
+<ul>
+  <li>MIDI keys count once on dual-port keyboards; bad timestamps fall back to arrival time; keyboard-delay hint until calibrated.</li>
+</ul>
+
+<h3>Version 2026-11-13.1</h3>
+<h4>Added</h4>
+<ul>
+  <li>Challenge complexity climbs across and inside rounds; click sound choices (including More cowbell); MIDI input.</li>
+</ul>
+
+<h3>Version 2026-11-12.2</h3>
+<h4>Fixed</h4>
+<ul>
+  <li>Hotfix: accuracy scores timing quality, not just catching the note.</li>
+</ul>
+
+<h3>Version 2026-11-12.1</h3>
+<h4>Added</h4>
+<ul>
+  <li>8th-note subdivision; two-column layout.</li>
+</ul>
+<h4>Changed</h4>
+<ul>
+  <li>One note mic detection rebuilt (onsets over sustain, click templates).</li>
+</ul>
+
+<h3>Versions 2026-11-11.20 to 2026-11-11.23</h3>
+<h4>Added</h4>
+<ul>
+  <li>11.21: time signatures 2/4, 3/4, 4/4 (default), 6/8.</li>
+  <li>11.23: hold grading in Tap mode.</li>
+</ul>
+<h4>Fixed</h4>
+<ul>
+  <li>11.22: One note mode catches fast re-strikes.</li>
+  <li>11.20: published with no separate notes recorded.</li>
+</ul>
+
+<h3>Versions 2026-11-11.17 to 2026-11-11.19</h3>
+<h4>Changed</h4>
+<ul>
+  <li>11.17: round targets softened from 1.1x to 1.05x (Derek's call).</li>
+  <li>11.18: 60-second sprint removed; Challenge only.</li>
+  <li>11.19: Challenge faster plus accuracy (8% per round, toggle), no Retry round, per-mode calibration, readable round screens.</li>
+</ul>
+<h4>Fixed</h4>
+<ul>
+  <li>11.19: Note / Clap beat-1 and late-onset fixes; echo cancellation off.</li>
+</ul>
+
+<h3>Versions 2026-11-11.3 to 2026-11-11.16</h3>
+<h4>Added</h4>
+<ul>
+  <li>11.4: warm woodblock click instead of beeps.</li>
+  <li>11.5: Single tries (default) and Challenge mode (warm-up sets targets, 5 rounds + bonus).</li>
+  <li>11.6: no-cursor option; notes light up when they should be hit.</li>
+  <li>11.7: sample-accurate snap / clap detector.</li>
+</ul>
+<h4>Changed</h4>
+<ul>
+  <li>11.3: mic ignores the app's own clicks; "Hear it" plays handclaps.</li>
+  <li>11.8: restyled to the shared CHMA design system.</li>
+  <li>11.9: engraving by the book (16th rest glyph, half rests, wider 16th spacing).</li>
+</ul>
+<h4>Fixed</h4>
+<ul>
+  <li>11.10 to 11.16: audit and fuzz rounds (double-counted claps, fair windows next to rests, corrupt saved state, Notion mic handling with "Open full screen", timer races, Stop silences the bar, engraved rests, calibration isolation).</li>
+</ul>
+
+<h3>(version not recorded) 2026-11-04</h3>
+<h4>Added</h4>
+<ul>
+  <li>First release: 8 levels (including 3 syncopation), notation over a tap timeline, timing grades, calibration.</li>
+  <li>Clap or snap mic mode.</li>
+</ul>
+
+<!-- ============================================================ -->
 <h2>Modal Metronome — drum-machine/</h2>
 <p class="note">Started 2026-11-03 as "Groove Metronome"; renamed Modal Metronome 2026-11-05. Sound folders: <code>drum-machine/kits/</code>, <code>drum-machine/bass/</code>, <code>drum-machine/keys/</code>.</p>
 
@@ -1322,252 +1582,6 @@
   <li>First release on GitHub Pages: stopwatch countdown, register-exact keyboard, key signatures, mic mode, Intervals level.</li>
   <li>Challenge mode (arcade rounds, rising pace), per-clef note ranges, landmark notes, Try again / Show me.</li>
   <li>Mic pitch detection (YIN) that learns the piano's tuning; keyboard at finger size centred on the notes in play.</li>
-</ul>
-
-<!-- ============================================================ -->
-<h2>Rhythm Trainer — rhythm-trainer/</h2>
-<p class="note">Counting voice clips live in <code>rhythm-trainer/count/</code>; <code>rhythm-trainer/count/preview.html</code> is a voice preview page (not on the hub).</p>
-
-<h3>Version 2026-11-28.1 (beta 2026-11-28)</h3>
-<h4>Changed</h4>
-<ul>
-  <li>New picture favicon and home-screen icon in place of the two-letter one (beta tester request): <code>shared/icons/rhythm-trainer-v2.svg</code>, <code>-v2-32.png</code>, <code>-v2-180.png</code>, linked from <code>rhythm-trainer/index.html</code>. Same colour as before; the old icon files stay in place. Looks only; nothing else changed.</li>
-</ul>
-
-<h3>Version 2026-11-25.2 (built 2026-11-25)</h3>
-<h4>Added</h4>
-<ul>
-  <li>Tap mode plays a chosen sound on every tap (Clap, Snap, Hand drum, Woodblock, Cowbell, Rimshot, Shaker, Tambourine or Off), with its own volume, separate from the click. The choice is remembered on the device. Instructor feedback. <code>rhythm-trainer/index.html</code></li>
-  <li>Coaching under the score: one to three short lines, worst problem first, each naming its note (early or late by how many ms, let go early, held too long, missed, extra sounds). The note is ringed on the staff. Hold-length lines show in One note and MIDI only. Instructor feedback.</li>
-  <li>Settings: "One note: keep the click going while I play (headphones only)". Off by default. Instructor feedback.</li>
-  <li>How it works now spells out the scoring rubric and the Challenge round rule in plain words. Instructor feedback.</li>
-</ul>
-<h4>Changed</h4>
-<ul>
-  <li>Challenge rounds are passed on overall accuracy (75% in Round 2, rising to 80%, then 85% in the bonus round) with no more than 1 missed note, not on a count of perfect hits. The rule shows on the round screen, in the round meter and on the results. A round shows one tempo range. Instructor feedback.</li>
-  <li>Separate timing windows for MIDI, tap and microphone; a note held for at least 75% of its written length counts as fully held (lifting a finger between piano notes is not penalized). Instructor feedback.</li>
-  <li>Loop mode leaves whole beats of room after your bar, so the full 1-2-3-4 count-in always shows and plays on the beat. Instructor feedback.</li>
-  <li>The Hear it / Hear + count / Retry / Start buttons are evenly spaced. Instructor feedback.</li>
-  <li>The microphone picker uses the same escaping as Note Sprint's picker (it was already there). Instructor feedback.</li>
-</ul>
-<h4>Fixed</h4>
-<ul>
-  <li>One note no longer counts the app's own click as extra notes: the click stops once your bar starts (unless the new setting is on), and a sound heard within 30 ms of a click is ignored. Instructor feedback.</li>
-  <li>A take with no notes heard says "No notes heard" and scores nothing: it is not counted in tries, averages or high scores. Instructor feedback.</li>
-  <li>The drum click now plays in Single tries (the first try started before the drum samples had loaded). Instructor feedback.</li>
-</ul>
-
-<h3>Version 2026-11-25.1 (live 2026-11-25)</h3>
-<h4>Changed</h4>
-<ul>
-  <li>Hear + count is voice only (no clap, no click): a spoken count-in bar, then every note, and "rest" said softly on a rest beat. Student feedback. <code>rhythm-trainer/index.html</code></li>
-  <li>New counting voice: every word spoken once by a neural voice, cut tight with no breath and no "t"/"th" tails, leveled, two lengths per word for fast tempos, scheduled on the audio clock so the vowel lands on the beat. <code>rhythm-trainer/count2/</code></li>
-</ul>
-<h4>Added</h4>
-<ul>
-  <li>Settings: Counting voice (warm woman, warm man, bright and friendly) and Count style (auto, beats, eighths, sixteenths). The count number lights up on the staff as it is spoken. <code>rhythm-trainer/index.html</code></li>
-</ul>
-
-<h3>Version 2026-11-24.1 (beta 2026-11-24)</h3>
-<h4>Fixed</h4>
-<ul>
-  <li>"Hear it" or "Hear + count" after a try no longer hides "Retry": you can still retry the same rhythm, and the hint says so. Beta tester request. <code>rhythm-trainer/index.html</code></li>
-</ul>
-<h4>Added</h4>
-<ul>
-  <li>Favicon: its own icon in the browser tab, bookmarks and the home screen (<code>shared/icons/rhythm-trainer.svg</code>, <code>-32.png</code>, <code>-180.png</code>). Beta tester request.</li>
-</ul>
-<h3>Version 2026-11-23.1 (beta 2026-11-23, live 2026-11-24)</h3>
-<h4>Changed</h4>
-<ul>
-  <li>Click, Volume and Voice controls line up in a tidy grid: Click on its own line, Volume and Voice side by side with equal sliders, Loop and 8th-note ticks side by side. Beta tester request. <code>rhythm-trainer/index.html</code></li>
-  <li>The play buttons stay on one line on phones: shorter names ("Hear + count", "Retry", "Next") and no icons under 520 px wide. Beta tester request.</li>
-</ul>
-<h3>Version 2026-11-21.1 (beta 2026-11-21, live 2026-11-23)</h3>
-<h4>Fixed</h4>
-<ul>
-  <li>Nothing on the page selects as text, however fast you tap; typing boxes still work. Beta tester request. <code>rhythm-trainer/index.html</code></li>
-</ul>
-<h3>Version 2026-11-20.10</h3>
-<h4>Changed</h4>
-<ul>
-  <li>Button names in help text are now in quotes (e.g. Press "Start"), a house rule for every app.</li>
-</ul>
-
-<h3>Version 2026-11-20.11</h3>
-<h4>Fixed</h4>
-<ul>
-  <li>Fast taps on the pad no longer select the "How it works" text below it on phones.</li>
-  <li>The page no longer slides while a rhythm is running; the pad ignores swipes.</li>
-</ul>
-
-<h3>Version 2026-11-20.9</h3>
-<h4>Added</h4>
-<ul>
-  <li>Pattern-based counting voice ships: one clip per beat pattern, full sets 60 to 132 BPM (20.8 was the work-in-progress step).</li>
-</ul>
-<h4>Changed</h4>
-<ul>
-  <li>Full-panel count-in flash; 0.9 s of quiet after Challenge round music.</li>
-</ul>
-<h4>Fixed</h4>
-<ul>
-  <li>Re-made voice clips that stretched too hard.</li>
-</ul>
-
-<h3>Version 2026-11-20.7</h3>
-<h4>Changed</h4>
-<ul>
-  <li>Drummer click plays the shaker on 8th-note ticks.</li>
-</ul>
-
-<h3>Version 2026-11-20.6</h3>
-<h4>Added</h4>
-<ul>
-  <li>One note mode grades how long each note is held.</li>
-</ul>
-
-<h3>Version 2026-11-20.5</h3>
-<h4>Changed</h4>
-<ul>
-  <li>Even gain structure: samples peak-normalized, master trimmed, woodblock and cowbell balanced.</li>
-</ul>
-
-<h3>Versions 2026-11-20.1 to 2026-11-20.4</h3>
-<h4>Added</h4>
-<ul>
-  <li>20.2: counting voice A (warm young voice), chosen from four candidate voices; preview page at <code>rhythm-trainer/count/preview.html</code> (not on the hub).</li>
-  <li>20.3: separate Voice volume.</li>
-</ul>
-<h4>Changed</h4>
-<ul>
-  <li>20.1: clearer spoken "and".</li>
-  <li>20.3: smooth spoken 16ths (quick clips, fades instead of cuts).</li>
-  <li>20.4: counting voice flow (natural stress, vowel on the beat).</li>
-</ul>
-
-<h3>Version 2026-11-19.10</h3>
-<h4>Added</h4>
-<ul>
-  <li>"Hear it + count": claps with a spoken count.</li>
-</ul>
-
-<h3>Versions 2026-11-19.1 to 2026-11-19.9</h3>
-<h4>Added</h4>
-<ul>
-  <li>19.2: volume slider.</li>
-  <li>19.4: practice loop (count, play, count, play until Stop).</li>
-  <li>19.6: Challenge flashes each rhythm's accuracy over the staff.</li>
-</ul>
-<h4>Changed</h4>
-<ul>
-  <li>19.1: more forgiving hold grading, lift allowance before the next note.</li>
-  <li>19.3: built-in 40 ms lead for Tap and MIDI so students rarely need to calibrate.</li>
-  <li>19.4: looser hit windows.</li>
-  <li>19.5: Kick + hat click = kick on 1, hi-hat on every quarter.</li>
-  <li>19.7: louder, brighter click.</li>
-  <li>19.8: volume back to 100% default, max 200%; quieter low end on the slider.</li>
-  <li>19.9: "More cowbell" uses a real recorded cowbell.</li>
-</ul>
-
-<h3>Version 2026-11-18.1</h3>
-<h4>Added</h4>
-<ul>
-  <li>MIDI activity light.</li>
-</ul>
-<h4>Fixed</h4>
-<ul>
-  <li>One note mode ignores claps.</li>
-</ul>
-
-<h3>Version 2026-11-13.4</h3>
-<h4>Fixed</h4>
-<ul>
-  <li>Clean rapid taps on phones; tap pad shows in Tap mode only.</li>
-</ul>
-
-<h3>Version 2026-11-13.3</h3>
-<h4>Added</h4>
-<ul>
-  <li>Share result button (<code>shared/share.js</code>); hidden during beta since 2026-11-19 (see Shared and site).</li>
-</ul>
-
-<h3>Version 2026-11-13.2</h3>
-<h4>Fixed</h4>
-<ul>
-  <li>MIDI keys count once on dual-port keyboards; bad timestamps fall back to arrival time; keyboard-delay hint until calibrated.</li>
-</ul>
-
-<h3>Version 2026-11-13.1</h3>
-<h4>Added</h4>
-<ul>
-  <li>Challenge complexity climbs across and inside rounds; click sound choices (including More cowbell); MIDI input.</li>
-</ul>
-
-<h3>Version 2026-11-12.2</h3>
-<h4>Fixed</h4>
-<ul>
-  <li>Hotfix: accuracy scores timing quality, not just catching the note.</li>
-</ul>
-
-<h3>Version 2026-11-12.1</h3>
-<h4>Added</h4>
-<ul>
-  <li>8th-note subdivision; two-column layout.</li>
-</ul>
-<h4>Changed</h4>
-<ul>
-  <li>One note mic detection rebuilt (onsets over sustain, click templates).</li>
-</ul>
-
-<h3>Versions 2026-11-11.20 to 2026-11-11.23</h3>
-<h4>Added</h4>
-<ul>
-  <li>11.21: time signatures 2/4, 3/4, 4/4 (default), 6/8.</li>
-  <li>11.23: hold grading in Tap mode.</li>
-</ul>
-<h4>Fixed</h4>
-<ul>
-  <li>11.22: One note mode catches fast re-strikes.</li>
-  <li>11.20: published with no separate notes recorded.</li>
-</ul>
-
-<h3>Versions 2026-11-11.17 to 2026-11-11.19</h3>
-<h4>Changed</h4>
-<ul>
-  <li>11.17: round targets softened from 1.1x to 1.05x (Derek's call).</li>
-  <li>11.18: 60-second sprint removed; Challenge only.</li>
-  <li>11.19: Challenge faster plus accuracy (8% per round, toggle), no Retry round, per-mode calibration, readable round screens.</li>
-</ul>
-<h4>Fixed</h4>
-<ul>
-  <li>11.19: Note / Clap beat-1 and late-onset fixes; echo cancellation off.</li>
-</ul>
-
-<h3>Versions 2026-11-11.3 to 2026-11-11.16</h3>
-<h4>Added</h4>
-<ul>
-  <li>11.4: warm woodblock click instead of beeps.</li>
-  <li>11.5: Single tries (default) and Challenge mode (warm-up sets targets, 5 rounds + bonus).</li>
-  <li>11.6: no-cursor option; notes light up when they should be hit.</li>
-  <li>11.7: sample-accurate snap / clap detector.</li>
-</ul>
-<h4>Changed</h4>
-<ul>
-  <li>11.3: mic ignores the app's own clicks; "Hear it" plays handclaps.</li>
-  <li>11.8: restyled to the shared CHMA design system.</li>
-  <li>11.9: engraving by the book (16th rest glyph, half rests, wider 16th spacing).</li>
-</ul>
-<h4>Fixed</h4>
-<ul>
-  <li>11.10 to 11.16: audit and fuzz rounds (double-counted claps, fair windows next to rests, corrupt saved state, Notion mic handling with "Open full screen", timer races, Stop silences the bar, engraved rests, calibration isolation).</li>
-</ul>
-
-<h3>(version not recorded) 2026-11-04</h3>
-<h4>Added</h4>
-<ul>
-  <li>First release: 8 levels (including 3 syncopation), notation over a tap timeline, timing grades, calibration.</li>
-  <li>Clap or snap mic mode.</li>
 </ul>
 
 <!-- ============================================================ -->
