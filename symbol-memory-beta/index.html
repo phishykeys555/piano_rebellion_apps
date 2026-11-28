@@ -194,7 +194,7 @@ h2[tabindex]:focus{outline:none}
 .defpop b{display:block;font-size:24px;line-height:1.15;color:var(--good);margin-bottom:6px}
 .defpop span{display:block;font-size:18px;line-height:1.4}
 .defpop small{display:block;margin-top:8px;font-size:12px;opacity:.6}
-</style><link rel="icon" type="image/svg+xml" href="../shared/icons/symbol-memory.svg"><link rel="icon" type="image/png" sizes="32x32" href="../shared/icons/symbol-memory-32.png"><link rel="apple-touch-icon" href="../shared/icons/symbol-memory-180.png">
+</style><link rel="icon" type="image/svg+xml" href="../shared/icons/symbol-memory-v2.svg"><link rel="icon" type="image/png" sizes="32x32" href="../shared/icons/symbol-memory-v2-32.png"><link rel="apple-touch-icon" href="../shared/icons/symbol-memory-v2-180.png">
 </head>
 <body>
 <div class="scrim" id="scrim"></div>
@@ -230,7 +230,7 @@ h2[tabindex]:focus{outline:none}
       <label><input type="checkbox" id="speakOn" checked> Read each meaning aloud after a match</label>
       <label class="selrow">Voice <select id="voiceSel"><option value="">Most natural on this device</option></select></label>
     </details>
-    <p class="appver" id="appVer">Symbol Memory · Version 2026-11-24.1</p>
+    <p class="appver" id="appVer">Symbol Memory · Version 2026-11-28.1</p>
     <p class="credit">Music symbols: <a href="https://github.com/steinbergmedia/bravura" target="_blank" rel="noopener">Bravura</a> by Steinberg, <a href="fonts/OFL.txt" target="_blank" rel="noopener">SIL Open Font License</a>.</p>
   </aside>
 
@@ -278,7 +278,7 @@ h2[tabindex]:focus{outline:none}
 <script>
 (()=>{
 const $=id=>document.getElementById(id);
-const VERSION="2026-11-24.1";
+const VERSION="2026-11-28.1";
 const qs=new URLSearchParams(location.search), FAST=qs.has("fast");
 const store={get(k,d){try{const v=localStorage.getItem("sm-"+k);return v==null?d:JSON.parse(v)}catch(e){return d}},set(k,v){try{localStorage.setItem("sm-"+k,JSON.stringify(v))}catch(e){}}};
 const reduced=()=>!!(window.matchMedia&&matchMedia("(prefers-reduced-motion: reduce)").matches);
