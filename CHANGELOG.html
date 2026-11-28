@@ -41,532 +41,340 @@
 </ul>
 
 <!-- ============================================================ -->
-<h2>Scale Climber — scale-climber/</h2>
-
-<h3>Version 2026-11-26.1 (beta 2026-11-26)</h3>
-<h4>Added</h4>
-<ul>
-  <li>Microphone picker like Note Sprint's: choose the microphone, see the Level bar; the choice is remembered on this device. Student feedback.</li>
-  <li>Tempo -5, -1, +1, +5 and "Tap"; click sound picker and click volume (Rhythm Trainer's sounds; ringing pitched sounds switch to the classic click while you sing); count-in of 2 clicks, 1 bar or 2 bars; "Calibrate timing" in "Settings" (timing grade only). Owner request.</li>
-  <li>"Piano volume" slider next to "Hear it" (same setting as "Tone volume" in "Settings"). Student feedback.</li>
-  <li>"Share result" button on the results (hidden site-wide during beta), "How it works" panel, and keys: Space Start/Stop, H "Hear it", Enter "Next level", Esc "Back". Beta tester request.</li>
-  <li>Saved on this device: best climb per level and voice type, the last 10 climbs ("History" in "Settings", with "Clear"), practice-day streak; "New best!" on the results. Beta tester request.</li>
-  <li>"Settings": "Loop" (stay in the same key), "Sing with me (easier)", "Music on round screens", "Copy log". Student feedback.</li>
-</ul>
-<h4>Changed</h4>
-<ul>
-  <li>The pattern and reference notes are now a real grand piano (the Drum Machine's samples, <code>drum-machine/keys/grand/</code>), with low notes lifted automatically. Student feedback.</li>
-  <li>Respects reduced motion. Shared code moved to new files so the live apps and Ear Trainer are untouched until this goes live: <code>shared/voice-apps.js</code>, <code>shared/voice-pitch2.js</code>, <code>shared/voice-apps2.css</code>.</li>
-</ul>
-<h4>Fixed</h4>
-<ul>
-  <li>Stopping a climb early now stops the click and the notes already scheduled, and pressing "Start" again can never start a second metronome. Beta tester request.</li>
-</ul>
-<h3>Version 2026-11-24.1 (beta 2026-11-24)</h3>
-<h4>Added</h4>
-<ul>
-  <li>Favicon: its own icon in the browser tab, bookmarks and the home screen (<code>shared/icons/scale-climber.svg</code>, <code>-32.png</code>, <code>-180.png</code>). Beta tester request.</li>
-</ul>
-<h3>Version 2026-11-20.2</h3>
-<h4>Changed</h4>
-<ul>
-  <li>Button names in help text are now in quotes (e.g. Press "Start"), a house rule for every app.</li>
-</ul>
-
-<h3>Version 2026-11-20.1</h3>
-<h4>Added</h4>
-<ul>
-  <li>New singing app (Sing apps); shared voice pitch engine. Listed on the hub.</li>
-</ul>
-
-<!-- ============================================================ -->
-<h2>Hold Steady — hold-steady/</h2>
-
-<h3>Version 2026-11-26.1 (beta 2026-11-26)</h3>
-<h4>Added</h4>
-<ul>
-  <li>Microphone picker like Note Sprint's: choose the microphone, see the Level bar; the choice is remembered on this device. Student feedback.</li>
-  <li>"Piano volume" slider next to "Hear it" (same setting as "Tone volume" in "Settings"). Student feedback.</li>
-  <li>"Share result" button on the results (hidden site-wide during beta), "How it works" panel, and keys: Space Start/Stop, H "Hear it", Enter "Next level", Esc "Back". Beta tester request.</li>
-  <li>Saved on this device: best hold per level and voice type, the last 10 holds ("History" in "Settings", with "Clear"), practice-day streak; "New best!" on the results. Beta tester request.</li>
-  <li>"Settings": "Loop" (the same hold again until "Stop"), "Sing with me (easier)", "Drone" (your note an octave away on piano), "Music on round screens", "Copy log". Student feedback.</li>
-</ul>
-<h4>Changed</h4>
-<ul>
-  <li>The reference note is now a real grand piano (the Drum Machine's samples, <code>drum-machine/keys/grand/</code>), with low notes lifted automatically. Student feedback.</li>
-  <li>Respects reduced motion. Shared code moved to new files so the live apps and Ear Trainer are untouched until this goes live: <code>shared/voice-apps.js</code>, <code>shared/voice-pitch2.js</code>, <code>shared/voice-apps2.css</code>.</li>
-  <li>Note +/- buttons are locked while Loop is running.</li>
-</ul>
-<h3>Version 2026-11-24.1 (beta 2026-11-24)</h3>
-<h4>Added</h4>
-<ul>
-  <li>Favicon: its own icon in the browser tab, bookmarks and the home screen (<code>shared/icons/hold-steady.svg</code>, <code>-32.png</code>, <code>-180.png</code>). Beta tester request.</li>
-</ul>
-<h3>Version 2026-11-20.2</h3>
-<h4>Changed</h4>
-<ul>
-  <li>Button names in help text are now in quotes (e.g. Press "Start"), a house rule for every app.</li>
-</ul>
-
-<h3>Version 2026-11-20.1</h3>
-<h4>Added</h4>
-<ul>
-  <li>New singing app (Sing apps); shared voice pitch engine. Listed on the hub.</li>
-</ul>
-
-<h2>Match Point — match-point/</h2>
-
-<h3>Version 2026-11-26.1 (beta 2026-11-26)</h3>
-<h4>Added</h4>
-<ul>
-  <li>Microphone picker like Note Sprint's: choose the microphone, see the Level bar; the choice is remembered on this device. Student feedback.</li>
-  <li>"Piano volume" slider next to "Hear it" (same setting as "Tone volume" in "Settings"). Student feedback.</li>
-  <li>"Share result" button on the results (hidden site-wide during beta), "How it works" panel, and keys: Space Start/Stop, H "Hear it", Enter "Next level", Esc "Back". Beta tester request.</li>
-  <li>Saved on this device: best result per level and voice type, the last 10 rounds ("History" in "Settings", with "Clear"), practice-day streak; "New best!" on the results. Beta tester request.</li>
-  <li>"Settings": "Loop" (the same note all round), "Sing with me (easier)", "Drone" (the key note on piano, quietly all round), "Music on round screens" (<code>shared/hype.js</code>), "Copy log". Student feedback.</li>
-</ul>
-<h4>Changed</h4>
-<ul>
-  <li>The reference note is now a real grand piano (the Drum Machine's samples, <code>drum-machine/keys/grand/</code>), with low notes lifted automatically. Student feedback.</li>
-  <li>Respects reduced motion. Shared code moved to new files so the live apps and Ear Trainer are untouched until this goes live: <code>shared/voice-apps.js</code>, <code>shared/voice-pitch2.js</code>, <code>shared/voice-apps2.css</code>.</li>
-</ul>
-<h3>Version 2026-11-24.1 (beta 2026-11-24)</h3>
-<h4>Added</h4>
-<ul>
-  <li>Favicon: its own icon in the browser tab, bookmarks and the home screen (<code>shared/icons/match-point.svg</code>, <code>-32.png</code>, <code>-180.png</code>). Beta tester request.</li>
-</ul>
-<h3>Version 2026-11-20.2</h3>
-<h4>Changed</h4>
-<ul>
-  <li>Button names in help text are now in quotes (e.g. Press "Start"), a house rule for every app.</li>
-</ul>
-
-<h3>Version 2026-11-20.1</h3>
-<h4>Added</h4>
-<ul>
-  <li>New singing app (one of three "Sing apps"); uses <code>shared/voice-pitch.js</code> and <code>shared/voice-apps.css</code>. Listed on the hub.</li>
-</ul>
-
-<h2>Piano Strobe Tuner — piano-tuner/ (not on the hub)</h2>
-
-<p class="note">Built 2026-11-26 from the Guitar Revolution Strobe Tuner engine. Reference tone uses the grand piano samples in <code>drum-machine/keys/grand/</code>.</p>
-
-<h3>Version 2026-11-26.1 (beta 2026-11-26)</h3>
-<h4>Added</h4>
-<ul>
-  <li>New app: a strobe tuner for all 88 piano keys, A0 to C8. It has every Strobe Tuner feature (strobe, A4 calibrate, in-tune window, sharps or flats, microphone level bar, no-sound warning). It finds the note on its own and shows its octave (A4). An 88-key strip lights the key it hears. Owner request. <code>piano-tuner/index.html</code>, <code>piano-tuner/tuner-worklet.js</code></li>
-  <li>Built for piano sound: the bass notes read correctly even when their lowest tone is weak (it works them out from the higher partials and allows for string stiffness), the top notes up to C8 read correctly, and the last reading stays on screen while a key fades out. Owner request.</li>
-  <li>"Hear" and tapping a key on the strip play the note on the grand piano recordings. Tuning check lists every key held until it settled, with its cents. How it works lists the keyboard shortcuts. Settings and the tuning check are saved on the device. The microphone picker matches Note Sprint's. Owner request.</li>
-  <li>Favicon: its own icon in the browser tab, bookmarks and the home screen (<code>shared/icons/piano-tuner.svg</code>, <code>-32.png</code>, <code>-180.png</code>).</li>
-</ul>
-
-<h2>Guitar Revolution Strobe Tuner — guitar-tuner/</h2>
-
-<h3>Version 2026-11-26.1 (beta 2026-11-26)</h3>
-<h4>Changed</h4>
-<ul>
-  <li>Settings, Microphone: now follows Note Sprint's picker. Every input is listed by name with the one in use selected, and a Level meter sits under the list with a line where the tuner starts hearing. The chosen microphone is still remembered on this device. Owner request. <code>guitar-tuner/index.html</code></li>
-</ul>
-
-<h3>Version 2026-11-24.2 (beta 2026-11-24)</h3>
-<h4>Added</h4>
-<ul>
-  <li>Microphone level bar next to the status line, so you can see at once whether the guitar reaches the tuner. <code>guitar-tuner/index.html</code></li>
-  <li>Settings: "Microphone" picker (every input the browser sees; the choice is remembered; an unplugged mic falls back to the default). Derek request: the tuner did not hear the guitar on a computer.</li>
-  <li>After 5 seconds of total silence the status says no sound is reaching the tuner and points to the picker.</li>
-</ul>
-<h3>Version 2026-11-24.1 (beta 2026-11-24)</h3>
-<h4>Added</h4>
-<ul>
-  <li>Favicon: its own icon in the browser tab, bookmarks and the home screen (<code>shared/icons/guitar-tuner.svg</code>, <code>-32.png</code>, <code>-180.png</code>). Beta tester request.</li>
-  <li>Page title now ends in "Clarendon Hills Music Academy". Beta tester request.</li>
-</ul>
-<h3>Version 2026-11-20.1</h3>
-<h4>Changed</h4>
-<ul>
-  <li>Button names in help text are now in quotes (e.g. Press "Start"), a house rule for every app.</li>
-</ul>
-
-<h3>Version 2026-11-13.1</h3>
-<h4>Added</h4>
-<ul>
-  <li>Share button.</li>
-</ul>
-<h3>Version 2026-11-12.1</h3>
-<h4>Changed</h4>
-<ul>
-  <li>One screen, always on, always auto (no power switch, no string picking, no reference tone).</li>
-</ul>
-<h3>Versions 2026-11-11.2 to 2026-11-11.6</h3>
-<h4>Added</h4>
-<ul>
-  <li>11.2: first release, true strobe display.</li>
-</ul>
-<h4>Fixed</h4>
-<ul>
-  <li>11.5: hum rejection, inharmonicity correction, quiet input, sympathetic strings.</li>
-  <li>11.6: wake lock release, mic cancel and resume on tap.</li>
-</ul>
-
-<!-- ============================================================ -->
-<h2>Note Sprint — note-sprint/</h2>
-
-<h3>Version 2026-11-26.1 (beta 2026-11-26)</h3>
-<h4>Changed</h4>
-<ul>
-  <li>Footer line (app name, academy link, version, Send feedback) now matches the other apps: 11 px monospace, faded, centered (was 14 px). Beta tester request. <code>note-sprint/index.html</code></li>
-</ul>
-
-<h3>Version 2026-11-24.1 (beta 2026-11-24)</h3>
-<h4>Added</h4>
-<ul>
-  <li>Favicon: its own icon in the browser tab, bookmarks and the home screen (<code>shared/icons/note-sprint.svg</code>, <code>-32.png</code>, <code>-180.png</code>). Beta tester request.</li>
-  <li>Page title now ends in "Clarendon Hills Music Academy". Beta tester request.</li>
-</ul>
-<h3>Version 2026-11-20.1</h3>
-<h4>Changed</h4>
-<ul>
-  <li>Button names in help text are now in quotes (e.g. Press "Start"), a house rule for every app.</li>
-  <li>"Paste it to your teacher" now says "instructor".</li>
-</ul>
-
-<h3>Version 2026-11-19.4</h3>
-<h4>Changed</h4>
-<ul>
-  <li>Space levels include the spaces just below and above the staff (committed 2026-11-20).</li>
-</ul>
-
-<h3>Versions 2026-11-19.1 to 2026-11-19.3</h3>
-<h4>Added</h4>
-<ul>
-  <li>19.2: preset levels (treble / bass spaces, lines, all; upper / lower ledgers; all + ledgers).</li>
-  <li>19.3: Middle C zone level; Both hands at level 7.</li>
-</ul>
-<h4>Changed</h4>
-<ul>
-  <li>19.1: Challenge rebuilt as an arcade ladder (fixed running-total targets, points carry over, no warm-up baseline).</li>
-  <li>19.3: ledger levels capped at 2 lines.</li>
-</ul>
-
-<h3>Versions 2026-11-18.1 to 2026-11-18.3</h3>
-<h4>Added</h4>
-<ul>
-  <li>18.1: MIDI activity light.</li>
-</ul>
-<h4>Changed</h4>
-<ul>
-  <li>18.2: Custom settings in one clean column.</li>
-  <li>18.3: no note sounds in MIDI mode.</li>
-</ul>
-
-<h3>Versions 2026-11-13.1 to 2026-11-13.4</h3>
-<h4>Added</h4>
-<ul>
-  <li>13.1: levels Treble spaces, Bass spaces, Treble ledgers, Bass ledgers; Ledger-lines-only option in Custom.</li>
-  <li>13.2 / 13.3: MIDI input (shared MIDI block v1.1).</li>
-  <li>13.4: Share result button (hidden during beta since 2026-11-19).</li>
-</ul>
-
-<h3>Versions 2026-11-11.12 and 2026-11-12.1 (mic rebuild)</h3>
-<h4>Added</h4>
-<ul>
-  <li>11.12: music on round screens (<code>shared/hype.js</code>); the mic ignores it while it plays.</li>
-</ul>
-<h4>Changed</h4>
-<ul>
-  <li>Mic recognition rebuilt for digital pianos (tail-aware pitch, clipped strikes, low bass, F5 / G5); two-column layout. Published as 2026-11-12.1; the 11.13 build was the in-progress step.</li>
-</ul>
-
-<h3>Versions 2026-11-11.1 to 2026-11-11.11</h3>
-<h4>Changed</h4>
-<ul>
-  <li>11.1: restyled to the shared CHMA design system.</li>
-  <li>11.8: round targets softened to 1.05x (Derek's call).</li>
-  <li>11.9: 60-second sprint removed; Challenge only.</li>
-  <li>11.10: Retry round removed from challenge results (Derek).</li>
-  <li>11.11: round screens stay up long enough to read; second try off by default.</li>
-</ul>
-<h4>Fixed</h4>
-<ul>
-  <li>11.2 to 11.7: audit and fuzz rounds (accidental collisions, enharmonic feedback, iOS resize, Notion mic with "Open full screen", timer races, challenge score leaking into the practice board).</li>
-</ul>
-
-<h3>Versions 2026-11-10.1 to 2026-11-10.3</h3>
-<h4>Changed</h4>
-<ul>
-  <li>10.1: name field removed and any stored name cleared (privacy).</li>
-  <li>10.2: talking never counts as a note.</li>
-  <li>10.3: faster, steadier mic.</li>
-</ul>
-
-<h3>Versions 2026-11-05.4 to 2026-11-05.10</h3>
-<h4>Added</h4>
-<ul>
-  <li>05.4: visible version tag.</li>
-  <li>05.9: Lines only / Spaces only setting; fireworks at 90%+ accuracy.</li>
-</ul>
-<h4>Changed</h4>
-<ul>
-  <li>05.5: academy name linked to the studio website.</li>
-  <li>05.6 / 05.7: challenge targets ramp round to round.</li>
-  <li>05.10: mic status messages in a calm, readable card.</li>
-</ul>
-
-<h3>(version not recorded) 2026-11-03 to 2026-11-05</h3>
-<h4>Added</h4>
-<ul>
-  <li>First release on GitHub Pages: stopwatch countdown, register-exact keyboard, key signatures, mic mode, Intervals level.</li>
-  <li>Challenge mode (arcade rounds, rising pace), per-clef note ranges, landmark notes, Try again / Show me.</li>
-  <li>Mic pitch detection (YIN) that learns the piano's tuning; keyboard at finger size centred on the notes in play.</li>
-</ul>
-
-<!-- ============================================================ -->
-<h2>Key Finder — key-finder/</h2>
-
-<h3>Version 2026-11-26.1 (beta 2026-11-26)</h3>
-<h4>Changed</h4>
-<ul>
-  <li>Footer line (app name, academy link, version, Send feedback) now matches the other apps: 11 px, faded, centered (was 14 px). Beta tester request. <code>key-finder/index.html</code></li>
-</ul>
-<h3>Version 2026-11-24.1 (beta 2026-11-24)</h3>
-<h4>Changed</h4>
-<ul>
-  <li>The Level button row starts 16 px in from the left edge, like Note Sprint's, and stays there when it scrolls (scroll padding). Beta tester request. <code>key-finder/index.html</code></li>
-</ul>
-<h4>Added</h4>
-<ul>
-  <li>Favicon: its own icon in the browser tab, bookmarks and the home screen (<code>shared/icons/key-finder.svg</code>, <code>-32.png</code>, <code>-180.png</code>). Beta tester request.</li>
-</ul>
-<h3>Version 2026-11-20.1</h3>
-<h4>Changed</h4>
-<ul>
-  <li>Button names in help text are now in quotes (e.g. Press "Start"), a house rule for every app.</li>
-  <li>"Paste it to your teacher" now says "instructor".</li>
-</ul>
-
-<h3>Version 2026-11-18.1</h3>
-<h4>Added</h4>
-<ul>
-  <li>MIDI activity light.</li>
-</ul>
-<h3>Versions 2026-11-13.1 to 2026-11-13.3</h3>
-<h4>Added</h4>
-<ul>
-  <li>13.1: MIDI input; "Play my piano".</li>
-  <li>13.3: Share result button (hidden during beta since 2026-11-19).</li>
-</ul>
-<h4>Fixed</h4>
-<ul>
-  <li>13.2: shared MIDI block v1.1.</li>
-</ul>
-<h3>Version 2026-11-12.1</h3>
-<h4>Changed</h4>
-<ul>
-  <li>Layout pass: main button always on screen.</li>
-</ul>
-<h3>Versions 2026-11-11.1 to 2026-11-11.11</h3>
-<h4>Added</h4>
-<ul>
-  <li>11.8: Challenge mode (replaces the 60-second sprint).</li>
-  <li>11.11: music on round screens (<code>shared/hype.js</code>), on by default.</li>
-</ul>
-<h4>Changed</h4>
-<ul>
-  <li>11.1: restyled to the shared CHMA design system.</li>
-  <li>11.9: Retry round removed (Derek).</li>
-  <li>11.10: round screens stay up long enough to read.</li>
-</ul>
-<h4>Fixed</h4>
-<ul>
-  <li>11.2 to 11.7: audit and fuzz rounds (glowing key always in view, black-key labels with octave, iOS resize, timer races).</li>
-</ul>
-<h3>Version 2026-11-05.1</h3>
-<h4>Added</h4>
-<ul>
-  <li>First release: piano key identification game (no staff); name the glowing key or find the named key; 5 levels.</li>
-</ul>
-
-<!-- ============================================================ -->
-<h2>Meter Master — meter-master/</h2>
-
-<h3>Version 2026-11-26.1 (beta 2026-11-26)</h3>
-<h4>Changed</h4>
-<ul>
-  <li>Footer line (app name, academy link, version, Send feedback) now matches the other apps: 11 px, faded, centered (was 14 px). Beta tester request. <code>meter-master/index.html</code></li>
-</ul>
-<h3>Version 2026-11-24.1 (beta 2026-11-24)</h3>
-<h4>Changed</h4>
-<ul>
-  <li>The Level button row starts 16 px in from the left edge, like Note Sprint's, and stays there when it scrolls (scroll padding); the tempo row lines up with it. Beta tester request. <code>meter-master/index.html</code></li>
-</ul>
-<h4>Added</h4>
-<ul>
-  <li>Favicon: its own icon in the browser tab, bookmarks and the home screen (<code>shared/icons/meter-master.svg</code>, <code>-32.png</code>, <code>-180.png</code>). Beta tester request.</li>
-</ul>
-<h3>Version 2026-11-21.1 (beta 2026-11-21, live 2026-11-23)</h3>
-<h4>Fixed</h4>
-<ul>
-  <li>Nothing on the page selects as text, however fast you tap; typing boxes still work. Beta tester request. <code>meter-master/index.html</code></li>
-</ul>
-<h3>Version 2026-11-20.1</h3>
-<h4>Changed</h4>
-<ul>
-  <li>Button names in help text are now in quotes (e.g. Press "Start"), a house rule for every app.</li>
-</ul>
-
-<h3>Version 2026-11-20.2</h3>
-<h4>Fixed</h4>
-<ul>
-  <li>Fast taps on the pad no longer select the text below it ("Your taps in this bar") on phones.</li>
-  <li>The page no longer slides up and down while a run is going; the game card scrolls into view when a run starts.</li>
-</ul>
-
-<h3>Version 2026-11-19.1</h3>
-<h4>Changed</h4>
-<ul>
-  <li>Real recorded cowbell.</li>
-</ul>
-<h3>Version 2026-11-18.1</h3>
-<h4>Added</h4>
-<ul>
-  <li>MIDI activity light.</li>
-</ul>
-<h3>Versions 2026-11-13.1 to 2026-11-13.4</h3>
-<h4>Added</h4>
-<ul>
-  <li>13.1: Clap or snap and One note mic modes.</li>
-  <li>13.3: Share result button (hidden during beta since 2026-11-19).</li>
-</ul>
-<h4>Fixed</h4>
-<ul>
-  <li>13.2: MIDI field fix, automatic latency.</li>
-  <li>13.4: clean rapid taps on phones.</li>
-</ul>
-<h3>Version 2026-11-12.1</h3>
-<h4>Added</h4>
-<ul>
-  <li>First release: internal-clock trainer (keep quarter notes through silent gaps, graded against the audio clock).</li>
-</ul>
-
-<!-- ============================================================ -->
-<h2>Ear Trainer — ear-trainer/</h2>
-
-<h3>Version 2026-11-26.1 (beta 2026-11-26)</h3>
-<h4>Changed</h4>
-<ul>
-  <li>Footer line (app name, academy link, version, Send feedback) now matches the other apps: 11 px, faded, centered (was 14 px). Beta tester request. <code>ear-trainer/index.html</code></li>
-</ul>
-
-<h3>Version 2026-11-25.1 (beta 2026-11-25, live 2026-11-26)</h3>
-<h4>Added</h4>
-<ul>
-  <li>Volume section: separate sliders for the reference note (and the I - IV - V - I) and the mystery note, 0 to 150 percent, remembered on the device (<code>et-volref</code>, <code>et-volmys</code>); moving a slider plays a short C4 so you hear the level. Default 100 percent is the old loudness. Student feedback. <code>ear-trainer/index.html</code></li>
-  <li>Microphone picker, shown with Answer with: Microphone, same idea as Note Sprint: a Microphone menu lists the inputs once the mic is on, switching restarts the mic on the chosen input, the level meter is shown, and the choice is remembered (<code>et-micdev</code>; an unplugged mic falls back to the default). Student feedback. <code>ear-trainer/index.html</code></li>
-</ul>
-<h4>Changed</h4>
-<ul>
-  <li>"Hear the pair" button sits on its own line under the explanation text instead of beside it. Beta tester request. <code>ear-trainer/index.html</code></li>
-</ul>
-<h4>Fixed</h4>
-<ul>
-  <li>Mystery note with On screen (for example Level 2, Five notes): no answer buttons showed, only an unmarked keyboard, so there was nothing obvious to press. Levels with 13 or fewer possible notes now show a row of answer buttons (C4, D4, E4 and so on) under the keyboard; tap a key or a button. The button you pressed turns red on a miss and the right one turns green. Levels with more notes (up and down, chromatic, any reference) keep the keyboard only. Student feedback. <code>ear-trainer/index.html</code></li>
-</ul>
-<h3>Version 2026-11-24.2 (beta 2026-11-24)</h3>
-<h4>Added</h4>
-<ul>
-  <li>"Answer with: Microphone": sing the answer or play it on your piano. Any octave counts; a note held steady for about a tenth of a second is the answer. The mic ignores the app's own notes and their ring. Uses <code>shared/voice-pitch.js</code>. Derek request. <code>ear-trainer/index.html</code></li>
-</ul>
-<h3>Version 2026-11-24.1 (beta 2026-11-24)</h3>
-<h4>Changed</h4>
-<ul>
-  <li>The Level button row starts 16 px in from the left edge, like Note Sprint's, and stays there when it scrolls (scroll padding). Beta tester request. <code>ear-trainer/index.html</code></li>
-</ul>
-<h4>Added</h4>
-<ul>
-  <li>Favicon: its own icon in the browser tab, bookmarks and the home screen (<code>shared/icons/ear-trainer.svg</code>, <code>-32.png</code>, <code>-180.png</code>). Beta tester request.</li>
-</ul>
-<h3>Version 2026-11-20.1</h3>
-<h4>Changed</h4>
-<ul>
-  <li>Button names in help text are now in quotes (e.g. Press "Start"), a house rule for every app.</li>
-</ul>
-
-<h3>Version 2026-11-18.1</h3>
-<h4>Added</h4>
-<ul>
-  <li>MIDI activity light.</li>
-</ul>
-<h3>Versions 2026-11-13.1 to 2026-11-13.4</h3>
-<h4>Added</h4>
-<ul>
-  <li>13.2 / 13.3: MIDI input (shared MIDI block v1.1).</li>
-  <li>13.4: Share button.</li>
-</ul>
-<h4>Changed</h4>
-<ul>
-  <li>13.1: parent-key numerals.</li>
-</ul>
-<h3>Version 2026-11-12.1</h3>
-<h4>Added</h4>
-<ul>
-  <li>First release: relative pitch with reference notes (mystery note, scale degree, interval).</li>
-</ul>
-
-<!-- ============================================================ -->
-<h2>Riff Simon Says — riff-says/</h2>
-
-<h3>Version 2026-11-26.1 (beta 2026-11-26)</h3>
-<h4>Changed</h4>
-<ul>
-  <li>Footer line (app name, academy link, version, Send feedback) now matches the other apps: regular weight, 11 px, faded, centered (was bold 14 px). Beta tester request. <code>riff-says/index.html</code></li>
-</ul>
-<p class="note">Test files in <code>riff-says/tests/</code>.</p>
-<h3>Version 2026-11-24.1 (beta 2026-11-24)</h3>
-<h4>Fixed</h4>
-<ul>
-  <li>Holding a piano key on an iPhone no longer brings up the text magnifier (touchstart and the long-press menu are cancelled on the keys, as on the tap pads). Beta tester follow-up. <code>riff-says/index.html</code></li>
-</ul>
-<h4>Added</h4>
-<ul>
-  <li>Favicon: its own icon in the browser tab, bookmarks and the home screen (<code>shared/icons/riff-says.svg</code>, <code>-32.png</code>, <code>-180.png</code>). Beta tester request.</li>
-</ul>
-<h3>Version 2026-11-23.1 (beta 2026-11-23)</h3>
-<h4>Fixed</h4>
-<ul>
-  <li>Playing the piano keys fast never selects text on the page any more (nothing on the page selects as text; typing boxes still work). Beta tester request. <code>riff-says/index.html</code></li>
-</ul>
-<h3>Version 2026-11-20.1</h3>
-<h4>Changed</h4>
-<ul>
-  <li>Button names in help text are now in quotes (e.g. Press "Start"), a house rule for every app.</li>
-</ul>
-
-<h3>Version 2026-11-18.1</h3>
-<h4>Added</h4>
-<ul>
-  <li>MIDI activity light.</li>
-</ul>
-<h3>Versions 2026-11-13.1 to 2026-11-13.5</h3>
-<h4>Added</h4>
-<ul>
-  <li>13.2 / 13.3: MIDI input (shared MIDI block v1.1).</li>
-  <li>13.4: a real rhythm section in every style with the call on top; automatic latency; octave feedback.</li>
-  <li>13.5: Share result button (hidden during beta since 2026-11-19).</li>
-</ul>
-<h4>Changed</h4>
-<ul>
-  <li>13.1: parent-key numerals.</li>
-</ul>
-<h3>Version 2026-11-12.1</h3>
-<h4>Added</h4>
-<ul>
-  <li>First release: call-and-response improv trainer.</li>
-</ul>
-
-<!-- ============================================================ -->
 <h2>Modal Metronome — drum-machine/</h2>
 <p class="note">Started 2026-11-03 as "Groove Metronome"; renamed Modal Metronome 2026-11-05. Sound folders: <code>drum-machine/kits/</code>, <code>drum-machine/bass/</code>, <code>drum-machine/keys/</code>.</p>
 
+<h3>Version 2026-11-27.15 (beta 2026-11-27)</h3>
+<p class="note">Groove fix, pass 2: the band. Pass 1 corrected the drums and percussion; this pass gives the bass and the two keyboard players the parts the groove studies write for each groove, adds fills and section "gears" by style, and fixes the measured misses from pass 1. Folder <code>drum-machine/</code>, beta page <code>drum-machine-beta/</code>. Nothing was checked by ear.</p>
+<h4>Added</h4>
+<ul>
+  <li><strong>A bass line per groove</strong> where a study gives one (Bass style = Auto). Each is a fixed one- or two-bar line placed on that groove's own kick, moved through the chords by chord tone, with an approach note into the next chord: the James Brown type grooves (the One long, a note on each off-beat kick, a pickup into the One), the Cissy Strut type two-bar line, Look-Ka Py Py type, the laid-back pocket, go-go in two bars, Minneapolis octaves, half-time funk, the Not Fade Away type cell, partido alto (the bass plays the kick's melody), dembow, boom bap and neo-soul two-bar loops, the Immigrant Song type gallop, the Levee type riff rhythm, the 5/4 rock two-bar figure, Home at Last, and the new grooves below. Articulations, Bass licks and the 5-string still apply.</li>
+  <li><strong>A keys part per groove</strong> where a study gives one (Comping = Auto): Clavinet scratch and chank with a single organ stab for the James Brown type grooves; Clavinet with organ stabs on the kick for the Tower of Power type grooves; organ two-note answers for the New Orleans funk grooves; Motown piano on the quarter notes with the organ taking the chop on 2 and 4; cha-cha-cha, Afro-Cuban 6/8, baião (chords on the upbeats), partido alto, soca and ska upbeat stabs; samba figures cut from the two-bar tamborim phrase; a bossa cell that follows the drummer's own rim phrase (it turns with the Clave menu); stride-style quarter notes for New Orleans two-beat; sparse Basie answers for big band; held fourth-chords for the Elvin groove; anticipations only at fast swing; the Take Five type and 7/4 figures; Chicago shuffle stabs on the skip notes; the half-time shuffle figure; hammered triplets for the Hold the Line type groove; boom bap's two-bar chop; grand piano for the Stash type grooves.</li>
+  <li><strong>Six grooves the studies mark high confidence:</strong> Reggae Rockers, Ska, Half-Time Shuffle with the open hat on the skip (rock type), Rock Shuffle, Punk D-Beat, Motown Tom Backbeat (approx.).</li>
+  <li><strong>Fill families:</strong> James Brown type grooves get set-ups only (a ghost pickup, one open hat, two snares into the One: no tom runs); Tower of Power type grooves get 16th-note snare set-ups; reggae gets the high tight roll into the drop; the Cuban fills get the timbale abanico; jazz gets the bebop set-up (snare, snare, kick on the last 8th) and a one-bar trading figure; big band gets the crescendo set-up.</li>
+  <li><strong>Gears in the lifted eight bars</strong> (or the Chorus, with Song sections on): the blues shuffle bass walks in the verse and doubles the shuffle in the lift; the Texas shuffle goes from its one-bar figure to the two-bar walk; the two-feel bass walks four; the Stash type grooves thicken the piano and drive the last two bars in 8ths; pop alternates two bars of octaves with two bars of 8th-note roots.</li>
+  <li><strong>A third conga voice:</strong> in the Cuban two-bar grooves the two low open tones of the 3 side (the bombo and beat 3) are played on the lower drum, and turn with the Clave menu.</li>
+</ul>
+<h4>Changed</h4>
+<ul>
+  <li><strong>Jazz swing against tempo</strong> follows the jazz study's curve from records: 2:1 up to 90 BPM, widest (2.3:1) from 100 to 140, back to 2:1 at 200, 1.5:1 at 240 and 1.2:1 at 280. A fixed place for a tempo, never random. Keys on the swung 8th now land with the ride's skip note, and the jazz piano sits a share of the beat behind (5%, with a ceiling) in place of a fixed number of milliseconds; the neo-soul keys lag also scales with tempo.</li>
+  <li><strong>Brazilian lilt:</strong> in samba, partido alto and batucada the &amp; and the a of each beat sit early by a fixed share of a 16th (6% and 10% up to 105 BPM, half that to 125, none above); bossa gets half of it. The same in every bar, for the whole band; off on Machine pocket.</li>
+  <li><strong>Jazz balance:</strong> at jazz dynamics the Jazz kit's ride sat about 10 dB lower against the bass than the Vintage kit's ride playing the same part, and with the kick feathered (pass 1) the cymbal is the drummer. On the jazz grooves the Jazz kit's ride is up 6 dB, its hi-hat 4 dB and its snare 3.5 dB. The feathered kick is unchanged.</li>
+  <li><strong>Tumbao bass:</strong> the note on 4 rings to the next bombo; the slow grooves (Conga Tumbao, Son Montuno) state the root on 1 of the 2 side and the octave on 4 of the 3 side; songo adds the root on 1 and a pickup into the bombo; the invented third on the &amp; of 3 is gone. Bossa and samba bass take the fifth below the root where the range allows, play the pickups soft and short, and anticipate the next chord's root. In a two-bar groove only the last time round leads into the next chord (the first bar used to approach it a bar early).</li>
+  <li>Motown bass starts from the root-with-the-kick lines (the eight-8ths line is no longer the default). Ballad, Pop + Shaker and the breaks follow the kick. Samba, bossa, disco, afrobeat and Motown comping cells were rewritten from the studies.</li>
+</ul>
+<h4>Fixed</h4>
+<ul>
+  <li><strong>Trap:</strong> with the bass on, the bass IS the 808 (its sub on the kick, with glides); the 808 drum row no longer sounds under it.</li>
+  <li><strong>Ghost notes too soft to hear</strong> (26 to 28 dB under the backbeat on Basic Rock, Jazz-Funk, Home at Last, Rosanna and Black Dog type grooves) are lifted to about 23 dB; the order of strengths is kept.</li>
+  <li><strong>Kick and backbeat timing:</strong> a soft ceiling keeps every kick and backbeat stroke within 3.3 ms of its place at any Humanize setting (single strokes reached 5.9 ms).</li>
+  <li>Keys timing scatter is held to 3.3 ms (was 3.8).</li>
+  <li><strong>MP3 export:</strong> the level is set from the true peak (the peak between the samples as well), so the encoded file stays under full scale; a busy band reached +0.1 dBTP in testing. Exports with such peaks come out a fraction of a dB quieter.</li>
+</ul>
+<h4>Not changed</h4>
+<ul>
+  <li>No groove key was renamed or removed. No new saved setting. Saved settings, share links and <code>.metronome</code> files load as before.</li>
+</ul>
+
+<h3>Version 2026-11-27.14 (beta 2026-11-27)</h3>
+<p class="note">Groove fix, pass 1: every groove on the menu was checked against its groove study (ten family studies with sources and confidence labels) and fixed, replaced or taken off the menu. Folder <code>drum-machine/</code>, beta page <code>drum-machine-beta/</code>. Nothing was checked by ear.</p>
+<h4>Added</h4>
+<ul>
+  <li><strong>Clave / phrase direction</strong> (new menu, shown on grooves that have a direction; saved as <code>clv</code>, default Auto). 2-3 or 3-2 for the Cuban grooves, the two-bar phrase or its mirror for bossa and samba. The clave, the bell, the congas, the cross-stick, the piano montuno and the comping cells all turn round together; the bass tumbao (bombo and ponche in every bar) fits both.</li>
+  <li><strong>Six percussion rows for the recorded instruments that had no row:</strong> Timbale High and Low, Agogo High and Low, Tamborim, Pandeiro (the pandeiro plays thumb, fingertips, heel and slap from where the note falls and how strong it is). Used in Salsa and Mambo (low timbale on 4 of the 2 side), Songo (timbale answers), Samba and Batucada (tamborim phrase, pandeiro), Baião (agogo on the upbeats), and in the Cuban fills.</li>
+  <li><strong>18 grooves the studies mark high confidence:</strong> New Orleans Funk 2, Swung Clav Funk, Soul-Funk Pocket, Laid-Back Pocket, Go-Go 2 bars, Oakland Linear Funk, Son Montuno (verse), Mambo, Afro-Cuban Jazz, two Clave Trainers (son and rumba), Partido Alto, Samba Batucada, three Classic Breaks, Jazz Waltz in 1, and the 12/8 verse that follows the 11/8 intro. Names describe the feel; a song is named only as "type".</li>
+  <li><strong>Fill vocabulary by style:</strong> 30 fill families (big band set-ups, bebop comping fills, press rolls, timbale and conga fills, the samba virada, Motown pickups, go-go, half-time shuffle, hip-hop's one late snare and more) in place of 7. A fill is picked from the run's seed, then varied the way a player varies a lick (a note left out, one ghosted, one moved to another drum, a kick tucked in), with three dynamic shapes. The same fill never comes twice within 16 bars. Fills still land on 1 with kick and crash as one stroke, and the groove still runs under them.</li>
+</ul>
+<h4>Changed</h4>
+<ul>
+  <li><strong>Funk:</strong> the Cissy Strut type groove is the beat three sources agree on (linear hats, double backbeat on 4 and the &amp; of 4, kick after each backbeat); the Dean Town type groove is four on the floor at 109; go-go has its e-of-4 kick pickup, heavier swing and a cowbell line; Minneapolis is two flat levels on the LinnDrum kit; half-time funk no longer puts a ghost note on a kick.</li>
+  <li><strong>Jam band:</strong> the 11/8 intro has kick and ride on each group with the snare between (no backbeat); the Stash jam has the kick figure and the bell on the &amp; from Bill Carbone's analysis in place of a guessed kick.</li>
+  <li><strong>Jazz:</strong> Jazz Swing and Up-Tempo Swing are four-bar phrases with a feathered kick and light comping (the borrowed performance played the kick at full strength on every beat, so these grooves are several dB quieter in the low end than before, on purpose); two-feel is the hi-hat version with a feathered kick; bebop, big band, broken time and the Tony Williams ride are four-bar phrases (no lick repeats every bar); the Elvin groove has the ride-snare-kick triplet order; the jazz waltz is two bars; the Kansas City hi-hat opens on the skip note; New Orleans two-beat has press rolls and no tambourine. Snare and kick comping on the swung note now move with the ride (they stayed on the exact triplet: a flam at fast tempos).</li>
+  <li><strong>Blues:</strong> the blues shuffle and the Texas shuffle are double shuffles (both hands, kick on all four, hat foot on 2 and 4); half-time shuffle and slow blues are two-bar phrases with ghost notes as soft as measured.</li>
+  <li><strong>Afro-Cuban:</strong> salsa has a lighter bombo kick, the clave-aligned campana and the two-drum tumbao; songo has the bell on the pulses and timbale answers; cha-cha-cha has its kick on the &amp; of 2 and the hat foot on all four; the conga tumbao groove is a real two-bar son clave groove.</li>
+  <li><strong>Brazilian:</strong> bossa has the hat foot on 2 and 4 and quiet feet; samba is the two-bar telecoteco phrase with tamborim and pandeiro; brush bossa is constant soft taps with the phrase as accents.</li>
+  <li><strong>Reggae and world:</strong> one drop accents 2 and 4 on a thinner hat and opens it in bars 2 and 4; afrobeat alternates the notated Tony Allen bar with its answer and plays light (no rimshots); maqsum and saidi have their soft filler strokes.</li>
+  <li><strong>Rock and pop:</strong> the ride-cymbal rock groove and the swung-8ths groove play as written (their borrowed performance was a 12/8 take); punk, waltz and 6/8 have shaped dynamics; Motown's tambourine plays 8ths with 2 and 4 struck.</li>
+  <li><strong>Hip-hop:</strong> boom bap, neo-soul and the Dilla-feel groove are two-bar loops; trap is two bars on the Trap kit, and the 808 follows the chord (it used to hold the key note against the bass line).</li>
+  <li><strong>Songs and odd meters:</strong> Take Five has the kick on 1 only and the snare comping; the 7/4 groove has its kick pickup and crashes; the 9/8 grooves play 2+2+2+3 three times and then 3+3+3; Josie plays all four bars; Tom Sawyer's second kick is on the &amp; of 3; Good Times Bad Times has cowbell and hi-hat foot.</li>
+  <li>Keys and bass by groove: organ for the New Orleans funk grooves and go-go, Wurlitzer holds for the four-on-the-floor funk, piano for the Chicago shuffle, electric piano for the half-time shuffle, gospel comping (not jazz) for swung 8ths; in-one bass for the fast waltz.</li>
+  <li>Ghost notes written from the studies sit 20 to 23 dB under the backbeat on this engine's scale.</li>
+  <li>Default tempos were added where the studies give one; a groove that brings a drum-machine kit (Trap, LinnDrum) hands the kit back when you leave it.</li>
+</ul>
+<h4>Fixed</h4>
+<ul>
+  <li><strong>Same settings, same seed, same notes.</strong> One function now starts every run (Play, MP3 export, Copy auto to roll). Ghost-note levels, snare rolls, Machine-pocket spread, random mutes, the dropped ghost and "Change it up" drew from the page's random numbers and from state left by the run before; all of it now comes from the saved seed.</li>
+  <li>Deep studio kit: the cross-stick's room signal dropped 1.56 dB between two neighbouring strengths; it is now continuous (largest step 0.6 dB).</li>
+</ul>
+<h4>Taken off the menu (keys still load)</h4>
+<ul>
+  <li><code>fjb</code> (a second copy of Funky Drummer) plays <code>jb_funky_drummer</code>; <code>gen_follow_you</code> (one source, could not be confirmed) plays <code>popshaker</code>. Saved settings, share links and <code>.metronome</code> files that name them still load.</li>
+</ul>
+
+<h3>Version 2026-11-27.13 (beta 2026-11-27)</h3>
+<h4>Added</h4>
+<ul>
+  <li><strong>Deeper drum kits behind the same Kit menu.</strong> Studio, Vintage, Jazz and Rock now load rebuilt sets with every usable recorded level of every stroke: up to 16 recorded loudness levels per stroke (the snares have 13 to 15, of which 4 to 9 lie in the ghost-note range) instead of 3 to 6. New folders, the older ones stay: <code>drum-machine/kits/studio-drs2</code>, <code>vintage-rusty2</code>, <code>jazz-virtuosity2</code>, <code>rock-muldjord2</code>. The Jazz kit keeps its ride from the earlier set (twelve hits against six), re-levelled take by take.</li>
+  <li><strong>Brushes is now a whole kit</strong> (<code>drum-machine/kits/brushes-swirly</code>, Swirly Drums by Karoryfer Samples, CC0): snare taps, edge taps and digs, recorded stirs at four strengths and flutters for the sweeps, a brushed ride with twelve levels, hats in seven positions, toms, cymbals and its own bass drum. The older brush set stays as a fallback.</li>
+  <li><strong>New kit: Deep studio</strong> (<code>drum-machine/kits/deep-smdrums</code>, SM Drums by Scott McLean, Tod Stillwell and Suleiman Ali): the most detail of any kit here, 15 snare levels with six takes each, 16 closed hi-hat levels, tight, loose, bark and splash hats, three crashes and a splash cymbal. Its permission is the authors&#8217; own &#8220;free for any use&#8221; statement, not a formal licence file; it is one entry in the kit table and can be taken out by deleting that entry.</li>
+  <li>More ways of striking, all real recordings: hi-hat with the tip or the shank of the stick, quarter-open, half-open and three-quarter-open hats chosen by how hard the note is, the bark (an open hat closed at once) and the sizzle; the full rimshot on the hardest backbeats; a recorded flam in jazz comping and a two-stroke flam on fill accents; off-centre and rim strokes on the jazz toms; shank on the ride bell; the ride crashed on its edge in jazz; a soft crash on the bow of the cymbal; a third crash and a splash cymbal on the Deep studio kit; a choked ride when the band stops; a left-foot kick for fast doubles on the Rock kit.</li>
+  <li>Kick feel and Snare feel pick a real recording where the kit has one: Boomy plays the open, undamped kick (Studio, Vintage), Tight plays the dry kick and the damped snare (Jazz).</li>
+</ul>
+<h4>Changed</h4>
+<ul>
+  <li><strong>Loudness is continuous.</strong> Every stroke lands on the exact level its strength asks for, blended between the two nearest recorded levels (the blend allows for how alike the two recordings are, so the level does not bump in the middle). Measured over all 127 strengths the largest step between two neighbouring strengths is under 1 dB on the shells and cymbals of every kit. Ghost notes use the softest real strokes of the source and are no longer darkened or shortened.</li>
+  <li><strong>Nothing is shortened, filtered or gated on the recorded kits.</strong> Soft strokes ring their natural length, roll strokes are whole strokes, and Hat, Snare and Kick feel = Tight no longer cuts a stroke short (on a kit without a tighter recording, Tight tunes the drum higher and nothing else).</li>
+  <li>Kits load in two steps: a first set so the groove starts quickly, then the rest in the background with a progress line. Decoded sound per kit is capped: 120 MB on phones and tablets, 300 MB on computers; the first set of every stroke always fits.</li>
+  <li>While a kit loads, the click keeps the beat for as long as files keep arriving (before: at most 10 seconds, then the standard kit). The standard kit only steps in when nothing has arrived for 20 seconds.</li>
+  <li>Kick and snare are mono files panned to where the drum sat; the snare&#8217;s recorded room signal is played under it. All six kits are matched in loudness on the same groove (within 1 dB); the Jazz kit sits about 2 dB lower than before for that reason.</li>
+  <li>Credits list all six kits and their licences.</li>
+</ul>
+
+<h3>Version 2026-11-27.12 (beta 2026-11-27)</h3>
+<h4>Changed</h4>
+<ul>
+  <li><strong>The organ no longer leaves 79 tonewheels turning.</strong> A key&#8217;s contacts are built when the key goes down and dropped when it comes up, each starting at the phase its wheel would have reached by then &#8212; so a note still starts in the middle of a cycle (the key click) and two keys sharing a wheel still line up, but nothing is left running between notes. Before, every key ever played left nine gates and the whole wheel bank in the graph for the rest of the session, so the cost grew all evening and never came back down; that is what made a phone stutter on the organ pairs. Measured on the same four bars of funk, the organ&#8217;s own cost is roughly a quarter to a third lower, and it no longer climbs with every new key. Every organ measurement held: drawbar levels within 0.1 dB, A = 440 exactly, the key-click burst and its release click, percussion decay and single trigger, the C3 chorus side lines at &#177;6.87 Hz, Leslie horn 0.80 Hz slow and 6.65 Hz fast with the spin-up, drum 0.66 / 5.55 Hz, the 800 Hz crossover and the stereo spread.</li>
+  <li>The organ also skips what it is not using: the scanner&#8217;s delay line is unhooked when the vibrato is off, a stab too short to show it does not pay for the wheel-leakage tone, and a drawbar sitting 18 dB down is not given a contact on a stab. A cap keeps the number of sounding contacts in hand on nine-drawbar registrations.</li>
+  <li>The tremolo wheel on each keys strip is only built, and only wired up, for a sound that has tremolo. A wheel turning into a depth of zero still cost the audio thread a sample-by-sample pan on every block.</li>
+  <li><strong>A held chord sings on.</strong> The recorded pianos stop at about 2.2 s at middle C with a fade on the end, so long ballad chords used to just die. Now, when a chord is held past that, the note carries on with a looped slice of the recording&#8217;s own steady tail &#8212; a whole number of cycles so the splice lands on the same point of the wave, the step between the two splice points measured rather than guessed, and the decay carrying on at the rate that tail was decaying at. Middle C on the grand used to be silent from 2.5 s; it now decays smoothly past 6 s at about 9 dB a second. No extra download.</li>
+  <li><strong>The tine piano goes through a combo amp.</strong> The recording is direct out of the instrument, so on its own it was a dry tine with tremolo and nothing around it. Added cabinet thump, the mid scoop, cone presence, a little power-stage squeeze and the 12-inch roll-off: +2 to +3 dB below 1 kHz, +7 dB at 1&#8211;2 kHz, +16 dB at 2&#8211;4 kHz, +25 dB at 4&#8211;8 kHz. Tremolo is unchanged, and the level was re-trimmed so it still sits within 0.8 dB of the grand at the same settings.</li>
+  <li><strong>The clav never strikes twice the same.</strong> The pad meets the string a little differently every time: the first few ms are brighter by a different amount, the tone sits a little high or low, the level moves, and the yarn damper&#8217;s cluck comes back at its own pitch and loudness. The jam figure, which used to sit on one two-bar cell for eight bars, now moves on every two bars, and one stab a bar turns into a mute or a rest from that bar&#8217;s own seeded draw, so the same figure never comes round twice the same.</li>
+  <li><strong>Pads hold the chord&#8217;s colour, not its root.</strong> A pad used to fall back on the root and the fifth four times in five; now it reaches for the 3rd and the 7th, a 9th over the 5th, the 13th on a dominant, and keeps root-and-fifth for chords that really are bare power chords. Measured over twenty grooves: bare root-and-fifth pads fell from 81% to 17%.</li>
+  <li><strong>Fills have a vocabulary.</strong> Each style keeps its own handful of shapes and they come round in turn, so two fills running are never the same shape: runs, an enclosure round the target note, a chromatic walk-in, double stops in sixths and in thirds, a repeated-note motif, a triplet answer, octave lines, organ smears and the gospel 4-to-3. Over twelve styles and 256 bars the number of different fill shapes played went from 78 to 89, and styles that only ever had one shape (ballad, country, New Orleans) now use four or more.</li>
+  <li><strong>Dominants get style colours.</strong> Jazz, gospel, blues, soul and jam players reach for a &#9839;9, &#9837;13, &#9839;11 or &#9837;9 on a dominant even when the chart just says 7, so they now do here: on a progression with real dominants, jazz went from 22% of dominant hits carrying a colour to 59%, gospel 19% to 49%, slow blues 16% to 61%, neo-soul 18% to 46%. Pop (10%), rock (4%), Motown (1%) and reggae (7%) are unchanged, because those players do not. A chord written with its own tensions is always left alone.</li>
+  <li><strong>When the two players land on the same step, Keys 2 moves instead of vanishing.</strong> Up an octave if that clears the top of the other chord, else down to its top two notes, else off the step by a 16th into a hole; dropping the hit is the last resort.</li>
+  <li>The sampler doubles up two velocity layers over a narrower band of the velocity range, and leaves out the damper sound under a whisper &#8212; fewer voices for the same chord.</li>
+</ul>
+<h4>Fixed</h4>
+<ul>
+  <li>Each keys sound sits within 1.2 dB of the grand at the same settings (measured on four bars; the clav, raised a dB in the last version without a re-measure, reads 1.16 dB under).</li>
+  <li>The tine piano and the organ are sent early by the right amount again now that their chains have changed, so every keys sound lands within about 3 ms of the kick on the same beat.</li>
+</ul>
+
+<h3>Version 2026-11-27.11 (beta 2026-11-27)</h3>
+<h4>Added</h4>
+<ul>
+  <li>Two keyboard players, Keys 1 and Keys 2. Each has its own sound, role (comp, pad / hold, rhythm, fills only, off), volume and register. A new &#8220;Keys band&#8221; menu holds twelve ready-made pairs (Piano + Organ pad, Rhodes + Clav, Organ + Piano fills, Wurli + Organ, Clav + Rhodes, Piano only, Organ only, Gospel piano + B3, Reggae skank + bubble, Montuno piano + Organ, Clav + Organ, Rhodes + Organ pad); Auto picks the pair for the groove. New settings (<code>kpair</code>, <code>k1role</code>, <code>k1v</code>, <code>k1reg</code>, <code>k2snd</code>, <code>k2role</code>, <code>k2v</code>, <code>k2reg</code>, <code>orgreg</code>, <code>orgles</code>, <code>orgvib</code>, <code>orgdrv</code>, <code>clvtone</code>, <code>clvwah</code>, <code>clvmute</code>) are additions only; a setup saved before them loads with safe defaults.</li>
+  <li>Five recorded keyboards, loaded only when picked, with a progress line (<code>drum-machine/keys/grand2</code>, <code>upright2</code>, <code>rhodes73</code>, <code>wurli2</code>, <code>pianet</code>; each folder has a <code>manifest.json</code>). Grand piano: Salamander Grand Piano V3 (CC BY 3.0), four strengths blended into each other. Tine electric piano: a real 1977 Rhodes Mark I Stage 73 from jRhodes3d by Jeff Learman (CC BY 4.0, credited in the app). Reed electric piano (Wurlitzer EP200) and Pianet T: Greg Sullivan (CC BY 3.0). Upright: VCSL Knight (CC0). A struck key damps its old note, and the pianos and the Pianet play the sound of the key coming up.</li>
+  <li>Clav: a string model of a Hohner D6-style clavinet (no samples). Four pickup and tone settings, the key-release cluck, a damper slider, an amp, and a wah that either follows the notes (auto-wah) or is rocked on the beat. It plays real clav parts: two hands on the 16ths, accents, short strokes and muted ghost notes, from thirteen two-bar figures (funk, swung funk, rock riff, reggae bubble).</li>
+  <li>Tonewheel organ rebuilt: 79 tonewheels at the real gear ratios that never stop turning, nine key contacts per key that close a few thousandths of a second apart (that is the key click), eleven drawbar settings chosen by style, percussion on the second or third harmonic that only fires when no key is down, the C3 chorus, a tube amp that grinds when pushed, and a Leslie with a separate horn and drum (different speeds, the horn changes speed in about a second, the drum in several). On Auto the Leslie goes fast into the end of a phrase and through a fill, then back to slow.</li>
+</ul>
+<h4>Changed</h4>
+<ul>
+  <li>How the keys play, rebuilt. Chords land together; a rolled chord is now a rare colour (ballads about 1 chord in 7, most styles none). Every chord has a written ending: held, snapped off on a grid line, choked, or lifted before the next one. Each style keeps a two-bar figure for the phrase, with fills and licks at phrase ends (single lines, sixths, runs, octave lines, organ smears) and a small budget of crushed grace notes, slides and tremolos. The two players take turns filling.</li>
+  <li>The keys listen to the drums and the bass: they read the bar&#8217;s real kick pattern and the bass line just written, hit with them, move stabs out of the kick&#8217;s way in funk, go with the bass when it pushes the next chord early, and stay above the bass.</li>
+  <li>Voicings by style: jazz rootless A and B forms (shells at fast tempos), stacked fourths on jam grooves, shell plus tensions for bossa, gospel and blues shapes with a doubled top, neo-soul clusters, two- and three-note funk shapes, Motown triads with a doubled top, close reggae triads, montuno octaves. The top note moves by step, and the hand drifts up and back over an eight-bar phrase. No coin flips.</li>
+  <li>Timing is locked: each style has one fixed place against the beat, plus a tiny seeded scatter (about 2.5 ms, never more than 4). The same seed always plays the same part; &#8220;Copy auto to roll&#8221; copies Keys 1 note for note, and Keys 2 keeps playing by itself under a hand-written roll.</li>
+  <li>Keys sound menu: the older grand, upright, tine and Wurlitzer entries now load the new recorded sets (their files stay). &#8220;Comping&#8221; is now &#8220;Feel&#8221;, with Rock, Blues shuffle, New Orleans, Latin, Disco and Country added. Each groove picks its own feel (Motown gets quarter-note piano, the James Brown grooves sparse stabs, Latin grooves a montuno, and so on).</li>
+  <li>Play waits for the keys sound to load, and an unloaded sound stays silent instead of playing the old one.</li>
+</ul>
+<h4>Fixed</h4>
+<ul>
+  <li>The Arpeggio settings row showed even when Arpeggio was not picked.</li>
+</ul>
+
+<h3>Version 2026-11-27.10 (beta 2026-11-27)</h3>
+<h4>Fixed</h4>
+<ul>
+  <li>Bass fall-offs never played with fills every four bars: the only bar that allowed one was the bar the lick takes. A fall-off now closes a two-bar phrase, on a held note that is not leading into a new chord. They stay rare (a few in a hundred bars at the default settings, more when a chord lasts several bars).</li>
+</ul>
+
+<h3>Version 2026-11-27.9 (beta 2026-11-27)</h3>
+<h4>Added</h4>
+<ul>
+  <li>Six recorded basses replace the soundfont bass as the default sound (<code>drum-machine/bass/jfinger2</code>, <code>flatfinger2</code>, <code>pick2</code>, <code>mute2</code>, <code>jgrowl2</code>, <code>upright2</code>; Karoryfer Samples, CC0; each folder has a <code>manifest.json</code> with every file's level, layers and takes). Fingered J-style bass, flatwound fingered bass, picked bass, palm-muted picked bass, a bright growl bass, and an upright (pizzicato). Three or four strengths of every note blend into each other, no recording plays twice in a row, soft notes are darker than loud ones, and each note's level comes from the folder's own table.</li>
+  <li>Auto picks the bass by groove: upright for jazz, bossa, the brush grooves and the blues shuffles; flatwound fingers for Motown, reggae, ballads, neo-soul and country; the pick for rock and punk; the fingered bass for funk, pop and everything else; the 808 sub for trap. Disco octaves and tight pop are palm-muted; Tower of Power lines play their accents with the fingers and the quiet 16ths on the muted set.</li>
+  <li>The bass is played on strings. Every note sits on one of five strings (B E A D G) at the fret nearest the hand, so a new note on the same string stops the old one, a hammer-on or pull-off carries on from the sounding note with no new pluck, a legato step lets the last note ring a moment into the next, and a shift of the hand brings a little fret noise. Notes that end in silence finish with the sound of the fingers letting go.</li>
+  <li>New articulations, all chosen by the bass line's seed and kept to a budget (two a bar in groove styles, four in slow ones, held notes and phrase ends first): vibrato on held notes (starts late, 5 to 6 times a second, deeper in ballads, soul and reggae, none on fast 16ths), bends up into blue notes (the 3rd and flat 7th, in blues, rock and funk), slides in from one or two frets below, fall-offs at phrase ends, and real dead notes from the muted-string recordings. The upright slides and has a pull accent; its vibrato is narrow and only at slow tempos.</li>
+  <li>5-string: the range now goes down to the low B. A new "5-string" setting (Auto, On, Off); Auto sends low D, C and B roots down an octave in ballads, reggae, neo-soul and modern pop. The bass channel's low cut moves just under the low B when the 5-string is in use.</li>
+  <li>"Bass licks" (Off, Light, Match the drum fills; Match is the default). When the drums fill, the bass plays a lick in the same beats: a pentatonic or blues run, octave pops, a chromatic walk-up, a gospel walk-up, or the drum fill's own rhythm in unison. The next bar always starts on the root, on beat 1, with the kick. Light adds a small pickup at the end of a phrase. Licks follow the bass seed, so "Copy auto to roll" brings them over.</li>
+  <li>"Mute" (Auto, Off, Light, Palm mute) and "Finger noise" (0 to 100) settings. The existing "Ghost notes" setting now plays the recorded dead notes.</li>
+  <li>The piano roll's "Played as" menu gains Vibrato, Bend and Legato. A roll saved with them opens in the older version as plain notes.</li>
+  <li>Fixed two-bar bass ostinatos for the James Brown and Tower of Power grooves, tied to each groove's kick and played as written (no variation): Funky Drummer type, Cold Sweat, Sex Machine and Soul Power (the long One with 16th answers), The Payback (sparse), and for Tower of Power the pedal 16ths and the gallop: every 16th is a real, clipped note with the accents on that groove's kicks.</li>
+  <li>New bass lines for grooves that had none of their own: rock (the verse doubles the kick, the lifted eight bars drive 8ths), punk (flat downstroke roots), waltz (one note a bar), reggae one drop and steppers (a fixed two-bar hook that lands with the drop), soca and dembow (the tresillo), second line, go-go, half-time shuffle, slow blues, boom bap, Shakedown Street type disco, Take Five type 5/4, 7/4 quarter notes, 9/8 by groups, and the two Zappa grooves.</li>
+</ul>
+<h4>Changed</h4>
+<ul>
+  <li>The bass locks to the kick the drummer really plays in that bar (including the true-performance bars). A note that shares a step with a kick lands within 3 ms of it; in funk styles a note one 16th away from a lone kick moves onto it. When the kick pushes the last 8th or 16th before a new chord, the bass can play the new root there and hold it over the bar line.</li>
+  <li>Bass timing: a tiny seeded scatter (about 1 ms on a kick, 2.5 ms between kicks) and harder notes a touch early. The style's lean (behind or ahead) now applies only between kicks.</li>
+  <li>Bass lines repeat their figure and change it at the end of a four-bar phrase. Runs into the next chord and fills no longer happen at random; the "Bass licks" setting owns them.</li>
+  <li>The default "Studio" bass tone is clean for the recorded basses (a touch of low end, the hardest plucks rounded off, gentle compression), matched in loudness to the old default. The other tones are unchanged.</li>
+  <li>Sound menu: the soundfont basses (fingered round, flatwound, picked, the two soundfont uprights and the older double bass) are off the menu; their files stay. A saved setting, share link or <code>.metronome</code> file that names one loads the recorded bass of the same kind.</li>
+  <li>Play waits for the recorded bass to load the first time (a few seconds), with a progress line under the Sound menu. Samples are cached under a new name (<code>mm-bass-v2</code>); only the notes a bass line can reach load first, the rest in the background, and phones keep two takes per note instead of three.</li>
+  <li>Country train beat: the bass plays root and fifth, not a walking line. Swung 8ths pop: a boogie figure, not straight 8ths. Disco octaves are shorter, the octave shorter than the root.</li>
+</ul>
+<h4>Fixed</h4>
+<ul>
+  <li>Every groove now names its bass style. Twenty-five grooves used to fall back to "Follow the Kick" without meaning to (Rock, Rock Ride, Boom Bap, Dembow, the Zappa, Genesis and Led Zeppelin grooves, the odd meters and others).</li>
+  <li>On the Machine pocket the bass arrived about 6 ms after the kick; it now lands with it.</li>
+  <li>A soft pickup note with nothing after it could ring across the whole bar in slow styles.</li>
+</ul>
+
+<h3>Version 2026-11-27.8 (beta 2026-11-27)</h3>
+<h4>Added</h4>
+<ul>
+  <li>Hand percussion is now recorded strokes, played the way a percussionist plays them. A new kit (<code>drum-machine/kits/perc-2026/</code>, 311 small files, fetched only for the instruments a groove uses) replaces the single drum-machine samples and the synthesized cowbell, claves, woodblock and snap. Percussion on "Synth" still plays the older synthesized sounds.</li>
+  <li>Shaker: the arm never stops. Forward strokes fall on the counted notes and back strokes between them, each from its own recordings, and an accent is its own longer recording. No recording plays twice in a row. The loudest point of each stroke lands on the grid (the recordings start a little early). The tempo picks the shaker: a small one when the strokes are fast, a large one when they are slow. The triangle carries the Baião, a cabasa the Disco 8ths, maracas the Conga Tumbao.</li>
+  <li>Tambourine: the backbeat is a strike against the hand. Where a groove has only that strike on 2 and 4, soft 8th-note shakes now run between the hits. Maqsum and Saidi use the dry hand tambourine with jingle ticks.</li>
+  <li>Congas: the written row now picks real hand strokes. Strong notes on the high row are slaps, soft notes are the heel and tip of the rocking hand (heel on the beat, tip between, at the quiet level they were recorded), and the low row is the open tone, the first of two the stronger. Salsa, Conga Tumbao, Cha-cha-chá and the Latin Jam now play the tumbao: heel, tip, slap, tip, heel, tip, open, open.</li>
+  <li>Bells, clave, güiro, woodblock, bongos, claps and snaps: Salsa and Songo play the bell's low mouth on the strong strokes and its dry body between; Cha-cha-chá uses a cha-cha bell; other cowbells are a recorded cowbell (open on the beat, muted between). Clave strokes are one level. The güiro plays one long scrape and two short ones. Claps on the backbeat are a group of people; snaps are five different takes.</li>
+  <li>Three new grooves from the funk study: Popcorn and Got the Feelin' (James Brown group, Clyde Stubblefield, both with the backbeat moved off 2 and 4) and Oakland Stroke type (Funk group, from David Garibaldi's own chart).</li>
+  <li>Two new Stash grooves in the Phish group: verse / calypso (92 BPM) and jam peak (98 BPM). Both are marked approximate, and their notes say which parts are a best guess.</li>
+  <li>Two dynamics modes a groove can ask for. Three levels (accent, medium, ghost) for Clyde Stubblefield's grooves, where the medium notes stay clearly above the ghost notes. Two levels only (accent and whisper) for the David Garibaldi grooves. A groove can also name its drummer and take that drummer's usual swing: Clyde Stubblefield nearly straight (52%), Jabo Starks swung (55 to 59%).</li>
+</ul>
+<h4>Changed</h4>
+<ul>
+  <li>Funky Drummer (both menu entries are now the same two bars): the first open hat moved to where most sources have it (a soft one on the e of 2 and one on the a of 2 in bar 1), the snare on the a of 2 is soft, the snare on the a of 4 is added, the kick on the & of 1 is the loudest, swing 52%.</li>
+  <li>Machine: swing 59% and a kick on the & of 4. Cold Sweat: same notes, quieter ghost notes, even hats and a full kick on the first beat. Soul Power: swing 56%.</li>
+  <li>On the One: rebuilt from Jabo Starks' hand pattern (hat with open barks on the & of 1 and & of 3, foot on 2 and 4, kick on 1, the & of 3 and the & of 4, swing 57%). The tambourine is gone.</li>
+  <li>Tower of Power groove: now two bars, with layered hat and snare, a backbeat that moves in bar 2, an open hat the foot closes, and only two levels of loudness. The earlier rule that no two drums may ever sound together was stricter than David Garibaldi's own charts and is dropped. The menu name is now "Layered 16ths, 2 bars".</li>
+  <li>These changed funk grooves play as written (their own levels are the point); they no longer borrow strengths from another drummer's recording.</li>
+  <li>Stash, jam (owner: "Phish Stash is embarrassing"): the tempo is 92 BPM, not 128, and the band is back. The hi-hat pattern stays; a kick pattern, one cross-stick on 4, and a few snare, tom, woodblock and cowbell hits are added. The bass now plays a Stash line (it was one root note a bar) and the keys play light off-beat piano chords (they were pop 8ths). The ride-bell idea from the study is left out because it is a guess.</li>
+  <li>Limb by Limb: each drum has its own level instead of one flat strength, and the bass plays a 6/8 line.</li>
+  <li>Cow Funk (Phish): replaced with a sparser two-bar groove at 96 BPM: 8th-note hats, a fat backbeat, fewer kicks, one open hat.</li>
+  <li>Not Fade Away: the kick no longer doubles every floor-tom hit.</li>
+  <li>The Kick, Snare and Toms menus now offer the kit's own drum or a drum machine. The old kit names are gone from them; a saved setting that names one loads the kit's own drum.</li>
+</ul>
+<h4>Fixed</h4>
+<ul>
+  <li>Pressing Play no longer lets another kit sound for a moment while the chosen kit loads: Play waits for the first bar's sounds (the loading line shows the progress). If the kit is changed while the music plays, a soft click keeps the beat until the new kit is in.</li>
+  <li>Keys on Auto: the Grateful Dead two-beat and the Whipping Post grooves no longer get funk chords on an electric piano (the rule that looked for "jb" caught them by mistake). Shakedown Street gets a disco octave bass instead of four root notes.</li>
+  <li>Rock kit level brought to within 1 dB of the kit it replaced.</li>
+  <li>A saved setup, share link or .metronome file that still holds the old, untouched pattern of a corrected groove loads the corrected one (a saved Stash at its old 128 BPM takes the new tempo); a pattern that was edited stays exactly as saved.</li>
+</ul>
+<p class="note">Percussion credits: Versilian Community Sample Library (CC0), FreePats World Percussion (CC0), Freesound users Sassaby, lafashion and MeanRaccoon (CC0); conga strokes "Natal Quinto" by ramjac (CC BY 4.0); pandeiro by CWBudde (CC BY 4.0). Not yet used by any groove: agogô, tamborim, timbales, pandeiro (no checked pattern or no grid row yet).</p>
+
+<h3>Version 2026-11-27.7 (beta 2026-11-27)</h3>
+<h4>Added</h4>
+<ul>
+  <li>True performances. 64 grooves now play a real drummer's own notes for a whole 2-, 4- or 8-bar cycle: which strokes he played and how hard, every ghost note, kick double and open hat. Before, bar 1 was always the written pattern and the drummer only shaded it. 36 grooves take all of his notes; 28 (22 song transcriptions and 6 near matches such as Bossa Nova, Ballad, Slow Blues and Texas Shuffle) keep their written kick, backbeat and hat pattern and take his strengths and his ghost notes. The meter stays locked: every note sits on the groove's own grid and swing, and none of the dataset's timing is used. Source: Groove MIDI Dataset (CC BY 4.0), modified by CHMA.</li>
+  <li>Drags: where the drummer played a second, softer snare stroke inside one step, it is kept, exactly half a step from the main stroke (58 across the grooves).</li>
+  <li>Grooves with no matching performance (the odd meters, Latin percussion, Punk, One Drop and others) now draw their detail from what the dataset's drummers of that style do: ghost notes fall on the steps where those drummers put them, with their real spread of strengths, and each hat, kick and backbeat stroke varies by the measured amount (half of it at the default Humanize) instead of a fixed rule.</li>
+  <li>New strokes in use: the Rock kit's china on some landings into a lifted section, the Vintage kit's snare-edge recording for some soft ghost notes, and the Studio kit's rim-click for softer cross-sticks.</li>
+</ul>
+<h4>Changed</h4>
+<ul>
+  <li>Owner order ("Your tight hi-hat is just a shortened sample. It should be a sample of a tighter hi-hat."): no hi-hat stroke is cut short any more. A tight hat is the kit's own tighter recording (Vintage has one); a kit without one plays its normal closed recording at full length. The older trick of fading an open hat under a closed stroke for "Loose" and lifted sections is removed, and open hats now ring to the end of their recording. Only a real choke (a closed or foot stroke stopping an open hat) ends a sound early.</li>
+  <li>Owner order ("I only want great sound kits so remove subpar kits."): Black Pearl, Vintage Ludwig, Blonde Bop and Hot Rods are off the Kit menu (their files stay). The menu is now Auto, Studio, Vintage, Jazz, Rock, Brushes, and the drum machines in their own group. Saved settings, share links and .metronome files that name an old kit load the nearest new one: Black Pearl, Pearl, Acoustic and Hybrid load Studio; Vintage Ludwig loads Rock; Blonde Bop and Hot Rods load Jazz. A drum swapped by hand in a saved setting stays as saved.</li>
+  <li>Matching is stricter: a performance must agree with the groove's written kick and backbeat, hat pattern, feel and tempo, and one stretch of a recording is used by one groove only. Seven grooves lost their match and use the style statistics instead (Punk, Samba, One Drop, Half-time Funk, Jazz Ballad and two modern-jazz grooves); six gained one.</li>
+  <li>Ghost notes from a real performance now run the drummer's whole range, and sit about 19 to 22 dB under the backbeat on every kit.</li>
+  <li>Studio and Vintage kits are a touch louder (about 0.4 dB) so all four kits stay within 1 dB of the older kits.</li>
+  <li>Keeps playing smoothly when you switch to another app. In the background the app used to queue a full minute of notes at once, which overloaded the phone's audio and made it stutter; it now queues 4 seconds (up to 12 if the phone slows the page down), plays one recording per stroke instead of a blend of two, and loads nothing new until you come back. In front, it queues half a second (was 0.35) so short stalls no longer clip a note. The practice log is saved when you return instead of every 10 seconds in the background. Measured on a desktop browser only; not yet checked on a real iPhone.</li>
+  <li>Owner order (the app is used by children): the James Brown groove formerly listed under its full song title now shows as <b>Machine (John "Jabo" Starks)</b> in every groove menu. Only the label changed; saved settings and share links still open it.</li>
+  <li>The lock screen and Now Playing controls can start and stop the metronome (where the browser supports it).</li>
+  <li>If you have edited a row of the grid, that row plays exactly what the grid shows; rows you have not touched still play the performance. Machine pocket plays the written pattern, as before.</li>
+</ul>
+
+<h3>Version 2026-11-27.6 (beta 2026-11-27)</h3>
+<h4>Added</h4>
+<ul>
+  <li>Four new drum kits, each recorded with several microphones and played in stereo: <b>Studio (tight, modern)</b>, <b>Vintage (dry)</b>, <b>Jazz (open, sticks)</b> and <b>Rock (big room)</b>. Every drum has 3 to 6 loudness layers, each with 2 to 4 different takes, so no recording is ever played twice in a row. Folders: <code>drum-machine/kits/studio-drs/</code>, <code>vintage-rusty/</code>, <code>jazz-virtuosity/</code>, <code>rock-muldjord/</code> (each with a <code>manifest.json</code>).</li>
+  <li>Kit menu: <b>Auto</b> is the new default and picks the kit that fits the groove (jazz grooves get Jazz; rock, Led Zeppelin, prog and Phish get Rock; soul, blues, reggae, country, New Orleans and James Brown get Vintage; funk, pop, Latin and Steely Dan get Studio). With Verse / Chorus on, the verse groove picks the kit, so a song keeps one kit.</li>
+  <li>The drummer now uses different ways of striking each drum, chosen from the groove you already have (nothing new is saved): hi-hats tight on quiet strokes, closed normally, a little loose on accents and in lifted sections, open and half-open where the pattern opens them, a foot "chick" for the hat foot, and a rare foot splash at the end of a jazz section; snare centre for backbeats, a rimshot on the strongest backbeats in rock and funk (Vintage and Jazz kits), cross-stick where the groove has one, a recorded buzz stroke for buzz rolls and jazz comping (Jazz kit); ride bow, bell and edge by accent; the two crashes take turns. A kit that lacks a stroke falls back to its nearest one.</li>
+  <li>A closed or foot stroke stops a ringing open hat, a crash struck again takes over from its own ring, and a crash is caught by hand when a drop-out bar starts.</li>
+  <li>Kit-in-a-room mix for the new kits: drums stay where they were recorded left to right, the kick no longer goes to the plate reverb, kits recorded dry get a short room (it is also in the MP3 export), the snare wires answer the kick and toms very quietly, and the always-on master compressor is gentler (slower attack, 2:1). A soft clipper on the drum bus rounds the tallest stick attacks so the drums sit as loud as the older kits.</li>
+  <li>Loading: a new kit loads only when it is picked, shows its progress, and decodes only what the groove needs first (about 0.5 to 1.7 MB); fills, crashes and the rest follow. Files are kept in a new browser cache, <code>mm-kits-v1</code>. Long cymbal tails are capped and only one of these kits stays in memory at a time.</li>
+  <li>Credits for the four kits (DrumGizmo.org, CC BY 4.0, for Studio and Rock; Karoryfer Samples and Versilian Studios, CC0, for Vintage and Jazz).</li>
+</ul>
+<h4>Changed</h4>
+<ul>
+  <li>Owner feedback on .5 ("lacking liquidity ... more of an array of velocity for ghost notes"): strength is now continuous, and the meter is untouched (no note moved in time). Ghost notes have a real spread (about 0.07 to 0.5, was 0.19 to 0.49) and a shape: a run grows into the backbeat or tapers away from it, the ghost before a backbeat is a little stronger than the one after, the lead hand a touch stronger, one slot per groove is barely there, and each bar differs slightly. Grooves that play a real drummer's performance get that drummer's own ghost spread back (it had been stored squeezed).</li>
+  <li>Graded accents: backbeats run 0.88 to 1.0 with the last one of the bar the strongest; the kick has a strong downbeat with softer doubles and pickups; hats and ride follow a hand-motion wave with the up-stroke lifting into the next accent; drags sit under single ghosts.</li>
+  <li>Phrase dynamics: a gentle 4-bar and 8-bar rise and fall (about 3 to 5 percent), a lift into fills and a breath after the downbeat that follows; lifted sections are fuller through the cymbals.</li>
+  <li>Tone follows strength continuously: on the new kits a stroke between two recorded layers is an equal-power blend of both, a stroke softer than its layer is a little darker, and soft strokes ring a little shorter. The older kits get a continuous tone filter and shorter soft strokes on every drum. Hi-hat openness now drifts a little from hit to hit instead of repeating one closed sound.</li>
+  <li>Three kits were taken off the Kit menu: Pearl Studio, Acoustic Studio (classic) and Hybrid. Their files stay; a saved setting, link or <code>.metronome</code> file that used one of them loads as Black Pearl. A saved setting that still had the old default kit (Black Pearl, untouched) loads as Auto.</li>
+</ul>
+<p class="note">Publishing: the four kit folders were added to the live <code>drum-machine/kits/</code> folder because the beta page loads its samples from there. Nothing in the live <code>drum-machine/index.html</code> refers to them.</p>
+
+<h3>Version 2026-11-27.5 (beta 2026-11-27)</h3>
+<h4>Fixed</h4>
+<ul>
+  <li>Groove audit: all 116 grooves were checked against published lessons, transcriptions and the Groove MIDI Dataset. 15 were corrected (<code>drum-machine/index.html</code>). No groove was renamed or removed.</li>
+  <li>7/4 Rock (Money): was straight 8ths with the snare on 3 and 6, a half-time reading. Now the record's shuffle: kick, snare, kick, snare, kick, snare, and one more kick on 7, with shuffled hats. Checked against two descriptions of the part (kick-snare for six beats plus a kick on seven; a swung, triplet feel). It now sits in the shuffle pocket.</li>
+  <li>Afrobeat (Tony Allen feel): the kit part was a rock beat. Now no rock backbeat: snare on the a of 1 and on 4 with soft strokes between, a double-stroke kick on 3, a soft kick just after 4, and the hi-hat opening on the & of 4. The percussion on top is unchanged. Written sources and recordings differ on the soft kicks (one article puts one just after 2 as well); the recorded performances in the dataset were followed, and the groove now cycles 8 real bars from one of them.</li>
+  <li>Second-Line Funk (The Meters, Cissy Strut): was plain 8th hats with a ghost on every &. Now broken hand-to-hand 16th hats, a soft kick right after each backbeat, kick and open hat together on the & of 3, and a light swing (54%). Kick, snare and open-hat spots are from three published lessons; the exact hat strokes are a best reading.</li>
+  <li>Salsa: the cowbell played quarter notes (the cha-cha bell). Now the campana: 1, 2 &amp;, 3, 4 &amp; in every bar, with the hi-hat foot on 2 and 4. Clave, congas and kick unchanged.</li>
+  <li>Samba: the menu says the weight is on 2 but beat 1 was louder. Now the kick accent is on 2 with the hi-hat opened there, shaped 16th hats, and the hi-hat foot on the &amp;s (heard when the cymbal hand is on the ride).</li>
+  <li>Texas Shuffle: was a normal one-handed shuffle. Now a true double shuffle: both hands play the shuffle, big backbeat on 2 and 4, kick on all four beats.</li>
+  <li>Songo: the kick on the &amp; of 2 (the bombo) was missing in bar 1. Now it is in every bar, a bell replaces the plain hats, the hi-hat foot keeps time and the full clave is gone from the rim (two light rim notes stay). The recordings in the dataset put the hi-hat foot on 1 and 3 of each bar, so that reading was used over the written suggestion of 2 and 4.</li>
+  <li>Linear 16ths (Tower of Power): two voices landed together on three 16ths. Now truly linear: exactly one voice on every 16th, and nothing is ever added on top.</li>
+  <li>New Orleans Second Line: was a one-bar loop. Now a four-bar street-beat phrase: kick on 1 and 3, hi-hat foot on the &amp;s, and the "big four" (snare and kick together on beat 4) in bars 2 and 4.</li>
+  <li>Trap: the hats were a flat wall of 16ths. Now 8th hats with a 16th burst on beat 4 and three different hat rolls over four bars (a 32nd-note run into the snare, a triplet, and a rising 32nd roll across beat 4), each with a strength ramp. The kick doubles the 808. Rolls stop if you edit the hat row.</li>
+  <li>When the Levee Breaks: the soft second kick right after beat 1 was missing; added (two lessons agree on it).</li>
+  <li>Funky Drummer (the Funk menu one): now has the same light swing, kick and hat touch as the transcribed one in the song list. Both menu entries stay.</li>
+  <li>Half-Time, Half-Time Funk and Half-Time Shuffle: the one backbeat (beat 3) was played softer than a normal backbeat because the app only treated beats 2 and 4 as backbeats. Each groove now says where its backbeat is, so beat 3 gets full weight; snare rolls lead into it too. Half-Time Shuffle also gains the soft stroke right after the backbeat.</li>
+  <li>Ghost notes control and the train beats: "Off" used to silence the whole snare roll of the Country Train Beat, and "4 levels" could reshape it, because every soft snare stroke counted as a ghost note. Grooves whose soft strokes are the pattern (both train beats, the second line) are now marked, and the control leaves them alone. Every other groove behaves as before.</li>
+</ul>
+<h4>Changed</h4>
+<ul>
+  <li>"Crash every 4 bars" now lands with the kick as one stroke on kit grooves (a drummer never crashes without it), and in Verse / Chorus mode it also crashes on the first bar of each section. Clicks, the Machine pocket and percussion-only grooves get no added kick.</li>
+  <li>Saved settings, share links and .metronome files: a setup that still holds the old pattern of a corrected groove, untouched, now loads the corrected groove. The same goes for the two Country Train Beats corrected in 2026-11-27.2. A grid you edited loads exactly as you saved it. Nothing in the saved format changed.</li>
+  <li>The corrected grooves that have a close real performance were matched again and their 4, 8 or 16 real bars rebuilt (Afrobeat is new on that list: 66 grooves, plus the hand-written second-line phrase).</li>
+</ul>
+<h4>Checked</h4>
+<ul>
+  <li>116 grooves x 64 bars at the default settings: kick spread 1.6 ms and backbeat 1.7 ms on average; 1,856 of 1,856 fills land on beat 1 with kick and crash 0 ms apart; 0 unplayable bars in 7,104; 0 bars repeated note for note; 0 repeated hi-hat recordings; ghost notes 18 to 20 dB under the backbeat in the exported audio. All 15 corrected grooves, and both train beats from 2026-11-27.2, upgrade from a setup saved on the live version; unchanged grooves load identically from the live version (share link and .metronome file). Layout checked at 390 and 1280 wide, MP3 export checked.</li>
+  <li>Left for a listen before changing (sources missing or in conflict): Modern Funk (Vulfpeck) kick pattern; where the first open hi-hat sits in Funky Drummer (the two menu entries still differ there: the a of 2 and the &amp; of 2); the Cha-cha-ch&aacute; kick; a cascara pattern for Salsa; the two-bar side-stick phrase for Samba.</li>
+</ul>
+
+<h3>Version 2026-11-27.4 (beta 2026-11-27)</h3>
+<h4>Added</h4>
+<ul>
+  <li>65 grooves now play a real drummer's bars instead of one bar on repeat. For each one, the closest performance in the Groove MIDI Dataset (Google, CC BY 4.0, modified) was found and 2, 4 or 8 bars of it were snapped onto the groove's own grid and swing: how hard every hit is played, and which notes the drummer added or left out from bar to bar (ghost notes, kick pickups, open hats, skipped hat strokes). Only the notes and their strength come from the recording; the timing stays this app's tight pocket. Bar 1 is still the pattern you see in the grid. By source style: rock 18, funk 14, jazz 11, soul 6, Latin 5, hip-hop 4, pop 3, disco 2, reggae 1, country 1 (the Train Beat from 2026-11-27.2). After the first time round, the drummer's added licks come and go so the cycle does not repeat exactly. <code>drum-machine/index.html</code></li>
+  <li>The other grooves (odd meters, hand percussion, brushes, a few song grooves with no close match) get a written 8-bar development: every hit is shaded a little differently from bar to bar, ghost notes are added or left out, a soft kick pickup and an open hi-hat lead into bars 4 and 8. Grooves transcribed from records only get the shading; their notes stay as written.</li>
+  <li>Four limbs only. Before every step is played the app checks that a drummer could play it: never more than two hand notes at once, the hi-hat or ride stroke is dropped when that hand is on a crash, an open and a closed hi-hat never sound together, no hi-hat foot under an open or closed stroke, and fast two-handed 16th hi-hats (124 BPM and up) leave out the hat on the backbeat. Kick and hi-hat foot stay free. The Machine pocket is left alone.</li>
+  <li>It plays the song. In Verse / Chorus mode the chorus is played a touch harder (cymbals about 6%, kick and snare about 3%) with looser hi-hats on the beat; without it every other 8 bars gets the same small lift. The last bar before each 8-bar line or section end rises into it.</li>
+</ul>
+<h4>Changed</h4>
+<ul>
+  <li>Hi-hats and the Zildjian ride never play the same recording twice in a row (a repeat moves to the neighbouring layer; loudness still follows the stroke).</li>
+  <li>Fills sit in the groove's own pocket (a laid-back reggae or neo-soul snare stays laid back in the fill), and the crash and kick that end a fill land together even when the groove has its own crash on beat 1.</li>
+  <li>Kick and backbeat timing held under 2 ms spread at slow tempos too; the neo-soul kick wobble was cut from 4 ms to 1 ms.</li>
+  <li>The open hi-hat at the end of a phrase is now part of the 8-bar plan instead of a coin toss.</li>
+</ul>
+<h4>Checked</h4>
+<ul>
+  <li>Measured on the scheduled notes and rendered audio, 111 grooves x 64 bars at the default settings: kick spread 1.6 ms and backbeat 1.7 ms on average; 1,776 of 1,776 fills land on beat 1 with kick and crash 0 ms apart; 0 unplayable bars in 7,104; 0 bars repeated note for note; 0 repeated hi-hat recordings; ghost notes 17 to 21 dB under the backbeat in the exported audio. Saved settings, share links and .metronome files from the live version load unchanged.</li>
+  <li>Not in the samples yet: true tight, half-open and foot-splash hi-hat recordings. Left for the kits stage.</li>
+</ul>
+
+<h3>Version 2026-11-27.3 (beta 2026-11-27)</h3>
+<h4>Changed</h4>
+<ul>
+  <li>Fills overhauled (owner feedback: "not smooth between groove and fill", "the groove goes dead", "your fills need pocket"). Measured on the 647 real fills in the Groove MIDI Dataset: the kick keeps playing in 70% of fills, the hi-hat foot in about half, the hands get busier and louder through the bar (from about 73 to 97 on the 127 scale), and toms come late in the fill. <code>drum-machine/index.html</code></li>
+  <li>The groove never stops under a fill. The kick keeps its pattern on the beats. When a fill leaves a hand free (two hand notes or fewer in a beat) the hi-hat or ride keeps going; when both hands are on the drums the hi-hat foot keeps time (every beat, or 2 and 4 in triplet grooves). Jazz fills are comping figures with the ride playing right through. Bass and keys were never stopped by a fill and still are not.</li>
+  <li>Fills hold the same tight meter as the groove: every fill note sits on the groove's own grid and swing with the same tiny spread as a groove hit (about 1 to 2 ms at the default Humanize, under 3 ms from its slot), in-between notes are exactly even, and there is no rush or drag. The old separate fill wobble is gone.</li>
+  <li>The landing is one stroke: crash and kick hit together exactly on beat 1 (0 ms apart, no random offset), and the groove carries straight on.</li>
+  <li>Fills grow out of the groove: they start near groove level and build into the downbeat, with no jump in volume.</li>
+  <li>Fill size now sets the biggest fill. The full size is played at 8-bar lines, section ends and the Fill button; the other fill bars get about half (a one-beat pickup instead of two beats at the default). The label reads "up to N beats". The fill frequency menu and saved settings are unchanged.</li>
+  <li>More small fills, never the same one twice in a row: ghost-note pickup, open-hat lift, kick double; funk gets linear snare-hat-kick figures; ballads get sparse fills; reggae (One Drop, Steppers) gets snare pickups. Fill choice now uses the drummer's seeded random stream, so an export repeats exactly.</li>
+</ul>
+
+<h3>Version 2026-11-27.2 (beta 2026-11-27)</h3>
+<h4>Changed</h4>
+<ul>
+  <li>Drums are tighter: pocket first (owner feedback on 2026-11-27.1: "to make it human you gave the drummers bad meter"). The random part of the timing is now tiny. At the default Humanize (30) the kick and the backbeat stay within about 2 ms of the beat (never more than 5), hats and ride within about 3 ms, ghost notes about 5 ms. Humanize 100 now tops out near the old default (hats about 9 ms) instead of the loose e-kit numbers. Slow tempos loosen by 30% at most. <code>drum-machine/index.html</code></li>
+  <li>What stays, because that is the pocket: the hats land a hair (about 3 ms) after the snare and kick, the style swing, and placements that are the same every bar. The human feel now comes from touch: the strength, ghost-note and tone changes on every hit are all kept.</li>
+  <li>Country Train Beat rebuilt from a real drummer (Groove MIDI Dataset, a country performance at 114 bpm) instead of a hand-written pattern. The old one was a half-time version: kick on 1 and 3, backbeat on 2 and 4. A real train beat has the accent on every "&amp;" (the right hand), soft ghost strokes on everything else, a soft kick on all four beats and the hat foot on the "&amp;"s, plus an extra accent on the "e" of 4 that pushes into the next bar. Drum-lesson sources (Drumeo, Modern Drummer) describe the same thing. The four bars you hear are four real bars from that performance, strength for strength, cycled; the lilt is the measured 54%. Meter is tight like every other groove. It now starts at 112 BPM. The every-second-bar extra kick and drag from 2026-11-27.1 are gone.</li>
+  <li>Country Train Beat with brushes: same fix. Accents on the "&amp;"s, kick on all four beats, hat foot on the "&amp;"s, the same light lilt.</li>
+</ul>
+
+<h3>Version 2026-11-27.1 (beta 2026-11-27)</h3>
+<h4>Changed</h4>
+<ul>
+  <li>Drums play like a real drummer (Stage A1 of the real-band rebuild). Timing now comes from the Groove MIDI Dataset (10 real drummers, 420,000 hits): each drum has its own looseness (kick loosest, hats and backbeat tighter, ghost notes loosest), looser at slow tempos and tighter at fast ones, and it drifts for a beat or two and comes back to the click instead of jumping at random. Hits played together move together; the hats land a hair after the snare and kick. Replaces the fixed per-drum offsets and the plus-or-minus 3 ms random wobble. <code>drum-machine/index.html</code></li>
+  <li>Humanize: the default (30) is now a tight pro, 100 an average drummer, 0 still perfectly even. The Machine pocket keeps the old tiny wobble, so click tracks stay dead straight.</li>
+  <li>Dynamics: ghost notes sit about 16 to 20 dB under the backbeat (was about 5 dB), with a gentler curve on kick and toms. Hi-hats accent the beat, then the &amp;, then the e and a. Every hit gets a small, natural change in strength.</li>
+  <li>No more machine-gun repeats: every kit hit gets a tiny change in pitch and level, and the hi-hats now and then use the neighbouring recording and a slightly different tone.</li>
+  <li>Swing by style, only while the Swing slider sits at the groove's own setting (a swing you set is never changed): Second Line 58%, Pop 16ths and Ballad 54-55%, Disco 53%, Country Train 54%. Jazz swing follows the measured curve: about 2:1 from 90 to 130 bpm, 1.6:1 near 200, 1.15:1 at 290.</li>
+  <li>Pocket "Auto" text: it said the hats lead the backbeat; real drummers do the opposite, so the text and the feel now say the hats land a hair after the snare and kick.</li>
+  <li>Country Train Beat (owner request): alternating hands instead of one flat snare roll. Right-hand strokes (1, &amp;) louder than left-hand ones (e, a), a chug on the "a" before 2 and 4, strong backbeats, left-hand strokes a touch darker and a few ms later, a light 54% lilt. Every second bar adds a soft kick on the &amp; of 2 and a drag into beat 4 so it never loops note for note. Groove key, pattern grid and saved settings unchanged in format.</li>
+</ul>
+<h4>Fixed</h4>
+<ul>
+  <li>Beta copy: kit, brush, bass and keys sample files were looked up next to the beta page instead of the live folder, so the beta played without its acoustic kit. They now load from the live <code>drum-machine/</code> folder (no change on the live page).</li>
+</ul>
+<p class="note">Drum feel data derived from the Groove MIDI Dataset by Google LLC (Gillick, Roberts, Engel, Eck, Bamman, ICML 2019), CC BY 4.0; statistics computed by CHMA. Next beta (A2): real Groove MIDI loops, a fill library, then mix and reverb.</p>
 <h3>Version 2026-11-25.1 (beta 2026-11-25, live 2026-11-26)</h3>
 <h4>Changed</h4>
 <ul>
@@ -924,6 +732,529 @@
 <ul>
   <li>Renamed Groove Metronome to Modal Metronome (2026-11-05).</li>
   <li>Volume on a fader taper; bass lines kept in real bass range.</li>
+</ul>
+
+<!-- ============================================================ -->
+<h2>Scale Climber — scale-climber/</h2>
+
+<h3>Version 2026-11-26.1 (beta 2026-11-26, live 2026-11-27)</h3>
+<h4>Added</h4>
+<ul>
+  <li>Microphone picker like Note Sprint's: choose the microphone, see the Level bar; the choice is remembered on this device. Student feedback.</li>
+  <li>Tempo -5, -1, +1, +5 and "Tap"; click sound picker and click volume (Rhythm Trainer's sounds; ringing pitched sounds switch to the classic click while you sing); count-in of 2 clicks, 1 bar or 2 bars; "Calibrate timing" in "Settings" (timing grade only). Owner request.</li>
+  <li>"Piano volume" slider next to "Hear it" (same setting as "Tone volume" in "Settings"). Student feedback.</li>
+  <li>"Share result" button on the results (hidden site-wide during beta), "How it works" panel, and keys: Space Start/Stop, H "Hear it", Enter "Next level", Esc "Back". Beta tester request.</li>
+  <li>Saved on this device: best climb per level and voice type, the last 10 climbs ("History" in "Settings", with "Clear"), practice-day streak; "New best!" on the results. Beta tester request.</li>
+  <li>"Settings": "Loop" (stay in the same key), "Sing with me (easier)", "Music on round screens", "Copy log". Student feedback.</li>
+</ul>
+<h4>Changed</h4>
+<ul>
+  <li>The pattern and reference notes are now a real grand piano (the Drum Machine's samples, <code>drum-machine/keys/grand/</code>), with low notes lifted automatically. Student feedback.</li>
+  <li>Respects reduced motion. Shared code moved to new files so the live apps and Ear Trainer are untouched until this goes live: <code>shared/voice-apps.js</code>, <code>shared/voice-pitch2.js</code>, <code>shared/voice-apps2.css</code>.</li>
+</ul>
+<h4>Fixed</h4>
+<ul>
+  <li>Stopping a climb early now stops the click and the notes already scheduled, and pressing "Start" again can never start a second metronome. Beta tester request.</li>
+</ul>
+<h3>Version 2026-11-24.1 (beta 2026-11-24)</h3>
+<h4>Added</h4>
+<ul>
+  <li>Favicon: its own icon in the browser tab, bookmarks and the home screen (<code>shared/icons/scale-climber.svg</code>, <code>-32.png</code>, <code>-180.png</code>). Beta tester request.</li>
+</ul>
+<h3>Version 2026-11-20.2</h3>
+<h4>Changed</h4>
+<ul>
+  <li>Button names in help text are now in quotes (e.g. Press "Start"), a house rule for every app.</li>
+</ul>
+
+<h3>Version 2026-11-20.1</h3>
+<h4>Added</h4>
+<ul>
+  <li>New singing app (Sing apps); shared voice pitch engine. Listed on the hub.</li>
+</ul>
+
+<!-- ============================================================ -->
+<h2>Hold Steady — hold-steady/</h2>
+
+<h3>Version 2026-11-26.1 (beta 2026-11-26, live 2026-11-27)</h3>
+<h4>Added</h4>
+<ul>
+  <li>Microphone picker like Note Sprint's: choose the microphone, see the Level bar; the choice is remembered on this device. Student feedback.</li>
+  <li>"Piano volume" slider next to "Hear it" (same setting as "Tone volume" in "Settings"). Student feedback.</li>
+  <li>"Share result" button on the results (hidden site-wide during beta), "How it works" panel, and keys: Space Start/Stop, H "Hear it", Enter "Next level", Esc "Back". Beta tester request.</li>
+  <li>Saved on this device: best hold per level and voice type, the last 10 holds ("History" in "Settings", with "Clear"), practice-day streak; "New best!" on the results. Beta tester request.</li>
+  <li>"Settings": "Loop" (the same hold again until "Stop"), "Sing with me (easier)", "Drone" (your note an octave away on piano), "Music on round screens", "Copy log". Student feedback.</li>
+</ul>
+<h4>Changed</h4>
+<ul>
+  <li>The reference note is now a real grand piano (the Drum Machine's samples, <code>drum-machine/keys/grand/</code>), with low notes lifted automatically. Student feedback.</li>
+  <li>Respects reduced motion. Shared code moved to new files so the live apps and Ear Trainer are untouched until this goes live: <code>shared/voice-apps.js</code>, <code>shared/voice-pitch2.js</code>, <code>shared/voice-apps2.css</code>.</li>
+  <li>Note +/- buttons are locked while Loop is running.</li>
+</ul>
+<h3>Version 2026-11-24.1 (beta 2026-11-24)</h3>
+<h4>Added</h4>
+<ul>
+  <li>Favicon: its own icon in the browser tab, bookmarks and the home screen (<code>shared/icons/hold-steady.svg</code>, <code>-32.png</code>, <code>-180.png</code>). Beta tester request.</li>
+</ul>
+<h3>Version 2026-11-20.2</h3>
+<h4>Changed</h4>
+<ul>
+  <li>Button names in help text are now in quotes (e.g. Press "Start"), a house rule for every app.</li>
+</ul>
+
+<h3>Version 2026-11-20.1</h3>
+<h4>Added</h4>
+<ul>
+  <li>New singing app (Sing apps); shared voice pitch engine. Listed on the hub.</li>
+</ul>
+
+<h2>Match Point — match-point/</h2>
+
+<h3>Version 2026-11-26.1 (beta 2026-11-26, live 2026-11-27)</h3>
+<h4>Added</h4>
+<ul>
+  <li>Microphone picker like Note Sprint's: choose the microphone, see the Level bar; the choice is remembered on this device. Student feedback.</li>
+  <li>"Piano volume" slider next to "Hear it" (same setting as "Tone volume" in "Settings"). Student feedback.</li>
+  <li>"Share result" button on the results (hidden site-wide during beta), "How it works" panel, and keys: Space Start/Stop, H "Hear it", Enter "Next level", Esc "Back". Beta tester request.</li>
+  <li>Saved on this device: best result per level and voice type, the last 10 rounds ("History" in "Settings", with "Clear"), practice-day streak; "New best!" on the results. Beta tester request.</li>
+  <li>"Settings": "Loop" (the same note all round), "Sing with me (easier)", "Drone" (the key note on piano, quietly all round), "Music on round screens" (<code>shared/hype.js</code>), "Copy log". Student feedback.</li>
+</ul>
+<h4>Changed</h4>
+<ul>
+  <li>The reference note is now a real grand piano (the Drum Machine's samples, <code>drum-machine/keys/grand/</code>), with low notes lifted automatically. Student feedback.</li>
+  <li>Respects reduced motion. Shared code moved to new files so the live apps and Ear Trainer are untouched until this goes live: <code>shared/voice-apps.js</code>, <code>shared/voice-pitch2.js</code>, <code>shared/voice-apps2.css</code>.</li>
+</ul>
+<h3>Version 2026-11-24.1 (beta 2026-11-24)</h3>
+<h4>Added</h4>
+<ul>
+  <li>Favicon: its own icon in the browser tab, bookmarks and the home screen (<code>shared/icons/match-point.svg</code>, <code>-32.png</code>, <code>-180.png</code>). Beta tester request.</li>
+</ul>
+<h3>Version 2026-11-20.2</h3>
+<h4>Changed</h4>
+<ul>
+  <li>Button names in help text are now in quotes (e.g. Press "Start"), a house rule for every app.</li>
+</ul>
+
+<h3>Version 2026-11-20.1</h3>
+<h4>Added</h4>
+<ul>
+  <li>New singing app (one of three "Sing apps"); uses <code>shared/voice-pitch.js</code> and <code>shared/voice-apps.css</code>. Listed on the hub.</li>
+</ul>
+
+<h2>Piano Strobe Tuner — piano-tuner/ (not on the hub)</h2>
+
+<p class="note">Built 2026-11-26 from the Guitar Revolution Strobe Tuner engine. Reference tone uses the grand piano samples in <code>drum-machine/keys/grand/</code>.</p>
+
+<h3>Version 2026-11-26.1 (beta 2026-11-26, live 2026-11-27)</h3>
+<h4>Added</h4>
+<ul>
+  <li>New app: a strobe tuner for all 88 piano keys, A0 to C8. It has every Strobe Tuner feature (strobe, A4 calibrate, in-tune window, sharps or flats, microphone level bar, no-sound warning). It finds the note on its own and shows its octave (A4). An 88-key strip lights the key it hears. Owner request. <code>piano-tuner/index.html</code>, <code>piano-tuner/tuner-worklet.js</code></li>
+  <li>Built for piano sound: the bass notes read correctly even when their lowest tone is weak (it works them out from the higher partials and allows for string stiffness), the top notes up to C8 read correctly, and the last reading stays on screen while a key fades out. Owner request.</li>
+  <li>"Hear" and tapping a key on the strip play the note on the grand piano recordings. Tuning check lists every key held until it settled, with its cents. How it works lists the keyboard shortcuts. Settings and the tuning check are saved on the device. The microphone picker matches Note Sprint's. Owner request.</li>
+  <li>Favicon: its own icon in the browser tab, bookmarks and the home screen (<code>shared/icons/piano-tuner.svg</code>, <code>-32.png</code>, <code>-180.png</code>).</li>
+</ul>
+
+<h2>Guitar Revolution Strobe Tuner — guitar-tuner/</h2>
+
+<h3>Version 2026-11-26.1 (beta 2026-11-26, live 2026-11-27)</h3>
+<h4>Changed</h4>
+<ul>
+  <li>Settings, Microphone: now follows Note Sprint's picker. Every input is listed by name with the one in use selected, and a Level meter sits under the list with a line where the tuner starts hearing. The chosen microphone is still remembered on this device. Owner request. <code>guitar-tuner/index.html</code></li>
+</ul>
+
+<h3>Version 2026-11-24.2 (beta 2026-11-24)</h3>
+<h4>Added</h4>
+<ul>
+  <li>Microphone level bar next to the status line, so you can see at once whether the guitar reaches the tuner. <code>guitar-tuner/index.html</code></li>
+  <li>Settings: "Microphone" picker (every input the browser sees; the choice is remembered; an unplugged mic falls back to the default). Derek request: the tuner did not hear the guitar on a computer.</li>
+  <li>After 5 seconds of total silence the status says no sound is reaching the tuner and points to the picker.</li>
+</ul>
+<h3>Version 2026-11-24.1 (beta 2026-11-24)</h3>
+<h4>Added</h4>
+<ul>
+  <li>Favicon: its own icon in the browser tab, bookmarks and the home screen (<code>shared/icons/guitar-tuner.svg</code>, <code>-32.png</code>, <code>-180.png</code>). Beta tester request.</li>
+  <li>Page title now ends in "Clarendon Hills Music Academy". Beta tester request.</li>
+</ul>
+<h3>Version 2026-11-20.1</h3>
+<h4>Changed</h4>
+<ul>
+  <li>Button names in help text are now in quotes (e.g. Press "Start"), a house rule for every app.</li>
+</ul>
+
+<h3>Version 2026-11-13.1</h3>
+<h4>Added</h4>
+<ul>
+  <li>Share button.</li>
+</ul>
+<h3>Version 2026-11-12.1</h3>
+<h4>Changed</h4>
+<ul>
+  <li>One screen, always on, always auto (no power switch, no string picking, no reference tone).</li>
+</ul>
+<h3>Versions 2026-11-11.2 to 2026-11-11.6</h3>
+<h4>Added</h4>
+<ul>
+  <li>11.2: first release, true strobe display.</li>
+</ul>
+<h4>Fixed</h4>
+<ul>
+  <li>11.5: hum rejection, inharmonicity correction, quiet input, sympathetic strings.</li>
+  <li>11.6: wake lock release, mic cancel and resume on tap.</li>
+</ul>
+
+<!-- ============================================================ -->
+<h2>Note Sprint — note-sprint/</h2>
+
+<h3>Version 2026-11-26.1 (beta 2026-11-26, live 2026-11-27)</h3>
+<h4>Changed</h4>
+<ul>
+  <li>Footer line (app name, academy link, version, Send feedback) now matches the other apps: 11 px monospace, faded, centered (was 14 px). Beta tester request. <code>note-sprint/index.html</code></li>
+</ul>
+
+<h3>Version 2026-11-24.1 (beta 2026-11-24)</h3>
+<h4>Added</h4>
+<ul>
+  <li>Favicon: its own icon in the browser tab, bookmarks and the home screen (<code>shared/icons/note-sprint.svg</code>, <code>-32.png</code>, <code>-180.png</code>). Beta tester request.</li>
+  <li>Page title now ends in "Clarendon Hills Music Academy". Beta tester request.</li>
+</ul>
+<h3>Version 2026-11-20.1</h3>
+<h4>Changed</h4>
+<ul>
+  <li>Button names in help text are now in quotes (e.g. Press "Start"), a house rule for every app.</li>
+  <li>"Paste it to your teacher" now says "instructor".</li>
+</ul>
+
+<h3>Version 2026-11-19.4</h3>
+<h4>Changed</h4>
+<ul>
+  <li>Space levels include the spaces just below and above the staff (committed 2026-11-20).</li>
+</ul>
+
+<h3>Versions 2026-11-19.1 to 2026-11-19.3</h3>
+<h4>Added</h4>
+<ul>
+  <li>19.2: preset levels (treble / bass spaces, lines, all; upper / lower ledgers; all + ledgers).</li>
+  <li>19.3: Middle C zone level; Both hands at level 7.</li>
+</ul>
+<h4>Changed</h4>
+<ul>
+  <li>19.1: Challenge rebuilt as an arcade ladder (fixed running-total targets, points carry over, no warm-up baseline).</li>
+  <li>19.3: ledger levels capped at 2 lines.</li>
+</ul>
+
+<h3>Versions 2026-11-18.1 to 2026-11-18.3</h3>
+<h4>Added</h4>
+<ul>
+  <li>18.1: MIDI activity light.</li>
+</ul>
+<h4>Changed</h4>
+<ul>
+  <li>18.2: Custom settings in one clean column.</li>
+  <li>18.3: no note sounds in MIDI mode.</li>
+</ul>
+
+<h3>Versions 2026-11-13.1 to 2026-11-13.4</h3>
+<h4>Added</h4>
+<ul>
+  <li>13.1: levels Treble spaces, Bass spaces, Treble ledgers, Bass ledgers; Ledger-lines-only option in Custom.</li>
+  <li>13.2 / 13.3: MIDI input (shared MIDI block v1.1).</li>
+  <li>13.4: Share result button (hidden during beta since 2026-11-19).</li>
+</ul>
+
+<h3>Versions 2026-11-11.12 and 2026-11-12.1 (mic rebuild)</h3>
+<h4>Added</h4>
+<ul>
+  <li>11.12: music on round screens (<code>shared/hype.js</code>); the mic ignores it while it plays.</li>
+</ul>
+<h4>Changed</h4>
+<ul>
+  <li>Mic recognition rebuilt for digital pianos (tail-aware pitch, clipped strikes, low bass, F5 / G5); two-column layout. Published as 2026-11-12.1; the 11.13 build was the in-progress step.</li>
+</ul>
+
+<h3>Versions 2026-11-11.1 to 2026-11-11.11</h3>
+<h4>Changed</h4>
+<ul>
+  <li>11.1: restyled to the shared CHMA design system.</li>
+  <li>11.8: round targets softened to 1.05x (Derek's call).</li>
+  <li>11.9: 60-second sprint removed; Challenge only.</li>
+  <li>11.10: Retry round removed from challenge results (Derek).</li>
+  <li>11.11: round screens stay up long enough to read; second try off by default.</li>
+</ul>
+<h4>Fixed</h4>
+<ul>
+  <li>11.2 to 11.7: audit and fuzz rounds (accidental collisions, enharmonic feedback, iOS resize, Notion mic with "Open full screen", timer races, challenge score leaking into the practice board).</li>
+</ul>
+
+<h3>Versions 2026-11-10.1 to 2026-11-10.3</h3>
+<h4>Changed</h4>
+<ul>
+  <li>10.1: name field removed and any stored name cleared (privacy).</li>
+  <li>10.2: talking never counts as a note.</li>
+  <li>10.3: faster, steadier mic.</li>
+</ul>
+
+<h3>Versions 2026-11-05.4 to 2026-11-05.10</h3>
+<h4>Added</h4>
+<ul>
+  <li>05.4: visible version tag.</li>
+  <li>05.9: Lines only / Spaces only setting; fireworks at 90%+ accuracy.</li>
+</ul>
+<h4>Changed</h4>
+<ul>
+  <li>05.5: academy name linked to the studio website.</li>
+  <li>05.6 / 05.7: challenge targets ramp round to round.</li>
+  <li>05.10: mic status messages in a calm, readable card.</li>
+</ul>
+
+<h3>(version not recorded) 2026-11-03 to 2026-11-05</h3>
+<h4>Added</h4>
+<ul>
+  <li>First release on GitHub Pages: stopwatch countdown, register-exact keyboard, key signatures, mic mode, Intervals level.</li>
+  <li>Challenge mode (arcade rounds, rising pace), per-clef note ranges, landmark notes, Try again / Show me.</li>
+  <li>Mic pitch detection (YIN) that learns the piano's tuning; keyboard at finger size centred on the notes in play.</li>
+</ul>
+
+<!-- ============================================================ -->
+<h2>Key Finder — key-finder/</h2>
+
+<h3>Version 2026-11-26.1 (beta 2026-11-26, live 2026-11-27)</h3>
+<h4>Changed</h4>
+<ul>
+  <li>Footer line (app name, academy link, version, Send feedback) now matches the other apps: 11 px, faded, centered (was 14 px). Beta tester request. <code>key-finder/index.html</code></li>
+</ul>
+<h3>Version 2026-11-24.1 (beta 2026-11-24)</h3>
+<h4>Changed</h4>
+<ul>
+  <li>The Level button row starts 16 px in from the left edge, like Note Sprint's, and stays there when it scrolls (scroll padding). Beta tester request. <code>key-finder/index.html</code></li>
+</ul>
+<h4>Added</h4>
+<ul>
+  <li>Favicon: its own icon in the browser tab, bookmarks and the home screen (<code>shared/icons/key-finder.svg</code>, <code>-32.png</code>, <code>-180.png</code>). Beta tester request.</li>
+</ul>
+<h3>Version 2026-11-20.1</h3>
+<h4>Changed</h4>
+<ul>
+  <li>Button names in help text are now in quotes (e.g. Press "Start"), a house rule for every app.</li>
+  <li>"Paste it to your teacher" now says "instructor".</li>
+</ul>
+
+<h3>Version 2026-11-18.1</h3>
+<h4>Added</h4>
+<ul>
+  <li>MIDI activity light.</li>
+</ul>
+<h3>Versions 2026-11-13.1 to 2026-11-13.3</h3>
+<h4>Added</h4>
+<ul>
+  <li>13.1: MIDI input; "Play my piano".</li>
+  <li>13.3: Share result button (hidden during beta since 2026-11-19).</li>
+</ul>
+<h4>Fixed</h4>
+<ul>
+  <li>13.2: shared MIDI block v1.1.</li>
+</ul>
+<h3>Version 2026-11-12.1</h3>
+<h4>Changed</h4>
+<ul>
+  <li>Layout pass: main button always on screen.</li>
+</ul>
+<h3>Versions 2026-11-11.1 to 2026-11-11.11</h3>
+<h4>Added</h4>
+<ul>
+  <li>11.8: Challenge mode (replaces the 60-second sprint).</li>
+  <li>11.11: music on round screens (<code>shared/hype.js</code>), on by default.</li>
+</ul>
+<h4>Changed</h4>
+<ul>
+  <li>11.1: restyled to the shared CHMA design system.</li>
+  <li>11.9: Retry round removed (Derek).</li>
+  <li>11.10: round screens stay up long enough to read.</li>
+</ul>
+<h4>Fixed</h4>
+<ul>
+  <li>11.2 to 11.7: audit and fuzz rounds (glowing key always in view, black-key labels with octave, iOS resize, timer races).</li>
+</ul>
+<h3>Version 2026-11-05.1</h3>
+<h4>Added</h4>
+<ul>
+  <li>First release: piano key identification game (no staff); name the glowing key or find the named key; 5 levels.</li>
+</ul>
+
+<!-- ============================================================ -->
+<h2>Meter Master — meter-master/</h2>
+
+<h3>Version 2026-11-26.1 (beta 2026-11-26, live 2026-11-27)</h3>
+<h4>Changed</h4>
+<ul>
+  <li>Footer line (app name, academy link, version, Send feedback) now matches the other apps: 11 px, faded, centered (was 14 px). Beta tester request. <code>meter-master/index.html</code></li>
+</ul>
+<h3>Version 2026-11-24.1 (beta 2026-11-24)</h3>
+<h4>Changed</h4>
+<ul>
+  <li>The Level button row starts 16 px in from the left edge, like Note Sprint's, and stays there when it scrolls (scroll padding); the tempo row lines up with it. Beta tester request. <code>meter-master/index.html</code></li>
+</ul>
+<h4>Added</h4>
+<ul>
+  <li>Favicon: its own icon in the browser tab, bookmarks and the home screen (<code>shared/icons/meter-master.svg</code>, <code>-32.png</code>, <code>-180.png</code>). Beta tester request.</li>
+</ul>
+<h3>Version 2026-11-21.1 (beta 2026-11-21, live 2026-11-23)</h3>
+<h4>Fixed</h4>
+<ul>
+  <li>Nothing on the page selects as text, however fast you tap; typing boxes still work. Beta tester request. <code>meter-master/index.html</code></li>
+</ul>
+<h3>Version 2026-11-20.1</h3>
+<h4>Changed</h4>
+<ul>
+  <li>Button names in help text are now in quotes (e.g. Press "Start"), a house rule for every app.</li>
+</ul>
+
+<h3>Version 2026-11-20.2</h3>
+<h4>Fixed</h4>
+<ul>
+  <li>Fast taps on the pad no longer select the text below it ("Your taps in this bar") on phones.</li>
+  <li>The page no longer slides up and down while a run is going; the game card scrolls into view when a run starts.</li>
+</ul>
+
+<h3>Version 2026-11-19.1</h3>
+<h4>Changed</h4>
+<ul>
+  <li>Real recorded cowbell.</li>
+</ul>
+<h3>Version 2026-11-18.1</h3>
+<h4>Added</h4>
+<ul>
+  <li>MIDI activity light.</li>
+</ul>
+<h3>Versions 2026-11-13.1 to 2026-11-13.4</h3>
+<h4>Added</h4>
+<ul>
+  <li>13.1: Clap or snap and One note mic modes.</li>
+  <li>13.3: Share result button (hidden during beta since 2026-11-19).</li>
+</ul>
+<h4>Fixed</h4>
+<ul>
+  <li>13.2: MIDI field fix, automatic latency.</li>
+  <li>13.4: clean rapid taps on phones.</li>
+</ul>
+<h3>Version 2026-11-12.1</h3>
+<h4>Added</h4>
+<ul>
+  <li>First release: internal-clock trainer (keep quarter notes through silent gaps, graded against the audio clock).</li>
+</ul>
+
+<!-- ============================================================ -->
+<h2>Ear Trainer — ear-trainer/</h2>
+
+<h3>Version 2026-11-26.1 (beta 2026-11-26, live 2026-11-27)</h3>
+<h4>Changed</h4>
+<ul>
+  <li>Footer line (app name, academy link, version, Send feedback) now matches the other apps: 11 px, faded, centered (was 14 px). Beta tester request. <code>ear-trainer/index.html</code></li>
+</ul>
+
+<h3>Version 2026-11-25.1 (beta 2026-11-25, live 2026-11-26)</h3>
+<h4>Added</h4>
+<ul>
+  <li>Volume section: separate sliders for the reference note (and the I - IV - V - I) and the mystery note, 0 to 150 percent, remembered on the device (<code>et-volref</code>, <code>et-volmys</code>); moving a slider plays a short C4 so you hear the level. Default 100 percent is the old loudness. Student feedback. <code>ear-trainer/index.html</code></li>
+  <li>Microphone picker, shown with Answer with: Microphone, same idea as Note Sprint: a Microphone menu lists the inputs once the mic is on, switching restarts the mic on the chosen input, the level meter is shown, and the choice is remembered (<code>et-micdev</code>; an unplugged mic falls back to the default). Student feedback. <code>ear-trainer/index.html</code></li>
+</ul>
+<h4>Changed</h4>
+<ul>
+  <li>"Hear the pair" button sits on its own line under the explanation text instead of beside it. Beta tester request. <code>ear-trainer/index.html</code></li>
+</ul>
+<h4>Fixed</h4>
+<ul>
+  <li>Mystery note with On screen (for example Level 2, Five notes): no answer buttons showed, only an unmarked keyboard, so there was nothing obvious to press. Levels with 13 or fewer possible notes now show a row of answer buttons (C4, D4, E4 and so on) under the keyboard; tap a key or a button. The button you pressed turns red on a miss and the right one turns green. Levels with more notes (up and down, chromatic, any reference) keep the keyboard only. Student feedback. <code>ear-trainer/index.html</code></li>
+</ul>
+<h3>Version 2026-11-24.2 (beta 2026-11-24)</h3>
+<h4>Added</h4>
+<ul>
+  <li>"Answer with: Microphone": sing the answer or play it on your piano. Any octave counts; a note held steady for about a tenth of a second is the answer. The mic ignores the app's own notes and their ring. Uses <code>shared/voice-pitch.js</code>. Derek request. <code>ear-trainer/index.html</code></li>
+</ul>
+<h3>Version 2026-11-24.1 (beta 2026-11-24)</h3>
+<h4>Changed</h4>
+<ul>
+  <li>The Level button row starts 16 px in from the left edge, like Note Sprint's, and stays there when it scrolls (scroll padding). Beta tester request. <code>ear-trainer/index.html</code></li>
+</ul>
+<h4>Added</h4>
+<ul>
+  <li>Favicon: its own icon in the browser tab, bookmarks and the home screen (<code>shared/icons/ear-trainer.svg</code>, <code>-32.png</code>, <code>-180.png</code>). Beta tester request.</li>
+</ul>
+<h3>Version 2026-11-20.1</h3>
+<h4>Changed</h4>
+<ul>
+  <li>Button names in help text are now in quotes (e.g. Press "Start"), a house rule for every app.</li>
+</ul>
+
+<h3>Version 2026-11-18.1</h3>
+<h4>Added</h4>
+<ul>
+  <li>MIDI activity light.</li>
+</ul>
+<h3>Versions 2026-11-13.1 to 2026-11-13.4</h3>
+<h4>Added</h4>
+<ul>
+  <li>13.2 / 13.3: MIDI input (shared MIDI block v1.1).</li>
+  <li>13.4: Share button.</li>
+</ul>
+<h4>Changed</h4>
+<ul>
+  <li>13.1: parent-key numerals.</li>
+</ul>
+<h3>Version 2026-11-12.1</h3>
+<h4>Added</h4>
+<ul>
+  <li>First release: relative pitch with reference notes (mystery note, scale degree, interval).</li>
+</ul>
+
+<!-- ============================================================ -->
+<h2>Riff Simon Says — riff-says/</h2>
+
+<h3>Version 2026-11-26.1 (beta 2026-11-26)</h3>
+<h4>Changed</h4>
+<ul>
+  <li>Footer line (app name, academy link, version, Send feedback) now matches the other apps: regular weight, 11 px, faded, centered (was bold 14 px). Beta tester request. <code>riff-says/index.html</code></li>
+</ul>
+<p class="note">Test files in <code>riff-says/tests/</code>.</p>
+<h3>Version 2026-11-24.1 (beta 2026-11-24)</h3>
+<h4>Fixed</h4>
+<ul>
+  <li>Holding a piano key on an iPhone no longer brings up the text magnifier (touchstart and the long-press menu are cancelled on the keys, as on the tap pads). Beta tester follow-up. <code>riff-says/index.html</code></li>
+</ul>
+<h4>Added</h4>
+<ul>
+  <li>Favicon: its own icon in the browser tab, bookmarks and the home screen (<code>shared/icons/riff-says.svg</code>, <code>-32.png</code>, <code>-180.png</code>). Beta tester request.</li>
+</ul>
+<h3>Version 2026-11-23.1 (beta 2026-11-23)</h3>
+<h4>Fixed</h4>
+<ul>
+  <li>Playing the piano keys fast never selects text on the page any more (nothing on the page selects as text; typing boxes still work). Beta tester request. <code>riff-says/index.html</code></li>
+</ul>
+<h3>Version 2026-11-20.1</h3>
+<h4>Changed</h4>
+<ul>
+  <li>Button names in help text are now in quotes (e.g. Press "Start"), a house rule for every app.</li>
+</ul>
+
+<h3>Version 2026-11-18.1</h3>
+<h4>Added</h4>
+<ul>
+  <li>MIDI activity light.</li>
+</ul>
+<h3>Versions 2026-11-13.1 to 2026-11-13.5</h3>
+<h4>Added</h4>
+<ul>
+  <li>13.2 / 13.3: MIDI input (shared MIDI block v1.1).</li>
+  <li>13.4: a real rhythm section in every style with the call on top; automatic latency; octave feedback.</li>
+  <li>13.5: Share result button (hidden during beta since 2026-11-19).</li>
+</ul>
+<h4>Changed</h4>
+<ul>
+  <li>13.1: parent-key numerals.</li>
+</ul>
+<h3>Version 2026-11-12.1</h3>
+<h4>Added</h4>
+<ul>
+  <li>First release: call-and-response improv trainer.</li>
 </ul>
 
 <!-- ============================================================ -->
@@ -1554,7 +1885,7 @@
 <!-- ============================================================ -->
 <h2>Shared and site</h2>
 
-<h3>Hub (index.html) Version 2026-11-26.1 (beta 2026-11-26)</h3>
+<h3>Hub (index.html) Version 2026-11-26.1 (beta 2026-11-26, live 2026-11-27)</h3>
 <h4>Changed</h4>
 <ul>
   <li><code>index.html</code>: footer line now matches the apps: regular weight, 11 px, faded (was bold 14 px). Footer only; the app list and the Instructors feedback button are unchanged. Beta tester request.</li>
